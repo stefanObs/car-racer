@@ -11,14 +11,15 @@ import { formatChf } from "../src/meta/save";
 
 describe("mvp core", () => {
   it("versions the build", () => {
-    expect(APP_VERSION).toBe("0.2.22");
+    expect(APP_VERSION).toBe("0.2.23");
   });
 
   it("builds a closed cup track with asphalt width", () => {
-    const track = buildTrackFromLevel(CUP_LEVELS[0]!);
+    const level = CUP_LEVELS[0]!;
+    const track = buildTrackFromLevel(level);
     expect(track.centerline.length).toBeGreaterThan(20);
     expect(track.totalLength).toBeGreaterThan(100);
-    expect(track.asphaltHalfWidth).toBe(6);
+    expect(track.asphaltHalfWidth).toBe(level.track.asphaltWidth / 2);
   });
 
   it("keeps grass slower even with suspension mitigation", () => {

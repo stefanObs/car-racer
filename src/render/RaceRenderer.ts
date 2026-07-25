@@ -9,6 +9,7 @@ import {
   HemisphereLight,
   Mesh,
   MeshBasicMaterial,
+  MeshToonMaterial,
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
@@ -23,22 +24,27 @@ import { surfaceAt } from "../sim/zones";
 import { CARS } from "../data/cars";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
+import { buildLevelObstacles } from "./levelObstacles";
 import { ComicPalette } from "./palette";
+import { themeLook, type ThemeLook } from "./themeLook";
 import { buildThemeScenery } from "./themeScenery";
 import { buildSmoothTrack } from "./trackMesh";
 
-function makeSkyTexture(): CanvasTexture {
+function hexCss(n: number): string {
+  return `#${n.toString(16).padStart(6, "0")}`;
+}
+
+function makeSkyTexture(look: ThemeLook): CanvasTexture {
   const c = document.createElement("canvas");
   c.width = 8;
   c.height = 64;
   const ctx = c.getContext("2d")!;
   const g = ctx.createLinearGradient(0, 0, 0, 64);
-  g.addColorStop(0, "#7ec4ef");
-  g.addColorStop(0.45, "#5BA3D9");
-  g.addColorStop(1, "#3d7eae");
+  g.addColorStop(0, hexCss(look.hemiSky));
+  g.addColorStop(0.45, hexCss(look.sky));
+  g.addColorStop(1, hexCss(look.skyLow));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 8, 64);
-  // Flat cloud bands
   ctx.fillStyle = "#f4f7fa";
   ctx.fillRect(0, 18, 8, 3);
   ctx.fillRect(0, 28, 8, 2);
@@ -55,13 +61,20 @@ export class RaceRenderer {
   private readonly lastNitro = new Map<string, number>();
   private trackGroup = new Group();
   private sceneryGroup = new Group();
+  private obstacleGroup = new Group();
   private idleGroup = new Group();
   private idleCar: Group | null = null;
   private fxTime = 0;
+  private readonly hemi: HemisphereLight;
+  private readonly groundMesh: Mesh;
+  private readonly skyMesh: Mesh;
+  private readonly fog: Fog;
 
   constructor(canvas: HTMLCanvasElement) {
-    this.scene.background = new Color(ComicPalette.sky);
-    this.scene.fog = new Fog(ComicPalette.skyLow, 70, 200);
+    const look = themeLook("harbor");
+    this.scene.background = new Color(look.sky);
+    this.fog = new Fog(look.skyLow, look.fogNear, look.fogFar);
+    this.scene.fog = this.fog;
 
     this.renderer = new WebGLRenderer({
       canvas,
@@ -71,27 +84,28 @@ export class RaceRenderer {
       failIfMajorPerformanceCaveat: false,
     });
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-    this.renderer.setClearColor(ComicPalette.sky, 1);
+    this.renderer.setClearColor(look.sky, 1);
     this.renderer.outputColorSpace = SRGBColorSpace;
     canvas.style.imageRendering = "auto";
 
-    this.scene.add(new HemisphereLight(0xc8e4ff, 0x3f8f3a, 0.65));
+    this.hemi = new HemisphereLight(look.hemiSky, look.hemiGround, 0.65);
+    this.scene.add(this.hemi);
     this.scene.add(new AmbientLight(0xffffff, 0.4));
     const sun = new DirectionalLight(0xfff1d6, 1.25);
     sun.position.set(18, 28, 12);
     this.scene.add(sun);
 
-    const ground = new Mesh(new PlaneGeometry(480, 480), comicToon(ComicPalette.ground));
-    ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.08;
-    this.scene.add(ground);
+    this.groundMesh = new Mesh(new PlaneGeometry(480, 480), comicToon(look.ground));
+    this.groundMesh.rotation.x = -Math.PI / 2;
+    this.groundMesh.position.y = -0.08;
+    this.scene.add(this.groundMesh);
 
-    const sky = new Mesh(
+    this.skyMesh = new Mesh(
       new SphereGeometry(280, 24, 16),
-      new MeshBasicMaterial({ map: makeSkyTexture(), side: BackSide }),
+      new MeshBasicMaterial({ map: makeSkyTexture(look), side: BackSide }),
     );
-    sky.scale.y = 0.72;
-    this.scene.add(sky);
+    this.skyMesh.scale.y = 0.72;
+    this.scene.add(this.skyMesh);
 
     // Soft cloud cards
     for (const [x, y, z, sx] of [
@@ -166,15 +180,35 @@ export class RaceRenderer {
     this.renderer.setSize(w, h, false);
   }
 
+  private applyTheme(theme: string): void {
+    const look = themeLook(theme);
+    this.scene.background = new Color(look.sky);
+    this.fog.color.setHex(look.skyLow);
+    this.fog.near = look.fogNear;
+    this.fog.far = look.fogFar;
+    this.renderer.setClearColor(look.sky, 1);
+    this.hemi.color.setHex(look.hemiSky);
+    this.hemi.groundColor.setHex(look.hemiGround);
+    (this.groundMesh.material as MeshToonMaterial).color.setHex(look.ground);
+    const skyMat = this.skyMesh.material as MeshBasicMaterial;
+    skyMat.map?.dispose();
+    skyMat.map = makeSkyTexture(look);
+    skyMat.needsUpdate = true;
+  }
+
   buildTrack(session: RaceSession): void {
     this.idleGroup.visible = false;
+    this.applyTheme(session.level.theme);
     this.scene.remove(this.trackGroup);
     this.scene.remove(this.sceneryGroup);
+    this.scene.remove(this.obstacleGroup);
     disposeObject(this.trackGroup);
     disposeObject(this.sceneryGroup);
+    disposeObject(this.obstacleGroup);
     this.trackGroup = buildSmoothTrack(session.track);
     this.sceneryGroup = buildThemeScenery(session.track, session.level.theme);
-    this.scene.add(this.trackGroup, this.sceneryGroup);
+    this.obstacleGroup = buildLevelObstacles(session.level);
+    this.scene.add(this.trackGroup, this.sceneryGroup, this.obstacleGroup);
     this.clearCars();
     this.lastNitro.clear();
     for (const car of session.cars) {
