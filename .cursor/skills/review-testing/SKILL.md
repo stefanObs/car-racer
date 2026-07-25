@@ -131,6 +131,7 @@ Run unit/smoke tests (`npm test`) **and** browser checks. Never claim “regress
 Against Asphalt-Comic (`reference.png` / style bible), judged from **browser screenshots**:
 
 - Cel-shade, thick outlines, flat bold colors — not photoreal / neon-purple / diorama / low-poly
+- Cars match **category** of real vehicles (sport vs pickup etc.) while staying comic + mesh-simple (see `assets/art-style/car-category-targets.png`)
 - Asphalt vs grass vs tire wall vs concrete **instantly** distinguishable (WebGL; 2D-Fallback may be flatter — still readable zones)
 - Damage stages + **heal FX** readable when in race
 - Stickers/livery sit flat on paint; cosmetics never look like stat buffs

@@ -21,9 +21,27 @@ For palette hex and prompt blocks, see [style-bible.md](style-bible.md).
 - Cel-shaded / hard shading (few value steps, no soft PBR)
 - Thick dark outlines on cars and key props
 - Bold flat local colors; clear silhouettes
-- Cartoon-hard, readable, ages 10+ — not chibi, not photoreal
+- Cartoon-hard, readable, ages 10+ — not chibi, not photoreal materials
 - Chase or slightly elevated rear camera for racing shots
 - Sunny or clear daylight as default; themes tint background only
+
+## Vehicle category fidelity (required)
+
+Cars must **read like real vehicles of their class**, not generic toy blobs:
+
+| Class (game) | Real-world cue (aspire to) |
+|--------------|----------------------------|
+| Sportwagen (Blitz) | Modern coupe / GT proportions — low nose, cabin set back, wide rear haunches |
+| Pick-up (Bison) | Real pickup — separate cab, open bed, upright greenhouse, higher ride |
+| Buggy | Open/off-road buggy — roll cage, short wheelbase, fat tires, exposed |
+| Hot Rod | Classic hot rod — long hood, chopped cabin, big rear tires, loud stance |
+| Panzerwagen | Armored truck / APC-lite — boxy armor, heavy wheels, blunt nose |
+
+Still **Asphalt-Comic**: flat paint, outlines, 2–3 shade steps. **Not** photoreal chrome/PBR.
+
+**Engine-renderable:** prefer clear primary volumes (body, cabin, wheels, 1–2 signature props) that three.js toon meshes can match. Avoid tiny panel gaps, soft fillets, or photo detail that cannot ship in-game.
+
+**Target sheet:** [car-category-targets.png](../../../assets/art-style/car-category-targets.png) — use when designing or judging car meshes/overlays.
 
 ## Track readability (always)
 
@@ -54,9 +72,9 @@ Uneven track = visible chassis bounce/wobble. Suspension-heavy cars look calmer.
 
 ## Do / Don't
 
-**Do:** thick outlines, flat fills, hard shadows, readable grass vs asphalt vs wall, sticker-friendly car sides.
+**Do:** thick outlines, flat fills, hard shadows, readable grass vs asphalt vs wall, sticker-friendly car sides, **category-faithful silhouettes** (real-world class cues).
 
-**Don't:** photoreal materials, purple/magenta glow defaults, cream+terracotta poster look, soft AO-heavy realism, voxel/low-poly, miniature flock grass, UI clutter unless asked.
+**Don't:** photoreal materials, purple/magenta glow defaults, cream+terracotta poster look, soft AO-heavy realism, voxel/low-poly, miniature flock grass, UI clutter unless asked, **generic same-blob cars** for different classes.
 
 ## In-engine / CSS assets
 

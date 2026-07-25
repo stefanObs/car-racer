@@ -73,6 +73,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 
 - [ ] Matches Asphalt-Comic reference (outlines, flat color, hard shade)
 - [ ] No purple glow / photoreal / diorama / low-poly drift
+- [ ] Cars read as their real-world category (silhouette test vs `car-category-targets.png`)
 - [ ] Grass ≠ asphalt ≠ tire wall ≠ concrete
 - [ ] Uneven surfaces read as buckel/wobble opportunity
 - [ ] Damage and heal FX on-model and readable

@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v3.7 Category-faithful car silhouettes
+
+- Trigger: user — art should strive for looks close to real cars of each category; sample target image
+- Decision: Keep Asphalt-Comic (cel, outlines, flat color — not photoreal materials). Add rule that proportions/type cues match real category vehicles and stay engine-renderable. Canonical sample sheet: `assets/art-style/car-category-targets.png`
+- CONCEPT §§ touched: §2 visual; §5.1 art note; §13 summary → v3.7
+- Skills: asphalt-comic-art SKILL + style-bible vehicle targets
+
 ### 2026-07-25 — v3.6 Garage is the home hub
 
 - Trigger: user — boot into garage; emphasize equipping; make garage look good

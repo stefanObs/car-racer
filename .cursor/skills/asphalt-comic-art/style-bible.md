@@ -5,9 +5,17 @@
 ```
 Crash Circuit Asphalt-Comic style: cel-shaded arcade racing art, thick dark outlines,
 bold flat colors, hard shading (2–3 value steps), clear silhouettes, cartoon-hard not
-photoreal, not chibi, not low-poly, not miniature diorama, not purple neon glow.
-Match reference: sunny readable track, sportscar with comic outlines.
+photoreal materials, not chibi, not low-poly, not miniature diorama, not purple neon glow.
+Vehicle silhouettes close to real cars of their category (sport coupe, pickup, buggy, hot rod,
+armored truck) but simplified for game meshes. Match reference: sunny readable track,
+sportscar with comic outlines.
 ```
+
+## Vehicle category targets
+
+Canonical lineup: `assets/art-style/car-category-targets.png`.
+
+Each car should pass a **silhouette test**: a player names the real-world category without reading the label. Forms must stay **renderable** in-engine (few bold volumes + outline shells).
 
 ## Palette (default daylight)
 
@@ -43,7 +51,8 @@ Theme variants (harbor, canyon, factory) recolor **backgrounds only**; keep asph
 
 ## Example subjects
 
-- Hero red sportscar on harbor straight, grass + concrete wall
-- Pick-up exiting corner beside tire wall, light damage smoke
+- Hero red sportscar on harbor straight, grass + concrete wall — GT/coupe proportions
+- Pick-up exiting corner beside tire wall, light damage smoke — real cab + bed
 - Garage turntable: car with flame stickers, cel-shaded
 - Uneven buckel section: chassis visibly hopping
+- Five-class garage lineup matching `car-category-targets.png`

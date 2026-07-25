@@ -21,8 +21,9 @@ Du baust in der Garage dein Auto so, dass die Teile **zusammenpassen**, und fäh
 
 - **Fantasie:** Tuner-Garage + Asphaltpiste. Nicht realistisch-simuliert, sondern knackig, lesbar, belohnend.
 - **Ton:** Cool, frech, nicht kindisch. Humor über Ansagen, Fahrzeugnamen und Fahr-Feedback — keine Gewalt-Fantasie über Menschen.
-- **Visuell (locked):** **Asphalt-Comic** — Cel-Shading, dicke Outlines, flache knallige Farben, klare Silhouetten; lesbare Schaden-/Heil-Effekte. Cartoon-hart, nicht fotorealistisch.  
-  Skill: `.cursor/skills/asphalt-comic-art/` · Referenz: `assets/art-style/asphalt-comic-reference.png`
+- **Visuell (locked):** **Asphalt-Comic** — Cel-Shading, dicke Outlines, flache knallige Farben, klare Silhouetten; lesbare Schaden-/Heil-Effekte. Cartoon-hart, **nicht fotorealistisch** (keine PBR-/Foto-Materialien).  
+  Skill: `.cursor/skills/asphalt-comic-art/` · Referenz: `.cursor/skills/asphalt-comic-art/reference.png`
+- **Fahrzeug-Look:** Silhouette, Proportionen und Typ-Merkmale sollen **nah an echten Autos der jeweiligen Klasse** liegen (z. B. Sportwagen ≈ moderne Coupé/GT-Form; Pick-up ≈ echte Pickup-Box und Kabine). Ziel: sofort erkennbare Kategorie, aber **im Engine-Look renderbar** (klare Volumen, wenige Hauptflächen, dicke Outlines — kein Detail-Wirrwarr). Zielblatt: `assets/art-style/car-category-targets.png`.
 
 **USP:**  
 **Kern:** getunte Autos möglichst schnell über die Linie bringen.  
@@ -219,6 +220,8 @@ Statt endloser Einzelautos: **Klassen** mit klarem Fantasy- und Stats-Profil. Pr
 | **Panzerwagen** (Mid/Late Unlock) („Bunker“) | Fast unzerstörbar | Extrem panzerig, unerschütterlich | Sehr langsam, schlechtes Handling — braucht Teile-Kombo zum Leben |
 
 **Frühes Unlock-Beispiel:** Sportwagen + Pick-up frei → Buggy → Hot Rod → Panzerwagen.
+
+**Art-Regel (Klassen):** Jede Klasse strebt eine **kategorie-treue** Comic-Form an — so nah an realen Fahrzeugen dieser Kategorie, dass ein 10-Jähriger sofort „Sportwagen“ vs. „Pick-up“ vs. „Buggy“ erkennt. Formen müssen mit dem Asphalt-Comic-Mesh-Stil **machbar** bleiben (siehe Zielblatt `assets/art-style/car-category-targets.png`).
 
 Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 
@@ -475,6 +478,7 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 | Währung | **CHF** |
 | Sitzungs-Pacing | **7–15 min** → Freischalten oder sinnvolles Garage-Upgrade |
 | Schmücken | Lack + **Aufkleber** — **pro Auto**; Teile ebenfalls **nicht** zwischen Autos geteilt |
+| Fahrzeug-Art | Kategorie-treue Silhouetten (nah an echten Klassen-Autos), Asphalt-Comic, engine-renderbar |
 | Modi | Cup + **Freier Modus** + **Ad-hoc-generierte Strecken** |
 | Eingabe / Plattform | **Tastatur + Controller + Tablet (Touch)** — gleichwertig spielbar |
 | Tech (Empfehlung) | **TS + Vite + three.js + HTML-UI** übernommen; nur Free/OSS — siehe `TECH.md` |
@@ -482,4 +486,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.6 — Garage als Start-Hub (ausrüsten zuerst).*
+*Dokumentstand: Konzept v3.7 — Fahrzeug-Look nah an realen Klassen, Asphalt-Comic renderbar.*
