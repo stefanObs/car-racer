@@ -2,6 +2,16 @@
 
 Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 
+## 0. Server + browser (mandatory)
+
+- [ ] Dev server started (`./start.sh` or `npm run dev`)
+- [ ] URL opens (default http://127.0.0.1:5173/)
+- [ ] Browser snapshot/screenshot: Hauptmenü visible (Crash Circuit + Cup / Freier Modus / Garage)
+- [ ] Not stuck on blank/dark screen or unexplained boot-error
+- [ ] Click through at least: Menü → Cup or Garage → back
+- [ ] If racing was in scope: start one race; HUD + track/canvas visible
+- [ ] Note WebGL vs `2D-Fallback` if shown
+
 ## A. Doability (10+ player)
 
 - [ ] German labels make sense without slang walls of text

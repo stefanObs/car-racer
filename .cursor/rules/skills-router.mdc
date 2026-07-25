@@ -21,4 +21,4 @@ After each implementation step: version → commit on `master` → push (see `.c
 
 **Multi-match is normal** (e.g. new race feature → game-concept + clean-programming + review-testing; track mockup → level-editor + asphalt-comic-art).
 
-**Default baseline for implementation tasks:** `game-concept` + `clean-programming`. Add others as the table requires. Finish with `review-testing` when verifying player-facing changes.
+**Default baseline for implementation tasks:** `game-concept` + `clean-programming`. Add others as the table requires. Finish player-facing work with `review-testing` (**start server + browser**).

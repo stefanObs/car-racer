@@ -8,7 +8,7 @@ This repo’s design and workflow live in project skills. **Use every skill that
 |-------|------|----------|
 | Game concept | `.cursor/skills/game-concept/SKILL.md` | Design, CONCEPT.md, feature fit, concept vs impl |
 | Clean programming | `.cursor/skills/clean-programming/SKILL.md` | Any code change, bugs, refactors, tests |
-| Review & testing | `.cursor/skills/review-testing/SKILL.md` | QA, playtest, UX, art consistency, level regression |
+| Review & testing | `.cursor/skills/review-testing/SKILL.md` | QA, playtest, UX, art consistency, level regression — **always start server + browser** |
 | Asphalt-Comic art | `.cursor/skills/asphalt-comic-art/SKILL.md` | Any visuals / image generation |
 | Level editor | `.cursor/skills/level-editor/SKILL.md` | Tracks, cups, free/ad-hoc levels |
 

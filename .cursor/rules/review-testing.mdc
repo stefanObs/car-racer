@@ -1,5 +1,5 @@
 ---
-description: Use Crash Circuit review-testing for playtest, QA, UX, art consistency, and full level regression.
+description: Always start the Crash Circuit server and verify in a browser when reviewing or testing.
 alwaysApply: true
 ---
 
@@ -8,9 +8,10 @@ alwaysApply: true
 When reviewing, playtesting, QAing, verifying UX/graphics, checking regressions, or finishing player-facing work:
 
 1. **Read** and follow `.cursor/skills/review-testing/SKILL.md`
-2. Use checklists in `.cursor/skills/review-testing/checklists.md`
-3. Judge **doability for a ~10+ German player** against `CONCEPT.md`
-4. Regression must cover **all** shipped levels (list IDs run)
-5. Graphics must match Asphalt-Comic; UX must match concept §9 screens
+2. **Always start the server** (`./start.sh` / `npm run dev`) and **test in the browser** at the local URL (default http://127.0.0.1:5173/)
+3. Use checklists in `.cursor/skills/review-testing/checklists.md`
+4. Judge **doability for a ~10+ German player** against `CONCEPT.md`
+5. Regression must cover **all** shipped levels (list IDs run)
+6. Graphics must match Asphalt-Comic; UX must match concept §9 screens
 
-Report with doability verdict and severity-ranked findings.
+Do **not** sign off from unit tests or code inspection alone. Report with doability verdict, server+browser evidence, and severity-ranked findings.

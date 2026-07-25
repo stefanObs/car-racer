@@ -66,3 +66,4 @@ Task Progress:
 - [ ] Tests cover the change; suite (or relevant subset) is green
 - [ ] For bugs: repro existed first; fix verified against that repro
 - [ ] Step is **versioned**, **committed on `master`**, and **pushed** (no feature branches)
+- [ ] Player-facing changes: **server started** and **verified in browser** (review-testing)

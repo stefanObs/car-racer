@@ -2,10 +2,10 @@
 name: review-testing
 description: >-
   Playtest, QA, regression, graphics-consistency, and UX review for Crash Circuit
-  against CONCEPT.md. Always use when reviewing, testing, playtesting, QAing,
-  verifying UX, checking regressions across levels, validating art consistency,
-  assessing doability for the target player, or finishing player-facing changes
-  that need a verification pass.
+  against CONCEPT.md. Always start the dev server and verify in a real browser.
+  Always use when reviewing, testing, playtesting, QAing, verifying UX, checking
+  regressions across levels, validating art consistency, assessing doability for
+  the target player, or finishing player-facing changes.
 ---
 
 # Review & Testing (Crash Circuit)
@@ -18,8 +18,35 @@ Source of truth: `CONCEPT.md`. Cross-check art with `.cursor/skills/asphalt-comi
 2. **Tests regression in all levels**
 3. **Verifies if the graphics etc. are consistent**
 4. **Verifies the UX**
+5. **Always starts the server and tests in a browser** (mandatory)
 
 Full checklists: [checklists.md](checklists.md).
+
+## Mandatory: server + browser
+
+**Never** claim a player-facing change or review is done from unit tests / code reading alone.
+
+### Boot
+
+1. From repo root, start the app (prefer `./start.sh` / `start.bat` / `.\start.ps1`, or `npm run dev`).
+2. Wait until the dev URL is ready (default **http://127.0.0.1:5173/**).
+3. Open that URL in the **browser automation tools** (cursor-ide-browser): navigate → lock → snapshot/screenshot → interact.
+4. Confirm the **Hauptmenü** is visible (not a blank/dark screen, not a boot-error unless that is the bug under test).
+5. Exercise the flow under test with clicks/keys in the browser; take screenshots for visual/graphics checks.
+6. Note render mode if shown (`2D-Fallback` vs WebGL).
+7. Unlock the browser when finished; leave the server running only if still needed.
+
+### Browser smoke (minimum every review)
+
+| Step | Pass if |
+|------|---------|
+| Load `/` | Title Crash Circuit; menu heading + Cup / Freier Modus / Garage |
+| Open Cup | Level list visible; can select an unlocked race |
+| Start race | HUD shows place/lap; canvas draws track or 2D fallback |
+| Open Garage | Parts/paint/CHF visible |
+| No console blocker | No uncaught errors that blank the UI |
+
+If the server fails to start, **that is a blocker** — fix start scripts / deps before continuing.
 
 ## Target player (doability)
 
@@ -44,17 +71,19 @@ Full checklists: [checklists.md](checklists.md).
 ```
 Task Progress:
 - [ ] 1. Scope: feature / PR / full pass / single cup
-- [ ] 2. Player-doability pass (cold eyes, German UI, core loop)
-- [ ] 3. UX pass (screens §9 + HUD readability)
-- [ ] 4. Graphics consistency (Asphalt-Comic + track zones)
-- [ ] 5. Regression: ALL shipped levels + sample ad-hoc seeds
-- [ ] 6. Concept compliance (mechanics & economy)
-- [ ] 7. Report with severity + repro steps (clean-programming if fixing)
+- [ ] 2. Start server + open browser (mandatory)
+- [ ] 3. Browser smoke (menu / cup or free / race or garage)
+- [ ] 4. Player-doability pass (cold eyes, German UI, core loop)
+- [ ] 5. UX pass (screens §9 + HUD readability)
+- [ ] 6. Graphics consistency (Asphalt-Comic + track zones) via screenshots
+- [ ] 7. Regression: ALL shipped levels + sample ad-hoc seeds
+- [ ] 8. Concept compliance (mechanics & economy)
+- [ ] 9. Report with severity + repro steps + browser evidence
 ```
 
 ## 1) User doability
 
-Walk the **Kernschleife** as a new player:
+Walk the **Kernschleife** as a new player **in the browser**:
 
 Menü → Cup/Frei/Ad-hoc → Rennen → Ergebnis → Garage (Schmuck/Kauf/Tuning) → nächstes Rennen.
 
@@ -69,7 +98,7 @@ Check:
 
 ## 2) Regression — all levels
 
-For **every** file under `levels/cups/**` and `levels/free/**`, plus representative `levels/adhoc` seeds:
+For **every** cup/free level id (see `src/data/levels.ts` / `levels/`), plus representative ad-hoc seeds:
 
 | Check | Fail if |
 |-------|---------|
@@ -80,24 +109,21 @@ For **every** file under `levels/cups/**` and `levels/free/**`, plus representat
 | Rewards | Wrong/missing CHF; stars only where cup expects |
 | Performance | Unplayable hitch on target desktop/browser |
 
-Automate what you can (level load, schema validation, smoke boot). **Manually** spot-check at least one race per theme and every new/changed level.
-
-Never claim “regression green” without listing which level IDs were run.
+Run unit/smoke tests (`npm test`) **and** browser checks. Never claim “regression green” without listing which level IDs were run and that the server+browser smoke passed.
 
 ## 3) Graphics consistency
 
-Against Asphalt-Comic (`reference.png` / style bible):
+Against Asphalt-Comic (`reference.png` / style bible), judged from **browser screenshots**:
 
 - Cel-shade, thick outlines, flat bold colors — not photoreal / neon-purple / diorama / low-poly
-- Asphalt vs grass vs tire wall vs concrete **instantly** distinguishable
-- Damage stages + **heal FX** readable; nitro trail restrained
+- Asphalt vs grass vs tire wall vs concrete **instantly** distinguishable (WebGL; 2D-Fallback may be flatter — still readable zones)
+- Damage stages + **heal FX** readable when in race
 - Stickers/livery sit flat on paint; cosmetics never look like stat buffs
-- Theme tints backgrounds only; track language stays consistent
-- UI chrome matches game art language (no random design-system clash)
+- UI chrome matches game art language
 
 ## 4) UX verification
 
-Screens from concept §9 must exist and flow cleanly:
+Screens from concept §9 must exist and flow cleanly **in the browser**:
 
 1. Hauptmenü — Cup / Freier Modus / Ad-hoc / Garage / Einstellungen  
 2. Cup-Karte — nodes, stars, recommended class  
@@ -112,9 +138,8 @@ UX rules:
 - Primary actions obvious; no dead ends  
 - HUD does not obscure racing line; critical info glanceable  
 - Garage trade-offs and combos scannable for a 10-year-old  
-- Freier Modus / Ad-hoc clearly secondary to Cup career (progress rules match concept)
-- **Controller:** focus navigation through all screens; no mouse-required dead ends  
-- **Tablet:** touch targets large enough; race overlays usable with thumbs; layouts work in landscape tablet sizes
+- Freier Modus / Ad-hoc clearly secondary to Cup career  
+- **Controller / tablet** paths remain reachable (touch controls visible on narrow viewports)
 
 ## Concept compliance (quick gate)
 
@@ -128,12 +153,15 @@ Fail review if any are true:
 - Intro cup is an obstacle gauntlet
 - Catch-up makes perfect play unable to lead
 - Race or menus require mouse/keyboard only (no usable controller or tablet path)
+- Review skipped server+browser verification
 
 ## Report format
 
 ```markdown
 # Review: <scope>
 **Build / branch:** …
+**Server:** http://127.0.0.1:5173/ (started: yes/no)
+**Browser:** smoke steps run + brief result
 **Levels run:** <id list or “all N”>
 **Doability:** ✅ / ⚠️ / ❌ — <one line>
 
@@ -146,6 +174,7 @@ Fail review if any are true:
 - …
 
 ## Pass summary
+- Server + browser: …
 - Doability: …
 - UX: …
 - Graphics: …
