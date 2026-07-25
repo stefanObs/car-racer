@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v0.2.3 Start scripts bootstrap Node
+
+- Start scripts download portable Node into `.tools/` when Node is not preinstalled
+- Unix: curl|wget|python3 + tar; Windows: PowerShell download/expand; bat delegates to ps1
+
 ### 2026-07-25 — v0.2.1 Cross-platform start scripts
 
 - Added `start.sh`, `start.bat`, `start.ps1` + alwaysApply rule that they must keep working

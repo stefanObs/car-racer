@@ -1,5 +1,5 @@
 ---
-description: Start scripts (start.sh, start.bat, start.ps1) must always work on Linux, macOS, and Windows.
+description: Start scripts must always work and bootstrap Node without requiring a preinstalled toolchain when possible.
 alwaysApply: true
 ---
 
@@ -10,21 +10,24 @@ Cross-platform launchers are mandatory and must stay green:
 | OS | Script |
 |----|--------|
 | Linux / macOS | `start.sh` |
-| Windows (cmd) | `start.bat` |
+| Windows (cmd) | `start.bat` → `start.ps1` |
 | Windows (PowerShell) | `start.ps1` |
 
 ## Hard rules
 
 1. **Always keep all three scripts working** after dependency, script, port, or toolchain changes.
-2. Scripts must: `cd` to repo root, require **Node >= 20** + npm, run `npm install` when `node_modules`/vite is missing, then start the **dev** server (`npm run dev`).
-3. Fail with a **clear German or plain error** if Node/npm is missing — never hang silently.
-4. Do not remove, rename, or replace them with OS-specific-only flows without updating **all three**.
-5. When changing `package.json` scripts (`dev`/`start`), update and **smoke-check** the start scripts in the same change.
-6. Document usage in `README.md` whenever start behavior changes.
+2. **No required preinstalled Node/npm.** If a suitable Node (>= 20) is missing, scripts must bootstrap a **portable Node** into `.tools/` (gitignored) using OS builtins where possible:
+   - Unix: `curl` **or** `wget` **or** `python3` + `tar`
+   - Windows: PowerShell `Invoke-WebRequest` + `Expand-Archive`
+3. Prefer an already-installed system Node (>= 20) when present; otherwise use `.tools/`.
+4. After Node is available: `npm install` when `node_modules`/vite is missing, then `npm run dev`.
+5. First bootstrap needs **network** once (official nodejs.org dist). Fail with a clear message if download tools/network are unavailable — never hang silently.
+6. Do not remove/rename scripts without updating **all three** and `README.md`.
+7. When changing `package.json` `dev`/`start`/`engines`, update and smoke-check the start scripts in the same change.
 
 ## Verification before claiming done
 
 - [ ] `start.sh` is executable (`chmod +x`)
-- [ ] Node version check still matches `package.json` `engines`
-- [ ] Install-if-needed logic still correct
-- [ ] `npm run dev` (or equivalent) is what they invoke
+- [ ] Bootstrap path still matches `package.json` `engines` (Node >= 20)
+- [ ] `.tools/` remains gitignored
+- [ ] README documents zero-preinstall / first-run network behavior

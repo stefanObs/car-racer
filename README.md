@@ -2,7 +2,7 @@
 
 Arcade-Racer — Konzept: `CONCEPT.md`, Stack: `TECH.md`.
 
-## Start
+## Start (ohne vorinstalliertes Node)
 
 | OS | Befehl |
 |----|--------|
@@ -10,14 +10,14 @@ Arcade-Racer — Konzept: `CONCEPT.md`, Stack: `TECH.md`.
 | Windows (cmd) | `start.bat` |
 | Windows (PowerShell) | `.\start.ps1` |
 
-Die Skripte prüfen Node.js (≥ 20), installieren bei Bedarf Abhängigkeiten und starten den Dev-Server (meist http://localhost:5173).
+Die Skripte:
 
-Alternativ:
+1. Nutzen vorhandenes **Node.js ≥ 20**, falls vorhanden  
+2. Sonst laden sie einmalig eine **portable Node-Version** nach `.tools/` (Internet nötig)  
+3. Führen bei Bedarf `npm install` aus und starten den Dev-Server (meist http://localhost:5173)
 
-```bash
-npm install
-npm start
-```
+**Unix-Fallback-Downloader:** `curl`, sonst `wget`, sonst `python3` (+ `tar` zum Entpacken).  
+**Windows:** eingebaute PowerShell-Befehle.
 
 ## Develop
 
@@ -28,13 +28,9 @@ npm run build
 
 ## MVP (v0.2.x)
 
-- Cup mit 5 Strecken (Sportwagen-Karriere)
-- Freier Modus für freigeschaltete Strecken
-- Garage: Blitz + Bison, Lack, Aufkleber, Teile, Kombos, CHF
-- Arcade-Rennen: Gras/Mauer, Buckel, Schaden+Heilung, K.O., Catch-up, KI
-- Eingabe: Tastatur, Gamepad, Touch (Tablet)
+- Cup, Freier Modus, Garage, CHF, KI-Rennen, Tastatur/Gamepad/Touch
 
 ## Delivery
 
 Jeder Schritt: Version → Commit auf `master` → Push. Keine Feature-Branches.  
-Startskripte müssen laut Projekt-Rule **immer funktionieren**.
+Startskripte müssen **immer funktionieren** und Node möglichst selbst bootstrappen.
