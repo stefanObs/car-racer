@@ -2,12 +2,12 @@
 /**
  * Polish shipped car GLBs (free assets only — no TurboSquid).
  * - Bison: Kenney truck-flat (CC0) + flat comic materials
- * - Käferkraft: prune micro debris, comic materials
- * - Donnerbüchse: generated classic hot-rod (long hood / chopped cabin / fat rears)
+ * - Käferkraft: generated dune-hunter / sand-rail buggy (TurboSquid ref only)
+ * - Donnerbüchse: generated classic hot-rod
  *
  * Usage: node scripts/polish-car-glbs.mjs [/path/to/kenney/Models/GLB\ format]
  */
-import { copyFileSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Blob } from "node:buffer";
@@ -59,43 +59,6 @@ function makeMat(doc, name, hex) {
     .setRoughnessFactor(name === "Chrome" ? 0.45 : 0.85);
 }
 
-function primVolume(prim) {
-  const arr = prim.getAttribute("POSITION")?.getArray();
-  if (!arr || arr.length < 9) return 0;
-  let min = [Infinity, Infinity, Infinity];
-  let max = [-Infinity, -Infinity, -Infinity];
-  for (let i = 0; i < arr.length; i += 3) {
-    for (let k = 0; k < 3; k++) {
-      const v = arr[i + k];
-      if (v < min[k]) min[k] = v;
-      if (v > max[k]) max[k] = v;
-    }
-  }
-  return (
-    Math.max(max[0] - min[0], 0.001) *
-    Math.max(max[1] - min[1], 0.001) *
-    Math.max(max[2] - min[2], 0.001)
-  );
-}
-
-function nodeStats(node) {
-  const mesh = node.getMesh();
-  if (!mesh) return { vol: 0, cy: 0, verts: 0 };
-  let vol = 0;
-  let cy = 0;
-  let verts = 0;
-  for (const prim of mesh.listPrimitives()) {
-    vol = Math.max(vol, primVolume(prim));
-    const arr = prim.getAttribute("POSITION")?.getArray();
-    if (!arr) continue;
-    for (let i = 0; i < arr.length; i += 3) {
-      cy += arr[i + 1];
-      verts++;
-    }
-  }
-  return { vol, cy: verts ? cy / verts : 0, verts };
-}
-
 async function polishBison() {
   const src = join(kenneyDir, "truck-flat.glb");
   if (!existsSync(src)) throw new Error(`Missing ${src} — unzip Kenney Car Kit first`);
@@ -111,7 +74,6 @@ async function polishBison() {
     for (const prim of mesh.listPrimitives()) {
       prim.setMaterial(name.includes("wheel") ? tire : body);
     }
-    // subtle rim cue: second prim on wheels if present
     const prims = mesh.listPrimitives();
     if (name.includes("wheel") && prims.length > 1) prims[1].setMaterial(chrome);
   }
@@ -120,73 +82,105 @@ async function polishBison() {
   console.log("bison.glb ← Kenney truck-flat (flat mats)");
 }
 
-async function polishBuggy() {
-  const live = join(outDir, "kaeferkraft.glb");
-  const backup = join(outDir, "kaeferkraft.source.glb");
-  if (!existsSync(backup) && existsSync(live)) {
-    // One-time: preserve the dense GetGLB source before first prune
-    const probe = await io.read(live);
-    const meshCount = probe.getRoot().listNodes().filter((n) => n.getMesh()).length;
-    if (meshCount > 50) copyFileSync(live, backup);
-  }
-  const doc = await io.read(existsSync(backup) ? backup : live);
-  const rootDoc = doc.getRoot();
-  const meshNodes = rootDoc.listNodes().filter((n) => n.getMesh());
-  if (meshNodes.length <= 40 && !existsSync(backup)) {
-    console.log("kaeferkraft.glb already pruned — skip");
-    return;
-  }
+async function exportGroupGlb(group, filename) {
+  const exporter = new GLTFExporter();
+  const ab = await new Promise((resolve, reject) => {
+    exporter.parse(group, (res) => resolve(res), reject, { binary: true });
+  });
+  const buf = Buffer.from(ab);
+  writeFileSync(join(outDir, filename), buf);
+  return buf.length;
+}
 
-  const body = makeMat(doc, "BodyPaint", 0x12b886);
-  const dark = makeMat(doc, "Dark", 0x1b1b1f);
-  const tire = makeMat(doc, "Tire", 0x141414);
-  const chrome = makeMat(doc, "Chrome", 0xe9ecef);
+/** Dune-hunter / sand-rail silhouette (TurboSquid 2179513 as visual ref only). */
+async function generateDuneBuggy() {
+  const group = new Group();
+  group.name = "kaeferkraft";
 
-  const ranked = meshNodes
-    .map((n) => ({ n, ...nodeStats(n) }))
-    .sort((a, b) => b.vol - a.vol);
-  const maxV = ranked[0]?.vol || 1;
-  const keep = new Set(ranked.filter((r) => r.vol >= maxV * 0.035 || r.vol >= 0.05).map((r) => r.n));
-  for (const r of ranked.slice(0, 22)) keep.add(r.n);
+  const paint = new MeshStandardMaterial({ name: "BodyPaint", color: 0x12b886, metalness: 0, roughness: 0.85 });
+  const shade = new MeshStandardMaterial({ name: "Dark", color: 0x1b1b1f, metalness: 0, roughness: 0.9 });
+  const chrome = new MeshStandardMaterial({ name: "Chrome", color: 0xc8ccd4, metalness: 0.35, roughness: 0.5 });
+  const tire = new MeshStandardMaterial({ name: "Tire", color: 0x141414, metalness: 0, roughness: 0.95 });
+  const rim = new MeshStandardMaterial({ name: "Chrome", color: 0xe9ecef, metalness: 0.3, roughness: 0.55 });
+  const spring = new MeshStandardMaterial({ name: "Chrome", color: 0xffe066, metalness: 0.15, roughness: 0.7 });
 
-  const drop = ranked.filter((r) => !keep.has(r.n));
-  for (const { n } of drop) {
-    const mesh = n.getMesh();
-    n.setMesh(null);
-    for (const parent of rootDoc.listNodes()) {
-      if (parent.listChildren().includes(n)) parent.removeChild(n);
-    }
-    for (const scene of rootDoc.listScenes()) {
-      if (scene.listChildren().includes(n)) scene.removeChild(n);
-    }
-  }
+  const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => {
+    const m = new Mesh(geo, mat);
+    m.position.set(x, y, z);
+    m.rotation.set(rx, ry, rz);
+    group.add(m);
+    return m;
+  };
 
-  for (const r of ranked) {
-    if (!keep.has(r.n)) continue;
-    const mesh = r.n.getMesh();
-    if (!mesh) continue;
-    const sizeHint = Math.cbrt(r.vol);
-    const wheelish = r.cy < 0.22 && sizeHint > 0.28 && sizeHint < 0.9;
-    const cageish = sizeHint < 0.5 && r.cy > 0.3;
-    for (const prim of mesh.listPrimitives()) {
-      if (wheelish) prim.setMaterial(tire);
-      else if (cageish) prim.setMaterial(dark);
-      else if (r.vol > maxV * 0.35) prim.setMaterial(body);
-      else if (r.cy > 0.5 && sizeHint < 0.45) prim.setMaterial(chrome);
-      else prim.setMaterial(body);
-    }
-    if (wheelish) {
-      for (const prim of mesh.listPrimitives()) prim.setMaterial(tire);
-      // Light rim cue on a second prim if present (inner disc)
-      const prims = mesh.listPrimitives();
-      if (prims.length > 1) prims[0].setMaterial(chrome);
-    }
+  // Floor pan + short wheelbase chassis
+  add(new BoxGeometry(1.15, 0.14, 2.05), shade, 0, 0.42, 0.05);
+  add(new BoxGeometry(1.05, 0.1, 1.85), shade, 0, 0.32, 0.05);
+
+  // Nose + side shells
+  add(new BoxGeometry(1.05, 0.42, 0.65), paint, 0, 0.68, 1.15);
+  add(new BoxGeometry(0.12, 0.48, 1.35), paint, -0.62, 0.72, 0.15);
+  add(new BoxGeometry(0.12, 0.48, 1.35), paint, 0.62, 0.72, 0.15);
+  add(new BoxGeometry(1.1, 0.38, 0.4), paint, 0, 0.68, -0.95);
+
+  // Bucket seats
+  for (const sx of [-0.28, 0.28]) {
+    add(new BoxGeometry(0.38, 0.38, 0.42), shade, sx, 0.72, 0.2);
+    add(new BoxGeometry(0.38, 0.5, 0.12), shade, sx, 1.05, -0.02);
   }
 
-  for (const t of [...rootDoc.listTextures()]) t.dispose();
-  await io.write(live, doc);
-  const left = rootDoc.listNodes().filter((n) => n.getMesh()).length;
-  console.log(`kaeferkraft.glb ← pruned to ${left} meshes (was ${meshNodes.length})`);
+  // Tubular roll cage
+  const tube = (r, h, x, y, z, rx = 0, rz = 0) =>
+    add(new CylinderGeometry(r, r, h, 10), shade, x, y, z, rx, 0, rz);
+  tube(0.055, 1.35, -0.52, 1.25, -0.15);
+  tube(0.055, 1.35, 0.52, 1.25, -0.15);
+  tube(0.05, 1.15, 0, 1.9, -0.15, 0, Math.PI / 2);
+  tube(0.048, 1.25, -0.48, 1.2, 0.55, 0.7, 0);
+  tube(0.048, 1.25, 0.48, 1.2, 0.55, 0.7, 0);
+  tube(0.045, 0.95, 0, 1.6, 0.75, 0, Math.PI / 2);
+  tube(0.05, 1.05, -0.42, 1.15, -0.85, -0.4, 0);
+  tube(0.05, 1.05, 0.42, 1.15, -0.85, -0.4, 0);
+  tube(0.045, 0.9, 0, 1.55, -0.9, 0, Math.PI / 2);
+  tube(0.04, 1.05, 0, 1.05, -0.15, 0, Math.PI / 2);
+  tube(0.038, 0.85, 0, 1.45, 0.2, 0, Math.PI / 2);
+
+  // Rear engine + intake
+  add(new BoxGeometry(0.72, 0.48, 0.55), shade, 0, 0.78, -1.25);
+  add(new CylinderGeometry(0.13, 0.16, 0.38, 12), chrome, 0, 1.18, -1.25);
+  add(new TorusGeometry(0.16, 0.03, 6, 14), chrome, 0, 1.38, -1.25, Math.PI / 2);
+
+  // Yellow coil springs
+  for (const [wx, wz] of [
+    [-0.72, 0.95],
+    [0.72, 0.95],
+    [-0.75, -0.9],
+    [0.75, -0.9],
+  ]) {
+    add(new CylinderGeometry(0.07, 0.07, 0.45, 8), spring, wx, 0.58, wz);
+    add(new TorusGeometry(0.09, 0.025, 6, 10), spring, wx, 0.48, wz, Math.PI / 2);
+    add(new TorusGeometry(0.09, 0.025, 6, 10), spring, wx, 0.68, wz, Math.PI / 2);
+  }
+
+  add(new SphereGeometry(0.14, 12, 10), chrome, -0.38, 0.72, 1.48);
+  add(new SphereGeometry(0.14, 12, 10), chrome, 0.38, 0.72, 1.48);
+
+  const wheel = (x, z, r, w) => {
+    add(new CylinderGeometry(r, r, w, 18), tire, x, r + 0.02, z, 0, 0, Math.PI / 2);
+    add(new CylinderGeometry(r * 0.58, r * 0.58, w * 1.08, 12), rim, x, r + 0.02, z, 0, 0, Math.PI / 2);
+    add(new CylinderGeometry(r * 0.2, r * 0.2, w * 1.15, 8), chrome, x, r + 0.02, z, 0, 0, Math.PI / 2);
+    for (let i = 0; i < 8; i++) {
+      const a = (i / 8) * Math.PI * 2;
+      const ky = r + 0.02 + Math.sin(a) * r * 0.92;
+      const kz = z + Math.cos(a) * r * 0.92;
+      add(new BoxGeometry(w * 0.35, 0.08, 0.1), tire, x, ky, kz);
+    }
+  };
+  wheel(-0.88, 1.05, 0.5, 0.38);
+  wheel(0.88, 1.05, 0.5, 0.38);
+  wheel(-0.92, -1.0, 0.55, 0.42);
+  wheel(0.92, -1.0, 0.55, 0.42);
+
+  const bytes = await exportGroupGlb(group, "kaeferkraft.glb");
+  console.log(`kaeferkraft.glb ← generated dune buggy (${bytes} bytes)`);
 }
 
 async function generateHotRod() {
@@ -207,7 +201,6 @@ async function generateHotRod() {
     group.add(m);
   };
 
-  // Classic hot-rod proportions (long hood, chopped cabin, fat rears)
   add(new BoxGeometry(1.55, 0.32, 3.35), paint, 0, 0.42, 0.05);
   add(new BoxGeometry(1.4, 0.16, 3.1), shade, 0, 0.24, 0.05);
   add(new BoxGeometry(1.35, 0.2, 1.65), paint, 0, 0.62, 0.95);
@@ -241,7 +234,6 @@ async function generateHotRod() {
   const wheel = (x, z, r, w) => {
     add(new CylinderGeometry(r, r, w, 18), tire, x, r, z, 0, 0, Math.PI / 2);
     add(new CylinderGeometry(r * 0.62, r * 0.62, w * 1.08, 12), rim, x, r, z, 0, 0, Math.PI / 2);
-    // hub
     add(new CylinderGeometry(r * 0.22, r * 0.22, w * 1.12, 8), chrome, x, r, z, 0, 0, Math.PI / 2);
   };
   wheel(-0.78, 1.15, 0.28, 0.28);
@@ -249,16 +241,11 @@ async function generateHotRod() {
   wheel(-0.82, -1.15, 0.48, 0.42);
   wheel(0.82, -1.15, 0.48, 0.42);
 
-  const exporter = new GLTFExporter();
-  const ab = await new Promise((resolve, reject) => {
-    exporter.parse(group, (res) => resolve(res), reject, { binary: true });
-  });
-  const buf = Buffer.from(ab);
-  writeFileSync(join(outDir, "donnerbuechse.glb"), buf);
-  console.log(`donnerbuechse.glb ← generated hot rod (${buf.length} bytes)`);
+  const bytes = await exportGroupGlb(group, "donnerbuechse.glb");
+  console.log(`donnerbuechse.glb ← generated hot rod (${bytes} bytes)`);
 }
 
 await polishBison();
-await polishBuggy();
+await generateDuneBuggy();
 await generateHotRod();
 console.log("ok");
