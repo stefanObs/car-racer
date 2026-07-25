@@ -13,6 +13,7 @@ import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from 
 import type { LevelDefinition } from "../track/types";
 import { renderGarageHtml } from "./garageHtml";
 import { renderCarStatsPopup } from "./carStatsPopup";
+import { renderLapCounterHtml } from "./lapHud";
 import { renderMiniMapSvg } from "./miniMap";
 import {
   advanceFinishCelebrate,
@@ -279,7 +280,10 @@ export class GameApp {
     hud.innerHTML = `
       <div class="hud-cluster" data-dev-name="hud.cluster">
         <div class="hud-stats">
-          <div class="hud-row" data-dev-name="hud.place-lap"><strong>Platz ${p.place}/${this.race.cars.length}</strong> · Runde ${Math.min(p.lap, this.race.level.laps)}/${this.race.level.laps}</div>
+          <div class="hud-row hud-row--top" data-dev-name="hud.place-lap">
+            <strong data-dev-name="hud.place">Platz ${p.place}/${this.race.cars.length}</strong>
+            ${renderLapCounterHtml(p.lap, this.race.level.laps)}
+          </div>
           <div class="hud-row" data-dev-name="hud.damage">Schaden: ${DAMAGE_LABELS[stage]}${p.healFx > 0.2 ? " · Reparatur…" : ""}</div>
           <div class="bars" data-dev-name="hud.bars">
             <div class="bar" data-dev-name="hud.nitro"><span>Nitro</span><i style="width:${Math.round(p.nitro * 100)}%"></i></div>
