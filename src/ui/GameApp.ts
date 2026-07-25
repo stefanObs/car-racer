@@ -12,6 +12,13 @@ import { APP_VERSION } from "../core/version";
 import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
 import type { LevelDefinition } from "../track/types";
 import { renderMiniMapSvg } from "./miniMap";
+import {
+  advanceFinishCelebrate,
+  createFinishCelebrate,
+  finishOverlayHtml,
+  resultsPodiumHtml,
+  type FinishCelebrate,
+} from "./finishCelebrate";
 import { StylePopupQueue } from "./stylePopups";
 
 type Screen = "menu" | "cup" | "free" | "adhoc" | "garage" | "race" | "results";
@@ -22,6 +29,7 @@ export class GameApp {
   private race: RaceSession | null = null;
   private renderer: GameRenderer;
   private lastResult: ReturnType<RaceSession["result"]> | null = null;
+  private finishCelebrate: FinishCelebrate | null = null;
   private focusIndex = 0;
   private uiRoot: HTMLElement;
   private dev: DevTools;
@@ -52,7 +60,8 @@ export class GameApp {
         this.save.chf = amount;
         writeSave(this.save);
       },
-      canForceFinish: () => this.screen === "race" && !!this.race && !this.race.done,
+      canForceFinish: () =>
+        this.screen === "race" && !!this.race && !this.race.done && !this.finishCelebrate,
       fieldSize: () => this.race?.cars.length ?? 6,
       forceFinish: (place) => {
         if (!this.race || this.screen !== "race") return;
@@ -74,29 +83,39 @@ export class GameApp {
     if (!typing) this.handleUiNav(actions);
 
     if (this.screen === "race" && this.race) {
-      this.race.step(
-        dt,
-        typing
-          ? { throttle: 0, brake: 0, steer: 0, nitro: false }
-          : {
-              throttle: actions.throttle,
-              brake: actions.brake,
-              steer: actions.steer,
-              nitro: actions.nitro,
-            },
-      );
-      this.renderer.sync(this.race);
-      this.updateHud();
-      if (this.race.done) {
-        this.lastResult = this.race.result();
-        this.applyRaceRewards(this.lastResult, this.race.level.id);
-        this.screen = "results";
-        this.renderUi();
+      if (this.finishCelebrate) {
+        advanceFinishCelebrate(this.finishCelebrate, now);
+        this.renderer.sync(this.race, this.finishCelebrate);
+        this.updateFinishOverlay();
+        if (this.finishCelebrate.t >= this.finishCelebrate.duration) {
+          this.lastResult = this.race.result();
+          this.applyRaceRewards(this.lastResult, this.race.level.id);
+          this.finishCelebrate = null;
+          this.screen = "results";
+          this.renderUi();
+        }
+      } else {
+        this.race.step(
+          dt,
+          typing
+            ? { throttle: 0, brake: 0, steer: 0, nitro: false }
+            : {
+                throttle: actions.throttle,
+                brake: actions.brake,
+                steer: actions.steer,
+                nitro: actions.nitro,
+              },
+        );
+        this.renderer.sync(this.race);
+        this.updateHud();
+        if (this.race.done) {
+          this.finishCelebrate = createFinishCelebrate(this.race.result().place, now);
+          this.updateFinishOverlay();
+        }
       }
     } else {
       this.renderer.renderIdle();
     }
-    void now;
   }
 
   private moveFocus(dir: UiNavDir): void {
@@ -220,6 +239,7 @@ export class GameApp {
   private startRaceWithLevel(level: LevelDefinition): void {
     this.renderer.clearCars();
     this.stylePops.clear();
+    this.finishCelebrate = null;
     this.race = new RaceSession({
       level,
       playerCarId: this.save.activeCar,
@@ -268,6 +288,26 @@ export class GameApp {
     `;
     hud.dataset.devName = "#race-hud";
     this.dev.tagUi(this.uiRoot);
+  }
+
+  private updateFinishOverlay(): void {
+    if (!this.finishCelebrate) return;
+    let host = this.uiRoot.querySelector<HTMLElement>("#finish-fx-host");
+    if (!host) {
+      host = document.createElement("div");
+      host.id = "finish-fx-host";
+      host.dataset.devName = "finish.host";
+      this.uiRoot.appendChild(host);
+    }
+    const existing = host.querySelector<HTMLElement>(".finish-fx");
+    if (!existing) {
+      host.innerHTML = finishOverlayHtml(this.finishCelebrate);
+      return;
+    }
+    const p = Math.min(1, this.finishCelebrate.t / Math.max(0.001, this.finishCelebrate.duration));
+    const flash = p < 0.18 ? 1 - p / 0.18 : Math.max(0, 1 - (p - 0.18) / 0.25);
+    existing.style.setProperty("--p", p.toFixed(3));
+    existing.style.setProperty("--flash", flash.toFixed(3));
   }
 
   private renderUi(): void {
@@ -344,7 +384,7 @@ export class GameApp {
     } else if (this.screen === "results" && this.lastResult) {
       body = `
         <h2>Ergebnis</h2>
-        <p class="podium">Platz ${this.lastResult.place}</p>
+        ${resultsPodiumHtml(this.lastResult.place)}
         <p>${formatChf(this.lastResult.purseChf)} <span class="dim">(inkl. Style ${formatChf(this.lastResult.styleBonus)})</span></p>
         <p>${this.lastResult.starsEarned ? "Sterne verdient!" : ""}</p>
         <div class="stack">

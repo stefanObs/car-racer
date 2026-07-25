@@ -381,7 +381,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse.
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
 4. **Garage** — Auto drehen, Teile, Stats + Kombo, Lack, **Aufkleber-Editor**  
 5. **Renn-HUD** — Platz, Runde, Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`)  
-6. **Ergebnis** — Podium, CHF-Aufschlüsselung, weiter / Garage  
+6. **Ergebnis** — Zielbanner/-linie auf der Strecke; kurze Ziel-Animation (Podest vs. Feld); Podium-Landung; CHF-Aufschlüsselung; weiter / Garage  
 
 Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 

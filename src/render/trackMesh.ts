@@ -11,6 +11,7 @@ import { sampleCenterline } from "../track/buildTrack";
 import type { BuiltTrack } from "../track/types";
 import { comicToon, withOutline } from "./comicMaterials";
 import { ComicPalette } from "./palette";
+import { buildFinishLine } from "./finishLine";
 
 function closedCurve(track: BuiltTrack, y = 0): CatmullRomCurve3 {
   const pts = track.centerline.map((p) => new Vector3(p.x, y, p.z));
@@ -129,6 +130,8 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
       }
     }
   }
+
+  root.add(buildFinishLine(track));
 
   return root;
 }

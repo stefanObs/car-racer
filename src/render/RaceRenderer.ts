@@ -21,7 +21,10 @@ import { stageFromHp } from "../sim/damage";
 import type { RaceSession } from "../sim/race";
 import { createCarState } from "../sim/vehicle";
 import { surfaceAt } from "../sim/zones";
+import { sampleCenterline } from "../track/buildTrack";
 import { CARS } from "../data/cars";
+import type { FinishCelebrate } from "../ui/finishCelebrate";
+import { finishCelebrateProgress, isPodiumPlace } from "../ui/finishCelebrate";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { buildLevelObstacles } from "./levelObstacles";
@@ -62,6 +65,8 @@ export class RaceRenderer {
   private trackGroup = new Group();
   private sceneryGroup = new Group();
   private obstacleGroup = new Group();
+  private celebrateGroup = new Group();
+  private celebrateSeed = -1;
   private idleGroup = new Group();
   private idleCar: Group | null = null;
   private fxTime = 0;
@@ -208,6 +213,7 @@ export class RaceRenderer {
     this.trackGroup = buildSmoothTrack(session.track);
     this.sceneryGroup = buildThemeScenery(session.track, session.level.theme);
     this.obstacleGroup = buildLevelObstacles(session.level);
+    this.clearCelebrate();
     this.scene.add(this.trackGroup, this.sceneryGroup, this.obstacleGroup);
     this.clearCars();
     this.lastNitro.clear();
@@ -218,7 +224,41 @@ export class RaceRenderer {
     }
   }
 
-  sync(session: RaceSession): void {
+  private clearCelebrate(): void {
+    this.scene.remove(this.celebrateGroup);
+    disposeObject(this.celebrateGroup);
+    this.celebrateGroup = new Group();
+    this.celebrateSeed = -1;
+  }
+
+  private ensureCelebrateBurst(session: RaceSession, fx: FinishCelebrate): void {
+    if (this.celebrateSeed === fx.place) return;
+    this.clearCelebrate();
+    this.celebrateSeed = fx.place;
+    const podium = isPodiumPlace(fx.place);
+    const player = session.player();
+    const count = podium ? 36 : 14;
+    const colors = podium
+      ? [0xffe066, 0xe03131, 0xf8f9fa, 0x339af0, 0xf08c00]
+      : [0xadb5bd, 0x868e96, 0xf8f9fa];
+    for (let i = 0; i < count; i++) {
+      const m = new Mesh(
+        new SphereGeometry(0.18 + (i % 3) * 0.06, 6, 6),
+        comicToon(colors[i % colors.length]!),
+      );
+      m.userData = {
+        ang: (i / count) * Math.PI * 2,
+        speed: 1.2 + (i % 5) * 0.25,
+        rise: podium ? 4.5 + (i % 4) * 0.4 : 2.2 + (i % 3) * 0.3,
+        spin: 2 + (i % 4),
+      };
+      m.position.set(player.x, 0.5, player.z);
+      this.celebrateGroup.add(m);
+    }
+    this.scene.add(this.celebrateGroup);
+  }
+
+  sync(session: RaceSession, celebrate?: FinishCelebrate | null): void {
     this.fxTime += 1 / 60;
     this.idleGroup.visible = false;
 
@@ -272,12 +312,45 @@ export class RaceRenderer {
     }
 
     const player = session.player();
-    const back = 7.2;
-    const height = 3.35;
-    const camX = player.x - Math.cos(player.heading) * back;
-    const camZ = player.z - Math.sin(player.heading) * back;
-    this.camera.position.set(camX, height, camZ);
-    this.camera.lookAt(player.x, 0.9, player.z);
+    if (celebrate) {
+      this.ensureCelebrateBurst(session, celebrate);
+      const p = finishCelebrateProgress(celebrate);
+      const podium = isPodiumPlace(celebrate.place);
+      const finish = sampleCenterline(session.track, 0);
+      const fx = Math.atan2(finish.tangent.z, finish.tangent.x);
+      this.celebrateGroup.children.forEach((child) => {
+        const m = child as Mesh;
+        const u = m.userData as { ang: number; speed: number; rise: number; spin: number };
+        const rad = (podium ? 3.2 : 1.8) * Math.min(1, p * 1.4);
+        const y = 0.4 + u.rise * Math.sin(Math.min(1, p * 1.1) * Math.PI);
+        const cx = finish.position.x;
+        const cz = finish.position.z;
+        m.position.set(
+          cx + Math.cos(u.ang + celebrate.t * u.speed) * rad,
+          y,
+          cz + Math.sin(u.ang + celebrate.t * u.speed) * rad,
+        );
+        m.rotation.y = celebrate.t * u.spin;
+        m.visible = p < 0.95;
+      });
+
+      // Frame the ZIEL banner head-on during the celebrate beat
+      const back = podium ? 16 - p * 2 : 14;
+      const height = podium ? 5.2 + p * 0.8 : 4.6;
+      const orbit = podium ? celebrate.t * 0.25 : 0;
+      const camX = finish.position.x - Math.cos(fx + orbit) * back;
+      const camZ = finish.position.z - Math.sin(fx + orbit) * back;
+      this.camera.position.set(camX, height, camZ);
+      this.camera.lookAt(finish.position.x, podium ? 4.2 : 3.6, finish.position.z);
+    } else {
+      if (this.celebrateSeed !== -1) this.clearCelebrate();
+      const back = 7.2;
+      const height = 3.35;
+      const camX = player.x - Math.cos(player.heading) * back;
+      const camZ = player.z - Math.sin(player.heading) * back;
+      this.camera.position.set(camX, height, camZ);
+      this.camera.lookAt(player.x, 0.9, player.z);
+    }
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -288,5 +361,6 @@ export class RaceRenderer {
     }
     this.carVisuals.clear();
     this.lastNitro.clear();
+    this.clearCelebrate();
   }
 }

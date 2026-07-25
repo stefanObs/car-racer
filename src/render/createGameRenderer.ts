@@ -1,9 +1,10 @@
 import type { RaceSession } from "../sim/race";
+import type { FinishCelebrate } from "../ui/finishCelebrate";
 import { RaceRenderer } from "./RaceRenderer";
 
 export type GameRenderer = {
   buildTrack: (session: RaceSession) => void;
-  sync: (session: RaceSession) => void;
+  sync: (session: RaceSession, celebrate?: FinishCelebrate | null) => void;
   renderIdle: () => void;
   clearCars: () => void;
 };
