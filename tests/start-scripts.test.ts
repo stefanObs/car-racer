@@ -22,9 +22,17 @@ describe("start scripts", () => {
     expect(ps1).toContain("Invoke-WebRequest");
   });
 
-  it("uses platform-specific Node home on Unix (linux-x64 folder)", () => {
+  it("uses platform-specific Node home on Unix (linux/darwin folder)", () => {
     const sh = readFileSync(resolve(root, "start.sh"), "utf8");
     expect(sh).toContain('NODE_HOME="$TOOLS_DIR/node-v${NODE_VERSION}-${PLATFORM}"');
     expect(sh).toContain("detect_platform");
+    expect(sh).toContain("darwin");
+  });
+
+  it("uses platform-specific Node home on Windows too", () => {
+    const ps1 = readFileSync(resolve(root, "start.ps1"), "utf8");
+    expect(ps1).toContain("Get-NodePlatform");
+    expect(ps1).toContain('node-v$NodeVersion-$Platform');
+    expect(ps1).toContain("win-arm64");
   });
 });

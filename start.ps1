@@ -5,12 +5,25 @@ Set-Location -Path $PSScriptRoot
 
 $NodeVersion = "22.17.1"
 $ToolsDir = Join-Path $PSScriptRoot ".tools"
-$NodeHome = Join-Path $ToolsDir "node-v$NodeVersion-win-x64"
 
 function Die([string]$Message) {
   Write-Host "Fehler: $Message" -ForegroundColor Red
   exit 1
 }
+
+function Get-NodePlatform {
+  $arch = $env:PROCESSOR_ARCHITECTURE
+  if ($arch -ne "AMD64" -and $arch -ne "ARM64") {
+    if ($env:PROCESSOR_ARCHITEW6432 -eq "AMD64") { $arch = "AMD64" }
+    elseif ($env:PROCESSOR_ARCHITEW6432 -eq "ARM64") { $arch = "ARM64" }
+  }
+  if ($arch -eq "ARM64") { return "win-arm64" }
+  return "win-x64"
+}
+
+$Platform = Get-NodePlatform
+# Official Node zip extracts to node-vVERSION-win-ARCH\
+$NodeHome = Join-Path $ToolsDir "node-v$NodeVersion-$Platform"
 
 function Test-NodeMajorOk([string]$NodeExe) {
   try {
@@ -36,19 +49,12 @@ function Ensure-NodeOnPath {
 }
 
 function Bootstrap-Node {
-  $arch = $env:PROCESSOR_ARCHITECTURE
-  if ($arch -ne "AMD64" -and $arch -ne "ARM64") {
-    # 32-bit process on 64-bit OS
-    if ($env:PROCESSOR_ARCHITEW6432 -eq "AMD64") { $arch = "AMD64" }
-  }
-
-  $platform = if ($arch -eq "ARM64") { "win-arm64" } else { "win-x64" }
-  $folderName = "node-v$NodeVersion-$platform"
+  $folderName = "node-v$NodeVersion-$Platform"
   $script:NodeHome = Join-Path $ToolsDir $folderName
   $archive = "$folderName.zip"
   $url = "https://nodejs.org/dist/v$NodeVersion/$archive"
 
-  Write-Host "Node.js >= 20 nicht gefunden — lade portable Node v$NodeVersion ($platform)…"
+  Write-Host "Node.js >= 20 nicht gefunden — lade portable Node v$NodeVersion ($Platform)…"
   New-Item -ItemType Directory -Force -Path $ToolsDir | Out-Null
   $zipPath = Join-Path $ToolsDir $archive
 
@@ -71,7 +77,7 @@ function Bootstrap-Node {
   }
 
   $env:Path = "$NodeHome;$env:Path"
-  Write-Host "Portable Node bereit: $(node -v)"
+  Write-Host "Portable Node bereit: $(node -v) ($NodeHome)"
 }
 
 if (-not (Ensure-NodeOnPath)) {
