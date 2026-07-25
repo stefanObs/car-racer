@@ -422,7 +422,9 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ### Danach
 
-- Ad-hoc-Generator, weitere Klassen/Themes, Teile II/III, mehr Aufkleber-Sets, Zeitjagd  
+- Weitere Klassen/Themes, Teile II/III, mehr Aufkleber-Sets, Zeitjagd  
+
+**Geliefert nach MVP-Kern:** Ad-hoc-Generator (Seed, Länge, Theme, CHF ohne Sterne).
 
 ---
 
@@ -478,4 +480,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.3 — Sitzungs-Pacing 7–15 min für sinnvolles Freischalten/Kauf.*
+*Dokumentstand: Konzept v3.4 — Ad-hoc-Seedstrecken geliefert; Sitzungs-Pacing 7–15 min.*

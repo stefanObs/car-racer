@@ -8,8 +8,10 @@ import { createGameRenderer, type GameRenderer } from "../render/createGameRende
 import { DAMAGE_LABELS } from "../sim/damage";
 import { RaceSession } from "../sim/race";
 import { APP_VERSION } from "../core/version";
+import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
+import type { LevelDefinition } from "../track/types";
 
-type Screen = "menu" | "cup" | "free" | "garage" | "race" | "results";
+type Screen = "menu" | "cup" | "free" | "adhoc" | "garage" | "race" | "results";
 
 export class GameApp {
   private save: SaveData = loadSave();
@@ -20,6 +22,9 @@ export class GameApp {
   private lastResult: ReturnType<RaceSession["result"]> | null = null;
   private focusIndex = 0;
   private uiRoot: HTMLElement;
+  private adhocSeed = randomSeed();
+  private adhocLength: AdhocLength = "medium";
+  private lastAdhoc: LevelDefinition | null = null;
   private lastUi = {
     confirm: false,
     back: false,
@@ -175,9 +180,7 @@ export class GameApp {
     writeSave(this.save);
   }
 
-  private startRace(levelId: string): void {
-    const level = levelById(levelId) ?? freeLevels(this.save.unlockedLevels).find((l) => l.id === levelId);
-    if (!level) return;
+  private startRaceWithLevel(level: LevelDefinition): void {
     this.renderer.clearCars();
     this.race = new RaceSession({
       level,
@@ -189,6 +192,16 @@ export class GameApp {
     this.renderer.buildTrack(this.race);
     this.screen = "race";
     this.renderUi();
+  }
+
+  private startRace(levelId: string): void {
+    if (this.lastAdhoc && this.lastAdhoc.id === levelId) {
+      this.startRaceWithLevel(this.lastAdhoc);
+      return;
+    }
+    const level = levelById(levelId) ?? freeLevels(this.save.unlockedLevels).find((l) => l.id === levelId);
+    if (!level) return;
+    this.startRaceWithLevel(level);
   }
 
   private updateHud(): void {
@@ -217,6 +230,7 @@ export class GameApp {
         <div class="stack">
           <button data-nav data-act="cup">Cup</button>
           <button data-nav data-act="free">Freier Modus</button>
+          <button data-nav data-act="adhoc">Ad-hoc</button>
           <button data-nav data-act="garage">Garage</button>
         </div>
         <p class="help">Tastatur: WASD / Pfeile, Enter, Esc · Controller: D-Pad/Stick, A/B · Tablet: Touch</p>
@@ -239,6 +253,30 @@ export class GameApp {
         )
         .join("");
       body = `<h2>Freier Modus</h2><div class="stack">${rows || "<p>Noch keine Strecken freigeschaltet.</p>"}</div><button data-nav data-act="menu">Zurück</button>`;
+    } else if (this.screen === "adhoc") {
+      const preview = generateAdhocLevel({ seed: this.adhocSeed, length: this.adhocLength });
+      this.lastAdhoc = preview;
+      const lengthBtns = (["short", "medium", "long"] as AdhocLength[])
+        .map((len) => {
+          const label = len === "short" ? "Kurz" : len === "long" ? "Lang" : "Mittel";
+          const on = this.adhocLength === len ? " ✓" : "";
+          return `<button data-nav data-act="adhoc-length" data-length="${len}">${label}${on}</button>`;
+        })
+        .join("");
+      body = `
+        <h2>Ad-hoc</h2>
+        <p class="tag">Zufallsstrecke zum Teilen — Seed zeigt die gleiche Runde.</p>
+        <p class="meta">Seed <strong id="adhoc-seed-label">${this.adhocSeed}</strong> · ${preview.theme} · ${preview.laps} Runden</p>
+        <label class="seed-field">Seed
+          <input data-seed-input maxlength="6" value="${this.adhocSeed}" autocomplete="off" spellcheck="false" />
+        </label>
+        <div class="stack row">${lengthBtns}</div>
+        <div class="stack">
+          <button data-nav data-act="adhoc-roll">Neuer Seed</button>
+          <button data-nav data-act="adhoc-start">Start #${this.adhocSeed}</button>
+          <button data-nav data-act="menu">Zurück</button>
+        </div>
+      `;
     } else if (this.screen === "garage") {
       body = this.garageHtml();
     } else if (this.screen === "race") {
@@ -331,6 +369,19 @@ export class GameApp {
     this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-act]").forEach((btn) => {
       btn.addEventListener("click", () => this.onAction(btn));
     });
+    const seedInput = this.uiRoot.querySelector<HTMLInputElement>("input[data-seed-input]");
+    seedInput?.addEventListener("change", () => {
+      this.adhocSeed = normalizeSeed(seedInput.value);
+      this.renderUi();
+    });
+    seedInput?.addEventListener("keydown", (e) => {
+      if (e.code === "Enter") {
+        e.preventDefault();
+        e.stopPropagation();
+        this.adhocSeed = normalizeSeed(seedInput.value);
+        this.renderUi();
+      }
+    });
     this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-touch]").forEach((btn) => {
       const key = btn.dataset.touch as keyof typeof touchState;
       const set = (v: boolean) => {
@@ -360,7 +411,22 @@ export class GameApp {
     if (act === "menu") this.screen = "menu";
     if (act === "cup") this.screen = "cup";
     if (act === "free") this.screen = "free";
+    if (act === "adhoc") this.screen = "adhoc";
     if (act === "garage") this.screen = "garage";
+    if (act === "adhoc-roll") {
+      this.adhocSeed = randomSeed();
+      this.screen = "adhoc";
+    }
+    if (act === "adhoc-length" && btn.dataset.length) {
+      this.adhocLength = btn.dataset.length as AdhocLength;
+      this.screen = "adhoc";
+    }
+    if (act === "adhoc-start") {
+      const level = generateAdhocLevel({ seed: this.adhocSeed, length: this.adhocLength });
+      this.lastAdhoc = level;
+      this.startRaceWithLevel(level);
+      return;
+    }
     if (act === "race" && btn.dataset.level) {
       this.startRace(btn.dataset.level);
       return;

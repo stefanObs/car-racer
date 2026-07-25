@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v3.4 Ad-hoc seed tracks shipped
+
+- Trigger: user — continue next step after MVP tech order complete
+- Decision: Implement CONCEPT §8.4 ad-hoc from segment stitch + shareable seed in main menu
+- CONCEPT/TECH touched: §11 Danach → delivered note; TECH build order step 9; footer → v3.4
+- Skills: level-editor rules followed (asphalt→grass→wall, tire corners)
+
 ### 2026-07-25 — v3.3 Session pacing 7–15 min
 
 - Trigger: user — planned pacing so 7–15 min can unlock or buy something meaningful

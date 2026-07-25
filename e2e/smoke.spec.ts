@@ -7,6 +7,7 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.getByRole("heading", { name: "Crash Circuit" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cup" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Freier Modus" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Ad-hoc" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Garage" })).toBeVisible();
 
     await page.getByRole("button", { name: "Cup" }).click();
@@ -51,5 +52,15 @@ test.describe("Crash Circuit smoke", () => {
     await page.getByRole("button", { name: /1\.\s*Hafenstart/ }).click();
     await expect(page.locator(".touch-controls")).toBeVisible();
     await expect(page.getByRole("button", { name: "Gas" })).toBeVisible();
+  });
+
+  test("opens ad-hoc seed screen and can start a race", async ({ page }) => {
+    await page.goto("/");
+    await page.getByRole("button", { name: "Ad-hoc" }).click();
+    await expect(page.getByRole("heading", { name: "Ad-hoc" })).toBeVisible();
+    await expect(page.locator("input[data-seed-input]")).toBeVisible();
+    await page.getByRole("button", { name: /Start #/ }).click();
+    await expect(page.locator("#race-hud")).toBeVisible();
+    await expect(page.locator("#race-hud")).toContainText(/Platz/);
   });
 });

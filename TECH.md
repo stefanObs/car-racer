@@ -142,6 +142,7 @@ Document third-party licenses in a `NOTICE` or `licenses/` folder when shipping.
 6. ✅ Garage (paint, stickers, parts, synergies)
 7. ✅ Vitest for sim rules + **Playwright smoke** (load menu → cup → race)
 8. ✅ Tablet layout pass + controller menu pass (review-testing)
+9. ✅ Ad-hoc seed tracks (segment stitch + shareable seed)
 
 ---
 
