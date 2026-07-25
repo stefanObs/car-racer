@@ -11,6 +11,8 @@ import { RaceSession } from "../sim/race";
 import { APP_VERSION } from "../core/version";
 import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
 import type { LevelDefinition } from "../track/types";
+import { renderMiniMapSvg } from "./miniMap";
+import { StylePopupQueue } from "./stylePopups";
 
 type Screen = "menu" | "cup" | "free" | "adhoc" | "garage" | "race" | "results";
 
@@ -27,6 +29,7 @@ export class GameApp {
   private adhocSeed = randomSeed();
   private adhocLength: AdhocLength = "medium";
   private lastAdhoc: LevelDefinition | null = null;
+  private stylePops = new StylePopupQueue();
   private lastUi = {
     confirm: false,
     back: false,
@@ -217,6 +220,7 @@ export class GameApp {
 
   private startRaceWithLevel(level: LevelDefinition): void {
     this.renderer.clearCars();
+    this.stylePops.clear();
     this.race = new RaceSession({
       level,
       playerCarId: this.save.activeCar,
@@ -244,13 +248,24 @@ export class GameApp {
     if (!hud || !this.race) return;
     const p = this.race.player();
     const stage = this.race.playerDamageStage();
+    const now = performance.now();
+    for (const ev of this.race.consumeStyleEvents()) {
+      this.stylePops.push(ev.amount, ev.reason, now);
+    }
     hud.innerHTML = `
-      <div class="hud-row" data-dev-name="hud.place-lap"><strong>Platz ${p.place}/${this.race.cars.length}</strong> · Runde ${Math.min(p.lap, this.race.level.laps)}/${this.race.level.laps}</div>
-      <div class="hud-row" data-dev-name="hud.damage">Schaden: ${DAMAGE_LABELS[stage]}${p.healFx > 0.2 ? " · Reparatur…" : ""}</div>
-      <div class="bars" data-dev-name="hud.bars">
-        <div class="bar" data-dev-name="hud.nitro"><span>Nitro</span><i style="width:${Math.round(p.nitro * 100)}%"></i></div>
-        <div class="bar" data-dev-name="hud.hp"><span>Karosserie</span><i class="hp" style="width:${Math.round(p.hp * 100)}%"></i></div>
+      <div class="hud-cluster" data-dev-name="hud.cluster">
+        <div class="hud-stats">
+          <div class="hud-row" data-dev-name="hud.place-lap"><strong>Platz ${p.place}/${this.race.cars.length}</strong> · Runde ${Math.min(p.lap, this.race.level.laps)}/${this.race.level.laps}</div>
+          <div class="hud-row" data-dev-name="hud.damage">Schaden: ${DAMAGE_LABELS[stage]}${p.healFx > 0.2 ? " · Reparatur…" : ""}</div>
+          <div class="bars" data-dev-name="hud.bars">
+            <div class="bar" data-dev-name="hud.nitro"><span>Nitro</span><i style="width:${Math.round(p.nitro * 100)}%"></i></div>
+            <div class="bar" data-dev-name="hud.hp"><span>Karosserie</span><i class="hp" style="width:${Math.round(p.hp * 100)}%"></i></div>
+          </div>
+          <div class="hud-row hud-style" data-dev-name="hud.style-total">Style ${formatChf(this.race.styleBonus)}</div>
+        </div>
+        <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>
       </div>
+      <div class="style-popups" data-dev-name="hud.style-popups">${this.stylePops.renderHtml(now)}</div>
     `;
     hud.dataset.devName = "#race-hud";
     this.dev.tagUi(this.uiRoot);

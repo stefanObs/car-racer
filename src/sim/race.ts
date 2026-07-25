@@ -21,6 +21,10 @@ export interface RaceResult {
   starsEarned: boolean;
 }
 
+export type StyleEvent = { amount: number; reason: string };
+
+const STYLE_CAP = 120;
+
 export class RaceSession {
   readonly track: BuiltTrack;
   readonly level: LevelDefinition;
@@ -29,6 +33,8 @@ export class RaceSession {
   styleBonus = 0;
   done = false;
   private prevProgress = new Map<string, number>();
+  private prevPlace = new Map<string, number>();
+  private styleEvents: StyleEvent[] = [];
   private readonly config: RaceConfig;
   private elapsed = 0;
 
@@ -108,6 +114,20 @@ export class RaceSession {
     return { throttle: 0.85, brake: Math.abs(err) > 0.9 ? 0.35 : 0, steer, nitro };
   }
 
+  private addStyle(amount: number, reason: string): void {
+    const before = this.styleBonus;
+    this.styleBonus = Math.min(STYLE_CAP, this.styleBonus + amount);
+    const gained = this.styleBonus - before;
+    if (gained > 0) this.styleEvents.push({ amount: gained, reason });
+  }
+
+  /** Drain style events for HUD popups (CONCEPT §9). */
+  consumeStyleEvents(): StyleEvent[] {
+    const events = this.styleEvents;
+    this.styleEvents = [];
+    return events;
+  }
+
   step(dt: number, playerInput: DriverInput): void {
     if (this.done) return;
     this.elapsed += dt;
@@ -122,18 +142,14 @@ export class RaceSession {
       if (car.finished) continue;
       const input = car.isPlayer ? playerInput : this.aiInput(car);
       const catchUp = catchUpMultipliers(car.place, this.cars.length);
-      const prevHp = car.hp;
       stepCar(car, input, this.track, dt, catchUp);
-      if (car.isPlayer && car.hp < prevHp - 0.01) {
-        // no style for eating wall
-      }
 
       // Lap / finish via crossing start line
       const prevAlong = this.prevProgress.get(car.id) ?? car.distanceAlong;
       const along = car.distanceAlong;
       if (prevAlong > this.track.totalLength * 0.75 && along < this.track.totalLength * 0.25 && car.speed > 2) {
         car.lap += 1;
-        if (car.isPlayer) this.styleBonus += 20;
+        if (car.isPlayer) this.addStyle(20, "Runde!");
       }
       car.progress = along + (car.lap - 1) * this.track.totalLength;
       if (car.lap > this.level.laps && !car.finished) {
@@ -152,6 +168,18 @@ export class RaceSession {
       this.prevProgress.set(car.id, along);
     }
 
+    // Recompute places after movement; reward clean overtakes (not ramming score)
+    const after = [...this.cars].sort((a, b) => b.progress - a.progress);
+    after.forEach((c, i) => {
+      c.place = i + 1;
+    });
+    const player = this.player();
+    const prevPlace = this.prevPlace.get(player.id) ?? player.place;
+    if (!player.finished && player.place < prevPlace) {
+      this.addStyle(25, "Überholt!");
+    }
+    this.prevPlace.set(player.id, player.place);
+
     if (this.elapsed > 1.5) {
       for (let i = 0; i < this.cars.length; i++) {
         for (let j = i + 1; j < this.cars.length; j++) {
@@ -162,8 +190,7 @@ export class RaceSession {
 
     if (this.cars.every((c) => c.finished) || (this.cars.find((c) => c.isPlayer)?.finished && this.finishedCount >= 1)) {
       // End when player finished (others may still run briefly)
-      const player = this.cars.find((c) => c.isPlayer);
-      if (player?.finished) this.done = true;
+      if (player.finished) this.done = true;
     }
   }
 
@@ -171,7 +198,7 @@ export class RaceSession {
     const player = this.cars.find((c) => c.isPlayer)!;
     const place = player.finishPlace || player.place;
     const purse = this.level.rewards.placePurse[place - 1] ?? 60;
-    const style = Math.min(120, this.styleBonus);
+    const style = Math.min(STYLE_CAP, this.styleBonus);
     return {
       place,
       purseChf: purse + style,

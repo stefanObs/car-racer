@@ -167,12 +167,92 @@ button[data-act="race"]:not(:disabled) {
 
 .race-hud {
   pointer-events: none;
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: none;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+}
+
+.hud-cluster {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+}
+
+.hud-stats {
   display: inline-block;
-  max-width: min(360px, 100%);
+  max-width: min(320px, 100%);
   padding: 10px 12px;
   background: var(--ui-bg);
-  border: 2px solid var(--outline);
+  border: 3px solid var(--outline);
   border-radius: 4px;
+  box-shadow: 4px 4px 0 rgba(27, 27, 31, 0.35);
+}
+
+.hud-minimap {
+  flex: 0 0 auto;
+  padding: 4px;
+  background: var(--ui-bg);
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 rgba(27, 27, 31, 0.35);
+  line-height: 0;
+}
+
+.mini-map-svg {
+  display: block;
+  shape-rendering: geometricPrecision;
+}
+
+.hud-style {
+  margin-top: 6px;
+  font-size: 0.85rem;
+  color: #ffe066;
+}
+
+.style-popups {
+  position: absolute;
+  left: 50%;
+  top: 28%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: max-content;
+  max-width: 90vw;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.style-pop {
+  padding: 8px 14px;
+  background: #ffe066;
+  color: var(--outline);
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 rgba(27, 27, 31, 0.45);
+  text-align: center;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  will-change: transform, opacity;
+}
+
+.style-pop strong {
+  display: block;
+  font-size: 1.25rem;
+  letter-spacing: 0.02em;
+}
+
+.style-pop span {
+  font-size: 0.85rem;
+  font-weight: 700;
 }
 
 .bars {
