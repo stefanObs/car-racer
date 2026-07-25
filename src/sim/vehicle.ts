@@ -1,9 +1,14 @@
 import type { VehicleStats } from "../data/cars";
 import type { CarId } from "../data/cars";
 import { collisionRadiusFor } from "../data/carModels";
+import type { BuiltTrack, LevelDefinition } from "../track/types";
 import { applyHeal, applyHit, damageMultipliers, stageFromHp, type DamageStage } from "./damage";
 import { surfaceAt } from "./zones";
-import type { BuiltTrack } from "../track/types";
+
+export type TrackObstacle = LevelDefinition["obstacles"][number];
+
+/** Seconds between damage applications from walls/obstacles. */
+export const IMPACT_DAMAGE_COOLDOWN = 0.55;
 
 export interface DriverInput {
   throttle: number; // 0..1
@@ -22,6 +27,8 @@ export interface CarState {
   nitro: number;
   koTimer: number;
   healFx: number;
+  /** Seconds until next wall/obstacle damage tick (prevents grind KO). */
+  impactCooldown: number;
   isPlayer: boolean;
   paint: string;
   sticker: string;
@@ -48,6 +55,7 @@ export function createCarState(
     | "nitro"
     | "koTimer"
     | "healFx"
+    | "impactCooldown"
     | "place"
     | "lap"
     | "checkpoint"
@@ -64,6 +72,7 @@ export function createCarState(
     nitro: 1,
     koTimer: 0,
     healFx: 0,
+    impactCooldown: 0,
     place: 1,
     lap: 1,
     checkpoint: 0,
@@ -82,6 +91,7 @@ export function stepCar(
   track: BuiltTrack,
   dt: number,
   catchUp: { accel: number; topSpeed: number },
+  obstacles: TrackObstacle[] = [],
 ): { hitWall: boolean; stage: DamageStage } {
   if (car.finished) {
     return { hitWall: false, stage: stageFromHp(car.hp) };
@@ -150,9 +160,9 @@ export function stepCar(
   car.x += Math.cos(car.heading) * car.speed * dt;
   car.z += Math.sin(car.heading) * car.speed * dt;
 
-  // Walls are solid: project back onto the grass outer edge, then apply hit + slowdown.
-  // (Previously a small “bounce” used the wrong lateral sign and ran *before* integration,
-  // so cars were pushed further through the wall.)
+  if (car.impactCooldown > 0) car.impactCooldown = Math.max(0, car.impactCooldown - dt);
+
+  // Walls are solid: project back, bounce velocity inward, light damage (cooldown).
   let hitWall = false;
   const afterMove = surfaceAt(
     track,
@@ -164,18 +174,10 @@ export function stepCar(
   const wallLimit = track.asphaltHalfWidth + track.grassWidth;
   const overflow = Math.abs(afterMove.lateral) - wallLimit;
   if (overflow > 0) {
-    const sign = Math.sign(afterMove.lateral) || 1;
-    const leftX = -afterMove.tangent.z;
-    const leftZ = afterMove.tangent.x;
-    car.x -= sign * overflow * leftX;
-    car.z -= sign * overflow * leftZ;
-
-    const wallDamage = (afterMove.wallKind === "concrete" ? 0.12 : 0.07) * (0.5 + Math.min(1, car.speed / BASE_TOP));
-    const prev = car.hp;
-    car.hp = applyHit(car.hp, wallDamage, car.stats.armor);
-    if (car.hp < prev) hitWall = true;
-    car.speed *= afterMove.wallKind === "concrete" ? 0.55 : 0.7;
+    hitWall = applyWallBounce(car, afterMove, overflow);
   }
+
+  const hitObstacle = resolveObstacles(car, obstacles);
 
   const resolved = surfaceAt(
     track,
@@ -186,7 +188,7 @@ export function stepCar(
   );
 
   // Heal
-  const interrupted = hitWall;
+  const interrupted = hitWall || hitObstacle;
   const before = car.hp;
   car.hp = applyHeal(car.hp, dt, interrupted);
   if (car.hp > before) car.healFx = Math.min(1, car.healFx + dt * 2);
@@ -201,7 +203,110 @@ export function stepCar(
   car.distanceAlong = resolved.distanceAlong;
   car.progress = resolved.distanceAlong + (car.lap - 1) * track.totalLength;
 
-  return { hitWall, stage: stageFromHp(car.hp) };
+  return { hitWall: hitWall || hitObstacle, stage: stageFromHp(car.hp) };
+}
+
+/**
+ * Separate from wall, reflect outward velocity back onto the track, apply capped damage.
+ * RCA: old code damaged every frame while clamped (no bounce) → KO in ~1.5s grinding.
+ */
+export function applyWallBounce(
+  car: CarState,
+  afterMove: ReturnType<typeof surfaceAt>,
+  overflow: number,
+): boolean {
+  const sign = Math.sign(afterMove.lateral) || 1;
+  const leftX = -afterMove.tangent.z;
+  const leftZ = afterMove.tangent.x;
+  const outwardX = sign * leftX;
+  const outwardZ = sign * leftZ;
+
+  // Push clearly inside the grass edge so we don't re-hit next frame.
+  const push = overflow + 0.2;
+  car.x -= outwardX * push;
+  car.z -= outwardZ * push;
+
+  let vx = Math.cos(car.heading) * car.speed;
+  let vz = Math.sin(car.heading) * car.speed;
+  const outwardVel = vx * outwardX + vz * outwardZ;
+  const restitution = afterMove.wallKind === "concrete" ? 0.55 : 0.7;
+  const suspEase = Math.min(0.2, Math.max(0, (car.stats.suspension - 0.7) * 0.15));
+  if (outwardVel > 0) {
+    const bounce = outwardVel * (1 + restitution - suspEase);
+    vx -= outwardX * bounce;
+    vz -= outwardZ * bounce;
+  } else {
+    // Scraping: nudge slightly back onto track
+    vx -= outwardX * 2;
+    vz -= outwardZ * 2;
+  }
+
+  const newSpeed = Math.hypot(vx, vz);
+  if (newSpeed > 0.05) {
+    car.heading = Math.atan2(vz, vx);
+  }
+  const damp = afterMove.wallKind === "concrete" ? 0.52 : 0.68;
+  car.speed = newSpeed * damp;
+
+  let damaged = false;
+  if (car.impactCooldown <= 0) {
+    const impact = Math.min(1, Math.max(0, outwardVel) / BASE_TOP);
+    const base = afterMove.wallKind === "concrete" ? 0.07 : 0.045;
+    const amount = base * (0.35 + 0.65 * impact);
+    const prev = car.hp;
+    car.hp = applyHit(car.hp, amount, car.stats.armor);
+    car.impactCooldown = IMPACT_DAMAGE_COOLDOWN;
+    damaged = car.hp < prev;
+  }
+  return damaged || outwardVel > 0.5;
+}
+
+/** Solid on-track props: bounce + light damage (uneven/oil are surface-only). */
+export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boolean {
+  if (car.finished || car.koTimer > 0) return false;
+  let hit = false;
+  const carR = collisionRadiusFor(car.modelId);
+
+  for (const o of obstacles) {
+    if (o.type === "uneven" || o.type === "oil") continue;
+    const [ox, oz] = o.position;
+    const obstR = o.radius ?? (o.type === "tire_stack" ? 1.5 : 1.2);
+    const minDist = obstR + carR;
+    const dx = car.x - ox;
+    const dz = car.z - oz;
+    const dist = Math.hypot(dx, dz);
+    if (dist >= minDist || dist < 1e-5) continue;
+
+    const nx = dx / dist;
+    const nz = dz / dist;
+    const overlap = minDist - dist;
+    car.x += nx * (overlap + 0.05);
+    car.z += nz * (overlap + 0.05);
+
+    let vx = Math.cos(car.heading) * car.speed;
+    let vz = Math.sin(car.heading) * car.speed;
+    const into = -(vx * nx + vz * nz); // speed toward obstacle center
+    if (into > 0) {
+      const rest = o.type === "concrete_barrier" ? 0.6 : 0.75;
+      vx += nx * into * (1 + rest);
+      vz += nz * into * (1 + rest);
+    } else {
+      vx += nx * 3;
+      vz += nz * 3;
+    }
+    const newSpeed = Math.hypot(vx, vz);
+    if (newSpeed > 0.05) car.heading = Math.atan2(vz, vx);
+    car.speed = newSpeed * (o.type === "concrete_barrier" ? 0.5 : 0.62);
+
+    if (car.impactCooldown <= 0) {
+      const base = o.type === "concrete_barrier" ? 0.055 : 0.035;
+      const impact = Math.min(1, car.speed / BASE_TOP);
+      car.hp = applyHit(car.hp, base * (0.4 + 0.6 * impact), car.stats.armor);
+      car.impactCooldown = IMPACT_DAMAGE_COOLDOWN;
+    }
+    hit = true;
+  }
+  return hit;
 }
 
 export function resolveContact(a: CarState, b: CarState): void {

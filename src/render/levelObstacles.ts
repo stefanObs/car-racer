@@ -4,7 +4,7 @@ import type { LevelDefinition } from "../track/types";
 import { comicToon, withOutline } from "./comicMaterials";
 import { ComicPalette } from "./palette";
 
-/** On-track props from level.obstacles (visual; physics can hook later). */
+/** On-track props from level.obstacles — visuals; solid types bounce in sim/vehicle. */
 export function buildLevelObstacles(level: LevelDefinition): Group {
   const root = new Group();
   for (const o of level.obstacles) {

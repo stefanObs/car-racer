@@ -105,7 +105,7 @@ Querschnitt der Piste (von innen nach außen):
 |------|--------|----------|
 | **Asphalt** | Normale Stats | — |
 | **Gras** | Deutlich langsamer, etwas schwammigeres Handling | Gute Federung **reduziert** den Malus merklich, **entfernt ihn nicht** |
-| **Mauer** | Harter Aufprall, Schaden, Bounce zurück auf die Bahn | Federung mildert Bounce etwas; Schaden bleibt relevant |
+| **Mauer** | Harter Aufprall, **mäßiger** Schaden, **Abprall** zurück auf die Bahn (kein Dauer-Schaden-Spam) | Federung mildert Bounce etwas; Schaden bleibt relevant |
 
 **Mauer-Varianten:**
 
@@ -486,4 +486,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.8 — Garage Eigenschaften-Popup (Level 1–100).*
+*Dokumentstand: Konzept v3.9 — Mauer/Hindernis: Abprall + mäßiger Schaden (kein Grind-K.O.).*

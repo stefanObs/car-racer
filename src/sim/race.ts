@@ -144,7 +144,7 @@ export class RaceSession {
       if (car.finished) continue;
       const input = car.isPlayer ? playerInput : this.aiInput(car);
       const catchUp = catchUpMultipliers(car.place, this.cars.length);
-      stepCar(car, input, this.track, dt, catchUp);
+      stepCar(car, input, this.track, dt, catchUp, this.level.obstacles);
 
       // Lap / finish via crossing start line
       const prevAlong = this.prevProgress.get(car.id) ?? car.distanceAlong;
