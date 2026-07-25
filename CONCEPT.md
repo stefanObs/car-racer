@@ -75,7 +75,7 @@ Gleiche Aktionen auf allen Eingabegeräten; kein Feature nur auf einer Plattform
 - **Tablet:** Touch-Steuerung im Rennen + alle Menüs/Garage bedienbar; große Hit-Targets; HUD und kritische Infos ohne Hover; Landscape-first, nutzbar in typischen Tablet-Auflösungen; kein „nur mit Tastatur“-Schritt.
 - Eingabe jederzeit wechselbar (z. B. Controller anschließen mid-session), wo die Plattform das erlaubt.
 
-Kein realistisches Drift-Physik-Sim — eher **Gewicht + Grip + Impuls**.
+Kein realistisches Drift-Physik-Sim — eher **Gewicht + Grip + Impuls** mit Arcade-Fahrgefühl: Lenkung wird bei Tempo ruhiger, Grip lässt das Auto in Kurven leicht rutschen statt panzerartig zu drehen, Gas baut Tempo knackig auf, Loslassen lässt es **ausrollen** (nicht abrupt stoppen).
 
 ### 4.3 Physik-Säulen (fürs Balancing)
 
@@ -486,4 +486,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.9 — Mauer/Hindernis: Abprall + mäßiger Schaden (kein Grind-K.O.).*
+*Dokumentstand: Konzept v3.10 — Arcade-Fahrgefühl (Grip-Slip, Speed-Lenkung, Coast).*

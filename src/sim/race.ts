@@ -159,6 +159,8 @@ export class RaceSession {
         this.finishedCount += 1;
         car.finishPlace = this.finishedCount;
         car.speed = 0;
+        car.vx = 0;
+        car.vz = 0;
       }
       // KO respawn snap to track
       if (car.koTimer > 0 && car.hp <= 0) {
@@ -220,6 +222,8 @@ export class RaceSession {
     player.place = playerPlace;
     player.lap = this.level.laps + 1;
     player.speed = 0;
+    player.vx = 0;
+    player.vz = 0;
 
     let next = 1;
     for (const car of this.cars) {
@@ -230,6 +234,8 @@ export class RaceSession {
       car.place = next;
       car.lap = this.level.laps + 1;
       car.speed = 0;
+      car.vx = 0;
+      car.vz = 0;
       next += 1;
     }
     this.finishedCount = n;

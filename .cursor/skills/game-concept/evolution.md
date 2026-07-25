@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v3.10 Arcade driving feel
+
+- Trigger: user — improve car driving to feel more like a racing game
+- Decision: Keep “Gewicht + Grip + Impuls” (no full drift sim). Velocity can slip vs heading; yaw rate drops at high speed; lighter drag / coast; punchier accel/nitro. Tests lock steer curve, coast, slip angle.
+- CONCEPT §§ touched: §4.2 → v3.10
+- Impl: `src/sim/vehicle.ts` stepCar rewrite
+
 ### 2026-07-25 — v3.7 Category-faithful car silhouettes
 
 - Trigger: user — art should strive for looks close to real cars of each category; sample target image

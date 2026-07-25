@@ -23,6 +23,9 @@ export interface CarState {
   z: number;
   heading: number;
   speed: number;
+  /** World-space velocity — can slip vs heading (arcade grip). */
+  vx: number;
+  vz: number;
   hp: number;
   nitro: number;
   koTimer: number;
@@ -44,13 +47,20 @@ export interface CarState {
   finishPlace: number;
 }
 
-const BASE_TOP = 28;
-const BASE_ACCEL = 18;
+/** Arcade pace: punchy accel, roomy top end (meters/sec-ish units). */
+export const BASE_TOP = 34;
+export const BASE_ACCEL = 26;
+const DRAG = 0.14;
+const COAST_BRAKE = 3.5;
+const BRAKE_FORCE = 48;
+const NITRO_FORCE = 38;
 
 export function createCarState(
   partial: Omit<
     CarState,
     | "speed"
+    | "vx"
+    | "vz"
     | "hp"
     | "nitro"
     | "koTimer"
@@ -66,8 +76,12 @@ export function createCarState(
   > &
     Partial<CarState>,
 ): CarState {
-  return {
-    speed: 0,
+  const heading = partial.heading;
+  const speed = partial.speed ?? 0;
+  const car: CarState = {
+    speed,
+    vx: Math.cos(heading) * speed,
+    vz: Math.sin(heading) * speed,
     hp: 1,
     nitro: 1,
     koTimer: 0,
@@ -83,6 +97,39 @@ export function createCarState(
     modelId: "blitz",
     ...partial,
   };
+  if (partial.vx === undefined || partial.vz === undefined) {
+    car.vx = Math.cos(car.heading) * car.speed;
+    car.vz = Math.sin(car.heading) * car.speed;
+  }
+  return car;
+}
+
+/**
+ * Arcade yaw: responsive at low/mid speed, settles at high speed (racing feel).
+ * CONCEPT §4.2 — Gewicht + Grip + Impuls, kein Drift-Sim.
+ */
+export function yawRateFor(opts: {
+  steer: number;
+  speed: number;
+  handling: number;
+  grip: number;
+  gripFactor: number;
+  handlingMult: number;
+}): number {
+  const auth =
+    opts.steer * (2.35 + opts.handling) * opts.handlingMult * opts.gripFactor * opts.grip;
+  const speedBuild = 0.4 + 0.6 * Math.min(1, opts.speed / 7);
+  const highSpeedCut = 1 / (1 + (opts.speed / 24) ** 2.15);
+  return auth * speedBuild * highSpeedCut;
+}
+
+function syncVelocityFromSpeed(car: CarState): void {
+  car.vx = Math.cos(car.heading) * car.speed;
+  car.vz = Math.sin(car.heading) * car.speed;
+}
+
+function syncSpeedFromVelocity(car: CarState): void {
+  car.speed = Math.hypot(car.vx, car.vz);
 }
 
 export function stepCar(
@@ -100,6 +147,8 @@ export function stepCar(
   if (car.koTimer > 0) {
     car.koTimer -= dt;
     car.speed = 0;
+    car.vx = 0;
+    car.vz = 0;
     if (car.koTimer <= 0) {
       car.hp = 1;
       car.healFx = 0.6;
@@ -126,39 +175,87 @@ export function stepCar(
     dmg.topSpeed *
     surface.speedFactor *
     catchUp.topSpeed *
-    (1 - surface.bump * 0.25);
+    (1 - surface.bump * 0.22);
   const accel =
     BASE_ACCEL * car.stats.accel * catchUp.accel * (input.throttle > 0 ? 1 : 0);
 
+  const hx = Math.cos(car.heading);
+  const hz = Math.sin(car.heading);
+
+  // Drive / nitro along nose
+  car.vx += hx * accel * dt;
+  car.vz += hz * accel * dt;
   if (input.nitro && car.nitro > 0 && stage < 4) {
-    car.speed += (22 + car.stats.nitroBonus * 20) * dmg.nitro * dt;
-    car.nitro = Math.max(0, car.nitro - (0.35 + (car.stats.nitroBonus > 0 ? 0.1 : 0)) * dt);
+    const nitroPush = (NITRO_FORCE + car.stats.nitroBonus * 28) * dmg.nitro;
+    car.vx += hx * nitroPush * dt;
+    car.vz += hz * nitroPush * dt;
+    car.nitro = Math.max(0, car.nitro - (0.32 + (car.stats.nitroBonus > 0 ? 0.08 : 0)) * dt);
   } else {
-    car.nitro = Math.min(1, car.nitro + 0.12 * dt);
+    car.nitro = Math.min(1, car.nitro + 0.11 * dt);
   }
 
-  car.speed += accel * dt;
-  car.speed -= input.brake * 35 * dt;
-  car.speed -= car.speed * 0.55 * dt; // drag
-  if (input.throttle < 0.05 && input.nitro === false) {
-    car.speed -= 4 * dt;
+  syncSpeedFromVelocity(car);
+  if (car.speed > 1e-4) {
+    const fx = car.vx / car.speed;
+    const fz = car.vz / car.speed;
+    car.vx -= fx * input.brake * BRAKE_FORCE * dt;
+    car.vz -= fz * input.brake * BRAKE_FORCE * dt;
+    car.vx -= fx * car.speed * DRAG * dt;
+    car.vz -= fz * car.speed * DRAG * dt;
+    if (input.throttle < 0.05 && !input.nitro) {
+      car.vx -= fx * COAST_BRAKE * dt;
+      car.vz -= fz * COAST_BRAKE * dt;
+    }
   }
-  car.speed = Math.max(0, Math.min(top, car.speed));
 
-  // Steering
-  const steerAuth =
-    input.steer * (1.8 + car.stats.handling) * dmg.handling * surface.gripFactor * car.stats.grip;
-  const turnRate = steerAuth * (0.35 + Math.min(1, car.speed / 12));
+  syncSpeedFromVelocity(car);
+  if (car.speed > top && car.speed > 1e-6) {
+    const s = top / car.speed;
+    car.vx *= s;
+    car.vz *= s;
+    car.speed = top;
+  }
+
+  // Steering + lateral grip (velocity can slip vs heading)
+  const turnRate = yawRateFor({
+    steer: input.steer,
+    speed: car.speed,
+    handling: car.stats.handling,
+    grip: car.stats.grip,
+    gripFactor: surface.gripFactor,
+    handlingMult: dmg.handling,
+  });
   car.heading += turnRate * dt;
+  const hx2 = Math.cos(car.heading);
+  const hz2 = Math.sin(car.heading);
+  const forward = car.vx * hx2 + car.vz * hz2;
+  const latX = car.vx - hx2 * forward;
+  const latZ = car.vz - hz2 * forward;
+  const steerLoad = Math.abs(input.steer) * Math.min(1, car.speed / 18);
+  const gripStat = car.stats.grip * surface.gripFactor * dmg.grip;
+  const gripPull = (5.2 + gripStat * 6.5) * (1 - steerLoad * 0.42);
+  const pull = 1 - Math.exp(-Math.max(0.5, gripPull) * dt);
+  car.vx -= latX * pull;
+  car.vz -= latZ * pull;
+  // Tire scrub: hard cornering costs a little pace
+  const latMag = Math.hypot(latX, latZ);
+  car.vx -= hx2 * latMag * 0.12 * pull;
+  car.vz -= hz2 * latMag * 0.12 * pull;
+  syncSpeedFromVelocity(car);
+  car.speed = Math.max(0, car.speed);
 
   // Uneven wobble
   if (surface.bump > 0.05) {
-    car.heading += Math.sin(surface.distanceAlong * 0.35) * surface.bump * 0.5 * dt;
-    car.speed *= 1 - surface.bump * 0.15 * dt * 4;
+    car.heading += Math.sin(surface.distanceAlong * 0.35) * surface.bump * 0.45 * dt;
+    const bumpCut = 1 - surface.bump * 0.12 * dt * 4;
+    car.vx *= bumpCut;
+    car.vz *= bumpCut;
+    syncSpeedFromVelocity(car);
   }
 
-  car.x += Math.cos(car.heading) * car.speed * dt;
-  car.z += Math.sin(car.heading) * car.speed * dt;
+  // Integrate along velocity (slip = racing feel)
+  car.x += car.vx * dt;
+  car.z += car.vz * dt;
 
   if (car.impactCooldown > 0) car.impactCooldown = Math.max(0, car.impactCooldown - dt);
 
@@ -197,6 +294,8 @@ export function stepCar(
   if (car.hp <= 0) {
     car.koTimer = 3.5;
     car.speed = 0;
+    car.vx = 0;
+    car.vz = 0;
   }
 
   // Progress
@@ -247,6 +346,7 @@ export function applyWallBounce(
   }
   const damp = afterMove.wallKind === "concrete" ? 0.52 : 0.68;
   car.speed = newSpeed * damp;
+  syncVelocityFromSpeed(car);
 
   let damaged = false;
   if (car.impactCooldown <= 0) {
@@ -297,6 +397,7 @@ export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boo
     const newSpeed = Math.hypot(vx, vz);
     if (newSpeed > 0.05) car.heading = Math.atan2(vz, vx);
     car.speed = newSpeed * (o.type === "concrete_barrier" ? 0.5 : 0.62);
+    syncVelocityFromSpeed(car);
 
     if (car.impactCooldown <= 0) {
       const base = o.type === "concrete_barrier" ? 0.055 : 0.035;
@@ -338,4 +439,6 @@ export function resolveContact(a: CarState, b: CarState): void {
 
   a.speed *= 0.97;
   b.speed *= 0.97;
+  syncVelocityFromSpeed(a);
+  syncVelocityFromSpeed(b);
 }
