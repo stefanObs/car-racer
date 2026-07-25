@@ -20,6 +20,8 @@ export type CarOverlayOpts = {
   /** Stable seed for layout variants (e.g. car id). */
   variant?: string;
   gearClass?: GearClass;
+  /** GLTF cars already have authored shading — only attach garage stickers. */
+  mode?: "full" | "stickers-only";
 };
 
 const texCache = new Map<string, Texture>();
@@ -328,29 +330,32 @@ export function buildCarOverlays(opts: CarOverlayOpts): Group {
   const variant = opts.variant ?? opts.paint;
   const gear = opts.gearClass ?? "sport";
   const L = overlayLayout(gear);
+  const stickersOnly = opts.mode === "stickers-only";
 
-  const sideL = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.35);
-  sideL.position.set(-L.sideX, L.sideY, L.sideZ);
-  sideL.rotation.y = Math.PI / 2;
+  if (!stickersOnly) {
+    const sideL = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.35);
+    sideL.position.set(-L.sideX, L.sideY, L.sideZ);
+    sideL.rotation.y = Math.PI / 2;
 
-  const sideR = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.35);
-  sideR.position.set(L.sideX, L.sideY, L.sideZ);
-  sideR.rotation.y = -Math.PI / 2;
-  sideR.rotation.z = Math.PI;
+    const sideR = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.35);
+    sideR.position.set(L.sideX, L.sideY, L.sideZ);
+    sideR.rotation.y = -Math.PI / 2;
+    sideR.rotation.z = Math.PI;
 
-  const roof = decal(roofEdgeTexture(), L.roofW, L.roofL, 0.3);
-  roof.position.set(0, L.roofY, L.roofZ);
-  roof.rotation.x = -Math.PI / 2;
+    const roof = decal(roofEdgeTexture(), L.roofW, L.roofL, 0.3);
+    roof.position.set(0, L.roofY, L.roofZ);
+    roof.rotation.x = -Math.PI / 2;
 
-  const rear = decal(rearDeckTexture(), L.rearW, L.rearH, 0.4);
-  rear.position.set(0, L.rearY, L.rearZ);
-  rear.rotation.x = L.rearTilt;
+    const rear = decal(rearDeckTexture(), L.rearW, L.rearH, 0.4);
+    rear.position.set(0, L.rearY, L.rearZ);
+    rear.rotation.x = L.rearTilt;
 
-  const glare = decal(glassGlareTexture(), L.glareW, L.glareH, 0.45);
-  glare.position.set(0, L.glareY, L.glareZ);
-  glare.rotation.x = L.glareTilt;
+    const glare = decal(glassGlareTexture(), L.glareW, L.glareH, 0.45);
+    glare.position.set(0, L.glareY, L.glareZ);
+    glare.rotation.x = L.glareTilt;
 
-  g.add(sideL, sideR, roof, rear, glare);
+    g.add(sideL, sideR, roof, rear, glare);
+  }
 
   const stickerTex = stickerTexture(opts.sticker);
   if (stickerTex) {

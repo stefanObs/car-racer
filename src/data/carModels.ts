@@ -60,10 +60,11 @@ export const CAR_MODELS: Record<CarId, CarModelSpec> = {
     id: "bunker",
     gearClass: "armor",
     url: "/models/cars/bunker.glb",
-    scale: 1,
+    /** Raw military truck is ~5.9m long; match Blitz arcade footprint. */
+    scale: 0.55,
     yaw: 0,
     y: 0,
-    collisionRadius: 1.35,
+    collisionRadius: 1.2,
   },
 };
 

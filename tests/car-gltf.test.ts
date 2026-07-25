@@ -21,7 +21,7 @@ describe("gltf car pipeline + silhouette collision", () => {
     for (const id of CAR_IDS) {
       const path = resolve("public/models/cars", `${id}.glb`);
       expect(existsSync(path), path).toBe(true);
-      expect(statSync(path).size).toBeGreaterThan(50_000);
+      expect(statSync(path).size).toBeGreaterThan(8_000);
       // glTF binary magic
       expect(statSync(path).size).toBeLessThan(8_000_000);
     }
@@ -44,7 +44,12 @@ describe("gltf car pipeline + silhouette collision", () => {
     const path = resolve("public/models/cars/donnerbuechse.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
-    expect(statSync(path).size).toBeGreaterThan(50_000);
+    expect(statSync(path).size).toBeGreaterThan(8_000);
+  });
+
+  it("bunker arcade scale is smaller than raw military truck export", () => {
+    expect(CAR_MODELS.bunker.scale).toBeLessThan(0.65);
+    expect(CAR_MODELS.bunker.collisionRadius).toBeLessThanOrEqual(1.25);
   });
 
   it("uses per-car silhouette radii for contact (not mesh shape)", () => {

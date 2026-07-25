@@ -251,6 +251,10 @@ function addOutlineShells(root: Object3D): void {
     const mesh = obj as Mesh;
     if (!mesh.isMesh || !mesh.geometry) return;
     if (mesh.userData.outlineShell) return;
+    // Tiny free-asset shards look like floating debris when outlined.
+    if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
+    const r = mesh.geometry.boundingSphere?.radius ?? 1;
+    if (r < 0.08) return;
     const shell = new Mesh(inflateGeometry(mesh.geometry, 0.035), outline);
     shell.renderOrder = -1;
     shell.userData.outlineShell = true;

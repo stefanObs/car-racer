@@ -67,6 +67,7 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
     sticker: car.sticker || "none",
     variant: `${id}-gltf`,
     gearClass: gear,
+    mode: "stickers-only",
   });
   stickers.scale.setScalar(0.95);
   root.add(stickers);

@@ -73,7 +73,7 @@ export const CARS: Record<CarId, CarDef> = {
     gearClass: "buggy",
     description: "Grip und Federung für Gras und Buckel — mittlere Speed.",
     priceChf: 1400,
-    defaultPaint: "#f08c00",
+    defaultPaint: "#12b886",
     stats: {
       accel: 1.0,
       topSpeed: 0.95,

@@ -122,7 +122,7 @@ describe("car models and per-car kits", () => {
     const k = emptyKit("bison");
     expect(k.ownedParts).toEqual([]);
     expect(k.paint).toBe("#2f9e44");
-    expect(emptyKit("kaeferkraft").paint).toBe("#f08c00");
+    expect(emptyKit("kaeferkraft").paint).toBe("#12b886");
     expect(emptyKit("bunker").paint).toBe("#868e96");
   });
 });

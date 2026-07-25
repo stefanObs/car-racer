@@ -56,5 +56,23 @@ describe("car graphic overlays", () => {
       gearClass: "pickup",
     });
     expect(pickup.children.length).toBe(5);
+
+    const gltfClean = buildCarOverlays({
+      paint: "#2f9e44",
+      sticker: "none",
+      variant: "bison-gltf",
+      gearClass: "pickup",
+      mode: "stickers-only",
+    });
+    expect(gltfClean.children.length).toBe(0);
+
+    const gltfSticker = buildCarOverlays({
+      paint: "#2f9e44",
+      sticker: "flames",
+      variant: "bison-gltf",
+      gearClass: "pickup",
+      mode: "stickers-only",
+    });
+    expect(gltfSticker.children.length).toBe(2);
   });
 });

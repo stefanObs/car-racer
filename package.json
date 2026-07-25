@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.2.38",
+  "version": "0.2.39",
   "private": true,
   "type": "module",
   "description": "Crash Circuit — arcade racer (free OSS stack)",
@@ -14,7 +14,8 @@
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:all": "vitest run && playwright test",
-    "cars:glb": "node scripts/write-car-glbs.mjs"
+    "cars:glb": "node scripts/write-car-glbs.mjs",
+    "cars:polish": "node scripts/polish-car-glbs.mjs"
   },
   "engines": {
     "node": ">=20"
@@ -23,6 +24,9 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@gltf-transform/core": "^4.4.1",
+    "@gltf-transform/extensions": "^4.4.1",
+    "@gltf-transform/functions": "^4.4.1",
     "@playwright/test": "^1.62.0",
     "@types/node": "^26.1.1",
     "@types/three": "^0.185.1",
