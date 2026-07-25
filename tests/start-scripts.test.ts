@@ -21,4 +21,10 @@ describe("start scripts", () => {
     expect(ps1).toContain("nodejs.org/dist");
     expect(ps1).toContain("Invoke-WebRequest");
   });
+
+  it("uses platform-specific Node home on Unix (linux-x64 folder)", () => {
+    const sh = readFileSync(resolve(root, "start.sh"), "utf8");
+    expect(sh).toContain('NODE_HOME="$TOOLS_DIR/node-v${NODE_VERSION}-${PLATFORM}"');
+    expect(sh).toContain("detect_platform");
+  });
 });

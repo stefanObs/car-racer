@@ -8,12 +8,35 @@ cd "$ROOT"
 
 NODE_VERSION="22.17.1"
 TOOLS_DIR="$ROOT/.tools"
-NODE_HOME="$TOOLS_DIR/node-v${NODE_VERSION}"
 
 die() {
   echo "Fehler: $*" >&2
   exit 1
 }
+
+detect_platform() {
+  local os arch
+  os="$(uname -s | tr '[:upper:]' '[:lower:]')"
+  arch="$(uname -m)"
+
+  case "$os" in
+    linux*) os="linux" ;;
+    darwin*) os="darwin" ;;
+    *) die "Unsupported OS '$(uname -s)'. Bitte Linux oder macOS nutzen." ;;
+  esac
+
+  case "$arch" in
+    x86_64|amd64) arch="x64" ;;
+    aarch64|arm64) arch="arm64" ;;
+    *) die "Unsupported CPU '$(uname -m)'." ;;
+  esac
+
+  echo "${os}-${arch}"
+}
+
+PLATFORM="$(detect_platform)"
+# Official Node dist extracts to node-vVERSION-OS-ARCH/
+NODE_HOME="$TOOLS_DIR/node-v${NODE_VERSION}-${PLATFORM}"
 
 download_file() {
   local url="$1"
@@ -53,31 +76,16 @@ ensure_path_has_node() {
 }
 
 bootstrap_node() {
-  local os arch platform archive url tmpdir tarball
-  os="$(uname -s | tr '[:upper:]' '[:lower:]')"
-  arch="$(uname -m)"
-
-  case "$os" in
-    linux*) os="linux" ;;
-    darwin*) os="darwin" ;;
-    *) die "Unsupported OS '$os'. Bitte Linux oder macOS nutzen." ;;
-  esac
-
-  case "$arch" in
-    x86_64|amd64) arch="x64" ;;
-    aarch64|arm64) arch="arm64" ;;
-    *) die "Unsupported CPU '$arch'." ;;
-  esac
+  local archive url tmpdir tarball
 
   if ! command -v tar >/dev/null 2>&1; then
     die "tar fehlt — wird zum Entpacken von Node.js benötigt."
   fi
 
-  platform="${os}-${arch}"
-  archive="node-v${NODE_VERSION}-${platform}.tar.gz"
+  archive="node-v${NODE_VERSION}-${PLATFORM}.tar.gz"
   url="https://nodejs.org/dist/v${NODE_VERSION}/${archive}"
 
-  echo "Node.js >= 20 nicht gefunden — lade portable Node v${NODE_VERSION} (${platform})…"
+  echo "Node.js >= 20 nicht gefunden — lade portable Node v${NODE_VERSION} (${PLATFORM})…"
   mkdir -p "$TOOLS_DIR"
   tmpdir="$(mktemp -d "${TMPDIR:-/tmp}/crash-circuit-node.XXXXXX")"
   tarball="$tmpdir/$archive"
@@ -90,7 +98,7 @@ bootstrap_node() {
     die "Node-Bootstrap fehlgeschlagen (binär nicht gefunden unter $NODE_HOME)."
   fi
   export PATH="$NODE_HOME/bin:$PATH"
-  echo "Portable Node bereit: $(node -v)"
+  echo "Portable Node bereit: $(node -v) ($NODE_HOME)"
 }
 
 if ! ensure_path_has_node; then
