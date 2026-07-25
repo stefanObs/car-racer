@@ -1,9 +1,12 @@
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CAR_MODELS, collisionRadiusFor } from "../src/data/carModels";
 import { CAR_IDS } from "../src/data/cars";
 import { createCarState, resolveContact } from "../src/sim/vehicle";
 import { CARS } from "../src/data/cars";
 import { mergeStats } from "../src/data/parts";
+import { shouldApplyGaragePaint } from "../src/render/loadCarGltf";
 
 describe("gltf car pipeline + silhouette collision", () => {
   it("maps every car id to a public GLB url and collision radius", () => {
@@ -12,6 +15,36 @@ describe("gltf car pipeline + silhouette collision", () => {
       expect(CAR_MODELS[id].collisionRadius).toBeGreaterThan(0.5);
       expect(CAR_MODELS[id].collisionRadius).toBeLessThan(2);
     }
+  });
+
+  it("ships a real GLB file for every car (not empty placeholders)", () => {
+    for (const id of CAR_IDS) {
+      const path = resolve("public/models/cars", `${id}.glb`);
+      expect(existsSync(path), path).toBe(true);
+      expect(statSync(path).size).toBeGreaterThan(50_000);
+      // glTF binary magic
+      expect(statSync(path).size).toBeLessThan(8_000_000);
+    }
+  });
+
+  it("tints free-asset body materials and skips glass/tires/lights", () => {
+    expect(shouldApplyGaragePaint("White")).toBe(true);
+    expect(shouldApplyGaragePaint("BodyPaint")).toBe(true);
+    expect(shouldApplyGaragePaint("Truck")).toBe(true);
+    expect(shouldApplyGaragePaint("Atlas")).toBe(true);
+    expect(shouldApplyGaragePaint("mat14")).toBe(true);
+    expect(shouldApplyGaragePaint("Windows")).toBe(false);
+    expect(shouldApplyGaragePaint("Tire")).toBe(false);
+    expect(shouldApplyGaragePaint("Headlights")).toBe(false);
+    expect(shouldApplyGaragePaint("Grey")).toBe(false);
+    expect(shouldApplyGaragePaint("Black")).toBe(false);
+  });
+
+  it("donnerbuechse ships a real GLB (hotrod visual; mesh-only bounds in loader)", () => {
+    const path = resolve("public/models/cars/donnerbuechse.glb");
+    const buf = readFileSync(path);
+    expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
+    expect(statSync(path).size).toBeGreaterThan(50_000);
   });
 
   it("uses per-car silhouette radii for contact (not mesh shape)", () => {

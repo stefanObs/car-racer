@@ -71,11 +71,12 @@ export function cloneGltfCar(id: CarId, paint: string): Group | null {
 }
 
 function normalizeCarScene(root: Object3D, spec: CarModelSpec): void {
+  stripNonMeshHelpers(root);
   root.rotation.y = spec.yaw;
   root.scale.setScalar(spec.scale);
   root.updateMatrixWorld(true);
 
-  const box = new Box3().setFromObject(root);
+  const box = meshBounds(root);
   const size = new Vector3();
   const center = new Vector3();
   box.getSize(size);
@@ -93,7 +94,12 @@ function normalizeCarScene(root: Object3D, spec: CarModelSpec): void {
     const target = 3.2;
     root.scale.multiplyScalar(target / longest);
     root.updateMatrixWorld(true);
-    const box2 = new Box3().setFromObject(root);
+    const box2 = meshBounds(root);
+    // Re-center after scale (position is not multiplied by scale in three.js)
+    const c2 = new Vector3();
+    box2.getCenter(c2);
+    root.position.x -= c2.x;
+    root.position.z -= c2.z;
     root.position.y -= box2.min.y;
     root.position.y += spec.y;
   }
@@ -105,6 +111,39 @@ function normalizeCarScene(root: Object3D, spec: CarModelSpec): void {
     mesh.receiveShadow = false;
     convertToComicMaterial(mesh);
   });
+}
+
+/** Free GLBs often embed lights/cameras that blow up Box3 → autoscale to dust. */
+function stripNonMeshHelpers(root: Object3D): void {
+  const drop: Object3D[] = [];
+  root.traverse((obj) => {
+    const any = obj as Object3D & { isLight?: boolean; isCamera?: boolean };
+    if (obj === root) return;
+    if (any.isLight || any.isCamera) drop.push(obj);
+  });
+  for (const obj of drop) obj.parent?.remove(obj);
+}
+
+function meshBounds(root: Object3D): Box3 {
+  const box = new Box3();
+  let found = false;
+  root.updateMatrixWorld(true);
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const geoBox = mesh.geometry.boundingBox;
+    if (!geoBox) return;
+    const world = geoBox.clone().applyMatrix4(mesh.matrixWorld);
+    if (!found) {
+      box.copy(world);
+      found = true;
+    } else {
+      box.union(world);
+    }
+  });
+  if (!found) box.setFromObject(root);
+  return box;
 }
 
 function convertToComicMaterial(mesh: Mesh): void {
@@ -145,28 +184,65 @@ function applyPaint(root: Object3D, paint: string): void {
     for (const mat of mats) {
       if (!mat) continue;
       const name = (mat.name ?? mesh.name ?? "").toLowerCase();
-      const isBody =
-        name.includes("paint") ||
-        name.includes("body") ||
-        name.includes("carpaint") ||
-        name.includes("shell") ||
-        name.includes("hull") ||
-        name.includes("cab") ||
-        name === "bodypaint";
-      const isExcluded =
-        name.includes("glass") ||
-        name.includes("tire") ||
-        name.includes("wheel") ||
-        name.includes("chrome") ||
-        name.includes("light") ||
-        name.includes("emit") ||
-        name.includes("dark");
-      if (isBody || (!isExcluded && (name === "" || name.includes("material")))) {
-        const toon = mat as MeshToonMaterial;
-        if (toon.color) toon.color.copy(paintColor);
-      }
+      if (!shouldApplyGaragePaint(name)) continue;
+      const toon = mat as MeshToonMaterial;
+      if (toon.color) toon.color.copy(paintColor);
     }
   });
+}
+
+/** Exported for unit tests — free GLBs rarely use BodyPaint. */
+export function shouldApplyGaragePaint(materialOrMeshName: string): boolean {
+  const name = materialOrMeshName.toLowerCase();
+  if (isNonPaintMaterial(name)) return false;
+  if (isBodyPaintMaterial(name)) return true;
+  return !isNamedTrimMaterial(name);
+}
+
+function isBodyPaintMaterial(name: string): boolean {
+  return (
+    name.includes("paint") ||
+    name.includes("body") ||
+    name.includes("carpaint") ||
+    name.includes("shell") ||
+    name.includes("hull") ||
+    name.includes("cab") ||
+    name.includes("truck") ||
+    name.includes("lambert") ||
+    name === "white" ||
+    name === "atlas" ||
+    name === "colormap" ||
+    name === "bodypaint" ||
+    /^mat\d+$/.test(name)
+  );
+}
+
+function isNonPaintMaterial(name: string): boolean {
+  return (
+    name.includes("glass") ||
+    name.includes("window") ||
+    name.includes("tire") ||
+    name.includes("rubber") ||
+    name.includes("wheel") ||
+    name.includes("chrome") ||
+    name.includes("light") ||
+    name.includes("emit") ||
+    name.includes("engine")
+  );
+}
+
+/** Chassis / trim names we keep (not garage paint). */
+function isNamedTrimMaterial(name: string): boolean {
+  return (
+    name.includes("grey") ||
+    name.includes("gray") ||
+    name.includes("black") ||
+    name.includes("dark") ||
+    name.includes("orange") || // military markers / lights
+    name.includes("taillight") ||
+    name.includes("headlight") ||
+    name.includes("brakelight")
+  );
 }
 
 function addOutlineShells(root: Object3D): void {

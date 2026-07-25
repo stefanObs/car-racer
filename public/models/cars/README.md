@@ -1,29 +1,17 @@
 # Car GLB models
 
-Drop Blender / Blockbench / MagicaVoxel exports here:
+Place one GLB per car id:
 
 | File | Car |
 |------|-----|
-| `blitz.glb` | Sportwagen |
-| `bison.glb` | Pick-up |
-| `kaeferkraft.glb` | Buggy |
-| `donnerbuechse.glb` | Hot Rod |
-| `bunker.glb` | Panzerwagen |
+| `blitz.glb` | Blitz (sport) |
+| `bison.glb` | Bison (pickup) |
+| `kaeferkraft.glb` | Käferkraft (buggy) |
+| `donnerbuechse.glb` | Donnerbüchse (hotrod) |
+| `bunker.glb` | Bunker (armor) |
 
-## Blender export tips
+Tune `scale` / `yaw` / `y` / `collisionRadius` in `src/data/carModels.ts`.
 
-1. Model in **meters**, nose pointing **+Y** in Blender (or set `yaw` in `src/data/carModels.ts`).
-2. Name materials so the game can tint paint / keep glass dark:
-   - `BodyPaint` / `Body` / `Cab` → player paint color
-   - `Glass` / `Window`
-   - `Tire` / `Wheel`
-   - `Chrome` / `Metal`
-3. File → Export → **glTF 2.0** → format **GLB**.
-4. Keep polycount modest (a few thousand tris is plenty for Asphalt-Comic).
-5. Collision is a **circle** from `collisionRadius` in `carModels.ts` — the visual may overhang.
+Optional Blender material names for nicer paint mapping: `BodyPaint`, `Glass`, `Tire`, `Chrome`. The loader also tints common free-asset names (`White`, `Truck`, `Atlas`, `mat*`, …).
 
-Regenerate these starter placeholders:
-
-```bash
-node scripts/write-car-glbs.mjs
-```
+See [SOURCES.md](./SOURCES.md) for provenance. Placeholder baker: `npm run cars:glb`.

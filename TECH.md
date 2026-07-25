@@ -72,8 +72,9 @@ tests/
 - Drop `{carId}.glb` into `public/models/cars/` (see README there).
 - Tunables: `src/data/carModels.ts` (`scale`, `yaw`, `collisionRadius`).
 - Boot calls `preloadCarModels()`; missing GLBs fall back to procedural meshes.
+- Loader strips lights/cameras and uses mesh-only bounds (embedded Spotlights otherwise break autoscale).
 - **Collision** is a circle (`collisionRadius`) — visual mesh may overhang.
-- Starter placeholders: `node scripts/write-car-glbs.mjs`
+- Provenance: `public/models/cars/SOURCES.md`
 
 ### Camera (locks open decision toward MVP)
 
