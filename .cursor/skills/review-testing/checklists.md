@@ -7,9 +7,9 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Dev server started (`./start.sh` or `npm run dev`) **or** `npm run test:e2e` (Playwright starts it)
 - [ ] Port free via `npm run free:dev` if needed — **never** `pkill -f vite` (kills the agent)
 - [ ] URL opens (default http://127.0.0.1:5173/)
-- [ ] Browser snapshot/screenshot: Hauptmenü visible (Crash Circuit + Cup / Freier Modus / Garage)
+- [ ] Browser snapshot/screenshot: **Garage-Hub** visible (Crash Circuit + Cup / Freier Modus / Ad-hoc + Ausrüsten)
 - [ ] Not stuck on blank/dark screen or unexplained boot-error
-- [ ] Click through at least: Menü → Cup or Garage → back
+- [ ] Click through at least: Garage → Cup or Hilfe → back to Garage
 - [ ] If racing was in scope: start one race; HUD + track/canvas visible
 - [ ] Note WebGL vs `2D-Fallback` if shown
 - [ ] Automated smoke: `npm run test:e2e` green when changing boot/menu/race entry
@@ -32,9 +32,12 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 
 ## B. UX by screen
 
-### Hauptmenü
-- [ ] Cup / Freier Modus / Ad-hoc / Garage / Einstellungen present and labeled
-- [ ] Focus order / default CTA points at Cup for new players
+### Garage (Start-Hub)
+- [ ] Boots here by default (not a separate Hauptmenü)
+- [ ] Cup / Freier Modus / Ad-hoc CTAs present; focus defaults to Cup
+- [ ] Ausrüsten / Laden clearly above Schmücken
+- [ ] Comic garage bay visible behind the panel (car turntable)
+- [ ] Hilfe reachable if needed; Esc returns to Garage
 
 ### Cup-Karte
 - [ ] Nodes readable; locked vs open clear
@@ -46,7 +49,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Laps / AI options understandable
 - [ ] Seed shown for ad-hoc share/replay
 
-### Garage
+### Garage (tuning detail)
 - [ ] Car turntable / preview
 - [ ] Parts list with Vor- & Nachteil
 - [ ] Stats bars update live

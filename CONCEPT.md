@@ -378,12 +378,12 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse.
 
 ## 9. UX / Screens (Spielerfluss)
 
-1. **Hauptmenü** — Cup / Freier Modus / Ad-hoc / Garage / Einstellungen  
+1. **Garage (Start-Hub)** — Auto drehen, **ausrüsten**, Lack/Aufkleber; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
-4. **Garage** — Auto drehen, Teile, Stats + Kombo, Lack, **Aufkleber-Editor**  
-5. **Renn-HUD** — Platz, Runde, Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`)  
-6. **Ergebnis** — Zielbanner/-linie auf der Strecke; kurze Ziel-Animation (Podest vs. Feld); Podium-Landung; CHF-Aufschlüsselung; weiter / Garage  
+4. **Renn-HUD** — Platz, Runde, Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`)  
+5. **Ergebnis** — Zielbanner/-linie; Ziel-Animation (Podest vs. Feld); Podium-Landung; CHF; weiter / Garage  
+6. **Hilfe** — Steuerungshinweise (optional)  
 
 Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
@@ -482,4 +482,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.5 — Pro-Auto-Kits; unterscheidbare Klassen-Silhouetten.*
+*Dokumentstand: Konzept v3.6 — Garage als Start-Hub (ausrüsten zuerst).*

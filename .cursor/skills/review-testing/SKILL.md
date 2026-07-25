@@ -31,7 +31,7 @@ Full checklists: [checklists.md](checklists.md).
 1. From repo root, start the app (prefer `./start.sh` / `start.bat` / `.\start.ps1`, or `npm run dev`).
 2. Wait until the dev URL is ready (default **http://127.0.0.1:5173/**).
 3. Open that URL in the **browser automation tools** (cursor-ide-browser): navigate → lock → snapshot/screenshot → interact.
-4. Confirm the **Hauptmenü** is visible (not a blank/dark screen, not a boot-error unless that is the bug under test).
+4. Confirm the **Garage-Hub** is visible (not a blank/dark screen, not a boot-error unless that is the bug under test).
 5. Exercise the flow under test with clicks/keys in the browser; take screenshots for visual/graphics checks.
 6. Note render mode if shown (`2D-Fallback` vs WebGL).
 7. Unlock the browser when finished; leave the server running only if still needed.
@@ -140,10 +140,10 @@ Against Asphalt-Comic (`reference.png` / style bible), judged from **browser scr
 
 Screens from concept §9 must exist and flow cleanly **in the browser**:
 
-1. Hauptmenü — Cup / Freier Modus / Ad-hoc / Garage / Einstellungen  
+1. Garage (Start-Hub) — Cup / Freier Modus / Ad-hoc CTAs; Ausrüsten / Laden; Schmücken; comic bay  
 2. Cup-Karte — nodes, stars, recommended class  
 3. Freier Modus / Ad-hoc — track or seed, options, start  
-4. Garage — turntable, parts, stats + combo, paint, sticker editor  
+4. Hilfe — slim help (optional), Esc back to Garage  
 5. Renn-HUD — place, lap, mini-map, damage (+ heal hint), nitro, style popups (`+50 CHF`)  
 6. Ergebnis — podium, CHF breakdown, continue / garage  
 

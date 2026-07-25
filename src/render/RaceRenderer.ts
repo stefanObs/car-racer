@@ -22,13 +22,13 @@ import type { RaceSession } from "../sim/race";
 import { createCarState } from "../sim/vehicle";
 import { surfaceAt } from "../sim/zones";
 import { sampleCenterline } from "../track/buildTrack";
-import { CARS } from "../data/cars";
+import { CARS, type CarId } from "../data/cars";
 import type { FinishCelebrate } from "../ui/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../ui/finishCelebrate";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
+import { buildGarageBay } from "./garageBay";
 import { buildLevelObstacles } from "./levelObstacles";
-import { ComicPalette } from "./palette";
 import { themeLook, type ThemeLook } from "./themeLook";
 import { buildThemeScenery } from "./themeScenery";
 import { buildSmoothTrack } from "./trackMesh";
@@ -69,6 +69,7 @@ export class RaceRenderer {
   private celebrateSeed = -1;
   private idleGroup = new Group();
   private idleCar: Group | null = null;
+  private idleLookKey = "";
   private fxTime = 0;
   private readonly hemi: HemisphereLight;
   private readonly groundMesh: Mesh;
@@ -135,14 +136,17 @@ export class RaceRenderer {
     this.renderIdle();
   }
 
-  private buildIdleShowcase(): void {
-    this.idleGroup = new Group();
-    const pad = new Mesh(new PlaneGeometry(14, 22), comicToon(ComicPalette.asphalt));
-    pad.rotation.x = -Math.PI / 2;
-    pad.position.set(0, 0.01, 0);
-    const grass = new Mesh(new PlaneGeometry(28, 36), comicToon(ComicPalette.grass));
-    grass.rotation.x = -Math.PI / 2;
-    grass.position.set(0, 0, 0);
+  private buildIdleShowcase(look?: { paint: string; sticker: string; modelId: CarId }): void {
+    if (this.idleGroup.parent) this.scene.remove(this.idleGroup);
+    disposeObject(this.idleGroup);
+    this.idleGroup = buildGarageBay();
+    this.idleCar = null;
+
+    const paint = look?.paint ?? "#E03131";
+    const sticker = look?.sticker ?? "flames";
+    const modelId = look?.modelId ?? "blitz";
+    this.idleLookKey = `${modelId}|${paint}|${sticker}`;
+
     const visual = buildComicCar(
       createCarState({
         id: "idle",
@@ -150,31 +154,48 @@ export class RaceRenderer {
         z: 0,
         heading: 0,
         isPlayer: true,
-        paint: "#E03131",
-        sticker: "flames",
-        modelId: "blitz",
-        stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
+        paint,
+        sticker,
+        modelId,
+        stats: { ...CARS[modelId].stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
       }),
     );
-    visual.root.position.set(0, 0, 0);
+    visual.root.position.set(1.5, 0.12, 0);
     visual.root.rotation.y = Math.PI;
     this.idleCar = visual.root;
-    this.idleGroup.add(grass, pad, visual.root);
+    this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);
+
+    this.groundMesh.visible = false;
+    this.skyMesh.visible = false;
+    this.scene.background = new Color(0x2a3038);
+    this.fog.color.setHex(0x2a3038);
+    this.fog.near = 22;
+    this.fog.far = 60;
+    this.renderer.setClearColor(0x2a3038, 1);
+    this.hemi.color.setHex(0xffe8c8);
+    this.hemi.groundColor.setHex(0x3a3030);
+  }
+
+  setGarageLook(look: { paint: string; sticker: string; modelId: CarId }): void {
+    const key = `${look.modelId}|${look.paint}|${look.sticker}`;
+    if (key === this.idleLookKey && this.idleCar) return;
+    this.buildIdleShowcase(look);
   }
 
   renderIdle(): void {
     this.fxTime += 1 / 60;
     this.idleGroup.visible = true;
     if (this.idleCar) {
-      this.idleCar.rotation.y = Math.PI + Math.sin(this.fxTime * 0.35) * 0.35;
+      this.idleCar.rotation.y = Math.PI + Math.sin(this.fxTime * 0.35) * 0.4;
     }
+    // Orbit biased to the right so the HUD panel leaves the bay visible
     this.camera.position.set(
-      Math.sin(this.fxTime * 0.2) * 8.5,
-      3.8,
-      Math.cos(this.fxTime * 0.2) * 9.5,
+      1.5 + Math.sin(this.fxTime * 0.16) * 6.5 + 2.8,
+      3.6,
+      Math.cos(this.fxTime * 0.16) * 7.8,
     );
-    this.camera.lookAt(0, 0.7, 0);
+    this.camera.lookAt(1.5, 1.0, 0);
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -204,6 +225,8 @@ export class RaceRenderer {
 
   buildTrack(session: RaceSession): void {
     this.idleGroup.visible = false;
+    this.groundMesh.visible = true;
+    this.skyMesh.visible = true;
     this.applyTheme(session.level.theme);
     this.scene.remove(this.trackGroup);
     this.scene.remove(this.sceneryGroup);

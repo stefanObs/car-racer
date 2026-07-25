@@ -153,10 +153,247 @@ button:disabled {
   cursor: not-allowed;
 }
 
+.panel.garage {
+  max-width: min(400px, calc(100% - 20px));
+  background: linear-gradient(
+    165deg,
+    rgba(28, 32, 40, 0.88) 0%,
+    rgba(18, 20, 26, 0.82) 55%,
+    rgba(40, 28, 22, 0.78) 100%
+  );
+  border-color: #ffe066;
+  box-shadow:
+    0 10px 0 rgba(0, 0, 0, 0.35),
+    0 0 0 2px rgba(224, 49, 49, 0.35);
+}
+
+.garage-help-link {
+  margin-top: 8px;
+  background: transparent;
+  border-style: dashed;
+  opacity: 0.85;
+}
+
+.garage-hero {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 3px solid var(--outline);
+}
+
+.garage-kicker {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #ffe066;
+}
+
+.garage-title {
+  margin: 2px 0 4px;
+}
+
+.garage-wallet {
+  text-align: right;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 2px solid var(--outline);
+  border-radius: 4px;
+  min-width: 7.5rem;
+}
+
+.garage-wallet__label {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.75;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.garage-wallet strong {
+  font-size: 1.15rem;
+}
+
+.garage-wallet__ver {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.55;
+}
+
+.garage-section {
+  margin: 14px 0 8px;
+  font-size: 1.05rem;
+  letter-spacing: 0.03em;
+  color: #ffe066;
+  text-shadow: 2px 2px 0 var(--outline);
+}
+
+.garage-section--equip {
+  color: #ff922b;
+}
+
+.garage-equip {
+  margin-top: 4px;
+  padding: 10px;
+  background: rgba(224, 49, 49, 0.12);
+  border: 2px solid rgba(255, 224, 102, 0.55);
+  border-radius: 4px;
+}
+
+.garage-sub {
+  margin: 12px 0 6px;
+  font-size: 0.95rem;
+  opacity: 0.9;
+}
+
+.garage-race__row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.garage-cta {
+  flex: 1 1 7rem;
+  background: #343a40;
+}
+
+.garage-cta--primary,
+button.garage-cta--primary {
+  background: var(--accent);
+  font-weight: 700;
+}
+
+.garage-cars {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.garage-car {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  text-align: left;
+  background: #2b3036;
+}
+
+.garage-car.is-active {
+  background: #495057;
+  outline: 3px solid #ffe066;
+  outline-offset: 0;
+}
+
+.garage-car.is-locked {
+  opacity: 0.85;
+  border-style: dashed;
+}
+
+.garage-car__name {
+  font-weight: 700;
+}
+
+.garage-car__class,
+.garage-car__meta {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.garage-active {
+  margin: 0 0 6px;
+  font-size: 1.05rem;
+}
+
+.garage-swatches {
+  gap: 10px;
+}
+
+.swatch {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  padding: 0;
+  background: var(--sw, #888);
+  border-width: 3px;
+}
+
+.swatch.is-on {
+  outline: 3px solid #ffe066;
+  outline-offset: 2px;
+}
+
+.chip {
+  background: #2b3036;
+}
+
+.chip.is-on {
+  background: #495057;
+  outline: 2px solid #ffe066;
+}
+
+.garage-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.garage-part.is-on .garage-part__btn {
+  background: #3b4a3a;
+  border-color: #37b24d;
+}
+
+.garage-part__btn {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+}
+
+.garage-part__state {
+  display: inline-block;
+  min-width: 2.4rem;
+  padding: 2px 6px;
+  border: 2px solid var(--outline);
+  border-radius: 3px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-align: center;
+  background: #1b1b1f;
+}
+
+.garage-part.is-on .garage-part__state {
+  background: #37b24d;
+  color: #1b1b1f;
+}
+
+.garage-part__action {
+  font-size: 0.8rem;
+  color: #ffe066;
+}
+
+.garage-part--shop .garage-part__action {
+  color: #74c0fc;
+}
+
+.garage-stats {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 2px solid var(--outline);
+  border-radius: 4px;
+}
+
 button[data-act="cup"],
 button[data-act="race"]:not(:disabled) {
   background: var(--accent);
 }
+
 
 .parts {
   display: flex;

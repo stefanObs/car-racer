@@ -1,14 +1,14 @@
 import { expect, test } from "@playwright/test";
 
 test.describe("Crash Circuit smoke", () => {
-  test("loads menu, opens cup, starts a race with HUD", async ({ page }) => {
+  test("boots into garage hub, opens cup, starts a race with HUD", async ({ page }) => {
     await page.goto("/");
 
-    await expect(page.getByRole("heading", { name: "Crash Circuit" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Garage" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cup" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Freier Modus" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ad-hoc" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Garage" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Ausrüsten/ })).toBeVisible();
 
     await page.getByRole("button", { name: "Cup" }).click();
     await expect(page.getByRole("heading", { name: "Blitz-Cup" })).toBeVisible();
@@ -21,21 +21,17 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.locator("#game-canvas")).toBeVisible();
   });
 
-  test("opens garage with CHF and parts", async ({ page }) => {
+  test("garage shows wallet and equip/shop parts", async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("button", { name: "Garage" }).click();
     await expect(page.getByRole("heading", { name: "Garage" })).toBeVisible();
-    await expect(page.locator(".panel.garage .meta")).toContainText(/CHF|Fr/);
+    await expect(page.locator("[data-dev-name='garage.wallet']")).toContainText(/CHF|Fr/);
     await expect(page.getByRole("button", { name: /Großer Motor/ })).toBeVisible();
-    await expect(page.getByRole("button", { name: /Blitz/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: /Kaufen/ }).first()).toBeVisible();
+    await expect(page.getByRole("button", { name: /Blitz Sportwagen/ })).toBeVisible();
   });
 
-  test("keyboard menu focus moves and activates Cup", async ({ page }) => {
+  test("keyboard focus on Cup then opens cup list", async ({ page }) => {
     await page.goto("/");
-    await expect(page.getByRole("button", { name: "Cup" })).toBeFocused();
-    await page.keyboard.press("ArrowDown");
-    await expect(page.getByRole("button", { name: "Freier Modus" })).toBeFocused();
-    await page.keyboard.press("ArrowUp");
     await expect(page.getByRole("button", { name: "Cup" })).toBeFocused();
     await page.keyboard.press("Enter");
     await expect(page.getByRole("heading", { name: "Blitz-Cup" })).toBeVisible();

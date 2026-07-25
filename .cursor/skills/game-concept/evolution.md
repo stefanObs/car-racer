@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v3.6 Garage is the home hub
+
+- Trigger: user — boot into garage; emphasize equipping; make garage look good
+- Decision: Default screen = Garage with race CTAs + equip-first parts UI; comic 3D bay backdrop; slim Hilfe screen replaces old main menu hub
+- CONCEPT §§ touched: §9 UX flow → v3.6
+- Skills: asphalt-comic garage look; review e2e updated for garage-first boot
+
 ### 2026-07-25 — v3.5 Per-car kits + class silhouettes
 
 - Trigger: user — distinguishable car models; add-ons must not auto-share across car types

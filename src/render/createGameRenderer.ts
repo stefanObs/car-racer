@@ -1,11 +1,19 @@
+import type { CarId } from "../data/cars";
 import type { RaceSession } from "../sim/race";
 import type { FinishCelebrate } from "../ui/finishCelebrate";
 import { RaceRenderer } from "./RaceRenderer";
+
+export type GarageLook = {
+  paint: string;
+  sticker: string;
+  modelId: CarId;
+};
 
 export type GameRenderer = {
   buildTrack: (session: RaceSession) => void;
   sync: (session: RaceSession, celebrate?: FinishCelebrate | null) => void;
   renderIdle: () => void;
+  setGarageLook: (look: GarageLook) => void;
   clearCars: () => void;
 };
 

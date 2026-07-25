@@ -1,6 +1,6 @@
 import { CARS, type CarId } from "../data/cars";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
-import { PARTS, activeSynergies, mergeStats, type PartId } from "../data/parts";
+import { PARTS, type PartId } from "../data/parts";
 import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
@@ -11,6 +11,7 @@ import { RaceSession } from "../sim/race";
 import { APP_VERSION } from "../core/version";
 import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
 import type { LevelDefinition } from "../track/types";
+import { renderGarageHtml } from "./garageHtml";
 import { renderMiniMapSvg } from "./miniMap";
 import {
   advanceFinishCelebrate,
@@ -25,7 +26,7 @@ type Screen = "menu" | "cup" | "free" | "adhoc" | "garage" | "race" | "results";
 
 export class GameApp {
   private save: SaveData = loadSave();
-  private screen: Screen = "menu";
+  private screen: Screen = "garage";
   private race: RaceSession | null = null;
   private renderer: GameRenderer;
   private lastResult: ReturnType<RaceSession["result"]> | null = null;
@@ -114,6 +115,7 @@ export class GameApp {
         }
       }
     } else {
+      if (this.screen === "garage") this.syncGarageLook();
       this.renderer.renderIdle();
     }
   }
@@ -151,9 +153,9 @@ export class GameApp {
       if (btn && !btn.disabled) btn.click();
       return;
     }
-    if (e.code === "Escape" && this.screen !== "menu") {
+    if (e.code === "Escape" && this.screen !== "garage") {
       e.preventDefault();
-      this.screen = "menu";
+      this.screen = "garage";
       this.renderUi();
     }
   }
@@ -212,8 +214,8 @@ export class GameApp {
       const btn = this.navButtons()[this.focusIndex];
       if (btn && !btn.disabled) btn.click();
     }
-    if (edges.back && this.screen !== "menu") {
-      this.screen = "menu";
+    if (edges.back && this.screen !== "garage") {
+      this.screen = "garage";
       this.renderUi();
     }
   }
@@ -311,21 +313,27 @@ export class GameApp {
     existing.style.setProperty("--flash", flash.toFixed(3));
   }
 
+  private syncGarageLook(): void {
+    const kit = activeKit(this.save);
+    this.renderer.setGarageLook({
+      paint: kit.paint,
+      sticker: kit.sticker,
+      modelId: this.save.activeCar,
+    });
+  }
+
   private renderUi(): void {
     const buttons: string[] = [];
     let body = "";
     if (this.screen === "menu") {
       body = `
         <h1 class="brand">Crash Circuit</h1>
-        <p class="tag">Getunte Autos. Saubere Linie. CHF fürs Tuning.</p>
+        <p class="tag">Hilfe & Infos</p>
         <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}</p>
-        <div class="stack">
-          <button data-nav data-act="cup">Cup</button>
-          <button data-nav data-act="free">Freier Modus</button>
-          <button data-nav data-act="adhoc">Ad-hoc</button>
-          <button data-nav data-act="garage">Garage</button>
-        </div>
         <p class="help">Tastatur: WASD / Pfeile, Enter, Esc · Controller: D-Pad/Stick, A/B · Tablet: Touch · Dev: F1/F2/F3</p>
+        <div class="stack">
+          <button data-nav data-act="garage">Zur Garage</button>
+        </div>
       `;
     } else if (this.screen === "cup") {
       const rows = CUP_LEVELS.map((l) => {
@@ -335,7 +343,7 @@ export class GameApp {
           ${l.cupIndex}. ${l.displayName} ${locked ? "(gesperrt)" : ""} ${"★".repeat(stars)}
         </button>`;
       }).join("");
-      body = `<h2>Blitz-Cup</h2><div class="stack">${rows}</div><button data-nav data-act="menu">Zurück</button>`;
+      body = `<h2>Blitz-Cup</h2><div class="stack">${rows}</div><button data-nav data-act="garage">Garage</button>`;
     } else if (this.screen === "free") {
       const levels = freeLevels(this.save.unlockedLevels);
       const rows = levels
@@ -344,7 +352,7 @@ export class GameApp {
             `<button data-nav data-act="race" data-level="${l.id}">${l.displayName}</button>`,
         )
         .join("");
-      body = `<h2>Freier Modus</h2><div class="stack">${rows || "<p>Noch keine Strecken freigeschaltet.</p>"}</div><button data-nav data-act="menu">Zurück</button>`;
+      body = `<h2>Freier Modus</h2><div class="stack">${rows || "<p>Noch keine Strecken freigeschaltet.</p>"}</div><button data-nav data-act="garage">Garage</button>`;
     } else if (this.screen === "adhoc") {
       const preview = generateAdhocLevel({ seed: this.adhocSeed, length: this.adhocLength });
       this.lastAdhoc = preview;
@@ -366,11 +374,17 @@ export class GameApp {
         <div class="stack">
           <button data-nav data-act="adhoc-roll">Neuer Seed</button>
           <button data-nav data-act="adhoc-start">Start #${this.adhocSeed}</button>
-          <button data-nav data-act="menu">Zurück</button>
+          <button data-nav data-act="garage">Garage</button>
         </div>
       `;
     } else if (this.screen === "garage") {
-      body = this.garageHtml();
+      body = renderGarageHtml({
+        chf: this.save.chf,
+        activeCar: this.save.activeCar,
+        ownedCars: this.save.ownedCars,
+        kit: activeKit(this.save),
+      });
+      this.syncGarageLook();
     } else if (this.screen === "race") {
       body = `
         <div id="race-hud" class="race-hud"></div>
@@ -391,7 +405,7 @@ export class GameApp {
         <div class="stack">
           <button data-nav data-act="cup">Weiter Cup</button>
           <button data-nav data-act="garage">Garage</button>
-          <button data-nav data-act="menu">Menü</button>
+          <button data-nav data-act="menu">Hilfe</button>
         </div>
       `;
     }
@@ -400,65 +414,6 @@ export class GameApp {
     this.wireUi();
     this.dev.tagUi(this.uiRoot);
     void buttons;
-  }
-
-  private garageHtml(): string {
-    const kit = activeKit(this.save);
-    const car = CARS[this.save.activeCar];
-    const stats = mergeStats(car.stats, kit.equippedParts);
-    const syn = activeSynergies(kit.equippedParts);
-    const carButtons = (Object.keys(CARS) as CarId[])
-      .map((id) => {
-        const c = CARS[id as CarId];
-        const owned = this.save.ownedCars.includes(id);
-        const active = this.save.activeCar === id;
-        return `<button data-nav data-act="car" data-car="${id}" ${!owned ? "" : ""}>
-          ${c.name} (${c.classLabel})${active ? " ✓" : ""}${!owned ? ` — ${formatChf(c.priceChf)}` : ""}
-        </button>`;
-      })
-      .join("");
-
-    const partButtons = (Object.keys(PARTS) as PartId[])
-      .map((id) => {
-        const p = PARTS[id];
-        const owned = kit.ownedParts.includes(id);
-        const eq = kit.equippedParts.includes(id);
-        return `<div class="part">
-          <button data-nav data-act="part" data-part="${id}">${eq ? "[An]" : "[Aus]"} ${p.name} ${owned ? "" : formatChf(p.priceChf)}</button>
-          <small><b>+</b> ${p.pro}<br/><b>−</b> ${p.con}</small>
-        </div>`;
-      })
-      .join("");
-
-    return `
-      <h2>Garage</h2>
-      <p class="meta">${formatChf(this.save.chf)}</p>
-      <h3>Autos</h3><div class="stack">${carButtons}</div>
-      <p class="dim">Aktiv: <strong>${car.name}</strong> · ${car.classLabel} — Teile und Lack gehören nur zu diesem Auto.</p>
-      <h3>Lack</h3>
-      <div class="stack row">
-        ${["#e03131", "#339af0", "#f08c00", "#ffffff", "#1b1b1f"]
-          .map(
-            (c) =>
-              `<button data-nav data-act="paint" data-color="${c}" style="background:${c};color:#fff">${kit.paint === c ? "✓" : ""}</button>`,
-          )
-          .join("")}
-      </div>
-      <h3>Aufkleber</h3>
-      <div class="stack row">
-        ${(["none", "flames", "bolt", "star"] as StickerId[])
-          .map(
-            (s) =>
-              `<button data-nav data-act="sticker" data-sticker="${s}">${s}${kit.sticker === s ? " ✓" : ""}</button>`,
-          )
-          .join("")}
-      </div>
-      <h3>Teile (nur ${car.name})</h3>
-      <div class="parts">${partButtons}</div>
-      <p class="stats">Tempo ${stats.topSpeed.toFixed(2)} · Accel ${stats.accel.toFixed(2)} · Grip ${stats.grip.toFixed(2)} · Federung ${stats.suspension.toFixed(2)}</p>
-      <p class="syn">${syn.length ? "Kombo: " + syn.map((s) => s.name).join(", ") : "Keine Kombo aktiv"}</p>
-      <button data-nav data-act="menu">Zurück</button>
-    `;
   }
 
   private wireUi(): void {
