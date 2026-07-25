@@ -84,7 +84,7 @@ export function renderGarageHtml(opts: {
       <div>
         <p class="garage-kicker">Crash Circuit</p>
         <h1 class="brand garage-title">Garage</h1>
-        <p class="tag">Dreh das Auto · rüst Teile · dann ab auf die Piste</p>
+        <p class="tag">Ziehen zum Drehen · rüst Teile · dann ab auf die Piste</p>
       </div>
       <div class="garage-wallet" data-dev-name="garage.wallet">
         <span class="garage-wallet__label">Kasse</span>

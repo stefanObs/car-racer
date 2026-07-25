@@ -14,6 +14,8 @@ export type GameRenderer = {
   sync: (session: RaceSession, celebrate?: FinishCelebrate | null) => void;
   renderIdle: () => void;
   setGarageLook: (look: GarageLook) => void;
+  setGarageDragging: (dragging: boolean) => void;
+  addGarageYawFromDrag: (deltaXPx: number) => void;
   clearCars: () => void;
 };
 

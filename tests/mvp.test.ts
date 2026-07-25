@@ -11,7 +11,7 @@ import { formatChf } from "../src/meta/save";
 
 describe("mvp core", () => {
   it("versions the build", () => {
-    expect(APP_VERSION).toBe("0.2.39");
+    expect(APP_VERSION).toBe("0.2.40");
   });
 
   it("builds a closed cup track with asphalt width", () => {

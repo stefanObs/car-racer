@@ -56,6 +56,7 @@ export class GameApp {
     const created = createGameRenderer(canvas);
     this.renderer = created.renderer;
     void created.mode;
+    this.bindGarageOrbit(canvas);
     const host = uiRoot.parentElement ?? document.body;
     this.dev = new DevTools(host, {
       getChf: () => this.save.chf,
@@ -76,6 +77,45 @@ export class GameApp {
       },
     });
     this.renderUi();
+  }
+
+  /** LMB / touch drag on the canvas spins the garage showcase car. */
+  private bindGarageOrbit(canvas: HTMLCanvasElement): void {
+    let dragging = false;
+    let lastX = 0;
+
+    const endDrag = (e: PointerEvent): void => {
+      if (!dragging) return;
+      dragging = false;
+      this.renderer.setGarageDragging(false);
+      canvas.classList.remove("is-orbiting");
+      try {
+        canvas.releasePointerCapture(e.pointerId);
+      } catch {
+        /* already released */
+      }
+    };
+
+    canvas.addEventListener("pointerdown", (e) => {
+      if (this.screen !== "garage") return;
+      if (e.button !== 0) return;
+      dragging = true;
+      lastX = e.clientX;
+      this.renderer.setGarageDragging(true);
+      canvas.classList.add("is-orbiting");
+      canvas.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+
+    canvas.addEventListener("pointermove", (e) => {
+      if (!dragging || this.screen !== "garage") return;
+      const dx = e.clientX - lastX;
+      lastX = e.clientX;
+      if (dx !== 0) this.renderer.addGarageYawFromDrag(dx);
+    });
+
+    canvas.addEventListener("pointerup", endDrag);
+    canvas.addEventListener("pointercancel", endDrag);
   }
 
   tick(now: number, dt: number): void {
@@ -338,6 +378,7 @@ export class GameApp {
   }
 
   private renderUi(): void {
+    document.documentElement.dataset.screen = this.screen;
     const buttons: string[] = [];
     let body = "";
     if (this.screen === "menu") {

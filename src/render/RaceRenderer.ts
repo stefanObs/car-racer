@@ -32,6 +32,11 @@ import { buildLevelObstacles } from "./levelObstacles";
 import { themeLook, type ThemeLook } from "./themeLook";
 import { buildThemeScenery } from "./themeScenery";
 import { buildSmoothTrack } from "./trackMesh";
+import {
+  applyGarageDragYaw,
+  garageDisplayYaw,
+  GARAGE_YAW_DEFAULT,
+} from "../ui/garageOrbit";
 
 function hexCss(n: number): string {
   return `#${n.toString(16).padStart(6, "0")}`;
@@ -70,6 +75,8 @@ export class RaceRenderer {
   private idleGroup = new Group();
   private idleCar: Group | null = null;
   private idleLookKey = "";
+  private garageYaw = GARAGE_YAW_DEFAULT;
+  private garageDragging = false;
   private fxTime = 0;
   private readonly hemi: HemisphereLight;
   private readonly groundMesh: Mesh;
@@ -161,7 +168,7 @@ export class RaceRenderer {
       }),
     );
     visual.root.position.set(1.5, 0.12, 0);
-    visual.root.rotation.y = 0.4;
+    visual.root.rotation.y = this.garageYaw;
     visual.root.scale.setScalar(1.35);
     this.idleCar = visual.root;
     this.idleGroup.add(visual.root);
@@ -184,12 +191,20 @@ export class RaceRenderer {
     this.buildIdleShowcase(look);
   }
 
+  setGarageDragging(dragging: boolean): void {
+    this.garageDragging = dragging;
+  }
+
+  /** Horizontal pointer drag in CSS pixels — left mouse / touch. */
+  addGarageYawFromDrag(deltaXPx: number): void {
+    this.garageYaw = applyGarageDragYaw(this.garageYaw, deltaXPx);
+  }
+
   renderIdle(): void {
     this.fxTime += 1 / 60;
     this.idleGroup.visible = true;
     if (this.idleCar) {
-      // Stable 3/4-front like car-category-targets.png (gentle sway only)
-      this.idleCar.rotation.y = 0.42 + Math.sin(this.fxTime * 0.25) * 0.12;
+      this.idleCar.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
     }
     // Front-biased camera — nose toward viewer
     this.camera.position.set(3.2, 2.35, 7.6);

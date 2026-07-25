@@ -39,6 +39,14 @@ body,
   background: var(--sky);
 }
 
+html[data-screen="garage"] #game-canvas {
+  cursor: grab;
+}
+
+html[data-screen="garage"] #game-canvas.is-orbiting {
+  cursor: grabbing;
+}
+
 .ui-root {
   position: absolute;
   inset: 0;

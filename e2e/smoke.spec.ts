@@ -27,10 +27,24 @@ test.describe("Crash Circuit smoke", () => {
   test("garage shows wallet and equip/shop parts", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Garage" })).toBeVisible();
+    await expect(page.locator("html")).toHaveAttribute("data-screen", "garage");
     await expect(page.locator("[data-dev-name='garage.wallet']")).toContainText(/CHF|Fr/);
     await expect(page.getByRole("button", { name: /Großer Motor/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /Kaufen/ }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: /Blitz Sportwagen/ })).toBeVisible();
+
+    // Drag on canvas (behind UI) — turntable orbit
+    const canvas = page.locator("#game-canvas");
+    const box = await canvas.boundingBox();
+    expect(box).toBeTruthy();
+    const x = box!.x + box!.width * 0.72;
+    const y = box!.y + box!.height * 0.55;
+    await page.mouse.move(x, y);
+    await page.mouse.down();
+    await expect(canvas).toHaveClass(/is-orbiting/);
+    await page.mouse.move(x + 120, y);
+    await page.mouse.up();
+    await expect(canvas).not.toHaveClass(/is-orbiting/);
   });
 
   test("keyboard focus on Cup then opens cup list", async ({ page }) => {
