@@ -87,6 +87,12 @@ body,
   white-space: pre-wrap;
 }
 
+.boot-error pre {
+  margin: 12px 0 0;
+  font: inherit;
+  white-space: pre-wrap;
+}
+
 .brand {
   margin: 0 0 6px;
   font-size: clamp(1.6rem, 5vw, 2.2rem);

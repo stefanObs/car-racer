@@ -16,11 +16,13 @@ import { ComicPalette } from "./palette";
 let sharedGradient: DataTexture | null = null;
 let sharedOutlineMat: MeshBasicMaterial | null = null;
 
-/** 3-step cel gradient for MeshToonMaterial. */
+/** 4-step cel gradient for harder comic shading. */
 export function toonGradient(): DataTexture {
   if (sharedGradient) return sharedGradient;
-  const data = new Uint8Array([70, 70, 75, 255, 150, 150, 155, 255, 255, 255, 255, 255]);
-  const tex = new DataTexture(data, 3, 1, RGBAFormat);
+  const data = new Uint8Array([
+    55, 55, 60, 255, 110, 110, 118, 255, 175, 175, 182, 255, 255, 255, 255, 255,
+  ]);
+  const tex = new DataTexture(data, 4, 1, RGBAFormat);
   tex.minFilter = NearestFilter;
   tex.magFilter = NearestFilter;
   tex.needsUpdate = true;
@@ -28,14 +30,14 @@ export function toonGradient(): DataTexture {
   return tex;
 }
 
-export function comicToon(color: string | number, opts?: { emissive?: number }): MeshToonMaterial {
+export function comicToon(color: string | number, opts?: { emissive?: number; emissiveIntensity?: number }): MeshToonMaterial {
   const mat = new MeshToonMaterial({
     color: new Color(color),
     gradientMap: toonGradient(),
   });
   if (opts?.emissive !== undefined) {
     mat.emissive = new Color(opts.emissive);
-    mat.emissiveIntensity = 0.35;
+    mat.emissiveIntensity = opts.emissiveIntensity ?? 0.4;
   }
   return mat;
 }
@@ -49,11 +51,29 @@ export function outlineMaterial(): MeshBasicMaterial {
   return sharedOutlineMat;
 }
 
-/** Thick comic outline as slightly larger back-face shell. */
-export function withOutline(geometry: BufferGeometry, fill: Material, scale = 1.07): Mesh {
+/** Expand geometry along normals for thick comic ink outlines. */
+export function inflateGeometry(geometry: BufferGeometry, amount: number): BufferGeometry {
+  const geo = geometry.index ? geometry.toNonIndexed() : geometry.clone();
+  geo.computeVertexNormals();
+  const pos = geo.attributes.position;
+  const nor = geo.attributes.normal;
+  if (!pos || !nor) return geo;
+  for (let i = 0; i < pos.count; i++) {
+    pos.setXYZ(
+      i,
+      pos.getX(i) + nor.getX(i) * amount,
+      pos.getY(i) + nor.getY(i) * amount,
+      pos.getZ(i) + nor.getZ(i) * amount,
+    );
+  }
+  pos.needsUpdate = true;
+  return geo;
+}
+
+/** Thick comic outline as back-face inflated shell. */
+export function withOutline(geometry: BufferGeometry, fill: Material, thickness = 0.055): Mesh {
   const mesh = new Mesh(geometry, fill);
-  const shell = new Mesh(geometry, outlineMaterial());
-  shell.scale.setScalar(scale);
+  const shell = new Mesh(inflateGeometry(geometry, thickness), outlineMaterial());
   shell.renderOrder = -1;
   mesh.add(shell);
   return mesh;

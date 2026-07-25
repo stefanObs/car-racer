@@ -1,5 +1,4 @@
 import type { RaceSession } from "../sim/race";
-import { Canvas2DRenderer } from "./Canvas2DRenderer";
 import { RaceRenderer } from "./RaceRenderer";
 
 export type GameRenderer = {
@@ -18,18 +17,25 @@ function supportsWebGL(): boolean {
   }
 }
 
+/**
+ * Asphalt-Comic requires WebGL (toon meshes, outlines, chase 3D).
+ * Canvas2D fallback removed — it could not match the concept look.
+ */
 export function createGameRenderer(canvas: HTMLCanvasElement): {
   renderer: GameRenderer;
-  mode: "webgl" | "canvas2d";
+  mode: "webgl";
 } {
-  if (supportsWebGL()) {
-    try {
-      return { renderer: new RaceRenderer(canvas), mode: "webgl" };
-    } catch (err) {
-      console.warn("WebGL init failed, using Canvas2D fallback.", err);
-    }
-  } else {
-    console.warn("WebGL not supported, using Canvas2D fallback.");
+  if (!supportsWebGL()) {
+    throw new Error(
+      "WebGL wird benötigt für Crash Circuit (Asphalt-Comic).\n\nBitte einen aktuellen Browser mit aktivierter Hardware-Beschleunigung nutzen (Chrome, Firefox oder Edge).",
+    );
   }
-  return { renderer: new Canvas2DRenderer(canvas), mode: "canvas2d" };
+  try {
+    return { renderer: new RaceRenderer(canvas), mode: "webgl" };
+  } catch (err) {
+    const detail = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `WebGL-Start fehlgeschlagen.\n\n${detail}\n\nTipp: Hardware-Beschleunigung in den Browser-Einstellungen einschalten.`,
+    );
+  }
 }

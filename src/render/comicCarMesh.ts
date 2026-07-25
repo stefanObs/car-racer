@@ -1,4 +1,13 @@
-import { BoxGeometry, CylinderGeometry, Group, Mesh, SphereGeometry } from "three";
+import {
+  CircleGeometry,
+  CylinderGeometry,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  SphereGeometry,
+  TorusGeometry,
+} from "three";
+import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { CarState } from "../sim/vehicle";
 import { comicToon, withOutline } from "./comicMaterials";
 import { ComicPalette } from "./palette";
@@ -11,87 +20,88 @@ export type ComicCarParts = {
   nitro: Group;
 };
 
-/** Low sports-car silhouette matching Asphalt-Comic reference (rear chase readable). */
+/** Sculpted Asphalt-Comic sports car — rounded volumes + ink outlines. */
 export function buildComicCar(car: CarState): ComicCarParts {
   const root = new Group();
   const paint = comicToon(car.paint);
+  const paintShade = comicToon(shadePaint(car.paint));
   const dark = comicToon(ComicPalette.cabin);
-  const glass = comicToon(0x151820);
+  const glass = comicToon(0x12151c);
 
-  // Main body — wide, low
-  const body = withOutline(new BoxGeometry(1.55, 0.42, 2.55), paint, 1.1);
-  body.position.set(0, 0.48, 0.05);
+  const blob = new Mesh(
+    new CircleGeometry(1.35, 20),
+    new MeshBasicMaterial({ color: 0x1b1b1f, transparent: true, opacity: 0.35 }),
+  );
+  blob.rotation.x = -Math.PI / 2;
+  blob.position.y = 0.03;
+  root.add(blob);
 
-  // Hood taper
-  const hood = withOutline(new BoxGeometry(1.4, 0.28, 0.7), paint, 1.1);
-  hood.position.set(0, 0.42, 1.35);
-  hood.rotation.x = -0.12;
+  const body = withOutline(new RoundedBoxGeometry(1.65, 0.42, 2.55, 5, 0.2), paint, 0.065);
+  body.position.set(0, 0.52, 0.08);
 
-  // Rear haunches
-  const rear = withOutline(new BoxGeometry(1.6, 0.38, 0.55), paint, 1.1);
-  rear.position.set(0, 0.46, -1.15);
+  const belly = withOutline(new RoundedBoxGeometry(1.55, 0.28, 2.35, 5, 0.18), paintShade, 0.05);
+  belly.position.set(0, 0.34, 0.05);
 
-  // Cabin / canopy
-  const cabin = withOutline(new BoxGeometry(1.15, 0.42, 1.05), glass, 1.12);
-  cabin.position.set(0, 0.82, -0.05);
+  const nose = withOutline(new SphereGeometry(0.55, 14, 12), paint, 0.055);
+  nose.scale.set(1.35, 0.55, 1.1);
+  nose.position.set(0, 0.48, 1.45);
 
-  // Roof stripe shade step
-  const roof = withOutline(new BoxGeometry(1.05, 0.08, 0.9), dark, 1.1);
-  roof.position.set(0, 1.05, -0.08);
+  const tail = withOutline(new SphereGeometry(0.62, 14, 12), paint, 0.055);
+  tail.scale.set(1.4, 0.58, 0.9);
+  tail.position.set(0, 0.5, -1.25);
 
-  // Big rear spoiler (reference signature)
-  const spoilerBlade = withOutline(new BoxGeometry(1.55, 0.1, 0.38), dark, 1.14);
-  spoilerBlade.position.set(0, 1.12, -1.15);
-  const spoilerL = withOutline(new BoxGeometry(0.1, 0.35, 0.12), dark, 1.12);
-  spoilerL.position.set(-0.65, 0.95, -1.1);
-  const spoilerR = withOutline(new BoxGeometry(0.1, 0.35, 0.12), dark, 1.12);
-  spoilerR.position.set(0.65, 0.95, -1.1);
+  const cabin = withOutline(new SphereGeometry(0.72, 14, 12), glass, 0.06);
+  cabin.scale.set(1.05, 0.72, 1.15);
+  cabin.position.set(0, 0.95, -0.05);
 
-  // Diffuser + exhausts
-  const diffuser = withOutline(new BoxGeometry(1.2, 0.18, 0.35), dark, 1.1);
-  diffuser.position.set(0, 0.28, -1.45);
-  const exL = withOutline(new CylinderGeometry(0.08, 0.08, 0.2, 8), comicToon(0x888888), 1.1);
+  const roof = withOutline(new RoundedBoxGeometry(0.95, 0.08, 0.85, 3, 0.06), dark, 0.045);
+  roof.position.set(0, 1.28, -0.08);
+
+  const wing = withOutline(new RoundedBoxGeometry(1.7, 0.09, 0.4, 3, 0.05), dark, 0.07);
+  wing.position.set(0, 1.28, -1.22);
+  const standL = withOutline(new CylinderGeometry(0.05, 0.06, 0.42, 8), dark, 0.04);
+  standL.position.set(-0.58, 1.05, -1.12);
+  const standR = withOutline(new CylinderGeometry(0.05, 0.06, 0.42, 8), dark, 0.04);
+  standR.position.set(0.58, 1.05, -1.12);
+
+  const diffuser = withOutline(new RoundedBoxGeometry(1.2, 0.18, 0.35, 2, 0.05), dark, 0.045);
+  diffuser.position.set(0, 0.28, -1.55);
+  const exGeo = new CylinderGeometry(0.09, 0.1, 0.2, 10);
+  const exL = withOutline(exGeo, comicToon(0x9aa0a6), 0.035);
   exL.rotation.x = Math.PI / 2;
-  exL.position.set(-0.18, 0.28, -1.62);
-  const exR = withOutline(new CylinderGeometry(0.08, 0.08, 0.2, 8), comicToon(0x888888), 1.1);
+  exL.position.set(-0.2, 0.28, -1.72);
+  const exR = withOutline(exGeo.clone(), comicToon(0x9aa0a6), 0.035);
   exR.rotation.x = Math.PI / 2;
-  exR.position.set(0.18, 0.28, -1.62);
+  exR.position.set(0.2, 0.28, -1.72);
 
-  // Quad taillights
-  const lightMat = comicToon(0xff2d2d, { emissive: 0xff2d2d });
-  for (const [lx, ly] of [
-    [-0.45, 0.55],
-    [-0.28, 0.55],
-    [0.28, 0.55],
-    [0.45, 0.55],
-  ] as const) {
-    const light = withOutline(new CylinderGeometry(0.07, 0.07, 0.06, 8), lightMat, 1.15);
-    light.rotation.x = Math.PI / 2;
-    light.position.set(lx, ly, -1.42);
+  const lightMat = comicToon(0xff2a2a, { emissive: 0xff2a2a, emissiveIntensity: 0.6 });
+  for (const lx of [-0.48, -0.3, 0.3, 0.48] as const) {
+    const light = withOutline(new SphereGeometry(0.09, 12, 12), lightMat, 0.03);
+    light.position.set(lx, 0.58, -1.5);
     root.add(light);
   }
 
-  // Wheels
-  for (const [wx, wz] of [
-    [-0.78, 0.85],
-    [0.78, 0.85],
-    [-0.78, -0.95],
-    [0.78, -0.95],
-  ] as const) {
-    const wheel = withOutline(new CylinderGeometry(0.36, 0.36, 0.32, 12), comicToon(ComicPalette.tire), 1.12);
-    wheel.rotation.z = Math.PI / 2;
-    wheel.position.set(wx, 0.36, wz);
-    const rim = new Mesh(new CylinderGeometry(0.18, 0.18, 0.34, 8), comicToon(0xc0c4cc));
-    rim.rotation.z = Math.PI / 2;
-    rim.position.copy(wheel.position);
-    root.add(wheel, rim);
+  const headMat = comicToon(0xfff6d8, { emissive: 0xffe066, emissiveIntensity: 0.4 });
+  for (const lx of [-0.52, 0.52] as const) {
+    const head = withOutline(new SphereGeometry(0.12, 12, 12), headMat, 0.03);
+    head.position.set(lx, 0.5, 1.78);
+    root.add(head);
   }
 
-  // Side skirt shade
-  const skirtL = withOutline(new BoxGeometry(0.08, 0.2, 2.2), dark, 1.08);
-  skirtL.position.set(-0.82, 0.32, 0);
-  const skirtR = withOutline(new BoxGeometry(0.08, 0.2, 2.2), dark, 1.08);
-  skirtR.position.set(0.82, 0.32, 0);
+  for (const [wx, wz] of [
+    [-0.78, 0.92],
+    [0.78, 0.92],
+    [-0.78, -1.02],
+    [0.78, -1.02],
+  ] as const) {
+    const tire = withOutline(new TorusGeometry(0.36, 0.14, 10, 20), comicToon(ComicPalette.tire), 0.045);
+    tire.rotation.y = Math.PI / 2;
+    tire.position.set(wx, 0.36, wz);
+    const rim = new Mesh(new CylinderGeometry(0.2, 0.2, 0.18, 12), comicToon(0xd8dce4));
+    rim.rotation.z = Math.PI / 2;
+    rim.position.set(wx, 0.36, wz);
+    root.add(tire, rim);
+  }
 
   if (car.sticker && car.sticker !== "none") {
     const stickerColor =
@@ -100,21 +110,21 @@ export function buildComicCar(car: CarState): ComicCarParts {
         : car.sticker === "bolt"
           ? ComicPalette.repairSpark
           : ComicPalette.nitroCyan;
-    const sticker = new Mesh(new BoxGeometry(0.06, 0.35, 1.2), comicToon(stickerColor));
-    sticker.position.set(0.82, 0.55, 0.15);
+    const sticker = new Mesh(new RoundedBoxGeometry(0.06, 0.38, 1.15, 2, 0.03), comicToon(stickerColor));
+    sticker.position.set(0.86, 0.6, 0.1);
     root.add(sticker);
   }
 
   const smoke = new Group();
   for (let i = 0; i < 6; i++) {
-    const puff = new Mesh(new SphereGeometry(0.2 + i * 0.05, 8, 8), comicToon(ComicPalette.smoke));
+    const puff = new Mesh(new SphereGeometry(0.22 + i * 0.05, 10, 10), comicToon(ComicPalette.smoke));
     puff.visible = false;
     smoke.add(puff);
   }
   const sparks = new Group();
   for (let i = 0; i < 8; i++) {
     const spark = new Mesh(
-      new BoxGeometry(0.09, 0.09, 0.09),
+      new SphereGeometry(0.07, 6, 6),
       comicToon(ComicPalette.repairSpark, { emissive: ComicPalette.repairSpark }),
     );
     spark.visible = false;
@@ -123,33 +133,31 @@ export function buildComicCar(car: CarState): ComicCarParts {
   const nitro = new Group();
   for (let i = 0; i < 5; i++) {
     const trail = new Mesh(
-      new BoxGeometry(0.22, 0.14, 0.65),
+      new SphereGeometry(0.16, 8, 8),
       comicToon(i % 2 === 0 ? ComicPalette.nitroOrange : ComicPalette.nitroCyan, {
         emissive: i % 2 === 0 ? ComicPalette.nitroOrange : ComicPalette.nitroCyan,
+        emissiveIntensity: 0.65,
       }),
     );
-    trail.position.set((i - 2) * 0.14, 0.32, -1.7 - i * 0.28);
+    trail.scale.set(1, 0.7, 1.6 + i * 0.2);
+    trail.position.set((i - 2) * 0.12, 0.34, -1.8 - i * 0.28);
     trail.visible = false;
     nitro.add(trail);
   }
 
-  root.add(
-    body,
-    hood,
-    rear,
-    cabin,
-    roof,
-    spoilerBlade,
-    spoilerL,
-    spoilerR,
-    diffuser,
-    exL,
-    exR,
-    skirtL,
-    skirtR,
-    smoke,
-    sparks,
-    nitro,
-  );
+  root.add(body, belly, nose, tail, cabin, roof, wing, standL, standR, diffuser, exL, exR, smoke, sparks, nitro);
   return { root, body, smoke, sparks, nitro };
+}
+
+function shadePaint(paint: string): number {
+  try {
+    const c = Number.parseInt(paint.replace("#", ""), 16);
+    if (!Number.isFinite(c)) return 0x7a1f1f;
+    const r = Math.max(0, ((c >> 16) & 255) - 45);
+    const g = Math.max(0, ((c >> 8) & 255) - 45);
+    const b = Math.max(0, (c & 255) - 45);
+    return (r << 16) | (g << 8) | b;
+  } catch {
+    return 0x7a1f1f;
+  }
 }

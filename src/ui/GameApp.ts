@@ -21,7 +21,6 @@ export class GameApp {
   private screen: Screen = "menu";
   private race: RaceSession | null = null;
   private renderer: GameRenderer;
-  private renderMode: "webgl" | "canvas2d" = "webgl";
   private lastResult: ReturnType<RaceSession["result"]> | null = null;
   private focusIndex = 0;
   private uiRoot: HTMLElement;
@@ -45,7 +44,7 @@ export class GameApp {
     window.addEventListener("keydown", (e) => this.onMenuKeyDown(e));
     const created = createGameRenderer(canvas);
     this.renderer = created.renderer;
-    this.renderMode = created.mode;
+    void created.mode;
     const host = uiRoot.parentElement ?? document.body;
     this.dev = new DevTools(host, {
       getChf: () => this.save.chf,
@@ -278,7 +277,7 @@ export class GameApp {
       body = `
         <h1 class="brand">Crash Circuit</h1>
         <p class="tag">Getunte Autos. Saubere Linie. CHF fürs Tuning.</p>
-        <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}${this.renderMode === "canvas2d" ? " · Chase-Comic" : ""}</p>
+        <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}</p>
         <div class="stack">
           <button data-nav data-act="cup">Cup</button>
           <button data-nav data-act="free">Freier Modus</button>

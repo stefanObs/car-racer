@@ -136,7 +136,7 @@ Document third-party licenses in a `NOTICE` or `licenses/` folder when shipping.
 
 1. ✅ Vite + TS + canvas/three boot + ActionMap (keyboard)
 2. ✅ One loop track + grass/wall volumes
-3. ✅ Arcade drive + chase camera (+ Canvas2D fallback)
+3. ✅ Arcade drive + chase camera (WebGL / Asphalt-Comic; no Canvas2D fallback)
 4. ✅ Gamepad + touch overlays; HTML main menu
 5. ✅ Damage/heal, basic AI, CHF results
 6. ✅ Garage (paint, stickers, parts, synergies)

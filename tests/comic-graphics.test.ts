@@ -17,7 +17,7 @@ describe("Asphalt-Comic palette", () => {
 
   it("builds toon materials with stepped gradient and outline shell", () => {
     const grad = toonGradient();
-    expect(grad.image.width).toBe(3);
+    expect(grad.image.width).toBe(4);
     const mat = comicToon(ComicPalette.asphalt);
     expect(mat.gradientMap).toBe(grad);
     const mesh = withOutline(new BoxGeometry(1, 1, 1), mat);

@@ -6,8 +6,8 @@ const uiRoot = document.querySelector<HTMLElement>("#ui-root");
 
 function showBootError(err: unknown): void {
   const root = uiRoot ?? document.body;
-  const message = err instanceof Error ? `${err.message}\n${err.stack ?? ""}` : String(err);
-  root.innerHTML = `<div class="boot-error"><strong>Crash Circuit konnte nicht starten</strong>\n\n${message}</div>`;
+  const message = err instanceof Error ? err.message : String(err);
+  root.innerHTML = `<div class="boot-error" role="alert"><strong>Crash Circuit konnte nicht starten</strong><pre>${message.replace(/</g, "&lt;")}</pre></div>`;
 }
 
 if (!canvas || !uiRoot) {
