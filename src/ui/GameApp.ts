@@ -4,7 +4,7 @@ import { PARTS, activeSynergies, mergeStats, type PartId } from "../data/parts";
 import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
-import { formatChf, loadSave, writeSave, type SaveData, type StickerId } from "../meta/save";
+import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
 import { DAMAGE_LABELS } from "../sim/damage";
 import { RaceSession } from "../sim/race";
@@ -240,12 +240,13 @@ export class GameApp {
     this.renderer.clearCars();
     this.stylePops.clear();
     this.finishCelebrate = null;
+    const kit = activeKit(this.save);
     this.race = new RaceSession({
       level,
       playerCarId: this.save.activeCar,
-      playerParts: this.save.equippedParts,
-      playerPaint: this.save.paint,
-      playerSticker: this.save.sticker,
+      playerParts: kit.equippedParts,
+      playerPaint: kit.paint,
+      playerSticker: kit.sticker,
     });
     this.renderer.buildTrack(this.race);
     this.screen = "race";
@@ -402,8 +403,10 @@ export class GameApp {
   }
 
   private garageHtml(): string {
-    const stats = mergeStats(CARS[this.save.activeCar].stats, this.save.equippedParts);
-    const syn = activeSynergies(this.save.equippedParts);
+    const kit = activeKit(this.save);
+    const car = CARS[this.save.activeCar];
+    const stats = mergeStats(car.stats, kit.equippedParts);
+    const syn = activeSynergies(kit.equippedParts);
     const carButtons = (Object.keys(CARS) as CarId[])
       .map((id) => {
         const c = CARS[id as CarId];
@@ -418,8 +421,8 @@ export class GameApp {
     const partButtons = (Object.keys(PARTS) as PartId[])
       .map((id) => {
         const p = PARTS[id];
-        const owned = this.save.ownedParts.includes(id);
-        const eq = this.save.equippedParts.includes(id);
+        const owned = kit.ownedParts.includes(id);
+        const eq = kit.equippedParts.includes(id);
         return `<div class="part">
           <button data-nav data-act="part" data-part="${id}">${eq ? "[An]" : "[Aus]"} ${p.name} ${owned ? "" : formatChf(p.priceChf)}</button>
           <small><b>+</b> ${p.pro}<br/><b>−</b> ${p.con}</small>
@@ -431,12 +434,13 @@ export class GameApp {
       <h2>Garage</h2>
       <p class="meta">${formatChf(this.save.chf)}</p>
       <h3>Autos</h3><div class="stack">${carButtons}</div>
+      <p class="dim">Aktiv: <strong>${car.name}</strong> · ${car.classLabel} — Teile und Lack gehören nur zu diesem Auto.</p>
       <h3>Lack</h3>
       <div class="stack row">
         ${["#e03131", "#339af0", "#f08c00", "#ffffff", "#1b1b1f"]
           .map(
             (c) =>
-              `<button data-nav data-act="paint" data-color="${c}" style="background:${c};color:#fff">${this.save.paint === c ? "✓" : ""}</button>`,
+              `<button data-nav data-act="paint" data-color="${c}" style="background:${c};color:#fff">${kit.paint === c ? "✓" : ""}</button>`,
           )
           .join("")}
       </div>
@@ -445,11 +449,11 @@ export class GameApp {
         ${(["none", "flames", "bolt", "star"] as StickerId[])
           .map(
             (s) =>
-              `<button data-nav data-act="sticker" data-sticker="${s}">${s}${this.save.sticker === s ? " ✓" : ""}</button>`,
+              `<button data-nav data-act="sticker" data-sticker="${s}">${s}${kit.sticker === s ? " ✓" : ""}</button>`,
           )
           .join("")}
       </div>
-      <h3>Teile</h3>
+      <h3>Teile (nur ${car.name})</h3>
       <div class="parts">${partButtons}</div>
       <p class="stats">Tempo ${stats.topSpeed.toFixed(2)} · Accel ${stats.accel.toFixed(2)} · Grip ${stats.grip.toFixed(2)} · Federung ${stats.suspension.toFixed(2)}</p>
       <p class="syn">${syn.length ? "Kombo: " + syn.map((s) => s.name).join(", ") : "Keine Kombo aktiv"}</p>
@@ -530,35 +534,37 @@ export class GameApp {
         if (this.save.chf >= price) {
           this.save.chf -= price;
           this.save.ownedCars.push(id);
+          ensureKit(this.save, id);
           this.save.activeCar = id;
-          this.save.paint = CARS[id].defaultPaint;
         }
       } else {
         this.save.activeCar = id;
+        ensureKit(this.save, id);
       }
       writeSave(this.save);
     }
     if (act === "paint" && btn.dataset.color) {
-      this.save.paint = btn.dataset.color;
+      activeKit(this.save).paint = btn.dataset.color;
       writeSave(this.save);
     }
     if (act === "sticker" && btn.dataset.sticker) {
-      this.save.sticker = btn.dataset.sticker as StickerId;
+      activeKit(this.save).sticker = btn.dataset.sticker as StickerId;
       writeSave(this.save);
     }
     if (act === "part" && btn.dataset.part) {
       const id = btn.dataset.part as PartId;
-      if (!this.save.ownedParts.includes(id)) {
+      const kit = activeKit(this.save);
+      if (!kit.ownedParts.includes(id)) {
         const price = PARTS[id].priceChf;
         if (this.save.chf >= price) {
           this.save.chf -= price;
-          this.save.ownedParts.push(id);
-          this.save.equippedParts.push(id);
+          kit.ownedParts.push(id);
+          kit.equippedParts.push(id);
         }
-      } else if (this.save.equippedParts.includes(id)) {
-        this.save.equippedParts = this.save.equippedParts.filter((p) => p !== id);
+      } else if (kit.equippedParts.includes(id)) {
+        kit.equippedParts = kit.equippedParts.filter((p) => p !== id);
       } else {
-        this.save.equippedParts.push(id);
+        kit.equippedParts.push(id);
       }
       writeSave(this.save);
     }

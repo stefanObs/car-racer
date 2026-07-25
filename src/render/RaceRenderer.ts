@@ -152,6 +152,7 @@ export class RaceRenderer {
         isPlayer: true,
         paint: "#E03131",
         sticker: "flames",
+        modelId: "blitz",
         stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
       }),
     );

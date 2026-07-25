@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v3.5 Per-car kits + class silhouettes
+
+- Trigger: user — distinguishable car models; add-ons must not auto-share across car types
+- Decision: Sport (Blitz) vs Pick-up (Bison) get distinct comic meshes; save v2 stores parts/paint/sticker per car; v1 global inventory migrates onto the then-active car only
+- CONCEPT §§ touched: §5.1 kits note; §13 summary → v3.5
+- Skills: asphalt-comic silhouettes; clean-programming tests for migration RCA
+
 ### 2026-07-25 — v3.4 Ad-hoc seed tracks shipped
 
 - Trigger: user — continue next step after MVP tech order complete

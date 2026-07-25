@@ -1,4 +1,5 @@
 import type { VehicleStats } from "../data/cars";
+import type { CarId } from "../data/cars";
 import { applyHeal, applyHit, damageMultipliers, stageFromHp, type DamageStage } from "./damage";
 import { surfaceAt } from "./zones";
 import type { BuiltTrack } from "../track/types";
@@ -23,6 +24,8 @@ export interface CarState {
   isPlayer: boolean;
   paint: string;
   sticker: string;
+  /** Visual / gear archetype (Blitz sport vs Bison pickup). */
+  modelId?: CarId | string;
   stats: VehicleStats & { nitroBonus: number; ramBonus: number; grassMitigation: number };
   place: number;
   lap: number;
@@ -67,6 +70,7 @@ export function createCarState(
     distanceAlong: 0,
     finished: false,
     finishPlace: 0,
+    modelId: "blitz",
     ...partial,
   };
 }

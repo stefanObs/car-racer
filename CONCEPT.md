@@ -222,6 +222,8 @@ Statt endloser Einzelautos: **Klassen** mit klarem Fantasy- und Stats-Profil. Pr
 
 Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 
+**Teile / Lack / Aufkleber sind pro Auto gespeichert** — Kauf und Einbau an einem Fahrzeug gelten nicht automatisch für andere Klassen/Autos. Wer den Bison kauft, startet ohne die Blitz-Teile und muss (oder darf) neu tunen.
+
 ### 5.2 Feinschliff
 
 - **Sportwagen:** schnell rein in Tempo, aber empfindlich — Ideal für saubere Linien und Timing.
@@ -472,7 +474,7 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 | Catch-up | Hinten: bessere Beschleunigung + minimal mehr Speed; fehlerfreier Spieler fährt davon |
 | Währung | **CHF** |
 | Sitzungs-Pacing | **7–15 min** → Freischalten oder sinnvolles Garage-Upgrade |
-| Schmücken | Lack + **Aufkleber** (Flammen, Symbole, …) |
+| Schmücken | Lack + **Aufkleber** — **pro Auto**; Teile ebenfalls **nicht** zwischen Autos geteilt |
 | Modi | Cup + **Freier Modus** + **Ad-hoc-generierte Strecken** |
 | Eingabe / Plattform | **Tastatur + Controller + Tablet (Touch)** — gleichwertig spielbar |
 | Tech (Empfehlung) | **TS + Vite + three.js + HTML-UI** übernommen; nur Free/OSS — siehe `TECH.md` |
@@ -480,4 +482,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.4 — Ad-hoc-Seedstrecken geliefert; Sitzungs-Pacing 7–15 min.*
+*Dokumentstand: Konzept v3.5 — Pro-Auto-Kits; unterscheidbare Klassen-Silhouetten.*

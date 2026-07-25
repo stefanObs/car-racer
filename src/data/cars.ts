@@ -1,9 +1,13 @@
 export type CarId = "blitz" | "bison";
 
+/** Gear class drives silhouette + fantasy (CONCEPT §5). */
+export type GearClass = "sport" | "pickup";
+
 export interface CarDef {
   id: CarId;
   name: string;
   classLabel: string;
+  gearClass: GearClass;
   description: string;
   priceChf: number;
   /** Base stats before parts */
@@ -26,6 +30,7 @@ export const CARS: Record<CarId, CarDef> = {
     id: "blitz",
     name: "Blitz",
     classLabel: "Sportwagen",
+    gearClass: "sport",
     description: "Schnell und präzise — aber leicht und empfindlich.",
     priceChf: 0,
     defaultPaint: "#e03131",
@@ -43,6 +48,7 @@ export const CARS: Record<CarId, CarDef> = {
     id: "bison",
     name: "Bison",
     classLabel: "Pick-up",
+    gearClass: "pickup",
     description: "Schwer und standfest — braucht länger für Tempo.",
     priceChf: 900,
     defaultPaint: "#2f9e44",
@@ -57,3 +63,7 @@ export const CARS: Record<CarId, CarDef> = {
     },
   },
 };
+
+export function gearClassOf(carId: CarId): GearClass {
+  return CARS[carId].gearClass;
+}
