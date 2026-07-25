@@ -156,10 +156,11 @@ export function mergeStats(
   base: VehicleStats,
   partIds: PartId[],
 ): VehicleStats & { nitroBonus: number; ramBonus: number; grassMitigation: number } {
-  const stats = { ...base };
-  let nitroBonus = 0;
+  const { nitroBonus: baseNitro = 0, grassMitigation: baseGrass = 0, ...core } = base;
+  const stats: VehicleStats = { ...core };
+  let nitroBonus = baseNitro;
   let ramBonus = 0;
-  let grassMitigation = 0;
+  let grassMitigation = baseGrass;
 
   for (const id of partIds) {
     const d = PARTS[id].delta;
@@ -168,7 +169,8 @@ export function mergeStats(
       else if (key === "ramBonus") ramBonus += d.ramBonus ?? 0;
       else {
         const k = key as keyof VehicleStats;
-        stats[k] = (stats[k] ?? 0) + (d[k] as number);
+        if (k === "nitroBonus" || k === "grassMitigation") continue;
+        stats[k] = (Number(stats[k]) || 0) + (d[k] as number);
       }
     }
   }
@@ -178,14 +180,13 @@ export function mergeStats(
     for (const key of Object.keys(syn.bonus) as Array<keyof typeof syn.bonus>) {
       if (key === "grassMitigation") continue;
       const k = key as keyof VehicleStats;
-      if (typeof syn.bonus[k] === "number") {
-        stats[k] = stats[k] + (syn.bonus[k] as number);
+      if (typeof syn.bonus[k] === "number" && k !== "nitroBonus" && k !== "grassMitigation") {
+        stats[k] = (Number(stats[k]) || 0) + (syn.bonus[k] as number);
       }
     }
   }
 
-  // Clamp sane ranges
-  for (const k of Object.keys(stats) as (keyof VehicleStats)[]) {
+  for (const k of ["accel", "topSpeed", "grip", "mass", "armor", "handling", "suspension"] as const) {
     stats[k] = Math.max(0.35, Math.min(2.2, stats[k]));
   }
 

@@ -327,52 +327,199 @@ export function buildCarOverlays(opts: CarOverlayOpts): Group {
   g.name = "carOverlays";
   const variant = opts.variant ?? opts.paint;
   const gear = opts.gearClass ?? "sport";
-  const pickup = gear === "pickup";
+  const L = overlayLayout(gear);
 
-  const sideW = pickup ? 2.4 : 2.15;
-  const sideH = pickup ? 0.7 : 0.52;
-  const sideY = pickup ? 0.72 : 0.55;
-  const sideX = pickup ? 0.98 : 0.86;
-
-  const sideL = decal(sidePanelTexture(opts.paint, variant), sideW, sideH, 0.82);
-  sideL.position.set(-sideX, sideY, pickup ? 0.15 : 0.08);
+  const sideL = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.82);
+  sideL.position.set(-L.sideX, L.sideY, L.sideZ);
   sideL.rotation.y = Math.PI / 2;
 
-  const sideR = decal(sidePanelTexture(opts.paint, variant), sideW, sideH, 0.82);
-  sideR.position.set(sideX, sideY, pickup ? 0.15 : 0.08);
+  const sideR = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.82);
+  sideR.position.set(L.sideX, L.sideY, L.sideZ);
   sideR.rotation.y = -Math.PI / 2;
   sideR.rotation.z = Math.PI;
 
-  // Thin roof edge highlight instead of thick racing stripe
-  const roof = decal(roofEdgeTexture(), pickup ? 0.22 : 0.18, pickup ? 1.6 : 1.9, 0.55);
-  roof.position.set(0, pickup ? 1.72 : 1.22, pickup ? 0.45 : 0.05);
+  const roof = decal(roofEdgeTexture(), L.roofW, L.roofL, 0.55);
+  roof.position.set(0, L.roofY, L.roofZ);
   roof.rotation.x = -Math.PI / 2;
 
-  const rear = decal(rearDeckTexture(), pickup ? 1.5 : 1.25, pickup ? 0.7 : 0.5, 0.9);
-  rear.position.set(0, pickup ? 0.95 : 0.7, pickup ? -0.35 : -1.05);
-  rear.rotation.x = pickup ? -Math.PI / 2.1 : -Math.PI / 2.35;
+  const rear = decal(rearDeckTexture(), L.rearW, L.rearH, 0.9);
+  rear.position.set(0, L.rearY, L.rearZ);
+  rear.rotation.x = L.rearTilt;
 
-  const glare = decal(glassGlareTexture(), pickup ? 1.35 : 1.0, pickup ? 0.55 : 0.42, 0.75);
-  glare.position.set(0, pickup ? 1.35 : 1.02, pickup ? 1.0 : 0.2);
-  glare.rotation.x = pickup ? -0.2 : -0.4;
+  const glare = decal(glassGlareTexture(), L.glareW, L.glareH, 0.75);
+  glare.position.set(0, L.glareY, L.glareZ);
+  glare.rotation.x = L.glareTilt;
 
   g.add(sideL, sideR, roof, rear, glare);
 
   const stickerTex = stickerTexture(opts.sticker);
   if (stickerTex) {
-    const stW = pickup ? 1.2 : 1.05;
-    const stH = pickup ? 0.55 : 0.45;
-    const stL = decal(stickerTex, stW, stH, 0.98);
-    stL.position.set(-(sideX + 0.02), sideY + 0.02, pickup ? 0.35 : 0.25);
+    const stL = decal(stickerTex, L.stW, L.stH, 0.98);
+    stL.position.set(-(L.sideX + 0.02), L.sideY + 0.02, L.stZ);
     stL.rotation.y = Math.PI / 2;
-    const stR = decal(stickerTex, stW, stH, 0.98);
-    stR.position.set(sideX + 0.02, sideY + 0.02, pickup ? 0.35 : 0.25);
+    const stR = decal(stickerTex, L.stW, L.stH, 0.98);
+    stR.position.set(L.sideX + 0.02, L.sideY + 0.02, L.stZ);
     stR.rotation.y = -Math.PI / 2;
     stR.rotation.z = Math.PI;
     g.add(stL, stR);
   }
 
   return g;
+}
+
+type OverlayLayout = {
+  sideW: number;
+  sideH: number;
+  sideX: number;
+  sideY: number;
+  sideZ: number;
+  roofW: number;
+  roofL: number;
+  roofY: number;
+  roofZ: number;
+  rearW: number;
+  rearH: number;
+  rearY: number;
+  rearZ: number;
+  rearTilt: number;
+  glareW: number;
+  glareH: number;
+  glareY: number;
+  glareZ: number;
+  glareTilt: number;
+  stW: number;
+  stH: number;
+  stZ: number;
+};
+
+function overlayLayout(gear: GearClass): OverlayLayout {
+  switch (gear) {
+    case "pickup":
+      return {
+        sideW: 2.5,
+        sideH: 0.75,
+        sideX: 1.0,
+        sideY: 0.85,
+        sideZ: 0.2,
+        roofW: 0.22,
+        roofL: 1.7,
+        roofY: 1.85,
+        roofZ: 0.5,
+        rearW: 1.5,
+        rearH: 0.65,
+        rearY: 1.0,
+        rearZ: -0.4,
+        rearTilt: -Math.PI / 2.1,
+        glareW: 1.4,
+        glareH: 0.55,
+        glareY: 1.4,
+        glareZ: 1.15,
+        glareTilt: -0.2,
+        stW: 1.2,
+        stH: 0.55,
+        stZ: 0.4,
+      };
+    case "buggy":
+      return {
+        sideW: 1.6,
+        sideH: 0.4,
+        sideX: 0.72,
+        sideY: 0.6,
+        sideZ: 0.1,
+        roofW: 0.14,
+        roofL: 0.9,
+        roofY: 1.55,
+        roofZ: -0.1,
+        rearW: 0.9,
+        rearH: 0.4,
+        rearY: 0.75,
+        rearZ: -0.9,
+        rearTilt: -Math.PI / 2.2,
+        glareW: 0.7,
+        glareH: 0.35,
+        glareY: 0.95,
+        glareZ: 0.35,
+        glareTilt: -0.25,
+        stW: 0.85,
+        stH: 0.35,
+        stZ: 0.2,
+      };
+    case "hotrod":
+      return {
+        sideW: 2.3,
+        sideH: 0.45,
+        sideX: 0.82,
+        sideY: 0.55,
+        sideZ: 0.05,
+        roofW: 0.16,
+        roofL: 1.2,
+        roofY: 1.32,
+        roofZ: -0.5,
+        rearW: 1.15,
+        rearH: 0.45,
+        rearY: 0.65,
+        rearZ: -1.15,
+        rearTilt: -Math.PI / 2.3,
+        glareW: 0.95,
+        glareH: 0.38,
+        glareY: 1.05,
+        glareZ: -0.05,
+        glareTilt: -0.35,
+        stW: 1.0,
+        stH: 0.4,
+        stZ: 0.15,
+      };
+    case "armor":
+      return {
+        sideW: 2.7,
+        sideH: 0.85,
+        sideX: 1.08,
+        sideY: 1.05,
+        sideZ: 0,
+        roofW: 0.2,
+        roofL: 2.4,
+        roofY: 1.7,
+        roofZ: 0,
+        rearW: 1.7,
+        rearH: 0.8,
+        rearY: 1.15,
+        rearZ: -1.35,
+        rearTilt: -Math.PI / 2,
+        glareW: 1.2,
+        glareH: 0.3,
+        glareY: 1.4,
+        glareZ: 1.5,
+        glareTilt: -0.1,
+        stW: 1.25,
+        stH: 0.5,
+        stZ: 0.2,
+      };
+    default:
+      return {
+        sideW: 2.15,
+        sideH: 0.52,
+        sideX: 0.86,
+        sideY: 0.55,
+        sideZ: 0.08,
+        roofW: 0.18,
+        roofL: 1.9,
+        roofY: 1.22,
+        roofZ: 0.05,
+        rearW: 1.25,
+        rearH: 0.5,
+        rearY: 0.7,
+        rearZ: -1.05,
+        rearTilt: -Math.PI / 2.35,
+        glareW: 1.0,
+        glareH: 0.42,
+        glareY: 1.02,
+        glareZ: 0.2,
+        glareTilt: -0.4,
+        stW: 1.05,
+        stH: 0.45,
+        stZ: 0.25,
+      };
+  }
 }
 
 export function overlayTextureCacheSize(): number {

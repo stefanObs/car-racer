@@ -3,7 +3,7 @@ import { PARTS, activeSynergies, mergeStats, type PartId } from "../data/parts";
 import { APP_VERSION } from "../core/version";
 import { formatChf, type CarKit, type StickerId } from "../meta/save";
 
-const PAINTS = ["#e03131", "#339af0", "#f08c00", "#ffffff", "#1b1b1f"] as const;
+const PAINTS = ["#e03131", "#339af0", "#f08c00", "#2f9e44", "#868e96", "#ffffff", "#1b1b1f"] as const;
 const STICKERS: StickerId[] = ["none", "flames", "bolt", "star"];
 
 const STICKER_LABEL: Record<StickerId, string> = {

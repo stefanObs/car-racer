@@ -51,10 +51,10 @@ export class RaceSession {
 
     const aiSpecs: Array<{ id: string; paint: string; carId: CarId; skill: number }> = [
       { id: "ai-felix", paint: "#339af0", carId: "blitz", skill: 0.82 },
-      { id: "ai-dana", paint: "#f08c00", carId: "bison", skill: 0.88 },
-      { id: "ai-dino", paint: "#ae3ec9", carId: "blitz", skill: 0.75 },
-      { id: "ai-ben", paint: "#868e96", carId: "bison", skill: 0.85 },
-      { id: "ai-olli", paint: "#e67700", carId: "blitz", skill: 0.9 },
+      { id: "ai-dana", paint: "#2f9e44", carId: "bison", skill: 0.88 },
+      { id: "ai-dino", paint: "#f08c00", carId: "kaeferkraft", skill: 0.75 },
+      { id: "ai-ben", paint: "#1c7ed6", carId: "donnerbuechse", skill: 0.85 },
+      { id: "ai-olli", paint: "#868e96", carId: "bunker", skill: 0.9 },
     ];
 
     const playerSlot = grid[0] ?? [-8, 0];

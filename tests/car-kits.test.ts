@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { CARS, gearClassOf } from "../src/data/cars";
+import { CAR_IDS, CARS, gearClassOf, type CarId } from "../src/data/cars";
+import { mergeStats } from "../src/data/parts";
 import {
   activeKit,
   defaultSave,
@@ -10,47 +11,52 @@ import {
 } from "../src/meta/save";
 import { buildComicCar, carGearClass } from "../src/render/comicCarMesh";
 import { createCarState } from "../src/sim/vehicle";
-import { CARS as CAR_TABLE } from "../src/data/cars";
+
+function meshFor(id: CarId) {
+  return buildComicCar(
+    createCarState({
+      id: id,
+      isPlayer: true,
+      x: 0,
+      z: 0,
+      heading: 0,
+      paint: CARS[id].defaultPaint,
+      sticker: "none",
+      modelId: id,
+      stats: { ...mergeStats(CARS[id].stats, []) },
+    }),
+  );
+}
 
 describe("car models and per-car kits", () => {
-  it("assigns distinct gear classes to Blitz and Bison", () => {
+  it("ships all five category cars from the target sheet", () => {
+    expect(CAR_IDS).toEqual(["blitz", "bison", "kaeferkraft", "donnerbuechse", "bunker"]);
     expect(gearClassOf("blitz")).toBe("sport");
     expect(gearClassOf("bison")).toBe("pickup");
-    expect(CARS.blitz.gearClass).not.toBe(CARS.bison.gearClass);
+    expect(gearClassOf("kaeferkraft")).toBe("buggy");
+    expect(gearClassOf("donnerbuechse")).toBe("hotrod");
+    expect(gearClassOf("bunker")).toBe("armor");
   });
 
-  it("builds different mesh silhouettes for sport vs pickup", () => {
-    const sport = buildComicCar(
-      createCarState({
-        id: "s",
-        isPlayer: true,
-        x: 0,
-        z: 0,
-        heading: 0,
-        paint: "#e03131",
-        sticker: "none",
-        modelId: "blitz",
-        stats: { ...CAR_TABLE.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
-      }),
-    );
-    const pickup = buildComicCar(
-      createCarState({
-        id: "p",
-        isPlayer: true,
-        x: 0,
-        z: 0,
-        heading: 0,
-        paint: "#2f9e44",
-        sticker: "none",
-        modelId: "bison",
-        stats: { ...CAR_TABLE.bison.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
-      }),
-    );
-    expect(sport.root.userData.gearClass).toBe("sport");
-    expect(pickup.root.userData.gearClass).toBe("pickup");
-    expect(sport.root.children.length).not.toBe(pickup.root.children.length);
-    expect(carGearClass({ modelId: "bison" } as never)).toBe("pickup");
-    expect(carGearClass({ modelId: "blitz" } as never)).toBe("sport");
+  it("builds a distinct silhouette per gear class", () => {
+    const counts = new Map<string, number>();
+    for (const id of CAR_IDS) {
+      const mesh = meshFor(id);
+      expect(mesh.root.userData.gearClass).toBe(CARS[id].gearClass);
+      expect(carGearClass({ modelId: id } as never)).toBe(CARS[id].gearClass);
+      counts.set(id, mesh.root.children.length);
+    }
+    const unique = new Set(counts.values());
+    expect(unique.size).toBeGreaterThanOrEqual(4);
+  });
+
+  it("applies class-innate nitro and grass mitigation in mergeStats", () => {
+    const hot = mergeStats(CARS.donnerbuechse.stats, []);
+    expect(hot.nitroBonus).toBeGreaterThan(0.2);
+    const buggy = mergeStats(CARS.kaeferkraft.stats, []);
+    expect(buggy.grassMitigation).toBeGreaterThan(0.1);
+    const sport = mergeStats(CARS.blitz.stats, []);
+    expect(sport.nitroBonus).toBe(0);
   });
 
   it("does not share owned parts between cars (RCA: old global inventory)", () => {
@@ -105,5 +111,7 @@ describe("car models and per-car kits", () => {
     const k = emptyKit("bison");
     expect(k.ownedParts).toEqual([]);
     expect(k.paint).toBe("#2f9e44");
+    expect(emptyKit("kaeferkraft").paint).toBe("#f08c00");
+    expect(emptyKit("bunker").paint).toBe("#868e96");
   });
 });

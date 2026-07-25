@@ -43,4 +43,18 @@ describe("garage hub", () => {
     expect(bay.name).toBe("garageBay");
     expect(bay.children.length).toBeGreaterThan(20);
   });
+
+  it("renders five category cars in the garage roster", () => {
+    const html = renderGarageHtml({
+      chf: 5000,
+      activeCar: "blitz",
+      ownedCars: ["blitz"],
+      kit: emptyKit("blitz"),
+    });
+    expect(html).toContain("Blitz");
+    expect(html).toContain("Bison");
+    expect(html).toContain("Käferkraft");
+    expect(html).toContain("Donnerbüchse");
+    expect(html).toContain("Bunker");
+  });
 });
