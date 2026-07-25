@@ -14,6 +14,14 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v3.3 Session pacing 7–15 min
+
+- Trigger: user — planned pacing so 7–15 min can unlock or buy something meaningful
+- Decision: Successful short session = 7–15 min; ≤2 intro mid-pack races afford a starter part; P1 first race affords a solid early part; early cups prefer 2 laps
+- CONCEPT §§ touched: §3 loop, §4.8 economy pacing, §13 summary → v3.3
+- Skills synced: review-testing doability checklist; game-concept evolution log
+- Impl: intro purses, starter part prices, early cup laps, economy pacing tests
+
 ### 2026-07-25 — v0.2.3 Start scripts bootstrap Node
 
 - Start scripts download portable Node into `.tools/` when Node is not preinstalled

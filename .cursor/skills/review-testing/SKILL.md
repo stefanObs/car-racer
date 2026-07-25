@@ -65,7 +65,7 @@ If the server fails to start, **that is a blocker** — fix start scripts / deps
 
 ## Target player (doability)
 
-- Audience: boy ~**10+**, language **German**, session success in **15–30 min**
+- Audience: boy ~**10+**, language **German**, session success in **7–15 min**
 - Platforms: **Desktop keyboard**, **controller/gamepad**, and **tablet touch** — all first-class
 - Core fantasy: **tuned cars racing fast** — not a ram-focused game (no ram button)
 - Must be completable without reading a manual: icons + short German copy

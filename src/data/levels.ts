@@ -57,7 +57,8 @@ function makeCup(
     },
     rewards: {
       currency: "CHF",
-      placePurse: opts.purse ?? [500, 350, 250, 150, 100, 80],
+      // Tuned for 7–15 min sessions: 2× 4th ≈ starter part; 1st buys a solid early part.
+      placePurse: opts.purse ?? [420, 300, 240, 180, 140, 110],
       starsOnTop3: true,
     },
   };
@@ -66,26 +67,29 @@ function makeCup(
 export const CUP_LEVELS: LevelDefinition[] = [
   makeCup(1, "blitz_cup_01_hafenstart", "Hafenstart", "Einführung — Linie halten, Gras meiden.", "harbor", {
     scale: 1,
+    laps: 2,
   }),
   makeCup(2, "blitz_cup_02_kuestenline", "Küstenlinie", "Etwas engere Kurven am Wasser.", "beach", {
     scale: 1.05,
     grass: 4,
+    laps: 2,
   }),
   makeCup(3, "blitz_cup_03_stadtring", "Stadtring", "Baustellen-Feeling, erste Unebenheiten.", "city", {
     scale: 1.1,
     uneven: true,
+    laps: 3,
   }),
   makeCup(4, "blitz_cup_04_buckelpiste", "Buckelpiste", "Federung zahlt sich aus.", "factory", {
     scale: 1.05,
     uneven: true,
     grass: 3.5,
-    purse: [550, 380, 270, 160, 110, 90],
+    purse: [480, 340, 260, 200, 150, 120],
   }),
   makeCup(5, "blitz_cup_05_cupfinale", "Cup-Finale", "Längere Runde — sauber fahren und davonziehen.", "canyon", {
     scale: 1.2,
     uneven: true,
-    laps: 4,
-    purse: [700, 480, 320, 200, 140, 100],
+    laps: 3,
+    purse: [600, 420, 300, 220, 160, 130],
   }),
 ];
 

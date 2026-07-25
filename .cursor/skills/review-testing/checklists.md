@@ -25,7 +25,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Garage: can equip a part and see both pro and con
 - [ ] Synergy/combo name appears when relevant and is understandable
 - [ ] Winning feels earned; losing after mistakes feels fair
-- [ ] 15–30 min session can unlock or buy something meaningful (CHF pacing)
+- [ ] 7–15 min session can unlock or buy something meaningful (CHF pacing / cup unlock)
 - [ ] Full session doable on **controller** (menus + race, visible focus)
 - [ ] Full session doable on **tablet** (touch race controls + menus, landscape, large targets)
 - [ ] Menu focus moves with D-Pad / arrows; A/Enter confirms; B/Esc backs (not only mouse)

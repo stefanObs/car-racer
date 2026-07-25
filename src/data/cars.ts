@@ -44,7 +44,7 @@ export const CARS: Record<CarId, CarDef> = {
     name: "Bison",
     classLabel: "Pick-up",
     description: "Schwer und standfest — braucht länger für Tempo.",
-    priceChf: 1200,
+    priceChf: 900,
     defaultPaint: "#2f9e44",
     stats: {
       accel: 0.85,

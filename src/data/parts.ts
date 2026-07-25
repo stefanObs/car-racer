@@ -26,7 +26,7 @@ export const PARTS: Record<PartId, PartDef> = {
   big_engine: {
     id: "big_engine",
     name: "Großer Motor",
-    priceChf: 400,
+    priceChf: 360,
     pro: "Mehr Beschleunigung und etwas Topspeed.",
     con: "Schleudert leichter, Nitro verbraucht schneller.",
     tags: ["motor"],
@@ -35,7 +35,7 @@ export const PARTS: Record<PartId, PartDef> = {
   big_wheels: {
     id: "big_wheels",
     name: "Große Räder",
-    priceChf: 320,
+    priceChf: 300,
     pro: "Weniger Schleudern, stabilere Landungen.",
     con: "Etwas weniger Höchstgeschwindigkeit.",
     tags: ["wheels"],
@@ -44,7 +44,7 @@ export const PARTS: Record<PartId, PartDef> = {
   spike_bumper: {
     id: "spike_bumper",
     name: "Spike-Stoßstange",
-    priceChf: 280,
+    priceChf: 220,
     pro: "Mehr Schub bei Kontakt.",
     con: "Handling hakelig, Mauer-Treffer tun mehr weh.",
     tags: ["spike"],
@@ -53,7 +53,7 @@ export const PARTS: Record<PartId, PartDef> = {
   better_brakes: {
     id: "better_brakes",
     name: "Bessere Bremsen",
-    priceChf: 260,
+    priceChf: 180,
     pro: "Schärferes Abbremsen, engere Linien.",
     con: "Etwas träger aus der Kurve heraus.",
     tags: ["brakes"],
@@ -62,7 +62,7 @@ export const PARTS: Record<PartId, PartDef> = {
   reinforced_frame: {
     id: "reinforced_frame",
     name: "Verstärkter Rahmen",
-    priceChf: 350,
+    priceChf: 320,
     pro: "Weniger Schaden, härterer Stand.",
     con: "Trägere Lenkung, etwas weniger Topspeed.",
     tags: ["frame"],
@@ -71,7 +71,7 @@ export const PARTS: Record<PartId, PartDef> = {
   lightweight_body: {
     id: "lightweight_body",
     name: "Leichtbau-Karosserie",
-    priceChf: 300,
+    priceChf: 280,
     pro: "Bessere Beschleunigung und Lenkung.",
     con: "Viel mehr Schaden, leicht wegdrückbar.",
     tags: ["light"],
@@ -80,7 +80,7 @@ export const PARTS: Record<PartId, PartDef> = {
   nitro_kit: {
     id: "nitro_kit",
     name: "Nitro-Kit",
-    priceChf: 380,
+    priceChf: 340,
     pro: "Stärkerer und längerer Boost.",
     con: "Bei Schaden riskanter Spin.",
     tags: ["nitro"],
@@ -89,7 +89,7 @@ export const PARTS: Record<PartId, PartDef> = {
   offroad_suspension: {
     id: "offroad_suspension",
     name: "Gelände-Federung",
-    priceChf: 340,
+    priceChf: 300,
     pro: "Dämpft Buckel stark, mildert Gras-Malus.",
     con: "Etwas schwammiger auf reinem Asphalt.",
     tags: ["suspension"],
@@ -98,7 +98,7 @@ export const PARTS: Record<PartId, PartDef> = {
   rear_spoiler: {
     id: "rear_spoiler",
     name: "Heckspoiler",
-    priceChf: 290,
+    priceChf: 200,
     pro: "Mehr Grip bei hoher Speed.",
     con: "Weniger absichtliches Schleudern.",
     tags: ["spoiler"],

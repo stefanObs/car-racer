@@ -42,7 +42,7 @@ Garage / Menü
     → nächstes Rennen / nächste Klasse
 ```
 
-Kurz, wiederholbar, klar belohnend. Ein Lauf soll sich in einer Sitzung von 15–30 Minuten „erfolgreich“ anfühlen.
+Kurz, wiederholbar, klar belohnend. Ein Lauf soll sich in einer Sitzung von **7–15 Minuten** „erfolgreich“ anfühlen — typisch durch **Freischalten** (nächste Cup-Strecke) oder **Kauf** eines spürbaren Garage-Upgrades (Teil).
 
 ---
 
@@ -189,6 +189,18 @@ Preisgeld-Formel (Skizze):
 CHF = Basis(Platz) + StyleBoni − Malus
 Basis: 1. = hoch, ab 4. noch „Trostrunde“, damit Fortschritt nie tot ist
 ```
+
+**Sitzungs-Pacing (verbindlich):** In **7–15 Minuten** soll ein neuer Spieler etwas Sinnvolles freischalten oder kaufen können.
+
+| Ziel | Richtwert |
+|------|-----------|
+| Erfolgreiche Kurz-Sitzung | 7–15 min |
+| Frühe Cup-Rennen | eher **2 Runden** (kurz, wiederholbar) |
+| Starter-Teil (spürbar) | nach **≤ 2** Intro-Rennen auch mit **Mittelfeld (Platz 4)** finanzierbar |
+| Solides frühes Teil | mit **Platz 1** im ersten Intro-Rennen kaufbar |
+| 2. Auto (Bison) | eher Ende der 7–15-min-Spanne / etwas darüber bei gutem Fahren — kein Sofort-Kauf |
+
+Kosmetik (Lack/Aufkleber) bleibt schnell erreichbar und **ohne Stats**; „sinnvoll“ meint vor allem **Teile** oder **Cup-Freischaltung**.
 
 ---
 
@@ -457,6 +469,7 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 | Rand | Gras → Mauer (Reifen in Kurven, Beton sonst) |
 | Catch-up | Hinten: bessere Beschleunigung + minimal mehr Speed; fehlerfreier Spieler fährt davon |
 | Währung | **CHF** |
+| Sitzungs-Pacing | **7–15 min** → Freischalten oder sinnvolles Garage-Upgrade |
 | Schmücken | Lack + **Aufkleber** (Flammen, Symbole, …) |
 | Modi | Cup + **Freier Modus** + **Ad-hoc-generierte Strecken** |
 | Eingabe / Plattform | **Tastatur + Controller + Tablet (Touch)** — gleichwertig spielbar |
@@ -465,4 +478,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.2 — Stack übernommen; Master-only Delivery-Workflow.*
+*Dokumentstand: Konzept v3.3 — Sitzungs-Pacing 7–15 min für sinnvolles Freischalten/Kauf.*
