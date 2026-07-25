@@ -17,6 +17,8 @@ Before nontrivial work, select and **read** every matching project skill below. 
 
 After each implementation step: version → commit on `master` → push (see `.cursor/rules/delivery-workflow.mdc`). No feature branches.
 
+**Start scripts** (`start.sh`, `start.bat`, `start.ps1`) must always keep working — see `.cursor/rules/start-scripts.mdc`.
+
 **Multi-match is normal** (e.g. new race feature → game-concept + clean-programming + review-testing; track mockup → level-editor + asphalt-comic-art).
 
 **Default baseline for implementation tasks:** `game-concept` + `clean-programming`. Add others as the table requires. Finish with `review-testing` when verifying player-facing changes.

@@ -1,0 +1,30 @@
+---
+description: Start scripts (start.sh, start.bat, start.ps1) must always work on Linux, macOS, and Windows.
+alwaysApply: true
+---
+
+# Start scripts must always work
+
+Cross-platform launchers are mandatory and must stay green:
+
+| OS | Script |
+|----|--------|
+| Linux / macOS | `start.sh` |
+| Windows (cmd) | `start.bat` |
+| Windows (PowerShell) | `start.ps1` |
+
+## Hard rules
+
+1. **Always keep all three scripts working** after dependency, script, port, or toolchain changes.
+2. Scripts must: `cd` to repo root, require **Node >= 20** + npm, run `npm install` when `node_modules`/vite is missing, then start the **dev** server (`npm run dev`).
+3. Fail with a **clear German or plain error** if Node/npm is missing — never hang silently.
+4. Do not remove, rename, or replace them with OS-specific-only flows without updating **all three**.
+5. When changing `package.json` scripts (`dev`/`start`), update and **smoke-check** the start scripts in the same change.
+6. Document usage in `README.md` whenever start behavior changes.
+
+## Verification before claiming done
+
+- [ ] `start.sh` is executable (`chmod +x`)
+- [ ] Node version check still matches `package.json` `engines`
+- [ ] Install-if-needed logic still correct
+- [ ] `npm run dev` (or equivalent) is what they invoke

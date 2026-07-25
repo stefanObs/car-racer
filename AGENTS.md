@@ -16,4 +16,6 @@ Source of truth for design: `CONCEPT.md`. Tech (free-only, adopted): `TECH.md`.
 
 **Delivery:** each implementation step → version bump → commit on `master` → push. No feature branches.
 
+**Start:** `./start.sh` (Linux/macOS), `start.bat` / `.\start.ps1` (Windows) — must always work.
+
 Cursor rules under `.cursor/rules/` (`alwaysApply`) reinforce the same routing — follow them.
