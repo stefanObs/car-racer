@@ -105,22 +105,6 @@ export function stepCar(
     car.stats.suspension,
   );
 
-  let hitWall = false;
-  if (surface.zone === "wall") {
-    const wallDamage = (surface.wallKind === "concrete" ? 0.12 : 0.07) * dt * 3;
-    const prev = car.hp;
-    car.hp = applyHit(car.hp, wallDamage * (0.4 + Math.min(1, car.speed / BASE_TOP)), car.stats.armor);
-    if (car.hp < prev) hitWall = true;
-    // Bounce inward
-    const sign = Math.sign(surface.lateral) || 1;
-    car.x -= surface.tangent.z * sign * Math.min(0.8, 0.25 + car.speed * 0.01);
-    car.z += surface.tangent.x * sign * Math.min(0.8, 0.25 + car.speed * 0.01);
-    car.speed *= surface.wallKind === "concrete" ? 0.85 : 0.9;
-    // Soft push toward asphalt
-    car.x -= surface.tangent.z * sign * 0.15;
-    car.z += surface.tangent.x * sign * 0.15;
-  }
-
   const top =
     BASE_TOP *
     car.stats.topSpeed *
@@ -161,6 +145,41 @@ export function stepCar(
   car.x += Math.cos(car.heading) * car.speed * dt;
   car.z += Math.sin(car.heading) * car.speed * dt;
 
+  // Walls are solid: project back onto the grass outer edge, then apply hit + slowdown.
+  // (Previously a small “bounce” used the wrong lateral sign and ran *before* integration,
+  // so cars were pushed further through the wall.)
+  let hitWall = false;
+  const afterMove = surfaceAt(
+    track,
+    car.x,
+    car.z,
+    car.stats.grassMitigation,
+    car.stats.suspension,
+  );
+  const wallLimit = track.asphaltHalfWidth + track.grassWidth;
+  const overflow = Math.abs(afterMove.lateral) - wallLimit;
+  if (overflow > 0) {
+    const sign = Math.sign(afterMove.lateral) || 1;
+    const leftX = -afterMove.tangent.z;
+    const leftZ = afterMove.tangent.x;
+    car.x -= sign * overflow * leftX;
+    car.z -= sign * overflow * leftZ;
+
+    const wallDamage = (afterMove.wallKind === "concrete" ? 0.12 : 0.07) * (0.5 + Math.min(1, car.speed / BASE_TOP));
+    const prev = car.hp;
+    car.hp = applyHit(car.hp, wallDamage, car.stats.armor);
+    if (car.hp < prev) hitWall = true;
+    car.speed *= afterMove.wallKind === "concrete" ? 0.55 : 0.7;
+  }
+
+  const resolved = surfaceAt(
+    track,
+    car.x,
+    car.z,
+    car.stats.grassMitigation,
+    car.stats.suspension,
+  );
+
   // Heal
   const interrupted = hitWall;
   const before = car.hp;
@@ -174,8 +193,8 @@ export function stepCar(
   }
 
   // Progress
-  car.distanceAlong = surface.distanceAlong;
-  car.progress = surface.distanceAlong + (car.lap - 1) * track.totalLength;
+  car.distanceAlong = resolved.distanceAlong;
+  car.progress = resolved.distanceAlong + (car.lap - 1) * track.totalLength;
 
   return { hitWall, stage: stageFromHp(car.hp) };
 }
