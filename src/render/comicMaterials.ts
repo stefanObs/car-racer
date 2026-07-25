@@ -71,7 +71,7 @@ export function inflateGeometry(geometry: BufferGeometry, amount: number): Buffe
 }
 
 /** Thick comic outline as back-face inflated shell. */
-export function withOutline(geometry: BufferGeometry, fill: Material, thickness = 0.055): Mesh {
+export function withOutline(geometry: BufferGeometry, fill: Material, thickness = 0.038): Mesh {
   const mesh = new Mesh(geometry, fill);
   const shell = new Mesh(inflateGeometry(geometry, thickness), outlineMaterial());
   shell.renderOrder = -1;
