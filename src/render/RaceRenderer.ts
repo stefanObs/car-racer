@@ -27,7 +27,13 @@ export class RaceRenderer {
 
   constructor(canvas: HTMLCanvasElement) {
     this.scene.background = new Color(0x5ba3d9);
-    this.renderer = new WebGLRenderer({ canvas, antialias: true });
+    this.renderer = new WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: false,
+      powerPreference: "high-performance",
+    });
+    this.renderer.setClearColor(0x5ba3d9, 1);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     const ambient = new AmbientLight(0xffffff, 0.75);
     const sun = new DirectionalLight(0xffffff, 0.9);
@@ -35,6 +41,14 @@ export class RaceRenderer {
     this.scene.add(ambient, sun);
     window.addEventListener("resize", () => this.resize(canvas));
     this.resize(canvas);
+    this.renderIdle();
+  }
+
+  /** Sky clear so the menu is not a black WebGL canvas. */
+  renderIdle(): void {
+    this.camera.position.set(0, 8, 16);
+    this.camera.lookAt(0, 0, 0);
+    this.renderer.render(this.scene, this.camera);
   }
 
   private resize(canvas: HTMLCanvasElement): void {

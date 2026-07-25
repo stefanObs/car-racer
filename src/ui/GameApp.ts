@@ -3,7 +3,7 @@ import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
 import { PARTS, activeSynergies, mergeStats, type PartId } from "../data/parts";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { formatChf, loadSave, writeSave, type SaveData, type StickerId } from "../meta/save";
-import { RaceRenderer } from "../render/RaceRenderer";
+import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
 import { DAMAGE_LABELS } from "../sim/damage";
 import { RaceSession } from "../sim/race";
 import { APP_VERSION } from "../core/version";
@@ -14,7 +14,8 @@ export class GameApp {
   private save: SaveData = loadSave();
   private screen: Screen = "menu";
   private race: RaceSession | null = null;
-  private renderer: RaceRenderer;
+  private renderer: GameRenderer;
+  private renderMode: "webgl" | "canvas2d" = "webgl";
   private lastResult: ReturnType<RaceSession["result"]> | null = null;
   private focusIndex = 0;
   private uiRoot: HTMLElement;
@@ -22,8 +23,10 @@ export class GameApp {
 
   constructor(canvas: HTMLCanvasElement, uiRoot: HTMLElement) {
     this.uiRoot = uiRoot;
-    this.renderer = new RaceRenderer(canvas);
     bindKeyboard();
+    const created = createGameRenderer(canvas);
+    this.renderer = created.renderer;
+    this.renderMode = created.mode;
     this.renderUi();
   }
 
@@ -46,6 +49,8 @@ export class GameApp {
         this.screen = "results";
         this.renderUi();
       }
+    } else {
+      this.renderer.renderIdle();
     }
     void now;
   }
@@ -123,7 +128,7 @@ export class GameApp {
       body = `
         <h1 class="brand">Crash Circuit</h1>
         <p class="tag">Getunte Autos. Saubere Linie. CHF fürs Tuning.</p>
-        <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}</p>
+        <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}${this.renderMode === "canvas2d" ? " · 2D-Fallback" : ""}</p>
         <div class="stack">
           <button data-nav data-act="cup">Cup</button>
           <button data-nav data-act="free">Freier Modus</button>
