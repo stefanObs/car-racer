@@ -12,6 +12,7 @@ import { APP_VERSION } from "../core/version";
 import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
 import type { LevelDefinition } from "../track/types";
 import { renderGarageHtml } from "./garageHtml";
+import { renderCarStatsPopup } from "./carStatsPopup";
 import { renderMiniMapSvg } from "./miniMap";
 import {
   advanceFinishCelebrate,
@@ -410,7 +411,14 @@ export class GameApp {
       `;
     }
 
-    this.uiRoot.innerHTML = `<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
+    const statsPopup =
+      this.screen === "garage"
+        ? renderCarStatsPopup({
+            carId: this.save.activeCar,
+            equippedParts: activeKit(this.save).equippedParts,
+          })
+        : "";
+    this.uiRoot.innerHTML = `${statsPopup}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
     this.wireUi();
     this.dev.tagUi(this.uiRoot);
     void buttons;

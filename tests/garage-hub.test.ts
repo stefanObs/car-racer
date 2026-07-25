@@ -57,4 +57,15 @@ describe("garage hub", () => {
     expect(html).toContain("Donnerbüchse");
     expect(html).toContain("Bunker");
   });
+
+  it("leaves property bars to the top-right popup (not inline text stats)", () => {
+    const html = renderGarageHtml({
+      chf: 100,
+      activeCar: "blitz",
+      ownedCars: ["blitz"],
+      kit: emptyKit("blitz"),
+    });
+    expect(html).not.toContain("Tempo 1.");
+    expect(html).not.toContain("garage-stats");
+  });
 });

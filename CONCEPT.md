@@ -381,7 +381,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse.
 
 ## 9. UX / Screens (Spielerfluss)
 
-1. **Garage (Start-Hub)** — Auto drehen, **ausrüsten**, Lack/Aufkleber; von hier Cup / Freier Modus / Ad-hoc starten  
+1. **Garage (Start-Hub)** — Auto drehen, **ausrüsten**, Lack/Aufkleber; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
 4. **Renn-HUD** — Platz, Runde, Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`)  
@@ -486,4 +486,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.7 — Fahrzeug-Look nah an realen Klassen, Asphalt-Comic renderbar.*
+*Dokumentstand: Konzept v3.8 — Garage Eigenschaften-Popup (Level 1–100).*

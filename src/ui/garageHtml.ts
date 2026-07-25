@@ -1,5 +1,5 @@
 import { CARS, type CarId } from "../data/cars";
-import { PARTS, activeSynergies, mergeStats, type PartId } from "../data/parts";
+import { PARTS, type PartId } from "../data/parts";
 import { APP_VERSION } from "../core/version";
 import { formatChf, type CarKit, type StickerId } from "../meta/save";
 
@@ -21,8 +21,6 @@ export function renderGarageHtml(opts: {
   kit: CarKit;
 }): string {
   const car = CARS[opts.activeCar];
-  const stats = mergeStats(car.stats, opts.kit.equippedParts);
-  const syn = activeSynergies(opts.kit.equippedParts);
 
   const carButtons = (Object.keys(CARS) as CarId[])
     .map((id) => {
@@ -126,11 +124,6 @@ export function renderGarageHtml(opts: {
       <h2 class="garage-section">Schmücken</h2>
       <div class="stack row garage-swatches">${paints}</div>
       <div class="stack row garage-chips">${stickers}</div>
-    </section>
-
-    <section class="garage-stats" aria-label="Werte">
-      <p class="stats">Tempo ${stats.topSpeed.toFixed(2)} · Accel ${stats.accel.toFixed(2)} · Grip ${stats.grip.toFixed(2)} · Federung ${stats.suspension.toFixed(2)}</p>
-      <p class="syn">${syn.length ? "Kombo: " + syn.map((s) => s.name).join(", ") : "Keine Kombo aktiv — Teile kombinieren!"}</p>
     </section>
 
     <p class="help">Tastatur · Controller · Tablet · Dev F1/F2/F3</p>
