@@ -4,10 +4,12 @@ import { sampleCenterline } from "../track/buildTrack";
 /** Minimal 2D fallback when WebGL is unavailable (VMs, locked-down GPUs). */
 export class Canvas2DRenderer {
   private readonly ctx: CanvasRenderingContext2D;
+  private readonly canvas: HTMLCanvasElement;
   private w = 1;
   private h = 1;
 
-  constructor(private readonly canvas: HTMLCanvasElement) {
+  constructor(canvas: HTMLCanvasElement) {
+    this.canvas = canvas;
     const ctx = canvas.getContext("2d");
     if (!ctx) throw new Error("Weder WebGL noch Canvas2D verfügbar.");
     this.ctx = ctx;
