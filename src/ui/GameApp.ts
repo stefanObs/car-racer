@@ -275,6 +275,7 @@ export class GameApp {
     for (const ev of this.race.consumeStyleEvents()) {
       this.stylePops.push(ev.amount, ev.reason, now);
     }
+    const wrongWay = this.race.playerWrongWay();
     hud.innerHTML = `
       <div class="hud-cluster" data-dev-name="hud.cluster">
         <div class="hud-stats">
@@ -288,6 +289,15 @@ export class GameApp {
         </div>
         <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>
       </div>
+      ${
+        wrongWay
+          ? `<div class="wrong-way" data-dev-name="hud.wrong-way" role="alert">
+              <span class="wrong-way__arrow" aria-hidden="true">↺</span>
+              <strong>Falsche Richtung!</strong>
+              <span class="wrong-way__hint">Dreh um — der Pfeil zeigt die Rennrichtung</span>
+            </div>`
+          : ""
+      }
       <div class="style-popups" data-dev-name="hud.style-popups">${this.stylePops.renderHtml(now)}</div>
     `;
     hud.dataset.devName = "#race-hud";

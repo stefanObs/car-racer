@@ -392,7 +392,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse.
 1. **Garage (Start-Hub)** — Auto drehen, **ausrüsten**, Lack/Aufkleber; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
-4. **Renn-HUD** — Platz, Runde, Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`)  
+4. **Renn-HUD** — Platz, Runde, Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt  
 5. **Ergebnis** — Zielbanner/-linie; Ziel-Animation (Podest vs. Feld); Podium-Landung; CHF; weiter / Garage  
 6. **Hilfe** — Steuerungshinweise (optional)  
 
@@ -494,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.11 — Strecken: kein Self-Cross, klare Passierbarkeit, Mauer hält auf Bahn.*
+*Dokumentstand: Konzept v3.12 — HUD-Warnung bei falscher Fahrtrichtung.*

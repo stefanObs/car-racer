@@ -5,6 +5,7 @@ import type { BuiltTrack, LevelDefinition } from "../track/types";
 import { catchUpMultipliers } from "./catchup";
 import { stageFromHp } from "./damage";
 import { createCarState, resolveContact, stepCar, type CarState, type DriverInput } from "./vehicle";
+import { isCarFacingWrongWay, shouldShowWrongWayWarning, tickWrongWayHold } from "./wrongWay";
 
 export interface RaceConfig {
   level: LevelDefinition;
@@ -37,6 +38,7 @@ export class RaceSession {
   private styleEvents: StyleEvent[] = [];
   private readonly config: RaceConfig;
   private elapsed = 0;
+  private wrongWayHold = 0;
 
   constructor(config: RaceConfig) {
     this.config = config;
@@ -172,6 +174,17 @@ export class RaceSession {
       this.prevProgress.set(car.id, along);
     }
 
+    const playerCar = this.player();
+    if (!playerCar.finished && playerCar.koTimer <= 0) {
+      this.wrongWayHold = tickWrongWayHold(
+        this.wrongWayHold,
+        isCarFacingWrongWay(playerCar, this.track),
+        dt,
+      );
+    } else {
+      this.wrongWayHold = 0;
+    }
+
     // Recompute places after movement; reward clean overtakes (not ramming score)
     const after = [...this.cars].sort((a, b) => b.progress - a.progress);
     after.forEach((c, i) => {
@@ -248,5 +261,10 @@ export class RaceSession {
 
   playerDamageStage() {
     return stageFromHp(this.player().hp);
+  }
+
+  /** HUD: sustained reverse travel on the loop. */
+  playerWrongWay(): boolean {
+    return shouldShowWrongWayWarning(this.wrongWayHold);
   }
 }
