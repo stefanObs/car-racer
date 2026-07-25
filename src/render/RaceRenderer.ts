@@ -161,7 +161,8 @@ export class RaceRenderer {
       }),
     );
     visual.root.position.set(1.5, 0.12, 0);
-    visual.root.rotation.y = Math.PI;
+    visual.root.rotation.y = 0.4;
+    visual.root.scale.setScalar(1.35);
     this.idleCar = visual.root;
     this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);
@@ -187,15 +188,12 @@ export class RaceRenderer {
     this.fxTime += 1 / 60;
     this.idleGroup.visible = true;
     if (this.idleCar) {
-      this.idleCar.rotation.y = Math.PI + Math.sin(this.fxTime * 0.35) * 0.4;
+      // Stable 3/4-front like car-category-targets.png (gentle sway only)
+      this.idleCar.rotation.y = 0.42 + Math.sin(this.fxTime * 0.25) * 0.12;
     }
-    // Orbit biased to the right so the HUD panel leaves the bay visible
-    this.camera.position.set(
-      1.5 + Math.sin(this.fxTime * 0.16) * 6.5 + 2.8,
-      3.6,
-      Math.cos(this.fxTime * 0.16) * 7.8,
-    );
-    this.camera.lookAt(1.5, 1.0, 0);
+    // Front-biased camera — nose toward viewer
+    this.camera.position.set(3.2, 2.35, 7.6);
+    this.camera.lookAt(1.5, 0.85, 0.2);
     this.renderer.render(this.scene, this.camera);
   }
 

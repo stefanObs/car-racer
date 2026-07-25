@@ -154,12 +154,12 @@ button:disabled {
 }
 
 .panel.garage {
-  max-width: min(400px, calc(100% - 20px));
+  max-width: min(380px, calc(100% - 20px));
   background: linear-gradient(
     165deg,
-    rgba(28, 32, 40, 0.88) 0%,
-    rgba(18, 20, 26, 0.82) 55%,
-    rgba(40, 28, 22, 0.78) 100%
+    rgba(28, 32, 40, 0.78) 0%,
+    rgba(18, 20, 26, 0.72) 55%,
+    rgba(40, 28, 22, 0.68) 100%
   );
   border-color: #ffe066;
   box-shadow:

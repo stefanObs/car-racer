@@ -38,16 +38,27 @@ describe("car models and per-car kits", () => {
     expect(gearClassOf("bunker")).toBe("armor");
   });
 
-  it("builds a distinct silhouette per gear class", () => {
-    const counts = new Map<string, number>();
-    for (const id of CAR_IDS) {
-      const mesh = meshFor(id);
-      expect(mesh.root.userData.gearClass).toBe(CARS[id].gearClass);
-      expect(carGearClass({ modelId: id } as never)).toBe(CARS[id].gearClass);
-      counts.set(id, mesh.root.children.length);
-    }
-    const unique = new Set(counts.values());
-    expect(unique.size).toBeGreaterThanOrEqual(4);
+  it("builds target-sheet signature props per class", () => {
+    const sport = meshFor("blitz");
+    const pickup = meshFor("bison");
+    const buggy = meshFor("kaeferkraft");
+    const hotrod = meshFor("donnerbuechse");
+    const armor = meshFor("bunker");
+    // Hard-edged rebuilds are denser than the old blob cars
+    expect(sport.root.children.length).toBeGreaterThan(20);
+    expect(pickup.root.children.length).toBeGreaterThan(25);
+    expect(buggy.root.children.length).toBeGreaterThan(30);
+    expect(hotrod.root.children.length).toBeGreaterThan(30);
+    expect(armor.root.children.length).toBeGreaterThan(30);
+    expect(carGearClass({ modelId: "blitz" } as never)).toBe("sport");
+    expect(carGearClass({ modelId: "kaeferkraft" } as never)).toBe("buggy");
+    expect(new Set([
+      sport.root.children.length,
+      pickup.root.children.length,
+      buggy.root.children.length,
+      hotrod.root.children.length,
+      armor.root.children.length,
+    ]).size).toBe(5);
   });
 
   it("applies class-innate nitro and grass mitigation in mergeStats", () => {

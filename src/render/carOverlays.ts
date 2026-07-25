@@ -329,24 +329,24 @@ export function buildCarOverlays(opts: CarOverlayOpts): Group {
   const gear = opts.gearClass ?? "sport";
   const L = overlayLayout(gear);
 
-  const sideL = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.82);
+  const sideL = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.35);
   sideL.position.set(-L.sideX, L.sideY, L.sideZ);
   sideL.rotation.y = Math.PI / 2;
 
-  const sideR = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.82);
+  const sideR = decal(sidePanelTexture(opts.paint, variant), L.sideW, L.sideH, 0.35);
   sideR.position.set(L.sideX, L.sideY, L.sideZ);
   sideR.rotation.y = -Math.PI / 2;
   sideR.rotation.z = Math.PI;
 
-  const roof = decal(roofEdgeTexture(), L.roofW, L.roofL, 0.55);
+  const roof = decal(roofEdgeTexture(), L.roofW, L.roofL, 0.3);
   roof.position.set(0, L.roofY, L.roofZ);
   roof.rotation.x = -Math.PI / 2;
 
-  const rear = decal(rearDeckTexture(), L.rearW, L.rearH, 0.9);
+  const rear = decal(rearDeckTexture(), L.rearW, L.rearH, 0.4);
   rear.position.set(0, L.rearY, L.rearZ);
   rear.rotation.x = L.rearTilt;
 
-  const glare = decal(glassGlareTexture(), L.glareW, L.glareH, 0.75);
+  const glare = decal(glassGlareTexture(), L.glareW, L.glareH, 0.45);
   glare.position.set(0, L.glareY, L.glareZ);
   glare.rotation.x = L.glareTilt;
 
