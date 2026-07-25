@@ -44,6 +44,8 @@ function readGamepad(): Partial<Actions> {
   const pad = pads.find(Boolean);
   if (!pad) return {};
   const steerAxis = pad.axes[0] ?? 0;
+  const uiAxisY = pad.axes[1] ?? 0;
+  const uiAxisX = pad.axes[0] ?? 0;
   const throttle = Math.max(0, pad.buttons[7]?.value ?? 0);
   const brake = Math.max(0, pad.buttons[6]?.value ?? 0);
   const nitro = pad.buttons[0]?.pressed || pad.buttons[5]?.pressed;
@@ -54,10 +56,10 @@ function readGamepad(): Partial<Actions> {
     nitro: Boolean(nitro),
     uiConfirm: Boolean(pad.buttons[0]?.pressed),
     uiBack: Boolean(pad.buttons[1]?.pressed),
-    uiUp: Boolean(pad.buttons[12]?.pressed),
-    uiDown: Boolean(pad.buttons[13]?.pressed),
-    uiLeft: Boolean(pad.buttons[14]?.pressed),
-    uiRight: Boolean(pad.buttons[15]?.pressed),
+    uiUp: Boolean(pad.buttons[12]?.pressed) || uiAxisY < -0.55,
+    uiDown: Boolean(pad.buttons[13]?.pressed) || uiAxisY > 0.55,
+    uiLeft: Boolean(pad.buttons[14]?.pressed) || uiAxisX < -0.55,
+    uiRight: Boolean(pad.buttons[15]?.pressed) || uiAxisX > 0.55,
   };
 }
 
@@ -86,11 +88,12 @@ export function sampleActions(): Actions {
     brake,
     steer: Math.max(-1, Math.min(1, steer)),
     nitro,
-    uiConfirm: keys.has("Enter") || Boolean(gp.uiConfirm),
-    uiBack: keys.has("Escape") || Boolean(gp.uiBack),
-    uiUp: keys.has("ArrowUp") || Boolean(gp.uiUp),
-    uiDown: keys.has("ArrowDown") || Boolean(gp.uiDown),
-    uiLeft: keys.has("ArrowLeft") || Boolean(gp.uiLeft),
-    uiRight: keys.has("ArrowRight") || Boolean(gp.uiRight),
+    // Keyboard menu nav is handled on keydown in GameApp (avoids missed edges).
+    uiConfirm: Boolean(gp.uiConfirm),
+    uiBack: Boolean(gp.uiBack),
+    uiUp: Boolean(gp.uiUp),
+    uiDown: Boolean(gp.uiDown),
+    uiLeft: Boolean(gp.uiLeft),
+    uiRight: Boolean(gp.uiRight),
   };
 }

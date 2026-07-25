@@ -2,6 +2,7 @@ import { CARS, type CarId } from "../data/cars";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
 import { PARTS, activeSynergies, mergeStats, type PartId } from "../data/parts";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
+import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
 import { formatChf, loadSave, writeSave, type SaveData, type StickerId } from "../meta/save";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
 import { DAMAGE_LABELS } from "../sim/damage";
@@ -19,11 +20,19 @@ export class GameApp {
   private lastResult: ReturnType<RaceSession["result"]> | null = null;
   private focusIndex = 0;
   private uiRoot: HTMLElement;
-  private lastUiConfirm = false;
+  private lastUi = {
+    confirm: false,
+    back: false,
+    up: false,
+    down: false,
+    left: false,
+    right: false,
+  };
 
   constructor(canvas: HTMLCanvasElement, uiRoot: HTMLElement) {
     this.uiRoot = uiRoot;
     bindKeyboard();
+    window.addEventListener("keydown", (e) => this.onMenuKeyDown(e));
     const created = createGameRenderer(canvas);
     this.renderer = created.renderer;
     this.renderMode = created.mode;
@@ -55,18 +64,94 @@ export class GameApp {
     void now;
   }
 
-  private handleUiNav(actions: ReturnType<typeof sampleActions>): void {
+  private moveFocus(dir: UiNavDir): void {
+    const buttons = this.navButtons();
+    if (buttons.length === 0) return;
+    this.applyFocus(nextFocusIndex(buttons, this.focusIndex, dir));
+  }
+
+  private onMenuKeyDown(e: KeyboardEvent): void {
     if (this.screen === "race") return;
-    const confirmEdge = actions.uiConfirm && !this.lastUiConfirm;
-    this.lastUiConfirm = actions.uiConfirm;
-    if (!confirmEdge && !actions.uiBack) return;
-    // Simple: Enter activates focused button via click simulation
-    if (confirmEdge) {
-      const buttons = [...this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-nav]")];
-      const btn = buttons[this.focusIndex % Math.max(buttons.length, 1)];
-      btn?.click();
+    const dirByCode: Record<string, UiNavDir> = {
+      ArrowUp: "up",
+      ArrowDown: "down",
+      ArrowLeft: "left",
+      ArrowRight: "right",
+    };
+    const dir = dirByCode[e.code];
+    if (dir) {
+      e.preventDefault();
+      this.moveFocus(dir);
+      return;
     }
-    if (actions.uiBack && this.screen !== "menu") {
+    if (e.code === "Enter") {
+      e.preventDefault();
+      const btn = this.navButtons()[this.focusIndex];
+      if (btn && !btn.disabled) btn.click();
+      return;
+    }
+    if (e.code === "Escape" && this.screen !== "menu") {
+      e.preventDefault();
+      this.screen = "menu";
+      this.renderUi();
+    }
+  }
+
+  private navButtons(): HTMLButtonElement[] {
+    return [...this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-nav]")];
+  }
+
+  private applyFocus(index: number): void {
+    const buttons = this.navButtons();
+    if (buttons.length === 0) return;
+    const safe = ((index % buttons.length) + buttons.length) % buttons.length;
+    this.focusIndex = safe;
+    buttons.forEach((b, i) => b.classList.toggle("nav-focused", i === safe));
+    const target = buttons[safe];
+    if (target && !target.disabled) target.focus({ preventScroll: false });
+    target?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
+  private handleUiNav(actions: ReturnType<typeof sampleActions>): void {
+    if (this.screen === "race") {
+      this.lastUi = {
+        confirm: actions.uiConfirm,
+        back: actions.uiBack,
+        up: actions.uiUp,
+        down: actions.uiDown,
+        left: actions.uiLeft,
+        right: actions.uiRight,
+      };
+      return;
+    }
+
+    const edges = {
+      confirm: risingEdge(actions.uiConfirm, this.lastUi.confirm),
+      back: risingEdge(actions.uiBack, this.lastUi.back),
+      up: risingEdge(actions.uiUp, this.lastUi.up),
+      down: risingEdge(actions.uiDown, this.lastUi.down),
+      left: risingEdge(actions.uiLeft, this.lastUi.left),
+      right: risingEdge(actions.uiRight, this.lastUi.right),
+    };
+    this.lastUi = {
+      confirm: actions.uiConfirm,
+      back: actions.uiBack,
+      up: actions.uiUp,
+      down: actions.uiDown,
+      left: actions.uiLeft,
+      right: actions.uiRight,
+    };
+
+    if (edges.up) this.moveFocus("up");
+    if (edges.down) this.moveFocus("down");
+    if (edges.left) this.moveFocus("left");
+    if (edges.right) this.moveFocus("right");
+
+    if (edges.confirm) {
+      const btn = this.navButtons()[this.focusIndex];
+      if (btn && !btn.disabled) btn.click();
+    }
+    if (edges.back && this.screen !== "menu") {
       this.screen = "menu";
       this.renderUi();
     }
@@ -134,7 +219,7 @@ export class GameApp {
           <button data-nav data-act="free">Freier Modus</button>
           <button data-nav data-act="garage">Garage</button>
         </div>
-        <p class="help">Tastatur: WASD / Pfeile, Leertaste Nitro · Controller & Touch unterstützt</p>
+        <p class="help">Tastatur: WASD / Pfeile, Enter, Esc · Controller: D-Pad/Stick, A/B · Tablet: Touch</p>
       `;
     } else if (this.screen === "cup") {
       const rows = CUP_LEVELS.map((l) => {
@@ -259,13 +344,15 @@ export class GameApp {
       btn.addEventListener("pointerleave", () => set(false));
       btn.addEventListener("pointercancel", () => set(false));
     });
-    const navButtons = [...this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-nav]")];
+    const navButtons = this.navButtons();
     navButtons.forEach((b, i) => {
       b.addEventListener("focus", () => {
         this.focusIndex = i;
+        navButtons.forEach((other, j) => other.classList.toggle("nav-focused", j === i));
       });
     });
-    navButtons[0]?.focus();
+    const firstEnabled = navButtons.findIndex((b) => !b.disabled);
+    this.applyFocus(firstEnabled >= 0 ? firstEnabled : 0);
   }
 
   private onAction(btn: HTMLButtonElement): void {

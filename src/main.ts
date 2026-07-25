@@ -16,6 +16,12 @@ if (!canvas || !uiRoot) {
 
 try {
   void APP_VERSION;
+  const touchCapable =
+    (navigator.maxTouchPoints ?? 0) > 0 ||
+    window.matchMedia("(pointer: coarse)").matches ||
+    window.matchMedia("(hover: none)").matches;
+  if (touchCapable) document.documentElement.dataset.touch = "1";
+
   const app = new GameApp(canvas, uiRoot);
 
   let last = performance.now();

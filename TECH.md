@@ -141,7 +141,7 @@ Document third-party licenses in a `NOTICE` or `licenses/` folder when shipping.
 5. ✅ Damage/heal, basic AI, CHF results
 6. ✅ Garage (paint, stickers, parts, synergies)
 7. ✅ Vitest for sim rules + **Playwright smoke** (load menu → cup → race)
-8. Tablet layout pass + controller menu pass (review-testing) ← next
+8. ✅ Tablet layout pass + controller menu pass (review-testing)
 
 ---
 

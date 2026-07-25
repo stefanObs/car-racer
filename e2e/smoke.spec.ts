@@ -28,4 +28,28 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.getByRole("button", { name: /Großer Motor/ })).toBeVisible();
     await expect(page.getByRole("button", { name: /Blitz/ })).toBeVisible();
   });
+
+  test("keyboard menu focus moves and activates Cup", async ({ page }) => {
+    await page.goto("/");
+    await expect(page.getByRole("button", { name: "Cup" })).toBeFocused();
+    await page.keyboard.press("ArrowDown");
+    await expect(page.getByRole("button", { name: "Freier Modus" })).toBeFocused();
+    await page.keyboard.press("ArrowUp");
+    await expect(page.getByRole("button", { name: "Cup" })).toBeFocused();
+    await page.keyboard.press("Enter");
+    await expect(page.getByRole("heading", { name: "Blitz-Cup" })).toBeVisible();
+  });
+
+  test("tablet landscape keeps touch controls in race", async ({ page }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(navigator, "maxTouchPoints", { get: () => 5 });
+    });
+    await page.setViewportSize({ width: 1024, height: 768 });
+    await page.goto("/");
+    await expect(page.locator("html")).toHaveAttribute("data-touch", "1");
+    await page.getByRole("button", { name: "Cup" }).click();
+    await page.getByRole("button", { name: /1\.\s*Hafenstart/ }).click();
+    await expect(page.locator(".touch-controls")).toBeVisible();
+    await expect(page.getByRole("button", { name: "Gas" })).toBeVisible();
+  });
 });
