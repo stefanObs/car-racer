@@ -33,18 +33,31 @@ Forbidden: rewriting architecture “while here”; optimizing unread code paths
 
 Name tests after behavior: `grass_penalty_reduced_but_not_zero_with_suspension`.
 
-## Reproduce-before-fix (examples)
+## Reproduce → RCA → verify → fix (examples)
 
 **Good**
 
-1. Seed `A7F2`, lap 1, drive onto grass → speed drops to X.  
-2. Test `expect(speedOnGrass).toBeCloseTo(X)`.  
-3. Fix suspension math.  
-4. Test green; manual drive confirms.
+1. Repro: Seed `A7F2`, lap 1, drive onto grass → speed drops to X.  
+2. RCA: grass zone uses full `speedFactor` but suspension mitigation was applied after clamp, so mitigation never ran.  
+3. Verify RCA: unit test with high suspension still shows unmitigated factor; flipping order in a spike confirms.  
+4. Failing test locks the expected mitigated (but not zero) penalty.  
+5. Fix the order / formula at the zone helper.  
+6. Test green; browser drive confirms.
 
 **Bad**
 
-- Change suspension constants because “grass feels wrong” with no numbers and no test.
+- Change suspension constants because “grass feels wrong” with no repro numbers, no RCA, and no verification.  
+- Catch the error in the UI and show “OK” while the sim stays wrong.
+
+### RCA write-up template (bugs)
+
+```markdown
+**Symptom:** …
+**Trigger:** …
+**Root cause:** …
+**Verified by:** (test / experiment / evidence)
+**Fix plan:** (one place, why that layer)
+```
 
 ## PR / commit mindset (when asked to commit)
 

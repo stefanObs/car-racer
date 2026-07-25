@@ -1,5 +1,5 @@
 ---
-description: Enforce clean code, clarity-first refactors, always test, reproduce-before-fix.
+description: Enforce clean code, tests, reproduce-before-fix, and verified root-cause analysis before bug fixes.
 alwaysApply: true
 ---
 
@@ -13,5 +13,6 @@ Hard rules:
 - **Refactor and optimize for simple maintainability and clarity**
 - **Always test**
 - **Always reproduce first before fixing an issue**
+- **Always perform a root cause analysis, verify it, then fix** when fixing a bug
 
-Do not ship fixes without a reliable repro and a failing test that captures it (or an explicit blocker if repro is impossible).
+Do not ship bug fixes without: reliable repro → written RCA → verified RCA → failing test where practical → targeted fix.
