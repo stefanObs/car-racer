@@ -1,6 +1,13 @@
 import type { LevelDefinition, TrackSegment } from "../track/types";
+import { buildTrackFromLevel } from "../track/buildTrack";
+import { pointOnTrack } from "../track/validateTrack";
 
-/** Harbor — wide port oval, long straights for containers as backdrop. */
+/**
+ * All cup layouts use consistent turn direction (curve_r only) so the loop
+ * cannot self-intersect. No figure-8 without an explicit bridge (CONCEPT §4.4).
+ */
+
+/** Harbor — wide port oval, long straights. */
 function harborSegments(): TrackSegment[] {
   return [
     { type: "straight", length: 55, width: 13 },
@@ -14,70 +21,64 @@ function harborSegments(): TrackSegment[] {
   ];
 }
 
-/** Coast — flowing S-curves and hairpins along the water. */
+/** Coast — wide oval with soft radius changes (one turn direction, no cross). */
 function beachSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 36, width: 11 },
-    { type: "s_curve", length: 40, width: 11 },
-    { type: "straight", length: 22, width: 11 },
-    { type: "curve_l", radius: 14, angleDeg: 110, width: 10 },
-    { type: "straight", length: 28, width: 11 },
-    { type: "curve_r", radius: 15, angleDeg: 100, width: 10 },
-    { type: "straight", length: 24, width: 11 },
-    { type: "curve_l", radius: 16, angleDeg: 80, width: 11 },
-    { type: "straight", length: 20, width: 11 },
-    { type: "curve_r", radius: 14, angleDeg: 90, width: 10 },
+    { type: "straight", length: 48, width: 11 },
+    { type: "curve_r", radius: 22, angleDeg: 90, width: 11 },
+    { type: "straight", length: 34, width: 11 },
+    { type: "curve_r", radius: 16, angleDeg: 90, width: 10 },
+    { type: "straight", length: 44, width: 11 },
+    { type: "curve_r", radius: 20, angleDeg: 90, width: 11 },
+    { type: "straight", length: 30, width: 11 },
+    { type: "curve_r", radius: 15, angleDeg: 90, width: 10 },
   ];
 }
 
-/** City ring — tight blocks, choke, cobble uneven. */
+/** City ring — rectangle with choke + cobble field on the ribbon. */
 function citySegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 28, width: 11 },
-    { type: "curve_r", radius: 12, angleDeg: 90, width: 10 },
-    { type: "choke", length: 18, width: 8 },
-    { type: "uneven_field", length: 20, width: 11, intensity: 0.45 },
+    { type: "straight", length: 32, width: 11 },
     { type: "curve_r", radius: 13, angleDeg: 90, width: 10 },
+    { type: "choke", length: 20, width: 8 },
+    { type: "uneven_field", length: 22, width: 11, intensity: 0.45 },
+    { type: "curve_r", radius: 13, angleDeg: 90, width: 10 },
+    { type: "straight", length: 28, width: 11 },
+    { type: "curve_r", radius: 14, angleDeg: 90, width: 11 },
     { type: "straight", length: 24, width: 11 },
-    { type: "curve_l", radius: 11, angleDeg: 70, width: 10 },
-    { type: "straight", length: 16, width: 10 },
-    { type: "curve_r", radius: 12, angleDeg: 100, width: 10 },
-    { type: "straight", length: 22, width: 11 },
     { type: "curve_r", radius: 14, angleDeg: 90, width: 11 },
   ];
 }
 
-/** Buckelpiste / factory — plateaus of uneven field. */
+/** Buckelpiste — uneven plates on a clear oval corridor. */
 function factorySegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 30, width: 12 },
-    { type: "uneven_field", length: 26, width: 12, intensity: 0.65 },
-    { type: "curve_r", radius: 16, angleDeg: 85, width: 11 },
-    { type: "straight", length: 18, width: 12 },
-    { type: "uneven_field", length: 24, width: 12, intensity: 0.7 },
-    { type: "curve_l", radius: 15, angleDeg: 95, width: 11 },
-    { type: "choke", length: 16, width: 9 },
+    { type: "straight", length: 34, width: 12 },
+    { type: "uneven_field", length: 28, width: 12, intensity: 0.65 },
+    { type: "curve_r", radius: 17, angleDeg: 90, width: 11 },
+    { type: "straight", length: 22, width: 12 },
+    { type: "uneven_field", length: 26, width: 12, intensity: 0.7 },
+    { type: "curve_r", radius: 16, angleDeg: 90, width: 11 },
+    { type: "choke", length: 18, width: 9 },
     { type: "uneven_field", length: 20, width: 11, intensity: 0.55 },
     { type: "curve_r", radius: 17, angleDeg: 90, width: 12 },
-    { type: "straight", length: 26, width: 12 },
+    { type: "straight", length: 28, width: 12 },
     { type: "curve_r", radius: 15, angleDeg: 90, width: 11 },
   ];
 }
 
-/** Cup finale / canyon — long, sharp hairpins, dramatic chokes. */
+/** Cup finale — long canyon oval, hairpin radii, one turn direction. */
 function canyonSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 48, width: 12 },
-    { type: "curve_r", radius: 11, angleDeg: 130, width: 10 },
-    { type: "straight", length: 34, width: 12 },
-    { type: "choke", length: 22, width: 8 },
-    { type: "curve_l", radius: 12, angleDeg: 120, width: 10 },
-    { type: "uneven_field", length: 28, width: 11, intensity: 0.5 },
-    { type: "straight", length: 40, width: 12 },
-    { type: "curve_r", radius: 14, angleDeg: 90, width: 11 },
-    { type: "s_curve", length: 36, width: 11 },
-    { type: "curve_l", radius: 13, angleDeg: 100, width: 10 },
-    { type: "straight", length: 30, width: 12 },
+    { type: "straight", length: 52, width: 12 },
+    { type: "curve_r", radius: 12, angleDeg: 120, width: 10 },
+    { type: "straight", length: 36, width: 12 },
+    { type: "choke", length: 20, width: 8 },
+    { type: "curve_r", radius: 14, angleDeg: 90, width: 10 },
+    { type: "uneven_field", length: 30, width: 11, intensity: 0.5 },
+    { type: "straight", length: 44, width: 12 },
+    { type: "curve_r", radius: 13, angleDeg: 110, width: 10 },
+    { type: "straight", length: 32, width: 12 },
     { type: "curve_r", radius: 16, angleDeg: 90, width: 12 },
   ];
 }
@@ -101,10 +102,11 @@ function makeCup(
     asphaltWidth?: number;
     laps?: number;
     purse?: number[];
-    obstacles?: LevelDefinition["obstacles"];
+    /** Place solid blockers clearly at the verge; racing line stays open. */
+    vergeBlockers?: Array<{ type: "tire_stack" | "concrete_barrier"; along: number; side: 1 | -1 }>;
   },
 ): LevelDefinition {
-  return {
+  const level: LevelDefinition = {
     id,
     kind: "cup",
     displayName,
@@ -122,7 +124,7 @@ function makeCup(
       segments: LAYOUTS[theme]!(),
       walls: { rule: "tire_in_corners_concrete_on_straights" },
     },
-    obstacles: opts.obstacles ?? [],
+    obstacles: [],
     spawn: {
       grid: [
         [-10, -3],
@@ -140,43 +142,57 @@ function makeCup(
       starsOnTop3: true,
     },
   };
+
+  if (opts.vergeBlockers?.length) {
+    const track = buildTrackFromLevel(level);
+    const edge = track.asphaltHalfWidth - 1.35;
+    level.obstacles = opts.vergeBlockers.map((b) => {
+      const p = pointOnTrack(track, b.along, b.side * edge);
+      return {
+        type: b.type,
+        position: [p.x, p.z] as [number, number],
+        radius: b.type === "tire_stack" ? 1.35 : 1.15,
+      };
+    });
+  }
+
+  return level;
 }
 
 export const CUP_LEVELS: LevelDefinition[] = [
-  makeCup(1, "blitz_cup_01_hafenstart", "Hafenstart", "Einführung — Linie halten, Gras meiden.", "harbor", {
+  makeCup(1, "blitz_cup_01_hafenstart", "Hafenstart", "Einführung — klare Ovalbahn, Gras meiden.", "harbor", {
     laps: 2,
     asphaltWidth: 13,
     grass: 3,
   }),
-  makeCup(2, "blitz_cup_02_kuestenline", "Küstenlinie", "S-Kurven und Haarspitzen am Wasser.", "beach", {
+  makeCup(2, "blitz_cup_02_kuestenline", "Küstenlinie", "Fließendes Oval am Wasser — eine klare Fahrspur.", "beach", {
     grass: 5,
     asphaltWidth: 11,
     laps: 2,
   }),
-  makeCup(3, "blitz_cup_03_stadtring", "Stadtring", "Engstellen und Buckelpflaster.", "city", {
+  makeCup(3, "blitz_cup_03_stadtring", "Stadtring", "Engstellen und Buckelpflaster — Mitte frei, Sperren am Rand.", "city", {
     grass: 2.5,
     asphaltWidth: 11,
     laps: 3,
-    obstacles: [
-      { type: "concrete_barrier", position: [14, 2], radius: 1.2 },
-      { type: "concrete_barrier", position: [14, -2], radius: 1.2 },
+    vergeBlockers: [
+      { type: "concrete_barrier", along: 18, side: 1 },
+      { type: "concrete_barrier", along: 42, side: -1 },
     ],
   }),
-  makeCup(4, "blitz_cup_04_buckelpiste", "Buckelpiste", "Federung zahlt sich aus — Wellenplatte.", "factory", {
+  makeCup(4, "blitz_cup_04_buckelpiste", "Buckelpiste", "Federung zählt — Wellen auf der Bahn, Reifenstapel am Rand.", "factory", {
     grass: 3.5,
     asphaltWidth: 12,
     purse: [480, 340, 260, 200, 150, 120],
-    obstacles: [
-      { type: "tire_stack", position: [20, 0], radius: 1.5 },
-      { type: "tire_stack", position: [55, 3], radius: 1.5 },
+    vergeBlockers: [
+      { type: "tire_stack", along: 24, side: 1 },
+      { type: "tire_stack", along: 70, side: -1 },
     ],
   }),
-  makeCup(5, "blitz_cup_05_cupfinale", "Cup-Finale", "Lange Canyon-Runde mit Haarspitzen.", "canyon", {
+  makeCup(5, "blitz_cup_05_cupfinale", "Cup-Finale", "Lange Canyon-Runde — Haarspitzen, eine Spur, keine Kreuzung.", "canyon", {
     grass: 3,
     asphaltWidth: 12,
     laps: 3,
     purse: [600, 420, 300, 220, 160, 130],
-    obstacles: [{ type: "uneven", position: [30, 0], radius: 8, intensity: 0.5 }],
   }),
 ];
 

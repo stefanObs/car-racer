@@ -114,6 +114,13 @@ Querschnitt der Piste (von innen nach außen):
 
 So belohnt saubere Linienführung; Abkürzen über Gras ist möglich, aber teuer — außer mit starker Federung etwas erträglicher.
 
+**Layout-Regeln (lesbar für ~10+):**
+
+1. **Klarer Fahrkorridor** — Mitte der Bahn ist der Weg; Hindernisse stehen am Rand oder sind eindeutig als Blocker markiert.
+2. **Keine Streckenkreuzung ohne Brücke** — Die Mittellinie darf sich nicht selbst kreuzen. Braucht ein Layout eine Überquerung, dann **Brücke** (oben befahrbar) plus **Mauer**, die den unteren Streckenteil absperrt. MVP-Cups/Ad-hoc: einfache Ovale ohne Kreuzung.
+3. **Passierbare Props** nur wenn klar erkennbar **und** flach genug zum Darüberfahren (z. B. gelbe Rüttelstreifen, Öl-Pfütze). Hohe Props (Betonsperre, Reifenstapel) sind **nicht** passierbar und kollidieren.
+4. **Bahn nicht verlassen** — Außenmauer hält Autos in Asphalt+Gras; Abprall verhindert Durchqueren der Mauer.
+
 ### 4.5 Rammen & Schaden (Nebeneffekt)
 
 **Kontakt / Rammen**
@@ -152,10 +159,11 @@ Hindernisse ergänzen Tempo-Fahren; sie sind lesbar und build-relevant:
 
 | Typ | Wirkung | Lesbarkeit | Federung |
 |-----|---------|------------|----------|
-| **Unebene Piste** | Wagen „hüpft“ / wackelt, kurz Grip und Linie gestört, Tempo stockt | Wellen, Buckel, Flicker am Boden | **Gute Federung dämpft stark** — Auto bleibt ruhiger und hält Tempo besser |
-| Ölspur | Grip weg, starkes Schleudern | Glänzende Pfütze | Kaum Hilfe |
-| Reifenstapel (Hindernis auf der Bahn) | Bounce + leichter Schaden | Orange/schwarz | Leicht |
-| Betonsperren | Harter Stopp / Bounce, mittlerer Schaden | Grau | Kaum |
+| **Unebene Piste** (Segment) | Wagen „hüpft“ / wackelt, Tempo stockt | Wellen / Buckel auf der Bahn | **Gute Federung dämpft stark** |
+| **Rüttelstreifen** (`uneven` Prop) | Passierbar, flach, klar gestreift; Tempo stockt | Gelb/schwarz Zebra | Federung dämpft |
+| **Ölspur** | Passierbar, flach; Grip weg | Dunkle Pfütze + Schimmer | Kaum Hilfe |
+| **Reifenstapel** | Bounce + leichter Schaden — **nicht** passierbar | Orange/schwarz, hoch | Leicht |
+| **Betonsperren** | Harter Bounce — **nicht** passierbar | Grau + gelber Streifen, hoch | Kaum |
 | Rollende Fässer | Bewegliche Gefahr | Metallglanz | — |
 | Sprungschanzen | Luftzeit; Landung braucht Grip | Rampe | Federung stabilisiert Landung |
 
@@ -473,7 +481,7 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 | Schaden | Regeneriert über Zeit mit sichtbarem Heil-Effekt; K.O. mit Comeback |
 | Unebene Piste | Hüpf-/Wackleffekt; Federung dämpft |
 | Gras | Langsamer; Federung mildert, entfernt nicht |
-| Rand | Gras → Mauer (Reifen in Kurven, Beton sonst) |
+| Rand | Gras → Mauer (Reifen in Kurven, Beton sonst); **kein Self-Cross** ohne Brücke; klare Passierbarkeit |
 | Catch-up | Hinten: bessere Beschleunigung + minimal mehr Speed; fehlerfreier Spieler fährt davon |
 | Währung | **CHF** |
 | Sitzungs-Pacing | **7–15 min** → Freischalten oder sinnvolles Garage-Upgrade |
@@ -486,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.10 — Arcade-Fahrgefühl (Grip-Slip, Speed-Lenkung, Coast).*
+*Dokumentstand: Konzept v3.11 — Strecken: kein Self-Cross, klare Passierbarkeit, Mauer hält auf Bahn.*

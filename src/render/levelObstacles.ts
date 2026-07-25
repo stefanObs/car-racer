@@ -4,21 +4,24 @@ import type { LevelDefinition } from "../track/types";
 import { comicToon, withOutline } from "./comicMaterials";
 import { ComicPalette } from "./palette";
 
-/** On-track props from level.obstacles — visuals; solid types bounce in sim/vehicle. */
+/**
+ * On-track props.
+ * Solid (bounce): concrete_barrier, tire_stack — tall, clearly blocking.
+ * Passable (drive over): uneven rumble strips, oil — low + high-contrast markings.
+ */
 export function buildLevelObstacles(level: LevelDefinition): Group {
   const root = new Group();
   for (const o of level.obstacles) {
     const [x, z] = o.position;
-    const yaw = 0;
     switch (o.type) {
       case "concrete_barrier":
-        root.add(makeBarrier(x, z, yaw, o.radius ?? 1.2));
+        root.add(makeBarrier(x, z, o.radius ?? 1.2));
         break;
       case "tire_stack":
-        root.add(makeTireObstacle(x, z, yaw));
+        root.add(makeTireObstacle(x, z));
         break;
       case "uneven":
-        root.add(makeUnevenPatch(x, z, o.radius ?? 6));
+        root.add(makeRumbleStrip(x, z, o.radius ?? 6));
         break;
       case "oil":
         root.add(makeOil(x, z, o.radius ?? 2));
@@ -30,23 +33,22 @@ export function buildLevelObstacles(level: LevelDefinition): Group {
   return root;
 }
 
-function makeBarrier(x: number, z: number, yaw: number, radius: number): Group {
+function makeBarrier(x: number, z: number, radius: number): Group {
   const g = new Group();
   g.position.set(x, 0, z);
-  g.rotation.y = yaw;
   const w = Math.max(1.6, radius * 2);
-  const bar = withOutline(new RoundedBoxGeometry(w, 1.1, 0.55, 2, 0.08), comicToon(ComicPalette.concrete), 0.05);
-  bar.position.y = 0.55;
-  const stripe = new Mesh(new RoundedBoxGeometry(w * 0.9, 0.18, 0.58, 1, 0.02), comicToon(0xffe066));
-  stripe.position.y = 0.7;
+  // Tall enough that cars cannot drive over (~1.1m) — clearly a blocker.
+  const bar = withOutline(new RoundedBoxGeometry(w, 1.15, 0.55, 2, 0.08), comicToon(ComicPalette.concrete), 0.05);
+  bar.position.y = 0.58;
+  const stripe = new Mesh(new RoundedBoxGeometry(w * 0.9, 0.2, 0.58, 1, 0.02), comicToon(0xffe066));
+  stripe.position.y = 0.75;
   g.add(bar, stripe);
   return g;
 }
 
-function makeTireObstacle(x: number, z: number, yaw: number): Group {
+function makeTireObstacle(x: number, z: number): Group {
   const g = new Group();
   g.position.set(x, 0, z);
-  g.rotation.y = yaw;
   for (let i = 0; i < 3; i++) {
     const tire = withOutline(
       new RoundedBoxGeometry(1.2, 0.38, 1.2, 3, 0.18),
@@ -62,22 +64,44 @@ function makeTireObstacle(x: number, z: number, yaw: number): Group {
   return g;
 }
 
-function makeUnevenPatch(x: number, z: number, radius: number): Mesh {
+/** Passable rumble — low height, yellow zebra so kids know to drive over. */
+function makeRumbleStrip(x: number, z: number, radius: number): Group {
+  const g = new Group();
+  g.position.set(x, 0, z);
   const size = Math.max(4, radius * 1.4);
-  const patch = withOutline(
-    new RoundedBoxGeometry(size, 0.22, size * 0.7, 2, 0.08),
-    comicToon(0x5a5f66),
-    0.04,
+  const base = withOutline(
+    new RoundedBoxGeometry(size, 0.16, size * 0.55, 2, 0.04),
+    comicToon(0x4a4f57),
+    0.03,
   );
-  patch.position.set(x, 0.12, z);
-  return patch;
+  base.position.y = 0.1;
+  g.add(base);
+  const stripes = Math.max(4, Math.floor(size / 1.1));
+  for (let i = 0; i < stripes; i++) {
+    const stripe = new Mesh(
+      new RoundedBoxGeometry(size * 0.92, 0.05, 0.35, 1, 0.02),
+      comicToon(i % 2 === 0 ? 0xffe066 : 0x1b1b1f),
+    );
+    stripe.position.set(0, 0.19, (i - (stripes - 1) / 2) * 0.55);
+    g.add(stripe);
+  }
+  return g;
 }
 
-function makeOil(x: number, z: number, radius: number): Mesh {
-  const oil = new Mesh(
-    new RoundedBoxGeometry(radius * 2, 0.04, radius * 1.4, 1, 0.02),
+/** Passable oil — shiny puddle, clear danger marking (not a wall). */
+function makeOil(x: number, z: number, radius: number): Group {
+  const g = new Group();
+  g.position.set(x, 0, z);
+  const puddle = new Mesh(
+    new RoundedBoxGeometry(radius * 2, 0.05, radius * 1.4, 1, 0.02),
     comicToon(0x1a1a1f),
   );
-  oil.position.set(x, 0.16, z);
-  return oil;
+  puddle.position.y = 0.16;
+  const sheen = new Mesh(
+    new RoundedBoxGeometry(radius * 1.2, 0.04, radius * 0.35, 1, 0.02),
+    comicToon(0x3db9c7),
+  );
+  sheen.position.set(0.15, 0.18, 0);
+  g.add(puddle, sheen);
+  return g;
 }

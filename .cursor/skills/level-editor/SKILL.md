@@ -66,10 +66,13 @@ Obstacles support racing — they are not a demolition derby. Prefer 1–2 signa
 ### Ad-hoc generation rules
 
 - Build from segments only (see [track-spec.md](track-spec.md)): straight, curve_l/r, s_curve, uneven_field, choke  
+- **Prefer one turn direction** for closed ovals so the centerline never self-intersects  
 - Always close a valid loop with start/finish + AI path  
 - Always apply asphalt→grass→wall (tire in curves, concrete else)  
 - Expose seed string (e.g. `A7F2`) for share/replay  
 - Parameters: length, curviness, uneven_ratio, grass_width, theme  
+- Validate with `trackSelfIntersects`; if true, regenerate or fall back to a plain oval  
+- Crossings require an authored **bridge** + section **wall** (not in ad-hoc MVP)
 
 ## Authoring workflow
 
@@ -89,6 +92,9 @@ Task Progress:
 
 - [ ] Cross-section asphalt → grass → wall everywhere driveable
 - [ ] Corner outer barriers = tires; straight outer barriers = concrete
+- [ ] **Centerline does not self-intersect** (no figure-8 without bridge + section wall)
+- [ ] **Racing corridor clear** — solid obstacles at verge, not blocking the obvious middle path
+- [ ] Passable props are low + high-contrast (rumble/oil); tall props collide and look blocking
 - [ ] Start/finish + ≥1 checkpoint sector; AI polyline stays on asphalt
 - [ ] Respawn points near track, not inside walls
 - [ ] Intro cups are not obstacle gauntlets

@@ -1,4 +1,6 @@
 import type { LevelDefinition, TrackSegment } from "./types";
+import { buildTrackFromLevel } from "./buildTrack";
+import { trackSelfIntersects } from "./validateTrack";
 
 export type AdhocLength = "short" | "medium" | "long";
 
@@ -51,25 +53,18 @@ class Rng {
   range(min: number, max: number): number {
     return min + (max - min) * this.next();
   }
-  int(min: number, maxInclusive: number): number {
-    return Math.floor(this.range(min, maxInclusive + 1));
-  }
-  chance(p: number): boolean {
-    return this.next() < p;
-  }
   pick<T>(items: readonly T[]): T {
     return items[Math.floor(this.next() * items.length)]!;
   }
 }
 
 function cornerPlan(rng: Rng, curviness: number): number[] {
-  // Angles that sum to 360° so the stitch closes cleanly.
+  // Same-direction corners summing to 360° → simple oval (no self-cross).
   if (curviness < 0.35) return [90, 90, 90, 90];
   if (curviness > 0.7) {
-    const parts = rng.chance(0.5) ? [60, 60, 60, 60, 60, 60] : [45, 45, 90, 45, 45, 90];
-    return parts;
+    return rng.next() < 0.5 ? [60, 60, 60, 60, 60, 60] : [75, 105, 75, 105];
   }
-  return rng.chance(0.4) ? [90, 60, 120, 90] : [90, 90, 90, 90];
+  return rng.next() < 0.4 ? [90, 60, 120, 90] : [90, 90, 90, 90];
 }
 
 function lengthScale(length: AdhocLength): { straight: [number, number]; laps: number } {
@@ -78,7 +73,44 @@ function lengthScale(length: AdhocLength): { straight: [number, number]; laps: n
   return { straight: [28, 48], laps: 3 };
 }
 
-/** Build a closed, rule-legal ad-hoc level from a seed + light params. */
+function buildSegments(
+  rng: Rng,
+  scale: { straight: [number, number] },
+  curviness: number,
+  unevenRatio: number,
+  width: number,
+): TrackSegment[] {
+  const corners = cornerPlan(rng, curviness);
+  const sum = corners.reduce((a, b) => a + b, 0);
+  if (sum !== 360 && corners.length > 0) {
+    corners[corners.length - 1]! += 360 - sum;
+  }
+
+  const segments: TrackSegment[] = [];
+  for (let i = 0; i < corners.length; i++) {
+    const straightLen = rng.range(scale.straight[0], scale.straight[1]);
+    if (rng.next() < unevenRatio) {
+      segments.push({
+        type: "uneven_field",
+        length: straightLen * 0.85,
+        width,
+        intensity: rng.range(0.35, 0.7),
+      });
+    } else if (rng.next() < 0.18) {
+      segments.push({ type: "choke", length: straightLen * 0.7, width: 9 });
+    } else {
+      segments.push({ type: "straight", length: straightLen, width });
+    }
+
+    const angleDeg = corners[i]!;
+    const radius = rng.range(14, 22) * (curviness > 0.65 ? 0.92 : 1);
+    // Always curve_r — reverse turns / s_curve caused self-intersections.
+    segments.push({ type: "curve_r", radius, angleDeg, width });
+  }
+  return segments;
+}
+
+/** Build a closed, non-crossing, rule-legal ad-hoc level from a seed + light params. */
 export function generateAdhocLevel(params: AdhocParams): LevelDefinition {
   const seed = normalizeSeed(params.seed);
   const rng = new Rng(hashSeed(seed));
@@ -89,44 +121,38 @@ export function generateAdhocLevel(params: AdhocParams): LevelDefinition {
   const theme = params.theme ?? rng.pick(THEMES);
   const scale = lengthScale(length);
   const laps = params.laps ?? scale.laps;
-
-  const corners = cornerPlan(rng, curviness);
-  // Ensure sum ≈ 360
-  const sum = corners.reduce((a, b) => a + b, 0);
-  if (sum !== 360 && corners.length > 0) {
-    corners[corners.length - 1]! += 360 - sum;
-  }
-
-  const segments: TrackSegment[] = [];
   const width = 12;
 
-  for (let i = 0; i < corners.length; i++) {
-    const straightLen = rng.range(scale.straight[0], scale.straight[1]);
-    if (rng.chance(unevenRatio)) {
-      segments.push({
-        type: "uneven_field",
-        length: straightLen * 0.85,
-        width,
-        intensity: rng.range(0.35, 0.7),
-      });
-    } else if (rng.chance(0.18)) {
-      segments.push({ type: "choke", length: straightLen * 0.7, width: 9 });
-    } else {
-      segments.push({ type: "straight", length: straightLen, width });
-    }
+  let segments = buildSegments(rng, scale, curviness, unevenRatio, width);
+  let level = wrapAdhoc(seed, theme, length, laps, grassWidth, width, segments);
 
-    const angleDeg = corners[i]!;
-    const radius = rng.range(14, 22) * (curviness > 0.65 ? 0.92 : 1);
-    if (rng.chance(0.22) && angleDeg === 90) {
-      segments.push({ type: "s_curve", width });
-    } else {
-      const type = rng.chance(0.5) ? "curve_r" : "curve_l";
-      segments.push({ type, radius, angleDeg, width });
-    }
+  // Safety: if a rare layout still crosses, fall back to a plain oval.
+  if (trackSelfIntersects(buildTrackFromLevel(level))) {
+    segments = [
+      { type: "straight", length: 40, width },
+      { type: "curve_r", radius: 18, angleDeg: 90, width },
+      { type: "straight", length: 34, width },
+      { type: "curve_r", radius: 18, angleDeg: 90, width },
+      { type: "straight", length: 40, width },
+      { type: "curve_r", radius: 18, angleDeg: 90, width },
+      { type: "straight", length: 34, width },
+      { type: "curve_r", radius: 18, angleDeg: 90, width },
+    ];
+    level = wrapAdhoc(seed, theme, length, laps, grassWidth, width, segments);
   }
 
-  const purseBase = [320, 230, 180, 140, 110, 90];
+  return level;
+}
 
+function wrapAdhoc(
+  seed: string,
+  theme: string,
+  length: string,
+  laps: number,
+  grassWidth: number,
+  width: number,
+  segments: TrackSegment[],
+): LevelDefinition {
   return {
     id: `adhoc_${seed}`,
     kind: "adhoc",
@@ -157,7 +183,7 @@ export function generateAdhocLevel(params: AdhocParams): LevelDefinition {
     },
     rewards: {
       currency: "CHF",
-      placePurse: purseBase,
+      placePurse: [320, 230, 180, 140, 110, 90],
       starsOnTop3: false,
     },
   };

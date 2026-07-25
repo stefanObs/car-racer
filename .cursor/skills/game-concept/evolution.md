@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v3.11 Readable track layouts
+
+- Trigger: user — no unclear passables; no self-cross (else bridge+wall); clear corridor; cannot leave track
+- Decision: Cups/ad-hoc = same-turn ovals (no figure-8). Solid blockers at verge only. Passable = low rumble/oil with markings. Walls keep cars in. Bridges deferred until a layout truly needs a crossing.
+- CONCEPT §§ touched: §4.4 layout rules, §4.6 obstacle clarity → v3.11
+- Skills: level-editor checklist + track-spec; validateTrack self-cross tests
+
 ### 2026-07-25 — v3.10 Arcade driving feel
 
 - Trigger: user — improve car driving to feel more like a racing game

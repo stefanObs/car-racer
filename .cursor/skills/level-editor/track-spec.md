@@ -28,6 +28,16 @@ Always keep asphalt / grass / wall materials readable (Asphalt-Comic palette).
 
 Generator stitches segments into a closed loop; samples grass width from level params.
 
+**No self-cross:** centerline must not intersect itself. Ad-hoc uses consistent `curve_r` corners. A future bridge segment may allow over/under only with walls that block the wrong deck.
+
+## Obstacle clarity
+
+| Type | Passable? | Height cue |
+|------|-----------|------------|
+| `concrete_barrier` / `tire_stack` | **No** — solid collision | Tall (~1m+), yellow/tire markings |
+| `uneven` rumble | **Yes** — drive over | Low zebra strip |
+| `oil` | **Yes** — drive through | Flat puddle + sheen; grip kill |
+
 ## Level JSON schema (handcrafted)
 
 ```json

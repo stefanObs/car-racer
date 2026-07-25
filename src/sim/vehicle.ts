@@ -168,6 +168,9 @@ export function stepCar(
     car.stats.grassMitigation,
     car.stats.suspension,
   );
+  const passable = passableObstacleMods(car.x, car.z, obstacles);
+  surface.gripFactor *= passable.gripMul;
+  surface.bump = Math.min(1, surface.bump + passable.bumpAdd);
 
   const top =
     BASE_TOP *
@@ -361,7 +364,7 @@ export function applyWallBounce(
   return damaged || outwardVel > 0.5;
 }
 
-/** Solid on-track props: bounce + light damage (uneven/oil are surface-only). */
+/** Solid on-track props: bounce + light damage. Passable oil/uneven are surface-only. */
 export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boolean {
   if (car.finished || car.koTimer > 0) return false;
   let hit = false;
@@ -408,6 +411,29 @@ export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boo
     hit = true;
   }
   return hit;
+}
+
+/** Passable hazards: oil kills grip; uneven rumble adds bump (drive-over, not walls). */
+export function passableObstacleMods(
+  x: number,
+  z: number,
+  obstacles: TrackObstacle[],
+): { gripMul: number; bumpAdd: number } {
+  let gripMul = 1;
+  let bumpAdd = 0;
+  for (const o of obstacles) {
+    const [ox, oz] = o.position;
+    const r = o.radius ?? (o.type === "oil" ? 2 : 6);
+    const dist = Math.hypot(x - ox, z - oz);
+    if (dist >= r) continue;
+    const t = 1 - dist / r;
+    if (o.type === "oil") {
+      gripMul = Math.min(gripMul, 0.32 + 0.2 * (1 - t));
+    } else if (o.type === "uneven") {
+      bumpAdd = Math.max(bumpAdd, (o.intensity ?? 0.55) * t);
+    }
+  }
+  return { gripMul, bumpAdd };
 }
 
 export function resolveContact(a: CarState, b: CarState): void {
