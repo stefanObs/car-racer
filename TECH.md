@@ -63,8 +63,17 @@ src/
   audio/
   data/           # cars, parts, i18n/de.json
 levels/           # already present
+public/models/cars/  # GLB car visuals (Blender exports); collision = silhouette radius
 tests/
 ```
+
+### Car visuals (GLB import)
+
+- Drop `{carId}.glb` into `public/models/cars/` (see README there).
+- Tunables: `src/data/carModels.ts` (`scale`, `yaw`, `collisionRadius`).
+- Boot calls `preloadCarModels()`; missing GLBs fall back to procedural meshes.
+- **Collision** is a circle (`collisionRadius`) — visual mesh may overhang.
+- Starter placeholders: `node scripts/write-car-glbs.mjs`
 
 ### Camera (locks open decision toward MVP)
 

@@ -1,10 +1,7 @@
 /**
- * Category-faithful comic car meshes.
- * Target: assets/art-style/car-category-targets.png
- *
- * RCA (v0.2.29 gap): prior meshes used soft spheres + generic boxes → blob cars.
- * Fix: hard wedge/box volumes + class signature props (wing, bull bar, cage+springs,
- * blower+side pipes, armor stripe/slits) and dark multi-spoke rims.
+ * Car visuals: prefer imported GLB (public/models/cars/{id}.glb) when preloaded.
+ * Procedural meshes remain as fallback. Collision uses CAR_MODELS.collisionRadius
+ * (silhouette circle — need not match the visual mesh exactly).
  */
 import {
   CircleGeometry,
@@ -20,6 +17,7 @@ import { CARS, type CarId, type GearClass } from "../data/cars";
 import type { CarState } from "../sim/vehicle";
 import { buildCarOverlays } from "./carOverlays";
 import { comicToon, withOutline } from "./comicMaterials";
+import { cloneGltfCar, hasGltfCar } from "./loadCarGltf";
 import { ComicPalette } from "./palette";
 
 export type ComicCarParts = {
@@ -36,6 +34,8 @@ export function carGearClass(car: CarState): GearClass {
 }
 
 export function buildComicCar(car: CarState): ComicCarParts {
+  const id = (car.modelId ?? "blitz") as CarId;
+  if (hasGltfCar(id)) return buildFromGltf(car, id);
   switch (carGearClass(car)) {
     case "pickup":
       return buildPickupCar(car);
@@ -48,6 +48,32 @@ export function buildComicCar(car: CarState): ComicCarParts {
     default:
       return buildSportCar(car);
   }
+}
+
+function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
+  const root = new Group();
+  const gear = CARS[id]?.gearClass ?? "sport";
+  root.userData.gearClass = gear;
+  root.userData.fromGltf = true;
+
+  root.add(cloneGltfCar(id, car.paint)!);
+
+  const body = new Mesh();
+  body.visible = false;
+  root.add(body);
+
+  const stickers = buildCarOverlays({
+    paint: car.paint,
+    sticker: car.sticker || "none",
+    variant: `${id}-gltf`,
+    gearClass: gear,
+  });
+  stickers.scale.setScalar(0.95);
+  root.add(stickers);
+
+  const fx = makeFxGroups(-1.7);
+  root.add(groundBlob(1.4), fx.smoke, fx.sparks, fx.nitro);
+  return { root, body, ...fx };
 }
 
 type Mats = {

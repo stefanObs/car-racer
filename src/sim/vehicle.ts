@@ -1,5 +1,6 @@
 import type { VehicleStats } from "../data/cars";
 import type { CarId } from "../data/cars";
+import { collisionRadiusFor } from "../data/carModels";
 import { applyHeal, applyHit, damageMultipliers, stageFromHp, type DamageStage } from "./damage";
 import { surfaceAt } from "./zones";
 import type { BuiltTrack } from "../track/types";
@@ -207,7 +208,8 @@ export function resolveContact(a: CarState, b: CarState): void {
   const dx = b.x - a.x;
   const dz = b.z - a.z;
   const dist = Math.hypot(dx, dz);
-  const minDist = 2.2;
+  // Silhouette circles — visual GLB may overhang; see CAR_MODELS.collisionRadius
+  const minDist = collisionRadiusFor(a.modelId) + collisionRadiusFor(b.modelId);
   if (dist >= minDist || dist < 1e-4) return;
 
   const nx = dx / dist;

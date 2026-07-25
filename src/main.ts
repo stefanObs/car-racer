@@ -1,4 +1,5 @@
 import { APP_VERSION } from "./core/version";
+import { preloadCarModels } from "./render/loadCarGltf";
 import { GameApp } from "./ui/GameApp";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
@@ -14,7 +15,10 @@ if (!canvas || !uiRoot) {
   throw new Error("Canvas oder UI-Root fehlt.");
 }
 
-try {
+const gameCanvas = canvas;
+const gameUi = uiRoot;
+
+async function boot(): Promise<void> {
   void APP_VERSION;
   const touchCapable =
     (navigator.maxTouchPoints ?? 0) > 0 ||
@@ -22,8 +26,10 @@ try {
     window.matchMedia("(hover: none)").matches;
   if (touchCapable) document.documentElement.dataset.touch = "1";
 
-  const app = new GameApp(canvas, uiRoot);
+  // External GLBs (public/models/cars/*.glb) — optional; procedural fallback if missing
+  await preloadCarModels();
 
+  const app = new GameApp(gameCanvas, gameUi);
   let last = performance.now();
 
   function frame(now: number): void {
@@ -34,7 +40,9 @@ try {
   }
 
   requestAnimationFrame(frame);
-} catch (err) {
+}
+
+boot().catch((err) => {
   console.error(err);
   showBootError(err);
-}
+});
