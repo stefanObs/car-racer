@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.2.21",
+  "version": "0.2.22",
   "private": true,
   "type": "module",
   "description": "Crash Circuit — arcade racer (free OSS stack)",
@@ -25,6 +25,7 @@
     "@playwright/test": "^1.62.0",
     "@types/node": "^26.1.1",
     "@types/three": "^0.185.1",
+    "happy-dom": "^20.11.1",
     "typescript": "^7.0.2",
     "vite": "^8.1.5",
     "vitest": "^4.1.10"

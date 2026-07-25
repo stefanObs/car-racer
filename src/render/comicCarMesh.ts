@@ -9,6 +9,7 @@ import {
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { CarState } from "../sim/vehicle";
+import { buildCarOverlays } from "./carOverlays";
 import { comicToon, withOutline } from "./comicMaterials";
 import { ComicPalette } from "./palette";
 
@@ -20,7 +21,7 @@ export type ComicCarParts = {
   nitro: Group;
 };
 
-/** Sculpted Asphalt-Comic sports car — rounded volumes + ink outlines. */
+/** Sculpted Asphalt-Comic sports car — rounded volumes + ink overlays. */
 export function buildComicCar(car: CarState): ComicCarParts {
   const root = new Group();
   const paint = comicToon(car.paint);
@@ -103,17 +104,11 @@ export function buildComicCar(car: CarState): ComicCarParts {
     root.add(tire, rim);
   }
 
-  if (car.sticker && car.sticker !== "none") {
-    const stickerColor =
-      car.sticker === "flames"
-        ? ComicPalette.nitroOrange
-        : car.sticker === "bolt"
-          ? ComicPalette.repairSpark
-          : ComicPalette.nitroCyan;
-    const sticker = new Mesh(new RoundedBoxGeometry(0.06, 0.38, 1.15, 2, 0.03), comicToon(stickerColor));
-    sticker.position.set(0.86, 0.6, 0.1);
-    root.add(sticker);
-  }
+  const overlays = buildCarOverlays({
+    paint: car.paint,
+    sticker: car.sticker || "none",
+    variant: car.id,
+  });
 
   const smoke = new Group();
   for (let i = 0; i < 6; i++) {
@@ -145,7 +140,7 @@ export function buildComicCar(car: CarState): ComicCarParts {
     nitro.add(trail);
   }
 
-  root.add(body, belly, nose, tail, cabin, roof, wing, standL, standR, diffuser, exL, exR, smoke, sparks, nitro);
+  root.add(body, belly, nose, tail, cabin, roof, wing, standL, standR, diffuser, exL, exR, overlays, smoke, sparks, nitro);
   return { root, body, smoke, sparks, nitro };
 }
 

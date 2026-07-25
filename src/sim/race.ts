@@ -92,7 +92,7 @@ export class RaceSession {
           z: s.position.z + s.tangent.x * side,
           heading: Math.atan2(s.tangent.z, s.tangent.x),
           paint: ai.paint,
-          sticker: "none",
+        sticker: (["flames", "bolt", "stars", "none", "flames"] as const)[index % 5]!,
           stats,
           distanceAlong: along,
           progress: along,
