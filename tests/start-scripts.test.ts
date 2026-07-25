@@ -35,4 +35,13 @@ describe("start scripts", () => {
     expect(ps1).toContain('node-v$NodeVersion-$Platform');
     expect(ps1).toContain("win-arm64");
   });
+
+  it("exposes safe port free helper instead of pkill -f vite", () => {
+    const pkg = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
+    expect(pkg.scripts["free:dev"]).toContain("free-dev-port");
+    expect(existsSync(resolve(root, "scripts/free-dev-port.mjs"))).toBe(true);
+    const helper = readFileSync(resolve(root, "scripts/free-dev-port.mjs"), "utf8");
+    expect(helper).toContain("pkill -f vite");
+    expect(helper).toContain("ss");
+  });
 });

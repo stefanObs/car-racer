@@ -18,4 +18,6 @@ Source of truth for design: `CONCEPT.md`. Tech (free-only, adopted): `TECH.md`.
 
 **Start:** `./start.sh` / `start.bat` / `.\start.ps1` — must always work; bootstrap portable Node into `.tools/` when Node is not installed (network once).
 
+**Port cleanup:** use `npm run free:dev` — never `pkill -f vite` (self-kills agent shells).
+
 Cursor rules under `.cursor/rules/` (`alwaysApply`) reinforce the same routing — follow them.

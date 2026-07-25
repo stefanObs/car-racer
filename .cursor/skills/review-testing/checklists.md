@@ -5,6 +5,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 ## 0. Server + browser (mandatory)
 
 - [ ] Dev server started (`./start.sh` or `npm run dev`) **or** `npm run test:e2e` (Playwright starts it)
+- [ ] Port free via `npm run free:dev` if needed — **never** `pkill -f vite` (kills the agent)
 - [ ] URL opens (default http://127.0.0.1:5173/)
 - [ ] Browser snapshot/screenshot: Hauptmenü visible (Crash Circuit + Cup / Freier Modus / Garage)
 - [ ] Not stuck on blank/dark screen or unexplained boot-error

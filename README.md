@@ -30,6 +30,7 @@ Die Skripte:
 ```bash
 npm test          # unit
 npm run test:e2e  # Playwright: starts server + browser smoke
+npm run free:dev  # free :5173 safely (never pkill -f vite — kills agent shells)
 npm run test:all
 npm run build
 ```

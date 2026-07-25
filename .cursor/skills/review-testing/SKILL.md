@@ -36,6 +36,21 @@ Full checklists: [checklists.md](checklists.md).
 6. Note render mode if shown (`2D-Fallback` vs WebGL).
 7. Unlock the browser when finished; leave the server running only if still needed.
 
+### Anti-hang (agents)
+
+**Never** run `pkill -f vite`, `pkill -f playwright`, or similar broad process-name kills.
+
+Those patterns match the **agent shell argv** (the command text often contains `vite` / `playwright`) and kill the agent mid-run. The server never starts, `AwaitShell` waits forever, and the test agent looks stuck.
+
+To free the port instead:
+
+```bash
+npm run free:dev          # kills only the listener on :5173
+# or kill by saved PID: kill "$(cat /tmp/cc-dev.pid)"
+```
+
+Prefer `npm run test:e2e` for automated smoke (Playwright starts/stops its own server). For manual browser review, start once with `npm run dev` / `./start.sh` and reuse that server.
+
 ### Browser smoke (minimum every review)
 
 | Step | Pass if |

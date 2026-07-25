@@ -14,4 +14,6 @@ When reviewing, playtesting, QAing, verifying UX/graphics, checking regressions,
 5. Regression must cover **all** shipped levels (list IDs run)
 6. Graphics must match Asphalt-Comic; UX must match concept §9 screens
 
+**Never** free the port with `pkill -f vite` / `pkill -f playwright` — that kills the agent shell (argv self-match) and looks like a stuck test. Use `npm run free:dev` or a PID file instead.
+
 Do **not** sign off from unit tests or code inspection alone. Report with doability verdict, server+browser evidence, and severity-ranked findings.
