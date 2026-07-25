@@ -263,7 +263,7 @@ export class GameApp {
       body = `
         <h1 class="brand">Crash Circuit</h1>
         <p class="tag">Getunte Autos. Saubere Linie. CHF fürs Tuning.</p>
-        <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}${this.renderMode === "canvas2d" ? " · 2D-Fallback" : ""}</p>
+        <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}${this.renderMode === "canvas2d" ? " · Chase-Comic" : ""}</p>
         <div class="stack">
           <button data-nav data-act="cup">Cup</button>
           <button data-nav data-act="free">Freier Modus</button>

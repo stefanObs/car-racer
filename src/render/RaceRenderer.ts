@@ -6,40 +6,34 @@ import {
   DirectionalLight,
   Fog,
   Group,
+  HemisphereLight,
   Mesh,
   PerspectiveCamera,
   PlaneGeometry,
   Scene,
-  SphereGeometry,
   WebGLRenderer,
 } from "three";
 import { stageFromHp } from "../sim/damage";
 import type { RaceSession } from "../sim/race";
-import type { CarState } from "../sim/vehicle";
 import { surfaceAt } from "../sim/zones";
+import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject, withOutline } from "./comicMaterials";
 import { ComicPalette } from "./palette";
-
-type CarVisual = {
-  root: Group;
-  body: Mesh;
-  smoke: Group;
-  sparks: Group;
-  nitro: Group;
-};
+import { buildThemeScenery } from "./themeScenery";
 
 export class RaceRenderer {
   readonly scene = new Scene();
-  readonly camera = new PerspectiveCamera(52, 1, 0.1, 500);
+  readonly camera = new PerspectiveCamera(48, 1, 0.1, 500);
   readonly renderer: WebGLRenderer;
-  private readonly carVisuals = new Map<string, CarVisual>();
+  private readonly carVisuals = new Map<string, ComicCarParts>();
   private readonly lastNitro = new Map<string, number>();
   private trackGroup = new Group();
+  private sceneryGroup = new Group();
   private fxTime = 0;
 
   constructor(canvas: HTMLCanvasElement) {
     this.scene.background = new Color(ComicPalette.sky);
-    this.scene.fog = new Fog(ComicPalette.sky, 80, 220);
+    this.scene.fog = new Fog(ComicPalette.sky, 60, 180);
     this.renderer = new WebGLRenderer({
       canvas,
       antialias: true,
@@ -49,17 +43,29 @@ export class RaceRenderer {
     this.renderer.setClearColor(ComicPalette.sky, 1);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
 
-    const ambient = new AmbientLight(0xffffff, 0.55);
-    const sun = new DirectionalLight(0xfff3e0, 1.15);
-    sun.position.set(12, 22, 8);
-    const fill = new DirectionalLight(0xa8d5ff, 0.35);
-    fill.position.set(-10, 8, -6);
-    this.scene.add(ambient, sun, fill);
+    // Hard daylight for cel read (few value steps)
+    this.scene.add(new HemisphereLight(0xb8d4f0, 0x3f8f3a, 0.45));
+    this.scene.add(new AmbientLight(0xffffff, 0.35));
+    const sun = new DirectionalLight(0xfff1d6, 1.35);
+    sun.position.set(14, 24, 10);
+    this.scene.add(sun);
 
-    const ground = new Mesh(new PlaneGeometry(400, 400), comicToon(ComicPalette.ground));
+    const ground = new Mesh(new PlaneGeometry(420, 420), comicToon(ComicPalette.ground));
     ground.rotation.x = -Math.PI / 2;
-    ground.position.y = -0.05;
+    ground.position.y = -0.06;
     this.scene.add(ground);
+
+    // Stylized cloud billboards
+    for (const [x, z, s] of [
+      [-40, -60, 12],
+      [30, -80, 16],
+      [-20, 70, 10],
+      [50, 40, 14],
+    ] as const) {
+      const cloud = withOutline(new BoxGeometry(s, s * 0.35, 1), comicToon(0xf8f9fa), 1.06);
+      cloud.position.set(x, 28, z);
+      this.scene.add(cloud);
+    }
 
     window.addEventListener("resize", () => this.resize(canvas));
     this.resize(canvas);
@@ -67,8 +73,8 @@ export class RaceRenderer {
   }
 
   renderIdle(): void {
-    this.camera.position.set(0, 10, 18);
-    this.camera.lookAt(0, 0, 0);
+    this.camera.position.set(0, 4, 10);
+    this.camera.lookAt(0, 0.8, 0);
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -82,8 +88,11 @@ export class RaceRenderer {
 
   buildTrack(session: RaceSession): void {
     this.scene.remove(this.trackGroup);
+    this.scene.remove(this.sceneryGroup);
     disposeObject(this.trackGroup);
+    disposeObject(this.sceneryGroup);
     this.trackGroup = new Group();
+    this.sceneryGroup = buildThemeScenery(session.track, session.level.theme);
     const track = session.track;
 
     for (let i = 0; i < track.centerline.length - 1; i++) {
@@ -95,14 +104,15 @@ export class RaceRenderer {
       const angle = Math.atan2(b.z - a.z, b.x - a.x);
       const asphaltW = track.asphaltHalfWidth * 2;
 
-      const asphalt = withOutline(new BoxGeometry(len, 0.18, asphaltW), comicToon(ComicPalette.asphalt), 1.02);
+      const asphalt = withOutline(new BoxGeometry(len, 0.16, asphaltW), comicToon(ComicPalette.asphalt), 1.015);
       asphalt.position.set(mx, 0, mz);
       asphalt.rotation.y = -angle;
       this.trackGroup.add(asphalt);
 
+      // Motion / lane marks
       if (i % 2 === 0) {
-        const line = new Mesh(new BoxGeometry(Math.min(len * 0.45, 3.2), 0.04, 0.28), comicToon(ComicPalette.asphaltLine));
-        line.position.set(mx, 0.12, mz);
+        const line = new Mesh(new BoxGeometry(Math.min(len * 0.4, 2.8), 0.05, 0.25), comicToon(ComicPalette.asphaltLine));
+        line.position.set(mx, 0.11, mz);
         line.rotation.y = -angle;
         this.trackGroup.add(line);
       }
@@ -110,21 +120,20 @@ export class RaceRenderer {
       const grassW = track.grassWidth;
       for (const side of [-1, 1] as const) {
         const grass = withOutline(
-          new BoxGeometry(len, 0.14, grassW),
+          new BoxGeometry(len, 0.12, grassW),
           comicToon(side > 0 ? ComicPalette.grass : ComicPalette.grassDark),
-          1.02,
+          1.015,
         );
         const off = track.asphaltHalfWidth + grassW / 2;
         grass.position.set(mx + Math.sin(angle) * off * side, 0.02, mz - Math.cos(angle) * off * side);
         grass.rotation.y = -angle;
         this.trackGroup.add(grass);
 
-        // Red/white curb at asphalt edge
         const curb = new Mesh(
-          new BoxGeometry(len, 0.16, 0.35),
+          new BoxGeometry(len, 0.18, 0.42),
           comicToon(i % 2 === 0 ? ComicPalette.curbLight : ComicPalette.curbDark),
         );
-        const curbOff = track.asphaltHalfWidth + 0.15;
+        const curbOff = track.asphaltHalfWidth + 0.18;
         curb.position.set(mx + Math.sin(angle) * curbOff * side, 0.1, mz - Math.cos(angle) * curbOff * side);
         curb.rotation.y = -angle;
         this.trackGroup.add(curb);
@@ -132,7 +141,7 @@ export class RaceRenderer {
         const wallKind = track.wallKind[i] ?? "concrete";
         const wallOff = track.asphaltHalfWidth + track.grassWidth + 0.55;
         if (wallKind === "tire") {
-          const stacks = Math.max(1, Math.floor(len / 2.2));
+          const stacks = Math.max(1, Math.floor(len / 2));
           for (let s = 0; s < stacks; s++) {
             const t = (s + 0.5) / stacks;
             const px = a.x + (b.x - a.x) * t + Math.sin(angle) * wallOff * side;
@@ -141,22 +150,31 @@ export class RaceRenderer {
           }
         } else {
           const wall = withOutline(
-            new BoxGeometry(len, 1.35, 0.55),
+            new BoxGeometry(len, 1.45, 0.5),
             comicToon(i % 3 === 0 ? ComicPalette.concreteDark : ComicPalette.concrete),
             1.03,
           );
-          wall.position.set(mx + Math.sin(angle) * wallOff * side, 0.68, mz - Math.cos(angle) * wallOff * side);
+          wall.position.set(mx + Math.sin(angle) * wallOff * side, 0.72, mz - Math.cos(angle) * wallOff * side);
           wall.rotation.y = -angle;
           this.trackGroup.add(wall);
+          // Chain-link hint
+          const fence = withOutline(new BoxGeometry(len, 0.7, 0.08), comicToon(ComicPalette.outline), 1.02);
+          fence.position.set(
+            mx + Math.sin(angle) * (wallOff + 0.15) * side,
+            1.55,
+            mz - Math.cos(angle) * (wallOff + 0.15) * side,
+          );
+          fence.rotation.y = -angle;
+          this.trackGroup.add(fence);
         }
       }
     }
 
-    this.scene.add(this.trackGroup);
+    this.scene.add(this.trackGroup, this.sceneryGroup);
     this.clearCars();
     this.lastNitro.clear();
     for (const car of session.cars) {
-      const visual = this.makeCarVisual(car);
+      const visual = buildComicCar(car);
       this.carVisuals.set(car.id, visual);
       this.scene.add(visual.root);
     }
@@ -167,91 +185,15 @@ export class RaceRenderer {
     g.position.set(x, 0, z);
     g.rotation.y = rotY;
     for (let i = 0; i < 3; i++) {
-      const tire = withOutline(
-        new CylinderGeometry(0.55, 0.55, 0.38, 10),
-        comicToon(ComicPalette.tire),
-        1.06,
-      );
+      const tire = withOutline(new CylinderGeometry(0.58, 0.58, 0.4, 10), comicToon(ComicPalette.tire), 1.08);
       tire.rotation.z = Math.PI / 2;
-      tire.position.set((i - 1) * 0.15, 0.35 + i * 0.38, 0);
+      tire.position.set((i - 1) * 0.12, 0.38 + i * 0.4, 0);
       g.add(tire);
-      if (i === 1) {
-        const stripe = new Mesh(new BoxGeometry(0.2, 0.2, 1.15), comicToon(ComicPalette.tireAccent));
-        stripe.position.set(0, 0.75, 0);
-        g.add(stripe);
-      }
     }
+    const stripe = new Mesh(new BoxGeometry(0.22, 0.22, 1.2), comicToon(ComicPalette.tireAccent));
+    stripe.position.set(0, 0.85, 0);
+    g.add(stripe);
     return g;
-  }
-
-  private makeCarVisual(car: CarState): CarVisual {
-    const root = new Group();
-    const body = withOutline(new BoxGeometry(1.35, 0.5, 2.4), comicToon(car.paint), 1.08);
-    body.position.y = 0.42;
-    body.scale.set(1, 1, 1);
-
-    const nose = withOutline(new BoxGeometry(1.15, 0.28, 0.55), comicToon(car.paint), 1.08);
-    nose.position.set(0, 0.38, 1.35);
-
-    const cabin = withOutline(new BoxGeometry(1.05, 0.38, 1.15), comicToon(ComicPalette.cabin), 1.08);
-    cabin.position.set(0, 0.78, -0.05);
-
-    const spoiler = withOutline(new BoxGeometry(1.25, 0.12, 0.35), comicToon(ComicPalette.cabin), 1.1);
-    spoiler.position.set(0, 0.95, -1.05);
-
-    const wheels: Mesh[] = [];
-    for (const [wx, wz] of [
-      [-0.7, 0.75],
-      [0.7, 0.75],
-      [-0.7, -0.85],
-      [0.7, -0.85],
-    ] as const) {
-      const wheel = withOutline(new CylinderGeometry(0.32, 0.32, 0.28, 10), comicToon(ComicPalette.tire), 1.1);
-      wheel.rotation.z = Math.PI / 2;
-      wheel.position.set(wx, 0.32, wz);
-      wheels.push(wheel);
-      root.add(wheel);
-    }
-
-    if (car.sticker && car.sticker !== "none") {
-      const stickerColor =
-        car.sticker === "flames"
-          ? ComicPalette.nitroOrange
-          : car.sticker === "bolt"
-            ? ComicPalette.repairSpark
-            : ComicPalette.nitroCyan;
-      const sticker = new Mesh(new BoxGeometry(0.08, 0.32, 1.1), comicToon(stickerColor));
-      sticker.position.set(0.72, 0.48, 0.1);
-      root.add(sticker);
-    }
-
-    const smoke = new Group();
-    for (let i = 0; i < 5; i++) {
-      const puff = new Mesh(new SphereGeometry(0.18 + i * 0.04, 8, 8), comicToon(ComicPalette.smoke));
-      puff.visible = false;
-      smoke.add(puff);
-    }
-    const sparks = new Group();
-    for (let i = 0; i < 6; i++) {
-      const spark = new Mesh(new BoxGeometry(0.08, 0.08, 0.08), comicToon(ComicPalette.repairSpark, { emissive: ComicPalette.repairSpark }));
-      spark.visible = false;
-      sparks.add(spark);
-    }
-    const nitro = new Group();
-    for (let i = 0; i < 4; i++) {
-      const trail = new Mesh(
-        new BoxGeometry(0.2, 0.12, 0.55),
-        comicToon(i % 2 === 0 ? ComicPalette.nitroOrange : ComicPalette.nitroCyan, {
-          emissive: i % 2 === 0 ? ComicPalette.nitroOrange : ComicPalette.nitroCyan,
-        }),
-      );
-      trail.position.set((i - 1.5) * 0.18, 0.35, -1.5 - i * 0.25);
-      trail.visible = false;
-      nitro.add(trail);
-    }
-
-    root.add(body, nose, cabin, spoiler, smoke, sparks, nitro);
-    return { root, body, smoke, sparks, nitro };
   }
 
   sync(session: RaceSession): void {
@@ -259,7 +201,7 @@ export class RaceRenderer {
     for (const car of session.cars) {
       let visual = this.carVisuals.get(car.id);
       if (!visual) {
-        visual = this.makeCarVisual(car);
+        visual = buildComicCar(car);
         this.carVisuals.set(car.id, visual);
         this.scene.add(visual.root);
       }
@@ -267,36 +209,32 @@ export class RaceRenderer {
       const stage = stageFromHp(car.hp);
       root.visible = !(car.koTimer > 0 && car.hp <= 0 && Math.sin(car.koTimer * 20) <= 0);
 
-      const suspension = car.stats.suspension;
-      const bump = surfaceAt(session.track, car.x, car.z, car.stats.grassMitigation, suspension).bump;
+      const bump = surfaceAt(session.track, car.x, car.z, car.stats.grassMitigation, car.stats.suspension).bump;
       const hop =
-        bump * 0.22 * Math.sin(this.fxTime * 22 + car.progress * 3) +
-        (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.04 : 0);
-      const lean = (stage >= 2 ? 0.08 : 0) + bump * 0.12;
-      root.position.set(car.x, (car.healFx > 0.2 ? 0.06 : 0) + hop, car.z);
+        bump * 0.25 * Math.sin(this.fxTime * 22 + car.progress * 3) +
+        (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.05 : 0);
+      const lean = (stage >= 2 ? 0.1 : 0) + bump * 0.14;
+      root.position.set(car.x, (car.healFx > 0.2 ? 0.05 : 0) + hop, car.z);
       root.rotation.y = Math.PI / 2 - car.heading;
       root.rotation.z = lean * Math.sin(this.fxTime * 10);
 
-      // Damage smoke
       const showSmoke = stage >= 1 && stage < 4;
       smoke.children.forEach((child, i) => {
         const m = child as Mesh;
-        m.visible = showSmoke && i < (stage === 1 ? 2 : stage === 2 ? 4 : 5);
+        m.visible = showSmoke && i < (stage === 1 ? 2 : stage === 2 ? 4 : 6);
         if (!m.visible) return;
         const t = this.fxTime * (1.5 + i * 0.2) + i;
-        m.position.set(Math.sin(t) * 0.2, 0.9 + (t % 1.2) * 0.7, -0.9 - i * 0.1);
-        const s = 0.7 + (t % 1);
-        m.scale.setScalar(s);
+        m.position.set(Math.sin(t) * 0.25, 1.0 + (t % 1.2) * 0.8, -1.1 - i * 0.12);
+        m.scale.setScalar(0.7 + (t % 1));
       });
 
-      // Heal sparks
       const healing = car.healFx > 0.25;
       sparks.children.forEach((child, i) => {
         const m = child as Mesh;
         m.visible = healing;
         if (!m.visible) return;
         const t = this.fxTime * 8 + i;
-        m.position.set(Math.cos(t + i) * 0.7, 0.4 + Math.abs(Math.sin(t)) * 0.6, Math.sin(t * 1.3) * 0.8);
+        m.position.set(Math.cos(t + i) * 0.8, 0.45 + Math.abs(Math.sin(t)) * 0.7, Math.sin(t * 1.3) * 0.9);
       });
 
       const prevNitro = this.lastNitro.get(car.id) ?? car.nitro;
@@ -309,13 +247,14 @@ export class RaceRenderer {
       });
     }
 
+    // Chase cam — lower & closer (reference composition)
     const player = session.player();
-    const back = 11;
-    const height = 5.8;
+    const back = 7.5;
+    const height = 3.6;
     const camX = player.x - Math.cos(player.heading) * back;
     const camZ = player.z - Math.sin(player.heading) * back;
     this.camera.position.set(camX, height, camZ);
-    this.camera.lookAt(player.x, 0.6, player.z);
+    this.camera.lookAt(player.x, 0.85, player.z);
     this.renderer.render(this.scene, this.camera);
   }
 
