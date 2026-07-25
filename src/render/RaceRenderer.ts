@@ -55,6 +55,7 @@ export class RaceRenderer {
   private readonly lastNitro = new Map<string, number>();
   private trackGroup = new Group();
   private sceneryGroup = new Group();
+  private idleGroup = new Group();
   private idleCar: Group | null = null;
   private fxTime = 0;
 
@@ -116,19 +117,13 @@ export class RaceRenderer {
   }
 
   private buildIdleShowcase(): void {
-    const pad = new Mesh(
-      new PlaneGeometry(14, 22),
-      comicToon(ComicPalette.asphalt),
-    );
+    this.idleGroup = new Group();
+    const pad = new Mesh(new PlaneGeometry(14, 22), comicToon(ComicPalette.asphalt));
     pad.rotation.x = -Math.PI / 2;
     pad.position.set(0, 0.01, 0);
-    pad.receiveShadow = true;
-    this.scene.add(pad);
     const grass = new Mesh(new PlaneGeometry(28, 36), comicToon(ComicPalette.grass));
     grass.rotation.x = -Math.PI / 2;
     grass.position.set(0, 0, 0);
-    grass.receiveShadow = true;
-    this.scene.add(grass);
     const visual = buildComicCar(
       createCarState({
         id: "idle",
@@ -144,13 +139,14 @@ export class RaceRenderer {
     visual.root.position.set(0, 0, 0);
     visual.root.rotation.y = Math.PI;
     this.idleCar = visual.root;
-    this.scene.add(visual.root);
+    this.idleGroup.add(grass, pad, visual.root);
+    this.scene.add(this.idleGroup);
   }
 
   renderIdle(): void {
     this.fxTime += 1 / 60;
+    this.idleGroup.visible = true;
     if (this.idleCar) {
-      this.idleCar.visible = true;
       this.idleCar.rotation.y = Math.PI + Math.sin(this.fxTime * 0.35) * 0.35;
     }
     this.camera.position.set(
@@ -171,7 +167,7 @@ export class RaceRenderer {
   }
 
   buildTrack(session: RaceSession): void {
-    if (this.idleCar) this.idleCar.visible = false;
+    this.idleGroup.visible = false;
     this.scene.remove(this.trackGroup);
     this.scene.remove(this.sceneryGroup);
     disposeObject(this.trackGroup);
@@ -190,7 +186,7 @@ export class RaceRenderer {
 
   sync(session: RaceSession): void {
     this.fxTime += 1 / 60;
-    if (this.idleCar) this.idleCar.visible = false;
+    this.idleGroup.visible = false;
 
     for (const car of session.cars) {
       let visual = this.carVisuals.get(car.id);
