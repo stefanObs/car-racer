@@ -1,8 +1,8 @@
 # Crash Circuit
 
-Arcade-Racer (Konzept: `CONCEPT.md`). Stack: `TECH.md`.
+Arcade-Racer — Konzept: `CONCEPT.md`, Stack: `TECH.md`.
 
-## Develop
+## Run
 
 ```bash
 npm install
@@ -11,6 +11,14 @@ npm test
 npm run build
 ```
 
+## MVP (v0.2.0)
+
+- Cup mit 5 Strecken (Sportwagen-Karriere)
+- Freier Modus für freigeschaltete Strecken
+- Garage: Blitz + Bison, Lack, Aufkleber, 9 Teile, 3 Kombos, CHF
+- Arcade-Rennen: Gras/Mauer, Buckel, Schaden+Heilung, K.O., Catch-up, KI
+- Eingabe: Tastatur, Gamepad, Touch (Tablet)
+
 ## Delivery
 
-Each implementation step: bump version → commit on `master` → push. No feature branches.
+Jeder Schritt: Version → Commit auf `master` → Push. Keine Feature-Branches.

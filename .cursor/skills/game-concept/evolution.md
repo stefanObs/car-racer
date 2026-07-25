@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-25 — v0.2.0 MVP implementation
+
+- Trigger: user — implement the MVP
+- Shipped: 2 cars, 5 cup levels, free mode, garage (paint/stickers/parts/synergies), race sim with zones/damage/heal/KO/catch-up/AI, DE UI, keyboard+gamepad+touch
+- Version 0.2.0 on master
+
 ### 2026-07-25 — v3.2 Stack adopted + master-only delivery
 
 - Trigger: user — use recommended tech; each step versioned, committed, pushed to master; no branches

@@ -1,21 +1,22 @@
-import { createRaceScene } from "./render/raceScene";
 import { APP_VERSION } from "./core/version";
+import { GameApp } from "./ui/GameApp";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
-const versionEl = document.querySelector<HTMLElement>("#app-version");
+const uiRoot = document.querySelector<HTMLElement>("#ui-root");
 
-if (!canvas) {
-  throw new Error("Canvas #game-canvas fehlt.");
+if (!canvas || !uiRoot) {
+  throw new Error("Canvas oder UI-Root fehlt.");
 }
 
-if (versionEl) {
-  versionEl.textContent = `v${APP_VERSION}`;
-}
+void APP_VERSION;
+const app = new GameApp(canvas, uiRoot);
 
-const race = createRaceScene(canvas);
+let last = performance.now();
 
 function frame(now: number): void {
-  race.tick(now);
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  app.tick(now, dt);
   requestAnimationFrame(frame);
 }
 
