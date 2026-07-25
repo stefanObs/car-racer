@@ -1,0 +1,15 @@
+{
+  "dailyChallenge": null,
+  "favorites": [],
+  "examples": [
+    {
+      "seed": "A7F2",
+      "length": "medium",
+      "curviness": 0.55,
+      "unevenRatio": 0.2,
+      "grassWidth": 3,
+      "theme": "city",
+      "laps": 3
+    }
+  ]
+}

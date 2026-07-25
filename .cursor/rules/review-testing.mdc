@@ -1,0 +1,16 @@
+---
+description: Use Crash Circuit review-testing for playtest, QA, UX, art consistency, and full level regression.
+alwaysApply: true
+---
+
+# Review & testing
+
+When reviewing, playtesting, QAing, verifying UX/graphics, checking regressions, or finishing player-facing work:
+
+1. **Read** and follow `.cursor/skills/review-testing/SKILL.md`
+2. Use checklists in `.cursor/skills/review-testing/checklists.md`
+3. Judge **doability for a ~10+ German player** against `CONCEPT.md`
+4. Regression must cover **all** shipped levels (list IDs run)
+5. Graphics must match Asphalt-Comic; UX must match concept §9 screens
+
+Report with doability verdict and severity-ranked findings.

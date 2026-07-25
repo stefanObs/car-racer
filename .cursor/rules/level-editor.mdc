@@ -1,0 +1,15 @@
+---
+description: Apply Crash Circuit level-editor rules for tracks, cups, free mode, and ad-hoc generation.
+alwaysApply: true
+---
+
+# Level editor
+
+When the task touches tracks, cups, free-mode layouts, ad-hoc seeds, obstacles, spawns, AI lines, or files under `levels/`:
+
+1. Read and follow `.cursor/skills/level-editor/SKILL.md`
+2. Obey asphalt → grass → wall (tires in corners, concrete on straights)
+3. Use `.cursor/skills/level-editor/track-spec.md`
+4. For track art/mockups, also follow `.cursor/skills/asphalt-comic-art/`
+
+If the task is unrelated to levels, skip deep level work but still respect track rules if code mentions them.

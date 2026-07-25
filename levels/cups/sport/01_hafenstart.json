@@ -1,0 +1,73 @@
+{
+  "id": "blitz_cup_01_hafenstart",
+  "kind": "cup",
+  "displayName": "Hafenstart",
+  "description": "Kurze Einführungsrunde — Linie halten, Gras meiden.",
+  "locale": "de",
+  "theme": "harbor",
+  "classCup": "sport",
+  "cupIndex": 1,
+  "laps": 3,
+  "recommendedClass": "sport",
+  "weather": "clear",
+  "gripMultiplier": 1.0,
+  "track": {
+    "closedLoop": true,
+    "asphaltWidth": 12,
+    "grassWidth": 3,
+    "segments": [
+      { "type": "straight", "length": 50, "width": 12 },
+      { "type": "curve_r", "radius": 20, "angleDeg": 90, "width": 12 },
+      { "type": "straight", "length": 35, "width": 12 },
+      { "type": "curve_r", "radius": 18, "angleDeg": 90, "width": 12 },
+      { "type": "straight", "length": 50, "width": 12 },
+      { "type": "curve_r", "radius": 20, "angleDeg": 90, "width": 12 },
+      { "type": "straight", "length": 35, "width": 12 },
+      { "type": "curve_r", "radius": 18, "angleDeg": 90, "width": 12 }
+    ],
+    "walls": {
+      "rule": "tire_in_corners_concrete_on_straights"
+    }
+  },
+  "obstacles": [],
+  "spawn": {
+    "grid": [
+      [-10, -3],
+      [-10, 3],
+      [-16, -3],
+      [-16, 3],
+      [-22, -3],
+      [-22, 3]
+    ],
+    "headingDeg": 0
+  },
+  "checkpoints": [
+    { "id": "start", "position": [0, 0], "width": 14 },
+    { "id": "s1", "position": [50, 0], "width": 14 },
+    { "id": "s2", "position": [50, 50], "width": 14 }
+  ],
+  "ai": {
+    "racingLine": [
+      [0, 0],
+      [50, 0],
+      [70, 20],
+      [70, 50],
+      [50, 70],
+      [0, 70],
+      [-20, 50],
+      [-20, 20],
+      [0, 0]
+    ],
+    "respawnPoints": [
+      [8, 0],
+      [55, 10],
+      [60, 55],
+      [10, 65]
+    ]
+  },
+  "rewards": {
+    "currency": "CHF",
+    "placePurse": [500, 350, 250, 150, 100, 80],
+    "starsOnTop3": true
+  }
+}

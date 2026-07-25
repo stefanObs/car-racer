@@ -1,0 +1,17 @@
+---
+description: Enforce clean code, clarity-first refactors, always test, reproduce-before-fix.
+alwaysApply: true
+---
+
+# Programming standards
+
+For all code work in this repo, **read** and follow `.cursor/skills/clean-programming/SKILL.md` (see also `skills-router`).
+
+Hard rules:
+
+- **Clean code**
+- **Refactor and optimize for simple maintainability and clarity**
+- **Always test**
+- **Always reproduce first before fixing an issue**
+
+Do not ship fixes without a reliable repro and a failing test that captures it (or an explicit blocker if repro is impossible).

@@ -1,0 +1,13 @@
+---
+description: Keep CONCEPT.md as source of truth; refine/evolve deliberately; implementation must follow concept.
+alwaysApply: true
+---
+
+# Game concept alignment
+
+`CONCEPT.md` is the design source of truth. **Read** `.cursor/skills/game-concept/SKILL.md` whenever design or feature work happens (see also `skills-router`).
+
+- **Refine** ideas into clear, testable rules in `CONCEPT.md`
+- **Evolve** the concept on purpose (version bump + decision log); do not silently reverse invariants
+- **Implement** only what the concept allows; if code disagrees, fix code or amend the concept explicitly
+- When concept rules change, sync asphalt-comic-art, level-editor, review-testing, and related specs in the same effort

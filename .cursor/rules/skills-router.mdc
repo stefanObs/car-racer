@@ -1,0 +1,22 @@
+---
+description: Mandatory skill router — read every Crash Circuit project skill that applies to the current task before acting.
+alwaysApply: true
+---
+
+# Skill router (mandatory)
+
+Before nontrivial work, select and **read** every matching project skill below. Do not skip a skill because you “already know” it — open `SKILL.md` (and linked files when needed).
+
+| If the task involves… | Read |
+|------------------------|------|
+| Design, features, MVP scope, CONCEPT, mechanics, economy, modes | `.cursor/skills/game-concept/SKILL.md` |
+| Any code write/edit/refactor/debug/optimize | `.cursor/skills/clean-programming/SKILL.md` |
+| Review, QA, playtest, UX check, regression, “does it work for players” | `.cursor/skills/review-testing/SKILL.md` |
+| Images, UI art, VFX, mockups, visuals, CSS look, GenerateImage | `.cursor/skills/asphalt-comic-art/SKILL.md` |
+| Tracks, levels, cups, free/ad-hoc, obstacles, level JSON | `.cursor/skills/level-editor/SKILL.md` |
+
+After each implementation step: version → commit on `master` → push (see `.cursor/rules/delivery-workflow.mdc`). No feature branches.
+
+**Multi-match is normal** (e.g. new race feature → game-concept + clean-programming + review-testing; track mockup → level-editor + asphalt-comic-art).
+
+**Default baseline for implementation tasks:** `game-concept` + `clean-programming`. Add others as the table requires. Finish with `review-testing` when verifying player-facing changes.

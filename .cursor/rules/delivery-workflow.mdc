@@ -1,0 +1,16 @@
+---
+description: Each implementation step is versioned, committed, and pushed to master only — no feature branches.
+alwaysApply: true
+---
+
+# Delivery workflow (master only)
+
+For every **implementation step** (scaffold, feature slice, fix that ships):
+
+1. **Versionize** — bump `package.json` `version` (semver) to match the step
+2. **Commit** on **`master`** with a clear message (include version, e.g. `v0.1.0: …`)
+3. **Push** to `origin/master`
+
+**Do not** create feature branches, PRs-for-branching, or long-lived side branches. Work directly on `master`.
+
+Small doc-only tweaks may share the next implementation commit; do not leave finished implementation steps unpushed.

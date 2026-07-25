@@ -1,0 +1,14 @@
+---
+description: Lock Crash Circuit visuals to Asphalt-Comic; always load the art skill for any graphics work.
+alwaysApply: true
+---
+
+# Art direction lock
+
+All visuals for this project use **Asphalt-Comic** (style option 1) only.
+
+When generating images, mockups, assets, VFX, UI art, HUD/menu look, CSS that defines the look, or style prompts:
+
+1. **Read** and follow `.cursor/skills/asphalt-comic-art/SKILL.md`
+2. Use `.cursor/skills/asphalt-comic-art/reference.png` as the canonical look
+3. Do not use diorama, night-neon, poster, or low-poly styles unless the user explicitly requests a one-off exception
