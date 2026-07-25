@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.2.8",
+  "version": "0.2.9",
   "private": true,
   "type": "module",
   "description": "Crash Circuit — arcade racer (free OSS stack)",
@@ -10,7 +10,9 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:all": "vitest run && playwright test"
   },
   "engines": {
     "node": ">=20"
@@ -19,6 +21,7 @@
     "three": "^0.185.1"
   },
   "devDependencies": {
+    "@playwright/test": "^1.62.0",
     "@types/node": "^26.1.1",
     "@types/three": "^0.185.1",
     "typescript": "^7.0.2",

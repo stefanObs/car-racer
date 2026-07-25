@@ -134,14 +134,14 @@ Document third-party licenses in a `NOTICE` or `licenses/` folder when shipping.
 
 ## 7. MVP build order (tech)
 
-1. Vite + TS + canvas/three boot + ActionMap (keyboard)
-2. One loop track from `01_hafenstart.json` + grass/wall volumes
-3. Arcade drive + chase camera + Asphalt-Comic materials
-4. Gamepad + touch overlays; HTML main menu
-5. Damage/heal, basic AI, CHF results
-6. Garage (paint + one sticker slot + two parts)
-7. Vitest for sim rules; Playwright smoke (load + start race)
-8. Tablet layout pass + controller menu pass (review-testing)
+1. ✅ Vite + TS + canvas/three boot + ActionMap (keyboard)
+2. ✅ One loop track + grass/wall volumes
+3. ✅ Arcade drive + chase camera (+ Canvas2D fallback)
+4. ✅ Gamepad + touch overlays; HTML main menu
+5. ✅ Damage/heal, basic AI, CHF results
+6. ✅ Garage (paint, stickers, parts, synergies)
+7. ✅ Vitest for sim rules + **Playwright smoke** (load menu → cup → race)
+8. Tablet layout pass + controller menu pass (review-testing) ← next
 
 ---
 

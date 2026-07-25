@@ -28,7 +28,9 @@ Die Skripte:
 ## Develop
 
 ```bash
-npm test
+npm test          # unit
+npm run test:e2e  # Playwright: starts server + browser smoke
+npm run test:all
 npm run build
 ```
 
