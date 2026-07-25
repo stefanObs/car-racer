@@ -115,5 +115,11 @@ if [ ! -d node_modules ] || [ ! -d node_modules/vite ]; then
 fi
 
 echo "Starte Crash Circuit (Dev-Server)…"
-echo "Im Browser öffnen, sobald die URL erscheint (meist http://localhost:5173)."
+echo "Lokal:    http://127.0.0.1:5173/"
+echo "Im LAN:   http://<VM-IP>:5173/  (Host: true / 0.0.0.0)"
+if command -v hostname >/dev/null 2>&1; then
+  for ip in $(hostname -I 2>/dev/null || true); do
+    echo "Versuch:  http://${ip}:5173/"
+  done
+fi
 exec npm run dev

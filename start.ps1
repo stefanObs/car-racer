@@ -95,6 +95,12 @@ if (-not (Test-Path "node_modules") -or -not (Test-Path "node_modules\vite")) {
 }
 
 Write-Host "Starte Crash Circuit (Dev-Server)…"
-Write-Host "Im Browser öffnen, sobald die URL erscheint (meist http://localhost:5173)."
+Write-Host "Lokal:  http://127.0.0.1:5173/"
+Write-Host "Im LAN: http://<VM-IP>:5173/"
+try {
+  Get-NetIPAddress -AddressFamily IPv4 -ErrorAction SilentlyContinue |
+    Where-Object { $_.IPAddress -notlike "127.*" } |
+    ForEach-Object { Write-Host ("Versuch: http://{0}:5173/" -f $_.IPAddress) }
+} catch {}
 npm run dev
 exit $LASTEXITCODE
