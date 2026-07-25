@@ -1,6 +1,7 @@
 import { CARS, type CarId } from "../data/cars";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
 import { PARTS, activeSynergies, mergeStats, type PartId } from "../data/parts";
+import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
 import { formatChf, loadSave, writeSave, type SaveData, type StickerId } from "../meta/save";
@@ -22,6 +23,7 @@ export class GameApp {
   private lastResult: ReturnType<RaceSession["result"]> | null = null;
   private focusIndex = 0;
   private uiRoot: HTMLElement;
+  private dev: DevTools;
   private adhocSeed = randomSeed();
   private adhocLength: AdhocLength = "medium";
   private lastAdhoc: LevelDefinition | null = null;
@@ -41,20 +43,46 @@ export class GameApp {
     const created = createGameRenderer(canvas);
     this.renderer = created.renderer;
     this.renderMode = created.mode;
+    const host = uiRoot.parentElement ?? document.body;
+    this.dev = new DevTools(host, {
+      getChf: () => this.save.chf,
+      setChf: (amount) => {
+        this.save.chf = amount;
+        writeSave(this.save);
+      },
+      canForceFinish: () => this.screen === "race" && !!this.race && !this.race.done,
+      fieldSize: () => this.race?.cars.length ?? 6,
+      forceFinish: (place) => {
+        if (!this.race || this.screen !== "race") return;
+        this.race.forceFinishAs(place);
+      },
+      onUiRefresh: () => {
+        if (this.screen !== "race") this.renderUi();
+        else this.updateHud();
+      },
+    });
     this.renderUi();
   }
 
   tick(now: number, dt: number): void {
+    const typing =
+      document.activeElement instanceof HTMLInputElement ||
+      document.activeElement instanceof HTMLTextAreaElement;
     const actions = sampleActions();
-    this.handleUiNav(actions);
+    if (!typing) this.handleUiNav(actions);
 
     if (this.screen === "race" && this.race) {
-      this.race.step(dt, {
-        throttle: actions.throttle,
-        brake: actions.brake,
-        steer: actions.steer,
-        nitro: actions.nitro,
-      });
+      this.race.step(
+        dt,
+        typing
+          ? { throttle: 0, brake: 0, steer: 0, nitro: false }
+          : {
+              throttle: actions.throttle,
+              brake: actions.brake,
+              steer: actions.steer,
+              nitro: actions.nitro,
+            },
+      );
       this.renderer.sync(this.race);
       this.updateHud();
       if (this.race.done) {
@@ -76,7 +104,14 @@ export class GameApp {
   }
 
   private onMenuKeyDown(e: KeyboardEvent): void {
+    if (e.code === "F1" || e.code === "F2" || e.code === "F3") return;
     if (this.screen === "race") return;
+    if (
+      document.activeElement instanceof HTMLInputElement ||
+      document.activeElement instanceof HTMLTextAreaElement
+    ) {
+      return;
+    }
     const dirByCode: Record<string, UiNavDir> = {
       ArrowUp: "up",
       ArrowDown: "down",
@@ -205,18 +240,20 @@ export class GameApp {
   }
 
   private updateHud(): void {
-    const hud = this.uiRoot.querySelector("#race-hud");
+    const hud = this.uiRoot.querySelector<HTMLElement>("#race-hud");
     if (!hud || !this.race) return;
     const p = this.race.player();
     const stage = this.race.playerDamageStage();
     hud.innerHTML = `
-      <div class="hud-row"><strong>Platz ${p.place}/${this.race.cars.length}</strong> · Runde ${Math.min(p.lap, this.race.level.laps)}/${this.race.level.laps}</div>
-      <div class="hud-row">Schaden: ${DAMAGE_LABELS[stage]}${p.healFx > 0.2 ? " · Reparatur…" : ""}</div>
-      <div class="bars">
-        <div class="bar"><span>Nitro</span><i style="width:${Math.round(p.nitro * 100)}%"></i></div>
-        <div class="bar"><span>Karosserie</span><i class="hp" style="width:${Math.round(p.hp * 100)}%"></i></div>
+      <div class="hud-row" data-dev-name="hud.place-lap"><strong>Platz ${p.place}/${this.race.cars.length}</strong> · Runde ${Math.min(p.lap, this.race.level.laps)}/${this.race.level.laps}</div>
+      <div class="hud-row" data-dev-name="hud.damage">Schaden: ${DAMAGE_LABELS[stage]}${p.healFx > 0.2 ? " · Reparatur…" : ""}</div>
+      <div class="bars" data-dev-name="hud.bars">
+        <div class="bar" data-dev-name="hud.nitro"><span>Nitro</span><i style="width:${Math.round(p.nitro * 100)}%"></i></div>
+        <div class="bar" data-dev-name="hud.hp"><span>Karosserie</span><i class="hp" style="width:${Math.round(p.hp * 100)}%"></i></div>
       </div>
     `;
+    hud.dataset.devName = "#race-hud";
+    this.dev.tagUi(this.uiRoot);
   }
 
   private renderUi(): void {
@@ -233,7 +270,7 @@ export class GameApp {
           <button data-nav data-act="adhoc">Ad-hoc</button>
           <button data-nav data-act="garage">Garage</button>
         </div>
-        <p class="help">Tastatur: WASD / Pfeile, Enter, Esc · Controller: D-Pad/Stick, A/B · Tablet: Touch</p>
+        <p class="help">Tastatur: WASD / Pfeile, Enter, Esc · Controller: D-Pad/Stick, A/B · Tablet: Touch · Dev: F1/F2/F3</p>
       `;
     } else if (this.screen === "cup") {
       const rows = CUP_LEVELS.map((l) => {
@@ -304,8 +341,9 @@ export class GameApp {
       `;
     }
 
-    this.uiRoot.innerHTML = `<div class="panel ${this.screen}">${body}</div>`;
+    this.uiRoot.innerHTML = `<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
     this.wireUi();
+    this.dev.tagUi(this.uiRoot);
     void buttons;
   }
 

@@ -35,6 +35,14 @@ npm run test:all
 npm run build
 ```
 
+### Dev-Cheats (Tastatur)
+
+| Taste | Aktion |
+|-------|--------|
+| **F1** | Debug-Namen ein/aus (`data-dev-name` Labels auf UI-Elementen) |
+| **F2** | CHF setzen (Textfeld → Übernehmen) |
+| **F3** | Aktuelles Rennen beenden + Platz 1–n wählen |
+
 ## MVP (v0.2.x)
 
 - Cup, Freier Modus, Garage, CHF, KI-Rennen, Tastatur/Gamepad/Touch

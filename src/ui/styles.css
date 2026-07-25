@@ -256,6 +256,88 @@ button[data-act="race"]:not(:disabled) {
   margin: 8px 0;
 }
 
+.dev-root {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+}
+
+.dev-badge {
+  pointer-events: none;
+  position: absolute;
+  top: max(8px, env(safe-area-inset-top));
+  right: max(8px, env(safe-area-inset-right));
+  padding: 4px 8px;
+  font-size: 0.7rem;
+  background: rgba(0, 0, 0, 0.65);
+  border: 1px solid #ffe066;
+  color: #ffe066;
+  opacity: 0.85;
+}
+
+.dev-dialog {
+  pointer-events: auto;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: min(320px, calc(100% - 32px));
+  max-width: 420px;
+  padding: 16px;
+  background: rgba(20, 22, 28, 0.96);
+  border: 3px solid #ffe066;
+  border-radius: 6px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+}
+
+.dev-dialog input {
+  display: block;
+  width: 100%;
+  margin: 10px 0 14px;
+  min-height: 44px;
+  font: inherit;
+  padding: 8px 10px;
+  border: 2px solid var(--outline);
+  border-radius: 4px;
+  background: #1b1b1f;
+  color: var(--ui-text);
+}
+
+html.dev-show-names [data-dev-name] {
+  outline: 1px dashed rgba(255, 224, 102, 0.7);
+  outline-offset: 1px;
+}
+
+html.dev-show-names [data-dev-name]::after {
+  content: attr(data-dev-name);
+  position: absolute;
+  z-index: 30;
+  top: 0;
+  left: 0;
+  transform: translateY(-90%);
+  max-width: 14rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 1px 4px;
+  font-size: 9px;
+  line-height: 1.2;
+  background: #111;
+  color: #ffe066;
+  border: 1px solid #ffe066;
+  pointer-events: none;
+}
+
+html.dev-show-names .panel,
+html.dev-show-names button,
+html.dev-show-names .race-hud,
+html.dev-show-names .touch-controls,
+html.dev-show-names .bar,
+html.dev-show-names .dev-dialog {
+  position: relative;
+}
+
 /* Desktop mouse without touch: hide race touch pad */
 @media (hover: hover) and (pointer: fine) {
   html:not([data-touch]) .touch-controls {

@@ -180,6 +180,33 @@ export class RaceSession {
     };
   }
 
+  /** Dev cheat: end the race immediately with a chosen player finish place. */
+  forceFinishAs(place: number): void {
+    if (this.done) return;
+    const n = this.cars.length;
+    const playerPlace = Math.max(1, Math.min(n, Math.round(place)));
+    const player = this.player();
+    player.finished = true;
+    player.finishPlace = playerPlace;
+    player.place = playerPlace;
+    player.lap = this.level.laps + 1;
+    player.speed = 0;
+
+    let next = 1;
+    for (const car of this.cars) {
+      if (car.isPlayer) continue;
+      if (next === playerPlace) next += 1;
+      car.finished = true;
+      car.finishPlace = next;
+      car.place = next;
+      car.lap = this.level.laps + 1;
+      car.speed = 0;
+      next += 1;
+    }
+    this.finishedCount = n;
+    this.done = true;
+  }
+
   player(): CarState {
     return this.cars.find((c) => c.isPlayer)!;
   }
