@@ -24,6 +24,7 @@ Cross-platform launchers are mandatory and must stay green:
 5. First bootstrap needs **network** once (official nodejs.org dist). Fail with a clear message if download tools/network are unavailable — never hang silently.
 6. Do not remove/rename scripts without updating **all three** and `README.md`.
 7. When changing `package.json` `dev`/`start`/`engines`, update and smoke-check the start scripts in the same change.
+8. Before `npm run dev`, start scripts must free `:5173` via `scripts/free-dev-port.mjs` (Vite `strictPort` otherwise exits with “already in use”). Never use `pkill -f vite`.
 
 ## Verification before claiming done
 

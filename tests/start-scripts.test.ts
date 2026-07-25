@@ -43,5 +43,6 @@ describe("start scripts", () => {
     const helper = readFileSync(resolve(root, "scripts/free-dev-port.mjs"), "utf8");
     expect(helper).toContain("pkill -f vite");
     expect(helper).toContain("ss");
+    expect(helper).toContain("netstat");
   });
 });

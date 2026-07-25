@@ -94,6 +94,10 @@ if (-not (Test-Path "node_modules") -or -not (Test-Path "node_modules\vite")) {
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
+# Vite uses strictPort — free leftover listener by port (never pkill -f vite).
+node scripts/free-dev-port.mjs 5173
+if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+
 Write-Host "Starte Crash Circuit (Dev-Server)…"
 Write-Host "Lokal:  http://127.0.0.1:5173/"
 Write-Host "Im LAN: http://<VM-IP>:5173/"

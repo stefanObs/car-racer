@@ -114,6 +114,10 @@ if [ ! -d node_modules ] || [ ! -d node_modules/vite ]; then
   npm install
 fi
 
+# Vite uses strictPort — a leftover listener makes start fail with "already in use".
+# Free by port PID only (never pkill -f vite — that kills agent shells).
+node scripts/free-dev-port.mjs 5173
+
 echo "Starte Crash Circuit (Dev-Server)…"
 echo "Lokal:    http://127.0.0.1:5173/"
 echo "Im LAN:   http://<VM-IP>:5173/  (Host: true / 0.0.0.0)"
