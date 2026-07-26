@@ -69,8 +69,8 @@ export function ensureComicBoxUvs(geometry: BufferGeometry): void {
 }
 
 /**
- * Front-planar UVs for the skull nose ornament sheet.
- * Projects local YZ → UV fitted to 0..1 so a centered face atlas reads on the bumper.
+ * Front-planar UVs for skull / horn nose ornaments.
+ * Projects local YZ → UV fitted to 0..1 (matches baked buggy-skull*.png layouts).
  */
 export function ensureNoseOrnamentUvs(geometry: BufferGeometry): void {
   geometry.computeBoundingBox();

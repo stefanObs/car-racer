@@ -195,7 +195,7 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
       toon = comicToon(0xdce2e8);
     } else if (isHornMat) {
-      // Matching bone-horn albedo for the Totenkopf horns.
+      // YZ UVs + mesh-laid double-horn sheet (see scripts/bake-buggy-skull-horn.mjs).
       toon = comicToon(0xffffff);
       if (mesh.geometry) {
         ensureNoseOrnamentUvs(mesh.geometry);
