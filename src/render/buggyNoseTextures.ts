@@ -1,5 +1,5 @@
 /**
- * Asphalt-Comic albedo for Käferkraft skull nose prop.
+ * Asphalt-Comic albedos for Käferkraft skull nose + horns.
  * Dog/Hund keeps authored GLB albedo + UVs (see buggyNose.ts).
  */
 import {
@@ -11,9 +11,10 @@ import {
 
 const URLS = {
   skull: "/textures/buggy-skull.png",
+  skullHorn: "/textures/buggy-skull-horn.png",
 } as const;
 
-const maps = new Map<"skull", Texture>();
+const maps = new Map<"skull" | "skullHorn", Texture>();
 let preloadPromise: Promise<void> | null = null;
 
 function configureNoseMap(tex: Texture): Texture {
@@ -26,7 +27,7 @@ function configureNoseMap(tex: Texture): Texture {
   return tex;
 }
 
-/** Load skull PNG once (call with car / nose preload). */
+/** Load skull + horn PNGs once (call with car / nose preload). */
 export function preloadBuggyNoseTextures(): Promise<void> {
   if (preloadPromise) return preloadPromise;
   preloadPromise = (async () => {
@@ -41,10 +42,10 @@ export function preloadBuggyNoseTextures(): Promise<void> {
   return preloadPromise;
 }
 
-export function buggyNoseTexture(id: "skull"): Texture | null {
+export function buggyNoseTexture(id: "skull" | "skullHorn"): Texture | null {
   return maps.get(id) ?? null;
 }
 
-export function hasBuggyNoseTexture(id: "skull"): boolean {
+export function hasBuggyNoseTexture(id: "skull" | "skullHorn"): boolean {
   return maps.has(id);
 }

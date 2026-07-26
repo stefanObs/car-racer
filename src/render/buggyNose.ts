@@ -248,7 +248,7 @@ function findSkullParts(root: Object3D): Mesh[] {
       skullParts.push(mesh);
       return;
     }
-    if (isDark && isFrontHornMesh(mesh)) skullParts.push(mesh);
+    if (isDark && isBuggySkullHornMesh(mesh)) skullParts.push(mesh);
   });
   return skullParts;
 }
@@ -257,17 +257,19 @@ function findSkullParts(root: Object3D): Mesh[] {
 export function isBuggySkullCosmeticName(materialOrMeshName: string): boolean {
   const n = materialOrMeshName.toLowerCase();
   if (n.includes("headlight") || n.includes("eyered")) return false;
-  if (n.includes("skull")) return true;
-  if (n === "dark" || n.includes("dark")) return false; // horns need geometry check
+  if (n.includes("skull")) return true; // Skull + SkullHorn
   return false;
 }
 
-/** Dark horn shards sit at local X ≈ -1.2 with tip above the skull. */
-function isFrontHornMesh(mesh: Mesh): boolean {
+/** Front horn shards on the bumper (wide Z span, tip above the skull). */
+export function isBuggySkullHornMesh(mesh: Mesh): boolean {
+  if (!mesh.geometry) return false;
   if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
   const b = mesh.geometry.boundingBox;
   if (!b) return false;
-  return b.max.x < -1.0 && b.max.y > 0.2;
+  const sy = b.max.y - b.min.y;
+  const sz = b.max.z - b.min.z;
+  return b.max.x < -1.0 && b.max.y > 0.2 && sy > 0.2 && sz > 0.5;
 }
 
 /** Skull/nose point in `root` local space (matrix-safe). */

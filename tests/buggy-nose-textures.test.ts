@@ -5,10 +5,12 @@ import { atlasRoleFromName } from "../src/render/comicCarAtlases";
 describe("buggy nose textures", () => {
   it("has no maps before preload (unit env)", () => {
     expect(hasBuggyNoseTexture("skull")).toBe(false);
+    expect(hasBuggyNoseTexture("skullHorn")).toBe(false);
   });
 
-  it("does not route Skull materials through the dark trim atlas", () => {
-    // Skull uses public/textures/buggy-skull.png via buggyNoseTextures.
+  it("does not route Skull / SkullHorn through the dark trim atlas", () => {
+    // Dedicated public/textures/buggy-skull*.png via buggyNoseTextures.
     expect(atlasRoleFromName("Skull", "kaeferkraft")).toBe("body");
+    expect(atlasRoleFromName("SkullHorn", "kaeferkraft")).toBe("body");
   });
 });

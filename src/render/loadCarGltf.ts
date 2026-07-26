@@ -13,7 +13,7 @@ import {
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { CAR_IDS, type CarId } from "../data/cars";
 import { CAR_MODELS, type CarModelSpec } from "../data/carModels";
-import { applyBuggyNoseVariant } from "./buggyNose";
+import { applyBuggyNoseVariant, isBuggySkullHornMesh } from "./buggyNose";
 import { buggyNoseTexture } from "./buggyNoseTextures";
 import { applyCarStickers, carUsesNoseVariants } from "./carStickers";
 import { comicToon, outlineMaterial, inflateGeometry } from "./comicMaterials";
@@ -179,6 +179,11 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     const isBumperLamp =
       name.includes("eyered") || (name.includes("eye") && !name.includes("grey"));
     const isHeadlamp = roofLamp || isBumperLamp;
+    const isHornMat =
+      name.includes("skullhorn") ||
+      (carId === "kaeferkraft" &&
+        (name === "dark" || name.includes("dark")) &&
+        isBuggySkullHornMesh(mesh));
     let toon;
     if (name.includes("glass") || name.includes("window")) {
       toon = comicToon(color.getHex());
@@ -189,8 +194,19 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
       toon = comicToon(0xfff8e8);
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
       toon = comicToon(0xdce2e8);
+    } else if (isHornMat) {
+      // Matching bone-horn albedo for the Totenkopf horns.
+      toon = comicToon(0xffffff);
+      if (mesh.geometry) {
+        ensureNoseOrnamentUvs(mesh.geometry);
+        const hornMap = buggyNoseTexture("skullHorn");
+        if (hornMap) {
+          toon.map = hornMap;
+          toon.needsUpdate = true;
+        }
+      }
     } else if (name.includes("skull")) {
-      // Bone skull ornament — comic albedo (box UVs; authored UVs are atlas-scrap).
+      // Bone skull ornament — comic albedo (YZ UVs; authored UVs are atlas-scrap).
       toon = comicToon(0xffffff);
       if (mesh.geometry) {
         ensureNoseOrnamentUvs(mesh.geometry);
@@ -205,11 +221,12 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     } else {
       toon = comicToon(color.getHex());
     }
+    const skullOrnament = isHornMat || name.includes("skull");
     // Keep authored atlas maps (e.g. Sketchfab Hotrod) under cel shading.
-    if (map && !name.includes("skull")) {
+    if (map && !skullOrnament) {
       toon.map = map;
       toon.needsUpdate = true;
-    } else if (!carUsesAuthoredAtlas(carId) && mesh.geometry && !name.includes("skull") && !toon.map) {
+    } else if (!carUsesAuthoredAtlas(carId) && mesh.geometry && !skullOrnament && !toon.map) {
       ensureComicBoxUvs(mesh.geometry);
       const role = isHeadlamp ? "headlight" : atlasRoleFromName(mat?.name ?? mesh.name ?? "", carId);
       const atlas = comicAtlasForRole(carId, role);
@@ -217,7 +234,13 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
       toon.userData.comicTintable = role === "body" || role === "armor";
       toon.needsUpdate = true;
     }
-    toon.name = isHeadlamp ? "Headlight" : (mat?.name ?? mesh.name ?? "BodyPaint");
+    toon.name = isHeadlamp
+      ? "Headlight"
+      : isHornMat
+        ? "SkullHorn"
+        : name.includes("skull")
+          ? "Skull"
+          : (mat?.name ?? mesh.name ?? "BodyPaint");
     return toon;
   });
   mesh.material = next.length === 1 ? next[0]! : next;

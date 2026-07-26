@@ -3,7 +3,7 @@
  * Tune Käferkraft GetGLB buggy materials/meshes (free asset).
  * - Roll cage + rear under-engine tray → BodyPaint (garage color)
  * - Engine + exhaust → silver Chrome
- * - Front skull eyes → red; horns → dark grey
+ * - Front skull eyes → red; horns → SkullHorn (bone texture in-engine)
  * - Seats, pedals, gear shift, steering column → black
  * - Drop thin black overlay strips beside body panels
  *
@@ -237,6 +237,7 @@ async function main() {
   const chrome = makeMat(doc, "Chrome", 0xd8dde3, { metal: 0.55, rough: 0.35 });
   const tire = makeMat(doc, "Tire", 0x1a1a1a);
   const skull = makeMat(doc, "Skull", 0xf1f3f5);
+  const skullHorn = makeMat(doc, "SkullHorn", 0xe8dcc8);
   const eye = makeMat(doc, "EyeRed", 0xff1e1e);
   const dark = makeMat(doc, "Dark", 0x1a1a1a);
   const seat = makeMat(doc, "Seat", 0x1a1a1a);
@@ -280,6 +281,8 @@ async function main() {
           prim.setMaterial(eye);
           break;
         case "horn":
+          prim.setMaterial(skullHorn);
+          break;
         case "dark":
           prim.setMaterial(dark);
           break;

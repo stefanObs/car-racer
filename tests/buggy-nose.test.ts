@@ -26,8 +26,9 @@ describe("buggy nose helpers", () => {
     expect(emptyKit("kaeferkraft").sticker).toBe("none");
   });
 
-  it("treats Skull as cosmetic but bumper EyeRed/Headlight as car parts", () => {
+  it("treats Skull and SkullHorn as cosmetic but bumper EyeRed/Headlight as car parts", () => {
     expect(isBuggySkullCosmeticName("Skull")).toBe(true);
+    expect(isBuggySkullCosmeticName("SkullHorn")).toBe(true);
     expect(isBuggySkullCosmeticName("EyeRed")).toBe(false);
     expect(isBuggySkullCosmeticName("Headlight")).toBe(false);
   });
