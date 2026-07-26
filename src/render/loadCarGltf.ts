@@ -168,22 +168,26 @@ function meshBounds(root: Object3D): Box3 {
 }
 
 function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
+  const roofLamp = carId === "kaeferkraft" && isKaeferkraftRoofLampMesh(mesh);
   const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
   const next = mats.map((mat) => {
     const color = materialColor(mat);
     const name = (mat?.name ?? mesh.name ?? "").toLowerCase();
     const std = mat as MeshStandardMaterial & MeshToonMaterial;
     const map = std.map ?? null;
+    const isBumperLamp =
+      name.includes("eyered") || (name.includes("eye") && !name.includes("grey"));
+    const isHeadlamp = roofLamp || isBumperLamp;
     let toon;
     if (name.includes("glass") || name.includes("window")) {
       toon = comicToon(color.getHex());
     } else if (name.includes("tire") || name.includes("rubber") || name.includes("wheel")) {
       toon = comicToon(0x1a1a1a);
+    } else if (isHeadlamp) {
+      // Bumper EyeRed + roll-cage pods — same sealed-beam look.
+      toon = comicToon(0xfff8e8);
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
       toon = comicToon(0xdce2e8);
-    } else if (name.includes("eyered") || (name.includes("eye") && !name.includes("grey"))) {
-      // Käferkraft bumper lamps — permanent headlights (not skull cosmetics).
-      toon = comicToon(0xfff8e8);
     } else if (name.includes("skull")) {
       toon = comicToon(0xf1f3f5);
     } else if (name.includes("seat") || name === "dark") {
@@ -196,22 +200,44 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
       toon.map = map;
       toon.needsUpdate = true;
     } else if (!carUsesAuthoredAtlas(carId) && mesh.geometry && !name.includes("skull")) {
-      // Asphalt-Comic detail atlases for flat free GLBs (Hotrod excluded).
-      // EyeRed → headlight atlas (stays visible on all nose variants).
       ensureComicBoxUvs(mesh.geometry);
-      const role = atlasRoleFromName(mat?.name ?? mesh.name ?? "", carId);
+      const role = isHeadlamp ? "headlight" : atlasRoleFromName(mat?.name ?? mesh.name ?? "", carId);
       const atlas = comicAtlasForRole(carId, role);
       toon.map = atlas;
       toon.userData.comicTintable = role === "body" || role === "armor";
       toon.needsUpdate = true;
     }
-    toon.name =
-      name.includes("eyered") || (name.includes("eye") && !name.includes("grey"))
-        ? "Headlight"
-        : (mat?.name ?? mesh.name ?? "BodyPaint");
+    toon.name = isHeadlamp ? "Headlight" : (mat?.name ?? mesh.name ?? "BodyPaint");
     return toon;
   });
   mesh.material = next.length === 1 ? next[0]! : next;
+}
+
+/**
+ * Käferkraft twin pods on the front roll bar (authored as Chrome).
+ * Geometry cue: high Y, forward X, left/right of center, compact blob.
+ */
+export function isKaeferkraftRoofLampMesh(mesh: Mesh): boolean {
+  if (!mesh.geometry) return false;
+  if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+  const b = mesh.geometry.boundingBox;
+  if (!b) return false;
+  const cx = (b.min.x + b.max.x) * 0.5;
+  const cy = (b.min.y + b.max.y) * 0.5;
+  const cz = (b.min.z + b.max.z) * 0.5;
+  const sx = b.max.x - b.min.x;
+  const sy = b.max.y - b.min.y;
+  const sz = b.max.z - b.min.z;
+  const longest = Math.max(sx, sy, sz);
+  const shortest = Math.min(sx, sy, sz);
+  return (
+    cy > 0.52 &&
+    cx < -0.2 &&
+    cx > -0.7 &&
+    Math.abs(cz) > 0.1 &&
+    longest < 0.36 &&
+    shortest > 0.015
+  );
 }
 
 function materialColor(mat: Material | undefined): Color {

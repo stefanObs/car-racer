@@ -6,7 +6,8 @@ import { CAR_IDS } from "../src/data/cars";
 import { createCarState, resolveContact } from "../src/sim/vehicle";
 import { CARS } from "../src/data/cars";
 import { mergeStats } from "../src/data/parts";
-import { shouldApplyGaragePaint } from "../src/render/loadCarGltf";
+import { shouldApplyGaragePaint, isKaeferkraftRoofLampMesh } from "../src/render/loadCarGltf";
+import { BoxGeometry, Mesh, MeshBasicMaterial } from "three";
 
 describe("gltf car pipeline + silhouette collision", () => {
   it("maps every car id to a public GLB url and collision radius", () => {
@@ -43,6 +44,18 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(shouldApplyGaragePaint("Skull")).toBe(false);
     expect(shouldApplyGaragePaint("Seat")).toBe(false);
     expect(shouldApplyGaragePaint("Dark")).toBe(false);
+  });
+
+  it("detects Käferkraft roll-bar lamp pods by local bounds", () => {
+    const lamp = new Mesh(new BoxGeometry(0.14, 0.28, 0.18), new MeshBasicMaterial({ name: "Chrome" }));
+    lamp.geometry.translate(-0.38, 0.7, 0.22);
+    lamp.geometry.computeBoundingBox();
+    expect(isKaeferkraftRoofLampMesh(lamp)).toBe(true);
+
+    const engineChrome = new Mesh(new BoxGeometry(0.3, 0.2, 0.3), new MeshBasicMaterial({ name: "Chrome" }));
+    engineChrome.geometry.translate(1.2, 0.5, 0);
+    engineChrome.geometry.computeBoundingBox();
+    expect(isKaeferkraftRoofLampMesh(engineChrome)).toBe(false);
   });
 
   it("kaeferkraft ships tuned materials (paint cage/tray, chrome engine, black controls)", () => {
