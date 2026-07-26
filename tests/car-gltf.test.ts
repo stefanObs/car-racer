@@ -42,9 +42,11 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(shouldApplyGaragePaint("CageOrange")).toBe(false);
     expect(shouldApplyGaragePaint("EyeRed")).toBe(false);
     expect(shouldApplyGaragePaint("Skull")).toBe(false);
+    expect(shouldApplyGaragePaint("Seat")).toBe(false);
+    expect(shouldApplyGaragePaint("Dark")).toBe(false);
   });
 
-  it("kaeferkraft ships tuned materials (cage/chrome/eyes, no black strip mats)", () => {
+  it("kaeferkraft ships tuned materials (cage/chrome/eyes/seats, no black strip mats)", () => {
     const path = resolve("public/models/cars/kaeferkraft.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
@@ -54,6 +56,8 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(text).toContain("EyeRed");
     expect(text).toContain("Skull");
     expect(text).toContain("BodyPaint");
+    expect(text).toContain("Seat");
+    expect(text).toContain("Dark");
   });
 
   it("bison ships modern L200 pickup with BodyPaint + Glass + Tire", () => {

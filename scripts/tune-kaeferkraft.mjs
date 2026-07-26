@@ -4,6 +4,8 @@
  * - Engine + exhaust → silver Chrome
  * - Roll cage over driver → orange
  * - Front skull eyes → red
+ * - Skull horns → dark grey/black
+ * - Cabin seats → black
  * - Drop thin black overlay strips beside body panels
  *
  * Prefers public/models/cars/kaeferkraft.source.glb when present.
@@ -101,6 +103,23 @@ function isSkullEye(c, id) {
   );
 }
 
+function isSkullHorn(c, id) {
+  // Horn shells on the front skull (mat18/mat20) — wide left/right peaks above the face.
+  // Not the white skull face (mat21) and not low chassis mat18 panels.
+  if (id !== 18 && id !== 20) return false;
+  if (c.x > -1.05 || c.x < -1.35) return false;
+  return c.size[1] > 0.25 && c.size[2] > 0.6 && c.y > 0.05;
+}
+
+function isSeat(c, id) {
+  // Bucket seats in the cockpit (originally mat22 grey)
+  if (id !== 22) return false;
+  if (c.x > 0.45 || c.x < -0.55) return false;
+  if (c.y < 0.05 || c.y > 0.55) return false;
+  if (Math.abs(c.z) < 0.12 || Math.abs(c.z) > 0.5) return false;
+  return c.size[1] > 0.4 && Math.max(c.size[0], c.size[2]) > 0.4;
+}
+
 function isRollCage(c, id) {
   // Tubular bars over the cockpit (originally mat13/mat14 orange-red)
   if (id !== 13 && id !== 14) return false;
@@ -130,6 +149,8 @@ function classify(c, matName) {
   const id = matId(matName);
 
   if (isSkullEye(c, id)) return "eye";
+  if (isSkullHorn(c, id)) return "horn";
+  if (isSeat(c, id)) return "seat";
   if (isBlackPanelStrip(c, id) || isTinyEdgeFlake(c, id)) return "drop";
 
   if (isWheel(c)) {
@@ -180,8 +201,21 @@ async function main() {
   const tire = makeMat(doc, "Tire", 0x1a1a1a);
   const skull = makeMat(doc, "Skull", 0xf1f3f5);
   const eye = makeMat(doc, "EyeRed", 0xff1e1e);
+  const horn = makeMat(doc, "Dark", 0x2c2e33);
+  const seat = makeMat(doc, "Seat", 0x1a1a1a);
 
-  const counts = { body: 0, cage: 0, chrome: 0, tire: 0, rim: 0, skull: 0, eye: 0, drop: 0 };
+  const counts = {
+    body: 0,
+    cage: 0,
+    chrome: 0,
+    tire: 0,
+    rim: 0,
+    skull: 0,
+    eye: 0,
+    horn: 0,
+    seat: 0,
+    drop: 0,
+  };
   const dropPrims = [];
 
   for (const node of root.listNodes()) {
@@ -210,6 +244,12 @@ async function main() {
           break;
         case "eye":
           prim.setMaterial(eye);
+          break;
+        case "horn":
+          prim.setMaterial(horn);
+          break;
+        case "seat":
+          prim.setMaterial(seat);
           break;
         case "drop":
           dropPrims.push({ mesh, prim, node });

@@ -165,6 +165,8 @@ function convertToComicMaterial(mesh: Mesh): void {
       toon = comicToon(0xff7a00);
     } else if (name.includes("skull")) {
       toon = comicToon(0xf1f3f5);
+    } else if (name.includes("seat") || name === "dark") {
+      toon = comicToon(0x1a1a1a);
     } else {
       toon = comicToon(color.getHex());
     }
@@ -238,7 +240,9 @@ function isNonPaintMaterial(name: string): boolean {
     name.includes("cage") ||
     name.includes("skull") ||
     name.includes("eyered") ||
-    name.includes("eye")
+    name.includes("eye") ||
+    name.includes("seat") ||
+    name === "dark"
   );
 }
 
