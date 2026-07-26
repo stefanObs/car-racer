@@ -223,7 +223,8 @@ function buildPickupCar(car: CarState): ComicCarParts {
   // Crew cab (4-door look)
   const cab = withOutline(new RoundedBoxGeometry(1.9, 1.05, 1.55, 2, 0.06), m.paint, 0.05);
   cab.position.set(0, 1.25, 0.55);
-  const windshield = withOutline(new RoundedBoxGeometry(1.65, 0.65, 0.1, 1, 0.03), m.glass, 0.04);
+  const cabGlass = comicToon(0x2b6cb0);
+  const windshield = withOutline(new RoundedBoxGeometry(1.65, 0.65, 0.1, 1, 0.03), cabGlass, 0.04);
   windshield.position.set(0, 1.4, 1.32);
   windshield.rotation.x = -0.18;
   const roof = withOutline(new RoundedBoxGeometry(1.75, 0.12, 1.45, 1, 0.03), m.dark, 0.04);
@@ -237,7 +238,7 @@ function buildPickupCar(car: CarState): ComicCarParts {
     pillarL.position.set(-0.95, 1.4, z);
     root.add(pillarL);
   }
-  const sideWin = withOutline(new RoundedBoxGeometry(0.06, 0.45, 1.2, 1, 0.02), m.glass, 0.03);
+  const sideWin = withOutline(new RoundedBoxGeometry(0.06, 0.45, 1.2, 1, 0.02), cabGlass, 0.03);
   sideWin.position.set(0.98, 1.4, 0.55);
 
   // Hood + scoop

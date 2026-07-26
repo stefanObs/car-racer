@@ -154,7 +154,8 @@ function convertToComicMaterial(mesh: Mesh): void {
     const name = (mat?.name ?? mesh.name ?? "").toLowerCase();
     let toon;
     if (name.includes("glass") || name.includes("window")) {
-      toon = comicToon(0x10141c);
+      // Keep authored glass tint (e.g. Bison blue greenhouse).
+      toon = comicToon(color.getHex());
     } else if (name.includes("tire") || name.includes("rubber") || name.includes("wheel")) {
       toon = comicToon(0x1a1a1a);
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {

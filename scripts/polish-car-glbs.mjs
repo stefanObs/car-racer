@@ -100,9 +100,11 @@ function classifyL200(matName, meshName) {
 
   if (m.includes("a05")) return "tail";
   if (m.includes("d05") || m.includes("gainsboro") || m.includes("0130")) return "chrome";
-  if (m.includes("m08") || m.includes("l05") || m.includes("0137") || m.includes("black")) {
+  // Cabin greenhouse: dark inserts (M08/L05) + upper cabin panes (LightGray/M06 on body mesh).
+  if (m.includes("m08") || m.includes("l05") || m.includes("0132") || m.includes("lightgray") || m.includes("m06")) {
     return "glass";
   }
+  if (m.includes("0137") || m.includes("black")) return "chrome";
   if (
     m.includes("charcoal") ||
     m.includes("0136") ||
@@ -113,9 +115,7 @@ function classifyL200(matName, meshName) {
     m.includes("m00") ||
     m.includes("frontcolor") ||
     m.includes("snow") ||
-    m.includes("m02") ||
-    m.includes("m06") ||
-    m.includes("0132")
+    m.includes("m02")
   ) {
     return "body";
   }
@@ -130,7 +130,8 @@ async function bakeBisonPickup() {
   const body = new MeshStandardMaterial({ name: "BodyPaint", color: 0x2f9e44, metalness: 0, roughness: 0.85 });
   const tire = new MeshStandardMaterial({ name: "Tire", color: 0x1a1a1a, metalness: 0, roughness: 0.95 });
   const chrome = new MeshStandardMaterial({ name: "Chrome", color: 0xdce2e8, metalness: 0.4, roughness: 0.45 });
-  const glass = new MeshStandardMaterial({ name: "Glass", color: 0x10141c, metalness: 0, roughness: 0.35 });
+  // Comic blue greenhouse (windshield + cabin glass) — flat readable tint.
+  const glass = new MeshStandardMaterial({ name: "Glass", color: 0x2b6cb0, metalness: 0, roughness: 0.35 });
   const tail = new MeshStandardMaterial({ name: "TailLight", color: 0xe03131, metalness: 0, roughness: 0.7 });
   const byKind = { body, tire, chrome, glass, tail };
 

@@ -60,7 +60,7 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(text).toContain("Dark");
   });
 
-  it("bison ships modern L200 pickup with BodyPaint + Glass + Tire", () => {
+  it("bison ships modern L200 pickup with BodyPaint + blue Glass + Tire", async () => {
     const path = resolve("public/models/cars/bison.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
@@ -70,6 +70,15 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(text).toContain("Tire");
     expect(statSync(path).size).toBeGreaterThan(40_000);
     expect(statSync(path).size).toBeLessThan(2_000_000);
+
+    const { NodeIO } = await import("@gltf-transform/core");
+    const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
+    const glass = doc.getRoot().listMaterials().find((m) => m.getName() === "Glass");
+    expect(glass).toBeTruthy();
+    const [, g, b] = glass!.getBaseColorFactor();
+    expect(b).toBeGreaterThan(0.35);
+    expect(b).toBeGreaterThan(g);
   });
 
   it("donnerbuechse ships RatRod bake (BodyPaint + Chrome + Tire)", () => {
