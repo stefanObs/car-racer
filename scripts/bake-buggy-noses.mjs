@@ -27,7 +27,7 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(rootDir, "public/models/props");
 
 const JOBS = [
-  { source: "buggy-bird.source.glb", out: "buggy-bird.glb", targetH: 0.55, maxSpan: 0.85, simplifyRatio: 1 },
+  { source: "buggy-bird.source.glb", out: "buggy-bird.glb", targetH: 0.4, maxSpan: 0.65, simplifyRatio: 0.45 },
   { source: "buggy-dog.source.glb", out: "buggy-dog.glb", targetH: 0.48, maxSpan: 0.55, simplifyRatio: 0.4 },
 ];
 
@@ -36,8 +36,9 @@ function matKind(name, factor) {
   const [r, g, b] = factor;
   const lum = r + g + b;
   if (n.includes("eye") || (r > 0.6 && g < 0.3 && b < 0.3)) return "Eye";
-  if (lum < 0.35) return "Dark";
-  if (lum > 2.2) return "Light";
+  if (n.includes("beak") || n.includes("orange") || (r > 0.55 && g > 0.25 && g < 0.55 && b < 0.35)) return "Beak";
+  if (lum < 0.45) return "Dark";
+  if (lum > 2.35) return "Light";
   return "Body";
 }
 
@@ -56,6 +57,24 @@ function bakeNodeTree(node) {
   for (const child of node.listChildren()) bakeNodeTree(child);
 }
 
+/** Drop skins/clips so three.js does not zero-out a broken armature at runtime. */
+function stripRigAndClips(doc) {
+  const root = doc.getRoot();
+  for (const node of root.listNodes()) {
+    if (node.getSkin()) node.setSkin(null);
+  }
+  for (const mesh of root.listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      for (const sem of ["JOINTS_0", "JOINTS_1", "WEIGHTS_0", "WEIGHTS_1"]) {
+        const attr = prim.getAttribute(sem);
+        if (attr) prim.setAttribute(sem, null);
+      }
+    }
+  }
+  for (const anim of [...root.listAnimations()]) anim.dispose();
+  for (const skin of [...root.listSkins()]) skin.dispose();
+}
+
 async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1) {
   const sourcePath = join(outDir, sourceName);
   const livePath = join(outDir, outName);
@@ -67,19 +86,34 @@ async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1)
 
   await doc.transform(flatten(), dedup());
   bakeAllNodeTransforms(doc);
-  await doc.transform(dedup());
+  stripRigAndClips(doc);
+  await doc.transform(dedup(), prune());
 
   for (const mat of doc.getRoot().listMaterials()) {
     const factor = mat.getBaseColorFactor();
-    const kind = matKind(mat.getName(), factor);
+    const sg = mat.getExtension("KHR_materials_pbrSpecularGlossiness");
+    const diffuseTex =
+      mat.getBaseColorTexture() ||
+      (sg && typeof sg.getDiffuseTexture === "function" ? sg.getDiffuseTexture() : null);
+    const textured = !!diffuseTex;
+    let kind = matKind(mat.getName(), factor);
+    if (textured && factor[0] + factor[1] + factor[2] > 2.5) kind = "Body";
+    if (outName.includes("bird") && kind === "Light") kind = "Body";
     mat.setName(kind);
     mat.setMetallicFactor(0);
     mat.setRoughnessFactor(0.85);
     if (kind === "Eye") mat.setBaseColorFactor([0.95, 0.15, 0.12, 1]);
-    else if (kind === "Dark") mat.setBaseColorFactor([0.15, 0.15, 0.16, 1]);
+    else if (kind === "Beak") mat.setBaseColorFactor([0.92, 0.48, 0.12, 1]);
+    else if (kind === "Dark") mat.setBaseColorFactor([0.22, 0.22, 0.24, 1]);
     else if (kind === "Light") mat.setBaseColorFactor([0.92, 0.93, 0.94, 1]);
-    else mat.setBaseColorFactor([0.88, 0.86, 0.82, 1]);
-    mat.setBaseColorTexture(null);
+    else mat.setBaseColorFactor([1, 1, 1, 1]); // multiply authored diffuse under toon
+    // Keep pigeon albedo so beak/eyes read (comic still via toon shading).
+    if (diffuseTex && outName.includes("bird")) {
+      mat.setBaseColorTexture(diffuseTex);
+    } else {
+      mat.setBaseColorTexture(null);
+    }
+    for (const ext of [...mat.listExtensions()]) ext.dispose();
   }
 
   const scene = doc.getRoot().listScenes()[0];
@@ -117,6 +151,7 @@ async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1)
     transforms.push(prune());
   }
   await doc.transform(...transforms);
+  await doc.transform(prune());
   const bytes = await io.writeBinary(doc);
   writeFileSync(livePath, bytes);
   const h = size[1] * scale;

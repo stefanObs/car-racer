@@ -14,7 +14,7 @@ function cosmeticsForCar(carId: CarId): { ids: StickerId[]; labels: Record<Stick
       labels: {
         none: "Glatt",
         flames: "Totenkopf",
-        bolt: "Bidr",
+        bolt: "Vogel",
         star: "Hund",
         ironClad: "IronClad",
       },

@@ -253,7 +253,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 
 ### 6.2 Drei Ausgaben-Säulen
 
-1. **Schmücken (Kosmetik)** — Lack, **Aufkleber** (Flammen, Blitze, Sterne, Emblem…; **Bunker:** Tür-Badge „IronClad“ austauschbar), Felgen-Look, Spoiler-Optik, Unterbodenlicht, Nummernschild-Text, Horn-Sound. **Käferkraft:** statt Flach-Aufkleber **Nasen-/Kopf-Modellvarianten** (Glatt, Totenkopf inkl. Hörner, Bidr, Hund); die vorderen **Scheinwerfer** gehören zum Auto (nicht zur Nasen-Kosmetik). **Kein Stats-Vorteil** (fair, sammelbar, stolz zeigen).
+1. **Schmücken (Kosmetik)** — Lack, **Aufkleber** (Flammen, Blitze, Sterne, Emblem…; **Bunker:** Tür-Badge „IronClad“ austauschbar), Felgen-Look, Spoiler-Optik, Unterbodenlicht, Nummernschild-Text, Horn-Sound. **Käferkraft:** statt Flach-Aufkleber **Nasen-/Kopf-Modellvarianten** (Glatt, Totenkopf inkl. Hörner, Vogel, Hund); die vorderen **Scheinwerfer** gehören zum Auto (nicht zur Nasen-Kosmetik). **Kein Stats-Vorteil** (fair, sammelbar, stolz zeigen).
 2. **Neues Auto kaufen** — andere Klasse oder Variante innerhalb der Klasse.
 3. **Teile tunen** — echte Stats, immer mit Trade-off.
 
@@ -494,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.17 — Käferkraft-Frontscheinwerfer fest am Auto.*
+*Dokumentstand: Konzept v3.18 — Käferkraft-Nase „Vogel“ (Sketchfab-Taube).*

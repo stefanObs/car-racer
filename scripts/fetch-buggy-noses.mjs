@@ -17,9 +17,9 @@ const outDir = join(rootDir, "public/models/props");
 const PROPS = [
   {
     id: "bird",
-    uid: "1e485a9b3ab24c37aefd2b43ec506831",
+    uid: "474f2cdac04c4a42a5f5aaddd8930577",
     file: "buggy-bird.source.glb",
-    credit: "Bird low poly Animation by carbofos (CC-BY 4.0)",
+    credit: "Pigeon – Stylized Animated by AnimalMesh 3D (CC-BY 4.0)",
   },
   {
     id: "dog",

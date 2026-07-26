@@ -95,10 +95,10 @@ test.describe("Crash Circuit smoke", () => {
     await page.getByRole("button", { name: /Käferkraft/ }).click();
     await expect(page.getByRole("heading", { name: "Nase / Kopf" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Totenkopf" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Bidr" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Vogel" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Hund" })).toBeVisible();
-    await page.getByRole("button", { name: "Bidr" }).click();
-    await expect(page.getByRole("button", { name: "Bidr" })).toHaveClass(/is-on/);
+    await page.getByRole("button", { name: "Vogel" }).click();
+    await expect(page.getByRole("button", { name: "Vogel" })).toHaveClass(/is-on/);
     await page.getByRole("button", { name: /Bunker/ }).click();
     await expect(page.getByRole("heading", { name: "Tür-Aufkleber" })).toBeVisible();
     await expect(page.getByRole("button", { name: "IronClad" })).toBeVisible();

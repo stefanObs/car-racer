@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-26 — v3.18 Käferkraft nose label Vogel + stylized pigeon
+
+- Trigger: user — “Bidr” misspelled → Vogel; replace bird with Sketchfab stylized pigeon; face forward, feet on frame
+- Decision: CC-BY pigeon by AnimalMesh 3D (API: commercial OK). Garage chip “Vogel”. Perch pose on front crossbar.
+- CONCEPT §§ touched: §6.2 → v3.18
+
 ### 2026-07-26 — v3.17 Käferkraft bumper lamps are car headlights
 
 - Trigger: user — red Totenkopf lamps belong to the car; style as front headlights with textures

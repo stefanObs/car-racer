@@ -1,6 +1,6 @@
 /**
  * Käferkraft nose / head variants (garage cosmetics — no flat stickers).
- * Sticker ids: none | flames(skull+horns) | bolt(bird/Bidr) | star(dog/Hund).
+ * Sticker ids: none | flames(skull+horns) | bolt(bird/Vogel) | star(dog/Hund).
  */
 import {
   Box3,
@@ -45,22 +45,30 @@ export function preloadBuggyNoses(): Promise<void> {
           const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
           const next = mats.map((m) => {
             const name = ((m as MeshToonMaterial)?.name ?? "").toLowerCase();
+            const std = m as MeshToonMaterial & { map?: unknown };
             const hex = name.includes("eye")
               ? 0xf2261e
-              : name.includes("dark")
-                ? 0x262628
-                : name.includes("light")
-                  ? 0xecebe8
-                  : 0xe0dcd4;
+              : name.includes("beak")
+                ? 0xeb7a1e
+                : name.includes("dark")
+                  ? 0x262628
+                  : name.includes("light")
+                    ? 0xecebe8
+                    : 0xffffff;
             const toon = comicToon(hex);
             toon.name = (m as MeshToonMaterial)?.name ?? "Body";
+            // Keep authored pigeon albedo (beak/eye detail).
+            if (std.map) {
+              toon.map = std.map as never;
+              toon.needsUpdate = true;
+            }
             return toon;
           });
           mesh.material = next.length === 1 ? next[0]! : next;
         });
-        // Face buggy forward (-X). Bird model is Y-up with wings in XZ.
+        // Authored pigeon looks along −Z; +90° yaw aims the beak at buggy −X.
         if (id === "bird") {
-          root.rotation.set(0, Math.PI, 0);
+          root.rotation.set(0.18, Math.PI / 2, 0);
         } else {
           root.rotation.y = Math.PI / 2;
         }
@@ -106,10 +114,15 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
   nose.name = "buggyNoseVariant";
   const anchor = noseAnchorLocal(root, skullParts);
   nose.position.copy(anchor);
-  // Slightly forward of the skull center so the prop clears the front tubes.
-  nose.position.x -= 0.18;
-  nose.position.y = Math.max(anchor.y - 0.05, 0.06);
-  nose.scale.setScalar(propId === "bird" ? 0.95 : 1.05);
+  if (propId === "bird") {
+    // Feet on the front crossbar between bumper lamps; slight pitch = gripping stance.
+    nose.position.set(-1.34, 0.12, 0);
+    nose.scale.setScalar(1.1);
+  } else {
+    nose.position.x -= 0.18;
+    nose.position.y = Math.max(anchor.y - 0.05, 0.06);
+    nose.scale.setScalar(1.05);
+  }
   root.add(nose);
   root.userData.buggyNoseApplied = propId;
 }
