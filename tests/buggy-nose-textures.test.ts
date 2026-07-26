@@ -23,5 +23,6 @@ describe("buggy nose textures", () => {
     expect(buf[0]).toBe(0x89);
     expect(buf[1]).toBe(0x50);
     expect(existsSync(resolve("scripts/bake-buggy-skull-horn.mjs"))).toBe(true);
+    expect(existsSync(resolve("scripts/reshape-buggy-skull-horns.mjs"))).toBe(true);
   });
 });

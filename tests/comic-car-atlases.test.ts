@@ -7,7 +7,7 @@ import {
   comicAtlasForRole,
   comicCarAtlasCacheSize,
 } from "../src/render/comicCarAtlases";
-import { ensureComicBoxUvs, ensureNoseOrnamentUvs, meshNeedsComicUvs } from "../src/render/comicCarUvs";
+import { ensureComicBoxUvs, ensureHornSheetUvs, ensureNoseOrnamentUvs, HORN_SHEET_YZ, meshNeedsComicUvs } from "../src/render/comicCarUvs";
 
 describe("comic car UVs", () => {
   it("detects missing and broken UV ranges", () => {
@@ -51,6 +51,26 @@ describe("comic car UVs", () => {
     expect(Math.max(...us)).toBeCloseTo(1, 5);
     expect(Math.min(...vs)).toBeCloseTo(0, 5);
     expect(Math.max(...vs)).toBeCloseTo(1, 5);
+  });
+
+  it("maps horn verts into the fixed V-sheet YZ frame", () => {
+    const geo = new BufferGeometry();
+    const { y0, y1, z0, z1 } = HORN_SHEET_YZ;
+    geo.setAttribute(
+      "position",
+      new BufferAttribute(
+        new Float32Array([-1.18, y0, 0, -1.18, y1, z0, -1.18, y1, z1, -1.18, (y0 + y1) / 2, 0]),
+        3,
+      ),
+    );
+    ensureHornSheetUvs(geo);
+    const uv = geo.getAttribute("uv");
+    expect(uv!.getX(0)).toBeCloseTo(0.5, 5);
+    expect(uv!.getY(0)).toBeCloseTo(0, 5);
+    expect(uv!.getX(1)).toBeCloseTo(0, 5);
+    expect(uv!.getY(1)).toBeCloseTo(1, 5);
+    expect(uv!.getX(2)).toBeCloseTo(1, 5);
+    expect(uv!.getY(2)).toBeCloseTo(1, 5);
   });
 
 });

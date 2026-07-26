@@ -22,7 +22,7 @@ import {
   carUsesAuthoredAtlas,
   comicAtlasForRole,
 } from "./comicCarAtlases";
-import { ensureComicBoxUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
+import { ensureComicBoxUvs, ensureHornSheetUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
 import { bakeAuthoredWhiteToPaint } from "./paintAuthoredWhite";
 
 type Template = {
@@ -195,10 +195,10 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
       toon = comicToon(0xdce2e8);
     } else if (isHornMat) {
-      // YZ UVs + mesh-laid double-horn sheet (see scripts/bake-buggy-skull-horn.mjs).
+      // V-horn mesh (reshaped to texture) + fixed YZ sheet UVs.
       toon = comicToon(0xffffff);
       if (mesh.geometry) {
-        ensureNoseOrnamentUvs(mesh.geometry);
+        ensureHornSheetUvs(mesh.geometry);
         const hornMap = buggyNoseTexture("skullHorn");
         if (hornMap) {
           toon.map = hornMap;

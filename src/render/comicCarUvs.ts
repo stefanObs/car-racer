@@ -69,8 +69,7 @@ export function ensureComicBoxUvs(geometry: BufferGeometry): void {
 }
 
 /**
- * Front-planar UVs for skull / horn nose ornaments.
- * Projects local YZ → UV fitted to 0..1 (matches baked buggy-skull*.png layouts).
+ * Front-planar UVs for the skull face sheet (local YZ → 0..1).
  */
 export function ensureNoseOrnamentUvs(geometry: BufferGeometry): void {
   geometry.computeBoundingBox();
@@ -90,3 +89,28 @@ export function ensureNoseOrnamentUvs(geometry: BufferGeometry): void {
   }
   geometry.setAttribute("uv", new BufferAttribute(uvs, 2));
 }
+
+/**
+ * Fixed YZ frame for the V-horn sheet (matches bake + reshape scripts).
+ * Do not use per-mesh AABB — tube thickness would drift UVs off the texture V.
+ */
+export const HORN_SHEET_YZ = {
+  y0: -0.01,
+  y1: 0.31,
+  z0: -0.41,
+  z1: 0.41,
+} as const;
+
+export function ensureHornSheetUvs(geometry: BufferGeometry): void {
+  const pos = geometry.getAttribute("position");
+  if (!pos) return;
+  const spanZ = HORN_SHEET_YZ.z1 - HORN_SHEET_YZ.z0;
+  const spanY = HORN_SHEET_YZ.y1 - HORN_SHEET_YZ.y0;
+  const uvs = new Float32Array(pos.count * 2);
+  for (let i = 0; i < pos.count; i++) {
+    uvs[i * 2] = (pos.getZ(i) - HORN_SHEET_YZ.z0) / spanZ;
+    uvs[i * 2 + 1] = (pos.getY(i) - HORN_SHEET_YZ.y0) / spanY;
+  }
+  geometry.setAttribute("uv", new BufferAttribute(uvs, 2));
+}
+
