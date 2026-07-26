@@ -67,3 +67,26 @@ export function ensureComicBoxUvs(geometry: BufferGeometry): void {
   }
   geometry.setAttribute("uv", new BufferAttribute(uvs, 2));
 }
+
+/**
+ * Front-planar UVs for nose ornaments (skull / dog statue sheets).
+ * Always projects local YZ → UV fitted to 0..1 so a centered face atlas reads on the bumper.
+ */
+export function ensureNoseOrnamentUvs(geometry: BufferGeometry): void {
+  geometry.computeBoundingBox();
+  const box = geometry.boundingBox;
+  const pos = geometry.getAttribute("position");
+  if (!box || !pos) return;
+  const size = new Vector3();
+  box.getSize(size);
+  const spanZ = Math.max(size.z, 0.001);
+  const spanY = Math.max(size.y, 0.001);
+  const uvs = new Float32Array(pos.count * 2);
+  for (let i = 0; i < pos.count; i++) {
+    const y = pos.getY(i);
+    const z = pos.getZ(i);
+    uvs[i * 2] = (z - box.min.z) / spanZ;
+    uvs[i * 2 + 1] = (y - box.min.y) / spanY;
+  }
+  geometry.setAttribute("uv", new BufferAttribute(uvs, 2));
+}

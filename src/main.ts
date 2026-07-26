@@ -1,5 +1,6 @@
 import { preloadCarModels } from "./render/loadCarGltf";
 import { preloadBuggyNoses } from "./render/buggyNose";
+import { preloadBuggyNoseTextures } from "./render/buggyNoseTextures";
 import { GameApp } from "./ui/GameApp";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
@@ -25,6 +26,7 @@ async function boot(): Promise<void> {
     window.matchMedia("(hover: none)").matches;
   if (touchCapable) document.documentElement.dataset.touch = "1";
 
+  await preloadBuggyNoseTextures();
   await Promise.all([preloadCarModels(), preloadBuggyNoses()]);
 
   const app = new GameApp(gameCanvas, gameUi);

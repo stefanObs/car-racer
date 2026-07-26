@@ -14,6 +14,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { CAR_IDS, type CarId } from "../data/cars";
 import { CAR_MODELS, type CarModelSpec } from "../data/carModels";
 import { applyBuggyNoseVariant } from "./buggyNose";
+import { buggyNoseTexture } from "./buggyNoseTextures";
 import { applyCarStickers, carUsesNoseVariants } from "./carStickers";
 import { comicToon, outlineMaterial, inflateGeometry } from "./comicMaterials";
 import {
@@ -21,7 +22,7 @@ import {
   carUsesAuthoredAtlas,
   comicAtlasForRole,
 } from "./comicCarAtlases";
-import { ensureComicBoxUvs } from "./comicCarUvs";
+import { ensureComicBoxUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
 import { bakeAuthoredWhiteToPaint } from "./paintAuthoredWhite";
 
 type Template = {
@@ -189,17 +190,26 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
       toon = comicToon(0xdce2e8);
     } else if (name.includes("skull")) {
-      toon = comicToon(0xf1f3f5);
+      // Bone skull ornament — comic albedo (box UVs; authored UVs are atlas-scrap).
+      toon = comicToon(0xffffff);
+      if (mesh.geometry) {
+        ensureNoseOrnamentUvs(mesh.geometry);
+        const skullMap = buggyNoseTexture("skull");
+        if (skullMap) {
+          toon.map = skullMap;
+          toon.needsUpdate = true;
+        }
+      }
     } else if (name.includes("seat") || name === "dark") {
       toon = comicToon(0x1a1a1a);
     } else {
       toon = comicToon(color.getHex());
     }
     // Keep authored atlas maps (e.g. Sketchfab Hotrod) under cel shading.
-    if (map) {
+    if (map && !name.includes("skull")) {
       toon.map = map;
       toon.needsUpdate = true;
-    } else if (!carUsesAuthoredAtlas(carId) && mesh.geometry && !name.includes("skull")) {
+    } else if (!carUsesAuthoredAtlas(carId) && mesh.geometry && !name.includes("skull") && !toon.map) {
       ensureComicBoxUvs(mesh.geometry);
       const role = isHeadlamp ? "headlight" : atlasRoleFromName(mat?.name ?? mesh.name ?? "", carId);
       const atlas = comicAtlasForRole(carId, role);

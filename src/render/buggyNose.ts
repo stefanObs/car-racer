@@ -12,6 +12,7 @@ import {
 } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { comicToon } from "./comicMaterials";
+import { buggyNoseTexture } from "./buggyNoseTextures";
 
 export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
 
@@ -57,8 +58,20 @@ export function preloadBuggyNoses(): Promise<void> {
                     : 0xffffff;
             const toon = comicToon(hex);
             toon.name = (m as MeshToonMaterial)?.name ?? "Body";
-            // Keep authored pigeon albedo (beak/eye detail).
-            if (std.map) {
+            if (id === "dog") {
+              // Tileable stone albedo on the dog's authored UVs → carved statue read.
+              const statue = buggyNoseTexture("dogStatue");
+              if (statue) {
+                toon.map = statue;
+                toon.color.setHex(0xffffff);
+                toon.needsUpdate = true;
+              } else if (std.map) {
+                toon.map = std.map as never;
+                toon.color.setHex(0xd8d0c4);
+                toon.needsUpdate = true;
+              }
+            } else if (std.map) {
+              // Keep authored pigeon albedo (beak/eye detail).
               toon.map = std.map as never;
               toon.needsUpdate = true;
             }

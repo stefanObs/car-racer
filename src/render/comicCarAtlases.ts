@@ -532,7 +532,8 @@ export function atlasRoleFromName(name: string, carId: CarId): ComicAtlasRole {
   if (n.includes("eyered") || (n.includes("eye") && !n.includes("grey"))) return "headlight";
   if (n.includes("light") || n.includes("head") || n.includes("tail") || n.includes("lamp")) return "light";
   if (n.includes("engine")) return "engine";
-  if (n.includes("seat") || n === "dark" || n.includes("black") || n.includes("skull")) return "dark";
+  if (n.includes("skull")) return "body"; // dedicated skull albedo elsewhere; never dark trim
+  if (n.includes("seat") || n === "dark" || n.includes("black")) return "dark";
   if (carId === "bunker" && (n.includes("truck") || n.includes("orange") || n.includes("armor"))) return "armor";
   if (carId === "bunker") return "armor";
   return "body";

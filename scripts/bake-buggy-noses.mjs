@@ -107,8 +107,8 @@ async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1)
     else if (kind === "Dark") mat.setBaseColorFactor([0.22, 0.22, 0.24, 1]);
     else if (kind === "Light") mat.setBaseColorFactor([0.92, 0.93, 0.94, 1]);
     else mat.setBaseColorFactor([1, 1, 1, 1]); // multiply authored diffuse under toon
-    // Keep pigeon albedo so beak/eyes read (comic still via toon shading).
-    if (diffuseTex && outName.includes("bird")) {
+    // Keep bird/dog albedos when present (comic still via toon shading).
+    if (diffuseTex && (outName.includes("bird") || outName.includes("dog"))) {
       mat.setBaseColorTexture(diffuseTex);
     } else {
       mat.setBaseColorTexture(null);
