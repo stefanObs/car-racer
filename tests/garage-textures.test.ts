@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { buildGarageBay } from "../src/render/garageBay";
+import { buildGarageToolRack } from "../src/render/garageToolRack";
 import {
   asphaltPadTexture,
   bannerTexture,
@@ -12,9 +13,9 @@ import {
   hazardChevronTexture,
   posterTexture,
   skyPeekTexture,
+  toolBoardTexture,
   wallPanelTexture,
   woodBenchTexture,
-  toolBoardTexture,
 } from "../src/render/garageTextures";
 
 describe("garage bay comic textures", () => {
@@ -40,11 +41,25 @@ describe("garage bay comic textures", () => {
     expect(garageTextureCacheSize()).toBeGreaterThanOrEqual(8);
   });
 
-  it("builds a bright bay with a readable tool board", () => {
+  it("builds a bay with a bench-height tool rack of 3D tools", () => {
     const bay = buildGarageBay();
     expect(bay.name).toBe("garageBay");
-    expect(bay.getObjectByName("garageOverlays")).toBeFalsy();
-    expect(bay.getObjectByName("garageToolBoard")).toBeTruthy();
-    expect(bay.children.length).toBeGreaterThan(30);
+    const rack = bay.getObjectByName("garageToolBoard");
+    expect(rack).toBeTruthy();
+    // Arm height above lockers — not ceiling (was y≈5.5)
+    expect(rack!.position.y).toBeLessThan(3.2);
+    expect(rack!.position.y).toBeGreaterThan(2.3);
+    expect(rack!.children.length).toBeGreaterThan(5);
+    expect(bay.getObjectByName("garageBenchTools")).toBeTruthy();
+  });
+});
+
+describe("garage tool rack", () => {
+  beforeEach(() => clearGarageTextureCache());
+
+  it("hangs multiple outlined comic tools on a pegboard", () => {
+    const rack = buildGarageToolRack();
+    expect(rack.name).toBe("garageToolBoard");
+    expect(rack.children.length).toBeGreaterThanOrEqual(7);
   });
 });

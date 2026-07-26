@@ -573,82 +573,50 @@ export function skyPeekTexture(): Texture {
   });
 }
 
-/** Wall pegboard with readable comic wrenches (not box+sphere stubs). */
+/** Clean pegboard face — holes + ink frame (tools are separate 3D meshes). */
 export function toolBoardTexture(): Texture {
-  return canvasTex("garage-toolboard-v1", 384, 320, (ctx) => {
-    const w = 384;
+  return canvasTex("garage-toolboard-v2", 512, 320, (ctx) => {
+    const w = 512;
     const h = 320;
-    // Pegboard wood
-    ctx.fillStyle = "#E8C48A";
+    ctx.fillStyle = "#F0D9A8";
     ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "#D4A85E";
-    for (let y = 0; y < h; y += 8) {
-      if ((y / 8) % 2 === 0) ctx.fillRect(0, y, w, 4);
+    ctx.fillStyle = "#E4C48A";
+    for (let y = 0; y < h; y += 16) {
+      ctx.fillRect(0, y, w, 8);
     }
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.fillRect(0, 0, w, 40);
 
-    // Peg holes
-    ctx.fillStyle = ink();
-    for (let y = 28; y < h - 20; y += 28) {
-      for (let x = 28; x < w - 20; x += 28) {
+    for (let y = 36; y < h - 28; y += 32) {
+      for (let x = 36; x < w - 28; x += 32) {
+        ctx.fillStyle = "#5C4A32";
         ctx.beginPath();
-        ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+        ctx.arc(x, y, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = ink();
+        ctx.beginPath();
+        ctx.arc(x - 0.5, y - 0.5, 2.8, 0, Math.PI * 2);
         ctx.fill();
       }
     }
 
-    const drawWrench = (cx: number, top: number, len: number, headR: number, metal: string) => {
-      // Handle
-      ctx.fillStyle = metal;
-      roundRect(ctx, cx - 10, top + headR * 1.4, 20, len, 6);
-      ctx.fill();
+    ctx.fillStyle = ComicPaletteCss.repairSpark;
+    for (const [x, y] of [
+      [18, 18],
+      [w - 50, 18],
+      [18, h - 50],
+      [w - 50, h - 50],
+    ] as const) {
+      ctx.fillRect(x, y, 32, 32);
       ctx.strokeStyle = ink();
       ctx.lineWidth = 4;
-      ctx.stroke();
-
-      // Open jaw (C-shape)
-      ctx.lineWidth = 14;
-      ctx.lineCap = "round";
-      ctx.beginPath();
-      ctx.arc(cx, top + headR, headR, 0.35 * Math.PI, 1.65 * Math.PI, false);
-      ctx.strokeStyle = metal;
-      ctx.stroke();
-      ctx.lineWidth = 5;
-      ctx.strokeStyle = ink();
-      ctx.beginPath();
-      ctx.arc(cx, top + headR, headR + 7, 0.35 * Math.PI, 1.65 * Math.PI, false);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.arc(cx, top + headR, headR - 7, 0.35 * Math.PI, 1.65 * Math.PI, false);
-      ctx.stroke();
-
-      // Hook peg
-      ctx.fillStyle = ComicPaletteCss.repairSpark;
-      ctx.beginPath();
-      ctx.arc(cx, top + 8, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.strokeStyle = ink();
-      ctx.lineWidth = 3;
-      ctx.stroke();
-    };
-
-    drawWrench(110, 36, 170, 36, "#C5CAD0");
-    drawWrench(200, 50, 145, 30, "#A8ADB4");
-    drawWrench(290, 42, 160, 34, "#B8BEC6");
-
-    // Small hammer silhouette
-    ctx.fillStyle = "#8B5A2B";
-    roundRect(ctx, 48, 210, 14, 70, 3);
-    ctx.fill();
-    ctx.strokeStyle = ink();
-    ctx.lineWidth = 3;
-    ctx.stroke();
-    ctx.fillStyle = "#868E96";
-    roundRect(ctx, 34, 200, 42, 22, 4);
-    ctx.fill();
-    ctx.stroke();
+      ctx.strokeRect(x, y, 32, 32);
+    }
 
     ctx.strokeStyle = ink();
-    ctx.lineWidth = 10;
-    ctx.strokeRect(6, 6, w - 12, h - 12);
+    ctx.lineWidth = 12;
+    ctx.strokeRect(8, 8, w - 16, h - 16);
+    ctx.lineWidth = 4;
+    ctx.strokeRect(22, 22, w - 44, h - 44);
   });
 }

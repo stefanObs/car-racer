@@ -20,10 +20,10 @@ import {
   hazardChevronTexture,
   posterTexture,
   skyPeekTexture,
-  toolBoardTexture,
   wallPanelTexture,
   woodBenchTexture,
 } from "./garageTextures";
+import { buildBenchLooseTools, buildGarageToolRack } from "./garageToolRack";
 import { ComicPalette } from "./palette";
 
 /** Bright unlit atlas fill — garage env stays sunny (toon gradient would muddle maps). */
@@ -131,14 +131,10 @@ export function buildGarageBay(): Group {
   benchLegL.position.set(7, 0.55, -7.5);
   const benchLegR = withOutline(new BoxGeometry(0.25, 1.1, 1.2), comicFlat(0x6c7178), 0.03);
   benchLegR.position.set(10, 0.55, -7.5);
-  // Tools on bench
-  const hammer = withOutline(new BoxGeometry(0.9, 0.12, 0.18), comicFlat(0x868e96), 0.02);
-  hammer.position.set(7.6, 1.35, -7.3);
-  const hammerHead = withOutline(new BoxGeometry(0.22, 0.28, 0.32), comicFlat(0x495057), 0.02);
-  hammerHead.position.set(8.1, 1.42, -7.3);
-  const oilCan = withOutline(new CylinderGeometry(0.14, 0.18, 0.35, 8), comicFlat(0xe03131), 0.02);
-  oilCan.position.set(9.4, 1.42, -7.6);
-  g.add(benchTop, benchLegL, benchLegR, hammer, hammerHead, oilCan);
+  g.add(benchTop, benchLegL, benchLegR);
+  const benchTools = buildBenchLooseTools();
+  benchTools.position.set(8.5, 1.28, -7.5);
+  g.add(benchTools);
 
   const shelf = withOutline(new BoxGeometry(4.5, 0.18, 1), comicFlat(0xb8bdc4), 0.03);
   shelf.position.set(8.5, 2.6, -9.2);
@@ -246,15 +242,10 @@ export function buildGarageBay(): Group {
     g.add(cone, band);
   }
 
-  // Wall tool board — pegboard with comic wrenches (readable prop)
-  const toolBoard = withOutline(
-    new BoxGeometry(2.6, 2.1, 0.12),
-    mapped(toolBoardTexture(), 0xe8c48a),
-    0.04,
-  );
-  toolBoard.name = "garageToolBoard";
-  toolBoard.position.set(-9.1, 5.5, -10.7);
-  g.add(toolBoard);
+  // Tool rack just above locker tops (arm height, camera-left)
+  const toolRack = buildGarageToolRack();
+  toolRack.position.set(-8.2, 2.75, -10.7);
+  g.add(toolRack);
 
   return g;
 }
