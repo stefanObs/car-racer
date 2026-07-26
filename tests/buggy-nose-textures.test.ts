@@ -9,7 +9,7 @@ describe("buggy nose textures", () => {
   });
 
   it("does not route Skull / SkullHorn through the dark trim atlas", () => {
-    // Dedicated public/textures/buggy-skull*.png via buggyNoseTextures.
+    // Procedural bone/keratin atlases via buggyNoseTextures (mesh-fitted UVs).
     expect(atlasRoleFromName("Skull", "kaeferkraft")).toBe("body");
     expect(atlasRoleFromName("SkullHorn", "kaeferkraft")).toBe("body");
   });
