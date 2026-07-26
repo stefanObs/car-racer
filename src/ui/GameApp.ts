@@ -22,6 +22,12 @@ import {
   resultsPodiumHtml,
   type FinishCelebrate,
 } from "./finishCelebrate";
+import {
+  panelScreenOf,
+  readPanelScrollTop,
+  shouldPreservePanelScroll,
+  writePanelScrollTop,
+} from "./panelScroll";
 import { StylePopupQueue } from "./stylePopups";
 
 type Screen = "menu" | "cup" | "free" | "adhoc" | "garage" | "race" | "results";
@@ -205,15 +211,18 @@ export class GameApp {
     return [...this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-nav]")];
   }
 
-  private applyFocus(index: number): void {
+  private applyFocus(index: number, opts?: { scrollIntoView?: boolean }): void {
     const buttons = this.navButtons();
     if (buttons.length === 0) return;
     const safe = ((index % buttons.length) + buttons.length) % buttons.length;
     this.focusIndex = safe;
     buttons.forEach((b, i) => b.classList.toggle("nav-focused", i === safe));
     const target = buttons[safe];
-    if (target && !target.disabled) target.focus({ preventScroll: false });
-    target?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    // Always preventScroll — panel scroll is restored explicitly after garage re-renders.
+    if (target && !target.disabled) target.focus({ preventScroll: true });
+    if (opts?.scrollIntoView !== false) {
+      target?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
   }
 
   private handleUiNav(actions: ReturnType<typeof sampleActions>): void {
@@ -378,6 +387,9 @@ export class GameApp {
 
   private renderUi(): void {
     document.documentElement.dataset.screen = this.screen;
+    const preserveScroll = shouldPreservePanelScroll(panelScreenOf(this.uiRoot), this.screen);
+    const savedScrollTop = preserveScroll ? readPanelScrollTop(this.uiRoot) : 0;
+    const savedFocusIndex = this.focusIndex;
     let body = "";
     if (this.screen === "menu") {
       body = `
@@ -472,11 +484,12 @@ export class GameApp {
           })
         : "";
     this.uiRoot.innerHTML = `${statsPopup}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
-    this.wireUi();
+    this.wireUi({ preserveFocus: preserveScroll, focusIndex: savedFocusIndex });
+    if (preserveScroll) writePanelScrollTop(this.uiRoot, savedScrollTop);
     this.dev.tagUi(this.uiRoot);
   }
 
-  private wireUi(): void {
+  private wireUi(opts?: { preserveFocus?: boolean; focusIndex?: number }): void {
     this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-act]").forEach((btn) => {
       btn.addEventListener("click", () => this.onAction(btn));
     });
@@ -513,6 +526,11 @@ export class GameApp {
         navButtons.forEach((other, j) => other.classList.toggle("nav-focused", j === i));
       });
     });
+    if (opts?.preserveFocus) {
+      // Same-screen re-render (e.g. paint/part pick): keep focus, do not scrollIntoView.
+      this.applyFocus(opts.focusIndex ?? this.focusIndex, { scrollIntoView: false });
+      return;
+    }
     const firstEnabled = navButtons.findIndex((b) => !b.disabled);
     this.applyFocus(firstEnabled >= 0 ? firstEnabled : 0);
   }
