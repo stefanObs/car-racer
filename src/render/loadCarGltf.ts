@@ -62,7 +62,7 @@ export function cloneGltfCar(id: CarId, paint: string): Group | null {
   const clone = hit.root.clone(true);
   applyPaint(clone, paint);
   // Busy free-asset edges: outline shells read as black debris under wheel arches.
-  addOutlineShells(clone, { skip: id === "kaeferkraft" || id === "bison" });
+  addOutlineShells(clone, { skip: id === "kaeferkraft" || id === "bison" || id === "donnerbuechse" });
   const wrap = new Group();
   wrap.name = `gltf-${id}`;
   wrap.userData.gearClass = hit.spec.gearClass;

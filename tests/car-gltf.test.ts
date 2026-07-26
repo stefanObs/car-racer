@@ -68,11 +68,15 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(statSync(path).size).toBeLessThan(2_000_000);
   });
 
-  it("donnerbuechse ships a real GLB (hotrod visual; mesh-only bounds in loader)", () => {
+  it("donnerbuechse ships RatRod bake (BodyPaint + Chrome + Tire)", () => {
     const path = resolve("public/models/cars/donnerbuechse.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
-    expect(statSync(path).size).toBeGreaterThan(8_000);
+    const text = buf.toString("latin1");
+    expect(text).toContain("BodyPaint");
+    expect(text).toContain("Chrome");
+    expect(text).toContain("Tire");
+    expect(statSync(path).size).toBeGreaterThan(40_000);
   });
 
   it("bunker arcade scale is smaller than raw military truck export", () => {
