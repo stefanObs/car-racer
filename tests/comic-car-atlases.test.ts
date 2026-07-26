@@ -7,7 +7,7 @@ import {
   comicAtlasForRole,
   comicCarAtlasCacheSize,
 } from "../src/render/comicCarAtlases";
-import { ensureComicBoxUvs, ensureDogFaceUvs, ensureNoseOrnamentUvs, meshNeedsComicUvs } from "../src/render/comicCarUvs";
+import { ensureComicBoxUvs, ensureNoseOrnamentUvs, meshNeedsComicUvs } from "../src/render/comicCarUvs";
 
 describe("comic car UVs", () => {
   it("detects missing and broken UV ranges", () => {
@@ -53,20 +53,6 @@ describe("comic car UVs", () => {
     expect(Math.max(...vs)).toBeCloseTo(1, 5);
   });
 
-  it("writes snout-facing XY UVs for the dog head", () => {
-    const geo = new BufferGeometry();
-    geo.setAttribute(
-      "position",
-      new BufferAttribute(new Float32Array([-0.5, 0, 1, 0.5, 0, 1, -0.5, 1, 1, 0.5, 1, 1]), 3),
-    );
-    ensureDogFaceUvs(geo);
-    const uv = geo.getAttribute("uv");
-    expect(uv).toBeTruthy();
-    expect(uv!.count).toBe(4);
-    const us = [0, 1, 2, 3].map((i) => uv!.getX(i));
-    expect(Math.min(...us)).toBeCloseTo(0, 5);
-    expect(Math.max(...us)).toBeCloseTo(1, 5);
-  });
 });
 
 describe("comic car atlases", () => {

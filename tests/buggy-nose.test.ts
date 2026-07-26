@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   buggyNoseFromSticker,
@@ -77,6 +79,14 @@ describe("buggy nose helpers", () => {
 
   it("yaws the dog snout toward buggy forward (−X)", () => {
     expect(DOG_HEAD_YAW).toBeCloseTo(-Math.PI / 2, 5);
+  });
+
+  it("keeps dog authored UVs + GLB albedo (no planar face atlas)", () => {
+    // RCA lock: planar XY + buggy-dog-head.png stretched the mesh look.
+    const src = readFileSync(resolve("src/render/buggyNose.ts"), "utf8");
+    expect(src).not.toMatch(/ensureDogFaceUvs/);
+    expect(src).not.toMatch(/dogStatue/);
+    expect(src).toMatch(/std\.map/);
   });
 
   it("anchors nose in root-local space near skull meshes", () => {

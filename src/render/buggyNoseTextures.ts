@@ -1,5 +1,6 @@
 /**
- * Asphalt-Comic albedos for Käferkraft nose props (Schädel + Hund-Statue).
+ * Asphalt-Comic albedo for Käferkraft skull nose prop.
+ * Dog/Hund keeps authored GLB albedo + UVs (see buggyNose.ts).
  */
 import {
   NearestFilter,
@@ -10,10 +11,9 @@ import {
 
 const URLS = {
   skull: "/textures/buggy-skull.png",
-  dogStatue: "/textures/buggy-dog-head.png",
 } as const;
 
-const maps = new Map<"skull" | "dogStatue", Texture>();
+const maps = new Map<"skull", Texture>();
 let preloadPromise: Promise<void> | null = null;
 
 function configureNoseMap(tex: Texture): Texture {
@@ -26,7 +26,7 @@ function configureNoseMap(tex: Texture): Texture {
   return tex;
 }
 
-/** Load skull + dog-statue PNGs once (call with car / nose preload). */
+/** Load skull PNG once (call with car / nose preload). */
 export function preloadBuggyNoseTextures(): Promise<void> {
   if (preloadPromise) return preloadPromise;
   preloadPromise = (async () => {
@@ -41,10 +41,10 @@ export function preloadBuggyNoseTextures(): Promise<void> {
   return preloadPromise;
 }
 
-export function buggyNoseTexture(id: "skull" | "dogStatue"): Texture | null {
+export function buggyNoseTexture(id: "skull"): Texture | null {
   return maps.get(id) ?? null;
 }
 
-export function hasBuggyNoseTexture(id: "skull" | "dogStatue"): boolean {
+export function hasBuggyNoseTexture(id: "skull"): boolean {
   return maps.has(id);
 }

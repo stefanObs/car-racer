@@ -12,8 +12,6 @@ import {
 } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { comicToon } from "./comicMaterials";
-import { buggyNoseTexture } from "./buggyNoseTextures";
-import { ensureDogFaceUvs } from "./comicCarUvs";
 
 export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
 
@@ -68,22 +66,11 @@ export function preloadBuggyNoses(): Promise<void> {
                     : 0xffffff;
             const toon = comicToon(hex);
             toon.name = (m as MeshToonMaterial)?.name ?? "Body";
-            if (id === "dog") {
-              // Face atlas on the snout (+Z); yaw then aims that face at buggy −X.
-              ensureDogFaceUvs(mesh.geometry);
-              const statue = buggyNoseTexture("dogStatue");
-              if (statue) {
-                toon.map = statue;
-                toon.color.setHex(0xffffff);
-                toon.needsUpdate = true;
-              } else if (std.map) {
-                toon.map = std.map as never;
-                toon.color.setHex(0xd8d0c4);
-                toon.needsUpdate = true;
-              }
-            } else if (std.map) {
-              // Keep authored pigeon albedo (beak/eye detail).
+            // Keep authored albedo + UVs (bird beak/eyes; dog head after crop).
+            // Do not overwrite with planar face atlases — that stretches the mesh look.
+            if (std.map) {
               toon.map = std.map as never;
+              if (id === "dog") toon.color.setHex(0xe8e0d4); // light stone grade
               toon.needsUpdate = true;
             }
             return toon;
