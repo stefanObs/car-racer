@@ -4,6 +4,7 @@ import {
   bumperHeadlightPerchLocal,
   DOG_HEAD_SCALE,
   DOG_HEAD_Y_OFFSET,
+  DOG_HEAD_YAW,
   isBuggySkullCosmeticName,
   noseAnchorLocal,
 } from "../src/render/buggyNose";
@@ -71,6 +72,10 @@ describe("buggy nose helpers", () => {
     // Unscaled baked head is ~0.48m — same height as the stock skull mesh.
     expect(DOG_HEAD_SCALE).toBe(1);
     expect(DOG_HEAD_Y_OFFSET).toBeLessThan(0);
+  });
+
+  it("yaws the dog snout toward buggy forward (−X)", () => {
+    expect(DOG_HEAD_YAW).toBeCloseTo(-Math.PI / 2, 5);
   });
 
   it("anchors nose in root-local space near skull meshes", () => {

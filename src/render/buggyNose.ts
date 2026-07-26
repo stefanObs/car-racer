@@ -13,7 +13,7 @@ import {
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { comicToon } from "./comicMaterials";
 import { buggyNoseTexture } from "./buggyNoseTextures";
-import { ensureNoseOrnamentUvs } from "./comicCarUvs";
+import { ensureDogFaceUvs } from "./comicCarUvs";
 
 export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
 
@@ -23,6 +23,8 @@ export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
  */
 export const DOG_HEAD_SCALE = 1.0;
 export const DOG_HEAD_Y_OFFSET = -0.14;
+/** Yaw so the dog snout (+Z in the baked GLB) aims at buggy forward (−X). */
+export const DOG_HEAD_YAW = -Math.PI / 2;
 
 const noseTemplates = new Map<"bird" | "dog", Group>();
 let preloadPromise: Promise<void> | null = null;
@@ -67,8 +69,8 @@ export function preloadBuggyNoses(): Promise<void> {
             const toon = comicToon(hex);
             toon.name = (m as MeshToonMaterial)?.name ?? "Body";
             if (id === "dog") {
-              // Face atlas (eyes + teeth) on front-planar UVs — reads as a dog-head statue.
-              ensureNoseOrnamentUvs(mesh.geometry);
+              // Face atlas on the snout (+Z); yaw then aims that face at buggy −X.
+              ensureDogFaceUvs(mesh.geometry);
               const statue = buggyNoseTexture("dogStatue");
               if (statue) {
                 toon.map = statue;
@@ -88,8 +90,8 @@ export function preloadBuggyNoses(): Promise<void> {
           });
           mesh.material = next.length === 1 ? next[0]! : next;
         });
-        // Bird authored along −Z; dog head sits on +Z — both need the snout toward buggy −X.
-        root.rotation.y = id === "dog" ? -Math.PI / 2 : Math.PI / 2;
+        // Bird authored along −Z → +90°; dog snout along +Z → −90°; both aim at buggy −X.
+        root.rotation.y = id === "dog" ? DOG_HEAD_YAW : Math.PI / 2;
         noseTemplates.set(id, root);
       }),
     );
