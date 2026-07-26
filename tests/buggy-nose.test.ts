@@ -68,9 +68,10 @@ describe("buggy nose helpers", () => {
     expect(perch.x).toBeLessThan(-1.2);
   });
 
-  it("matches dog-head ornament scale to the Totenkopf and sits lower on the bumper", () => {
-    // Unscaled baked head is ~0.48m — same height as the stock skull mesh.
-    expect(DOG_HEAD_SCALE).toBe(1);
+  it("keeps the dog head small enough that bumper lamps stay visible", () => {
+    // Unscaled head span ≈ 0.47m; lamps sit ≈ ±0.21m — scale must leave a gap.
+    expect(DOG_HEAD_SCALE).toBeLessThan(0.7);
+    expect(DOG_HEAD_SCALE * 0.47).toBeLessThan(0.35);
     expect(DOG_HEAD_Y_OFFSET).toBeLessThan(0);
   });
 

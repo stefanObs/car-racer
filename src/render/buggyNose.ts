@@ -18,10 +18,10 @@ import { ensureDogFaceUvs } from "./comicCarUvs";
 export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
 
 /**
- * Match Totenkopf ornament height (~0.48m unscaled head mesh).
- * Extra Y sink places the neck cut lower on the bumper stack.
+ * Smaller than the Totenkopf so left/right bumper headlights stay readable
+ * (lamp centers ≈ ±0.21 m; unscaled head span ≈ 0.47 m).
  */
-export const DOG_HEAD_SCALE = 1.0;
+export const DOG_HEAD_SCALE = 0.58;
 export const DOG_HEAD_Y_OFFSET = -0.14;
 /** Yaw so the dog snout (+Z in the baked GLB) aims at buggy forward (−X). */
 export const DOG_HEAD_YAW = -Math.PI / 2;
