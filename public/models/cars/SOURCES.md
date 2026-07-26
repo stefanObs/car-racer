@@ -8,7 +8,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 | **Bison** (pickup) | `bison.glb` | [Mitsubishi L200](https://poly.pizza/m/4qjS9tFhsJg) by Muhammad Reyhan (CC-BY 3.0) via Poly Pizza — rematerialized by `npm run cars:polish`; modern crew-cab curves. Silhouette also informed by [TurboSquid 1675577](https://www.turbosquid.com/3d-models/car-pickup-model-1675577) (ref only — TS mesh not shipped) | CC-BY 3.0 |
 | **Käferkraft** (buggy) | `kaeferkraft.glb` | [GetGLB Buggy](https://www.getglb.com/vehicles/buggy/) + `npm run cars:tune-kaeferkraft` (chrome engine, orange cage, red skull eyes; black strip cleanup) | Free via GetGLB |
 | **Donnerbüchse** (hotrod) | `donnerbuechse.glb` | [Hotrod](https://sketchfab.com/3d-models/hotrod-944a5d1535cd45cb82cafef5a8d991f7) by [car-go](https://sketchfab.com/car-go) on Sketchfab — albedo atlas kept under cel shading (`npm run cars:fetch-donnerbuechse` + `npm run cars:polish`). Provided by Sketchfab. | [CC-BY 4.0](http://creativecommons.org/licenses/by/4.0/) |
-| **Bunker** (armor) | `bunker.glb` | [GetGLB Military Truck](https://www.getglb.com/vehicles/military-truck/); arcade `scale` in `carModels.ts` | Free via GetGLB |
+| **Bunker** (armor) | `bunker.glb` | [Hummer HX concept low poly free](https://sketchfab.com/3d-models/hummer-hx-concept-low-poly-free-056296664d2c4edba6f90644e22834a4) by [NoOb StUfFs](https://sketchfab.com/NoObStUfFs) on Sketchfab — rematerialized comic bake (`npm run cars:fetch-bunker` + `npm run cars:polish`). Provided by Sketchfab. | [CC-BY 4.0](http://creativecommons.org/licenses/by/4.0/) |
 
 ## Also useful
 
@@ -23,4 +23,5 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 - Non-Hotrod cars get runtime Asphalt-Comic albedo atlases (`comicCarAtlases.ts`) + box UVs when exports lack usable TEXCOORD_0. Donnerbüchse keeps its Sketchfab atlas.
 - Rebuild generated cars: `npm run cars:polish`
 - Fetch Donnerbüchse source (needs `SKETCHFAB_API_TOKEN`): `npm run cars:fetch-donnerbuechse`
+- Fetch Bunker / Hummer HX source (needs `SKETCHFAB_API_TOKEN`): `npm run cars:fetch-bunker`
 - Retune Käferkraft materials: `npm run cars:tune-kaeferkraft` (reads `kaeferkraft.source.glb` when present)

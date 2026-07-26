@@ -73,6 +73,7 @@ tests/
 - Tunables: `src/data/carModels.ts` (`scale`, `yaw`, `collisionRadius`).
 - Boot calls `preloadCarModels()`; all five GLBs are required (no procedural fallback).
 - Donnerbüchse mesh: Sketchfab Hotrod (CC-BY 4.0, credit car-go + Sketchfab); fetch with `SKETCHFAB_API_TOKEN`.
+- Bunker mesh: Sketchfab Hummer HX concept low poly (CC-BY 4.0, credit NoOb StUfFs + Sketchfab); fetch with `SKETCHFAB_API_TOKEN` (`cars:fetch-bunker`).
 - Loader strips lights/cameras and uses mesh-only bounds (embedded Spotlights otherwise break autoscale).
 - **Collision** is a circle (`collisionRadius`) — visual mesh may overhang.
 - Provenance: `public/models/cars/SOURCES.md`

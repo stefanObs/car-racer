@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.2.62",
+  "version": "0.2.63",
   "private": true,
   "type": "module",
   "description": "Crash Circuit — arcade racer (free OSS stack)",
@@ -16,6 +16,7 @@
     "test:all": "vitest run && playwright test",
     "cars:polish": "node scripts/polish-car-glbs.mjs",
     "cars:fetch-donnerbuechse": "node scripts/fetch-donnerbuechse.mjs",
+    "cars:fetch-bunker": "node scripts/fetch-bunker.mjs",
     "cars:tune-kaeferkraft": "node scripts/tune-kaeferkraft.mjs"
   },
   "engines": {
