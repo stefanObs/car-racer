@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-26 — v3.15 Sticker textures + buggy nose
+
+- Trigger: user — textures instead of overlays; car-specific stickers; buggy nose models; Bunker ironClad door replaceable
+- Decision: Bake stickers into albedo (side/hood/door). Käferkraft uses nose mesh variants (not decals). Bunker door UV slots swap IronClad badge.
+- CONCEPT §§ touched: §6.2 → v3.15
+- Impl: `carStickers.ts`, `buggyNose.ts`
+
 ### 2026-07-25 — v3.11 Readable track layouts
 
 - Trigger: user — no unclear passables; no self-cross (else bridge+wall); clear corridor; cannot leave track

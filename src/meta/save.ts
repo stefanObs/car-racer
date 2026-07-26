@@ -2,7 +2,7 @@ import type { CarId } from "../data/cars";
 import { CARS } from "../data/cars";
 import type { PartId } from "../data/parts";
 
-export type StickerId = "none" | "flames" | "bolt" | "star";
+export type StickerId = "none" | "flames" | "bolt" | "star" | "ironClad";
 
 /** Tuning + cosmetics for one owned car — not shared across cars. */
 export type CarKit = {
@@ -46,7 +46,8 @@ export function emptyKit(carId: CarId): CarKit {
     ownedParts: [],
     equippedParts: [],
     paint: CARS[carId].defaultPaint,
-    sticker: "none",
+    // Bunker ships with door badge; Käferkraft default = stock skull nose
+    sticker: carId === "bunker" ? "ironClad" : carId === "kaeferkraft" ? "flames" : "none",
   };
 }
 

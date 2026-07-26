@@ -58,14 +58,25 @@ describe("garage hub", () => {
     expect(html).toContain("Bunker");
   });
 
-  it("leaves property bars to the top-right popup (not inline text stats)", () => {
-    const html = renderGarageHtml({
-      chf: 100,
-      activeCar: "blitz",
-      ownedCars: ["blitz"],
-      kit: emptyKit("blitz"),
+  it("shows buggy nose options and bunker IronClad door sticker", () => {
+    const buggy = renderGarageHtml({
+      chf: 2000,
+      activeCar: "kaeferkraft",
+      ownedCars: ["kaeferkraft"],
+      kit: emptyKit("kaeferkraft"),
     });
-    expect(html).not.toContain("Tempo 1.");
-    expect(html).not.toContain("garage-stats");
+    expect(buggy).toContain("Nase / Kopf");
+    expect(buggy).toContain("Totenkopf");
+    expect(buggy).toContain("Stier");
+
+    const bunker = renderGarageHtml({
+      chf: 5000,
+      activeCar: "bunker",
+      ownedCars: ["bunker"],
+      kit: emptyKit("bunker"),
+    });
+    expect(bunker).toContain("Tür-Aufkleber");
+    expect(bunker).toContain("IronClad");
+    expect(emptyKit("bunker").sticker).toBe("ironClad");
   });
 });

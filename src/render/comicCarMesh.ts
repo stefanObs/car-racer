@@ -5,7 +5,6 @@
 import { CircleGeometry, Group, Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import { CARS, type CarId, type GearClass } from "../data/cars";
 import type { CarState } from "../sim/vehicle";
-import { buildCarOverlays } from "./carOverlays";
 import { comicToon } from "./comicMaterials";
 import { cloneGltfCar, hasGltfCar } from "./loadCarGltf";
 import { ComicPalette } from "./palette";
@@ -37,19 +36,12 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
   root.userData.gearClass = gear;
   root.userData.fromGltf = true;
 
-  const gltf = cloneGltfCar(id, car.paint)!;
+  const gltf = cloneGltfCar(id, car.paint, car.sticker || "none")!;
   root.add(gltf);
 
   const body = new Mesh();
   body.visible = false;
   root.add(body);
-
-  const stickers = buildCarOverlays({
-    sticker: car.sticker || "none",
-    gearClass: gear,
-  });
-  stickers.scale.setScalar(0.95);
-  root.add(stickers);
 
   const fx = makeFxGroups(-1.7);
   root.add(groundBlob(1.4), fx.smoke, fx.sparks, fx.nitro);

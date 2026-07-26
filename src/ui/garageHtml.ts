@@ -2,16 +2,49 @@ import { CARS, type CarId } from "../data/cars";
 import { PARTS, type PartId } from "../data/parts";
 import { APP_VERSION } from "../core/version";
 import { formatChf, type CarKit, type StickerId } from "../meta/save";
+import { carUsesNoseVariants } from "../render/carStickers";
 
 const PAINTS = ["#e03131", "#339af0", "#f08c00", "#12b886", "#2f9e44", "#868e96", "#ffffff", "#1b1b1f"] as const;
-const STICKERS: StickerId[] = ["none", "flames", "bolt", "star"];
 
-const STICKER_LABEL: Record<StickerId, string> = {
-  none: "Kein",
-  flames: "Flammen",
-  bolt: "Blitz",
-  star: "Stern",
-};
+function cosmeticsForCar(carId: CarId): { ids: StickerId[]; labels: Record<StickerId, string>; title: string } {
+  if (carUsesNoseVariants(carId)) {
+    return {
+      title: "Nase / Kopf",
+      ids: ["none", "flames", "bolt", "star"],
+      labels: {
+        none: "Glatt",
+        flames: "Totenkopf",
+        bolt: "Stier",
+        star: "Sternkopf",
+        ironClad: "IronClad",
+      },
+    };
+  }
+  if (carId === "bunker") {
+    return {
+      title: "Tür-Aufkleber",
+      ids: ["none", "ironClad", "flames", "bolt", "star"],
+      labels: {
+        none: "Kein",
+        ironClad: "IronClad",
+        flames: "Flammen",
+        bolt: "Blitz",
+        star: "Stern",
+      },
+    };
+  }
+  return {
+    title: "Aufkleber",
+    ids: ["none", "flames", "bolt", "star"],
+    labels: {
+      none: "Kein",
+      flames: "Flammen",
+      bolt: "Blitz",
+      star: "Stern",
+      ironClad: "IronClad",
+    },
+  };
+}
 
 /** Comic garage hub HTML — equip-first, race CTAs at top. */
 export function renderGarageHtml(opts: {
@@ -74,10 +107,13 @@ export function renderGarageHtml(opts: {
       `<button data-nav data-act="paint" data-color="${c}" class="swatch${opts.kit.paint === c ? " is-on" : ""}" style="--sw:${c}" aria-label="Lack ${c}">${opts.kit.paint === c ? "✓" : ""}</button>`,
   ).join("");
 
-  const stickers = STICKERS.map(
-    (s) =>
-      `<button data-nav data-act="sticker" data-sticker="${s}" class="chip${opts.kit.sticker === s ? " is-on" : ""}">${STICKER_LABEL[s]}</button>`,
-  ).join("");
+  const cosmetics = cosmeticsForCar(opts.activeCar);
+  const stickers = cosmetics.ids
+    .map(
+      (s) =>
+        `<button data-nav data-act="sticker" data-sticker="${s}" class="chip${opts.kit.sticker === s ? " is-on" : ""}">${cosmetics.labels[s]}</button>`,
+    )
+    .join("");
 
   return `
     <header class="garage-hero">
@@ -120,9 +156,10 @@ export function renderGarageHtml(opts: {
       </div>
     </section>
 
-    <section aria-label="Lack und Aufkleber">
+    <section aria-label="Lack und Schmücken">
       <h2 class="garage-section">Schmücken</h2>
       <div class="stack row garage-swatches">${paints}</div>
+      <h3 class="garage-sub">${cosmetics.title}</h3>
       <div class="stack row garage-chips">${stickers}</div>
     </section>
 

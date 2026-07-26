@@ -253,11 +253,11 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 
 ### 6.2 Drei Ausgaben-Säulen
 
-1. **Schmücken (Kosmetik)** — Lack, **Aufkleber** (Flammen, Blitze, Sterne, Totenkopf-Cartoon, Streifen, Emblem…), Felgen-Look, Spoiler-Optik, Unterbodenlicht, Nummernschild-Text, Horn-Sound. **Kein Stats-Vorteil** (fair, sammelbar, stolz zeigen).
+1. **Schmücken (Kosmetik)** — Lack, **Aufkleber** (Flammen, Blitze, Sterne, Emblem…; **Bunker:** Tür-Badge „IronClad“ austauschbar), Felgen-Look, Spoiler-Optik, Unterbodenlicht, Nummernschild-Text, Horn-Sound. **Käferkraft:** statt Flach-Aufkleber **Nasen-/Kopf-Modellvarianten** (Totenkopf, Stier, Sternkopf, glatt). **Kein Stats-Vorteil** (fair, sammelbar, stolz zeigen).
 2. **Neues Auto kaufen** — andere Klasse oder Variante innerhalb der Klasse.
 3. **Teile tunen** — echte Stats, immer mit Trade-off.
 
-**Aufkleber-Details:** mehrere Slots (Seite, Motorhaube, Dach, Heck); Spiegelung/Skalierung einfach; Sets freischaltbar über Cups oder CHF.
+**Aufkleber-Details:** Texturen auf Lack (Seite / Motorhaube / Tür je nach Auto); Sets freischaltbar über Cups oder CHF.
 
 ### 6.3 Teile (Beispiele, alle mit Vor- & Nachteil)
 
@@ -494,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.14 — Garage-Auto per Mausziehen/Touch drehen.*
+*Dokumentstand: Konzept v3.15 — Aufkleber als Lack-Texturen; Käferkraft-Nase; Bunker-IronClad.*

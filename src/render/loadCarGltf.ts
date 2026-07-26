@@ -12,6 +12,8 @@ import {
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { CAR_IDS, type CarId } from "../data/cars";
 import { CAR_MODELS, type CarModelSpec } from "../data/carModels";
+import { applyBuggyNoseVariant } from "./buggyNose";
+import { applyCarStickers, carUsesNoseVariants } from "./carStickers";
 import { comicToon, outlineMaterial, inflateGeometry } from "./comicMaterials";
 import {
   atlasRoleFromName,
@@ -51,14 +53,16 @@ export function hasGltfCar(id: CarId): boolean {
 }
 
 /**
- * Clone a preloaded GLB, tint body paint, attach comic outline shells.
+ * Clone a preloaded GLB, tint body paint, bake sticker textures / buggy nose, outlines.
  * Returns null when no template is loaded for this id.
  */
-export function cloneGltfCar(id: CarId, paint: string): Group | null {
+export function cloneGltfCar(id: CarId, paint: string, sticker = "none"): Group | null {
   const hit = templates.get(id);
   if (!hit) return null;
   const clone = hit.root.clone(true);
+  detachSharedResources(clone);
   applyPaint(clone, paint);
+  applyCosmetics(clone, id, sticker);
   // Busy free-asset edges: outline shells read as black debris under wheel arches.
   addOutlineShells(clone, {
     skip: id === "kaeferkraft" || id === "bison" || id === "donnerbuechse" || id === "bunker",
@@ -69,6 +73,20 @@ export function cloneGltfCar(id: CarId, paint: string): Group | null {
   wrap.userData.fromGltf = true;
   wrap.add(clone);
   return wrap;
+}
+
+/** three.js Object3D.clone shares materials/geometries with the template — detach before muting. */
+function detachSharedResources(root: Object3D): void {
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh) return;
+    if (mesh.geometry) mesh.geometry = mesh.geometry.clone();
+    if (Array.isArray(mesh.material)) {
+      mesh.material = mesh.material.map((m) => m.clone());
+    } else if (mesh.material) {
+      mesh.material = mesh.material.clone();
+    }
+  });
 }
 
 function normalizeCarScene(root: Object3D, spec: CarModelSpec): void {
@@ -201,6 +219,14 @@ function materialColor(mat: Material | undefined): Color {
   const anyMat = mat as MeshStandardMaterial & MeshToonMaterial;
   if (anyMat.color) c.copy(anyMat.color);
   return c;
+}
+
+function applyCosmetics(root: Object3D, id: CarId, sticker: string): void {
+  if (carUsesNoseVariants(id)) {
+    applyBuggyNoseVariant(root, sticker);
+    return;
+  }
+  applyCarStickers(root, id, sticker);
 }
 
 function applyPaint(root: Object3D, paint: string): void {

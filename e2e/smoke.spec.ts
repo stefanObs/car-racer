@@ -67,6 +67,45 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.getByRole("button", { name: "Gas" })).toBeVisible();
   });
 
+  test("garage sticker chips: Blitz side, Käferkraft nose, Bunker IronClad", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "crash-circuit-save-v1",
+        JSON.stringify({
+          version: 2,
+          chf: 20000,
+          ownedCars: ["blitz", "bison", "kaeferkraft", "donnerbuechse", "bunker"],
+          activeCar: "blitz",
+          kits: {
+            blitz: { ownedParts: [], equippedParts: [], paint: "#e03131", sticker: "flames" },
+            bison: { ownedParts: [], equippedParts: [], paint: "#2f9e44", sticker: "bolt" },
+            kaeferkraft: { ownedParts: [], equippedParts: [], paint: "#12b886", sticker: "flames" },
+            donnerbuechse: { ownedParts: [], equippedParts: [], paint: "#f08c00", sticker: "flames" },
+            bunker: { ownedParts: [], equippedParts: [], paint: "#868e96", sticker: "ironClad" },
+          },
+          unlockedLevels: ["blitz_cup_01_hafenstart"],
+          cupStars: {},
+          cupIndexUnlocked: 1,
+        }),
+      );
+    });
+    await page.goto("/");
+    await expect(page.getByRole("heading", { name: "Aufkleber" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Flammen" })).toBeVisible();
+    await page.getByRole("button", { name: /Käferkraft/ }).click();
+    await expect(page.getByRole("heading", { name: "Nase / Kopf" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Totenkopf" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Stier" })).toBeVisible();
+    await page.getByRole("button", { name: "Stier" }).click();
+    await expect(page.getByRole("button", { name: "Stier" })).toHaveClass(/is-on/);
+    await page.getByRole("button", { name: /Bunker/ }).click();
+    await expect(page.getByRole("heading", { name: "Tür-Aufkleber" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "IronClad" })).toBeVisible();
+    await page.getByRole("button", { name: "Flammen" }).click();
+    await expect(page.getByRole("button", { name: "Flammen" })).toHaveClass(/is-on/);
+    await expect(page.locator("#game-canvas")).toBeVisible();
+  });
+
   test("opens ad-hoc seed screen and can start a race", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Ad-hoc" }).click();
