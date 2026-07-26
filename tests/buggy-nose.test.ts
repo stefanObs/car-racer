@@ -49,6 +49,22 @@ describe("buggy nose helpers", () => {
     expect(perch.y).toBeGreaterThan(-0.12);
   });
 
+  it("uses the same headlight bar perch for Hund as for Vogel", () => {
+    const root = new Group();
+    const left = new Mesh(new SphereGeometry(0.08, 6, 6), new MeshBasicMaterial({ name: "Headlight" }));
+    left.position.set(-1.3, 0.0, -0.21);
+    const right = new Mesh(new SphereGeometry(0.08, 6, 6), new MeshBasicMaterial({ name: "Headlight" }));
+    right.position.set(-1.3, 0.0, 0.21);
+    const between = new Mesh(new BoxGeometry(0.05, 0.06, 0.7), new MeshBasicMaterial({ name: "BodyPaint" }));
+    between.position.set(-1.305, -0.09, 0);
+    root.add(left, right, between);
+    root.updateMatrixWorld(true);
+    const perch = bumperHeadlightPerchLocal(root);
+    // Hund must sit on this bar (not the skull anchor ~y 0.4).
+    expect(perch.y).toBeLessThan(0.05);
+    expect(perch.x).toBeLessThan(-1.2);
+  });
+
   it("anchors nose in root-local space near skull meshes", () => {
     const root = new Group();
     const skull = new Mesh(new SphereGeometry(0.2, 8, 8), new MeshBasicMaterial({ name: "Skull" }));

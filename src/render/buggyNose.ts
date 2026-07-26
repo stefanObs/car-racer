@@ -66,9 +66,8 @@ export function preloadBuggyNoses(): Promise<void> {
           });
           mesh.material = next.length === 1 ? next[0]! : next;
         });
-        // Authored pigeon looks along −Z; +90° yaw aims the beak at buggy −X.
-        // No pitch — keeps feet at local y=0 on the bumper crossbar.
-        root.rotation.y = Math.PI / 2;
+        // Bird authored along −Z; dog head sits on +Z — both need the snout toward buggy −X.
+        root.rotation.y = id === "dog" ? -Math.PI / 2 : Math.PI / 2;
         noseTemplates.set(id, root);
       }),
     );
@@ -109,18 +108,10 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
     else if (mesh.material) mesh.material = mesh.material.clone();
   });
   nose.name = "buggyNoseVariant";
-  if (propId === "bird") {
-    // Feet on the tube between the two bumper headlights (not the diagonal cage strut).
-    const perch = bumperHeadlightPerchLocal(root);
-    nose.position.copy(perch);
-    nose.scale.setScalar(1.05);
-  } else {
-    const anchor = noseAnchorLocal(root, skullParts);
-    nose.position.copy(anchor);
-    nose.position.x -= 0.18;
-    nose.position.y = Math.max(anchor.y - 0.05, 0.06);
-    nose.scale.setScalar(1.05);
-  }
+  // Feet on the tube between bumper headlights (bird + dog).
+  const perch = bumperHeadlightPerchLocal(root);
+  nose.position.copy(perch);
+  nose.scale.setScalar(propId === "dog" ? 0.82 : 1.05);
   root.add(nose);
   root.userData.buggyNoseApplied = propId;
 }

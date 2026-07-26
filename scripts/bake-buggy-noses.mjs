@@ -28,7 +28,7 @@ const outDir = join(rootDir, "public/models/props");
 
 const JOBS = [
   { source: "buggy-bird.source.glb", out: "buggy-bird.glb", targetH: 0.4, maxSpan: 0.65, simplifyRatio: 0.45 },
-  { source: "buggy-dog.source.glb", out: "buggy-dog.glb", targetH: 0.48, maxSpan: 0.55, simplifyRatio: 0.4 },
+  { source: "buggy-dog.source.glb", out: "buggy-dog.glb", targetH: 0.34, maxSpan: 0.42, simplifyRatio: 0.4 },
 ];
 
 function matKind(name, factor) {
