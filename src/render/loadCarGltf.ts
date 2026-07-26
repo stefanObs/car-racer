@@ -8,6 +8,7 @@ import {
   type Material,
   type MeshStandardMaterial,
   type MeshToonMaterial,
+  type Texture,
 } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { CAR_IDS, type CarId } from "../data/cars";
@@ -21,6 +22,7 @@ import {
   comicAtlasForRole,
 } from "./comicCarAtlases";
 import { ensureComicBoxUvs } from "./comicCarUvs";
+import { bakeAuthoredWhiteToPaint } from "./paintAuthoredWhite";
 
 type Template = {
   root: Object3D;
@@ -61,7 +63,7 @@ export function cloneGltfCar(id: CarId, paint: string, sticker = "none"): Group 
   if (!hit) return null;
   const clone = hit.root.clone(true);
   detachSharedResources(clone);
-  applyPaint(clone, paint);
+  applyPaint(clone, paint, id);
   applyCosmetics(clone, id, sticker);
   // Busy free-asset edges: outline shells read as black debris under wheel arches.
   addOutlineShells(clone, {
@@ -229,8 +231,9 @@ function applyCosmetics(root: Object3D, id: CarId, sticker: string): void {
   applyCarStickers(root, id, sticker);
 }
 
-function applyPaint(root: Object3D, paint: string): void {
+function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
   const paintColor = new Color(paint);
+  const replaced = new Map<Texture, Texture>();
   root.traverse((obj) => {
     const mesh = obj as Mesh;
     if (!mesh.isMesh) return;
@@ -241,6 +244,23 @@ function applyPaint(root: Object3D, paint: string): void {
       if (!shouldApplyGaragePaint(name)) continue;
       const toon = mat as MeshToonMaterial;
       if (!toon.color) continue;
+
+      // Bunker: authored Hummer atlas — recolor near-white body panels to garage paint.
+      if (carId === "bunker" && toon.map && (name.includes("body") || name.includes("paint"))) {
+        const prev = toon.map;
+        const hit = replaced.get(prev);
+        if (hit) {
+          toon.map = hit;
+        } else {
+          const next = bakeAuthoredWhiteToPaint(prev, paint);
+          replaced.set(prev, next);
+          toon.map = next;
+        }
+        toon.color.setRGB(1, 1, 1);
+        toon.needsUpdate = true;
+        continue;
+      }
+
       // Full-color authored atlases (Hotrod): keep white so map reads true.
       // Tintable comic detail maps: multiply garage paint through white+ink atlas.
       if (toon.map) {
