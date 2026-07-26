@@ -61,8 +61,8 @@ export function cloneGltfCar(id: CarId, paint: string): Group | null {
   if (!hit) return null;
   const clone = hit.root.clone(true);
   applyPaint(clone, paint);
-  // Käferkraft already has busy free-asset edges; outline shells read as black debris.
-  addOutlineShells(clone, { skip: id === "kaeferkraft" });
+  // Busy free-asset edges: outline shells read as black debris under wheel arches.
+  addOutlineShells(clone, { skip: id === "kaeferkraft" || id === "bison" });
   const wrap = new Group();
   wrap.name = `gltf-${id}`;
   wrap.userData.gearClass = hit.spec.gearClass;

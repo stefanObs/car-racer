@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 /**
- * Polish shipped car GLBs (free assets only — no TurboSquid).
- * - Bison: generated lifted crew-cab pickup (TurboSquid 1675577 ref only)
- * - Käferkraft: keep GetGLB buggy (do not overwrite — nicer silhouette)
+ * Polish shipped car GLBs (free assets only — no TurboSquid redistrib).
+ * - Bison: Mitsubishi L200 (Poly Pizza / Muhammad Reyhan, CC-BY 3.0) rematerialized.
+ *   Modern crew-cab curves; silhouette inspired by TurboSquid 1675577 (ref only).
+ * - Käferkraft: keep GetGLB buggy (cars:tune-kaeferkraft)
  * - Donnerbüchse: generated classic hot-rod
  *
  * Usage: node scripts/polish-car-glbs.mjs
  */
-import { mkdirSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Blob } from "node:buffer";
@@ -21,9 +22,10 @@ import {
   TorusGeometry,
 } from "three";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 
-// three.js GLTFExporter expects browser Blob/FileReader
 globalThis.Blob = Blob;
+globalThis.self = globalThis;
 class FileReaderPolyfill {
   result = null;
   onloadend = null;
@@ -39,9 +41,12 @@ class FileReaderPolyfill {
 }
 globalThis.FileReader = FileReaderPolyfill;
 
-const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const outDir = join(root, "public/models/cars");
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+const outDir = join(rootDir, "public/models/cars");
 mkdirSync(outDir, { recursive: true });
+
+/** Poly Pizza — Mitsubishi L200 by Muhammad Reyhan (CC-BY 3.0). */
+const BISON_SOURCE_URL = "https://static.poly.pizza/ecae441a-cba8-4dd6-9795-207a72d7e88e.glb";
 
 async function exportGroupGlb(group, filename) {
   const exporter = new GLTFExporter();
@@ -61,107 +66,94 @@ function addMesh(group, geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) {
   return m;
 }
 
-/** Modern lifted crew-cab pickup (TurboSquid 1675577 as visual ref only). */
-async function generatePickup() {
-  const group = new Group();
-  group.name = "bison";
+async function ensureBisonSource(sourcePath) {
+  if (existsSync(sourcePath)) return;
+  console.log("Downloading L200 pickup…", BISON_SOURCE_URL);
+  const res = await fetch(BISON_SOURCE_URL);
+  if (!res.ok) throw new Error(`Download failed: ${res.status}`);
+  writeFileSync(sourcePath, Buffer.from(await res.arrayBuffer()));
+}
 
-  const paint = new MeshStandardMaterial({ name: "BodyPaint", color: 0x2f9e44, metalness: 0, roughness: 0.85 });
-  const shade = new MeshStandardMaterial({ name: "Dark", color: 0x1b1b1f, metalness: 0, roughness: 0.9 });
-  const chrome = new MeshStandardMaterial({ name: "Chrome", color: 0xc8ccd4, metalness: 0.35, roughness: 0.5 });
-  const tire = new MeshStandardMaterial({ name: "Tire", color: 0x1a1a1a, metalness: 0, roughness: 0.95 });
-  const rim = new MeshStandardMaterial({ name: "Chrome", color: 0xe9ecef, metalness: 0.3, roughness: 0.55 });
-  const glass = new MeshStandardMaterial({ name: "Glass", color: 0x10141c, metalness: 0, roughness: 0.4 });
+function loadGlb(path) {
+  const buf = readFileSync(path);
+  const loader = new GLTFLoader();
+  return new Promise((resolve, reject) => {
+    loader.parse(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength), "", resolve, reject);
+  });
+}
 
-  const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) =>
-    addMesh(group, geo, mat, x, y, z, rx, ry, rz);
+function classifyL200(matName, meshName) {
+  const m = (matName || "").toLowerCase();
+  const n = (meshName || "").toLowerCase();
 
-  // Lifted chassis rail (reads as truck, not sedan)
-  add(new BoxGeometry(1.85, 0.28, 3.55), paint, 0, 0.62, -0.05);
-  add(new BoxGeometry(1.7, 0.18, 3.35), shade, 0, 0.42, -0.05);
-
-  // Long hood deck (generic modern pickup nose)
-  add(new BoxGeometry(1.7, 0.32, 1.15), paint, 0, 0.95, 1.45);
-  add(new BoxGeometry(1.55, 0.12, 0.95), paint, 0, 1.15, 1.4);
-  // Soft grille block + bumper
-  add(new BoxGeometry(1.55, 0.45, 0.18), shade, 0, 0.75, 2.05);
-  for (const y of [0.62, 0.78, 0.94]) {
-    add(new BoxGeometry(1.35, 0.04, 0.06), chrome, 0, y, 2.15);
-  }
-  add(new BoxGeometry(1.75, 0.16, 0.22), shade, 0, 0.48, 2.05);
-
-  // Black brush / bull bar (category target)
-  add(new BoxGeometry(1.7, 0.08, 0.08), shade, 0, 0.95, 2.22);
-  add(new BoxGeometry(1.7, 0.08, 0.08), shade, 0, 0.55, 2.22);
-  for (const x of [-0.78, -0.26, 0.26, 0.78]) {
-    add(new CylinderGeometry(0.035, 0.035, 0.48, 8), shade, x, 0.75, 2.22);
-  }
-
-  // Crew cab — upright greenhouse, set behind hood
-  add(new BoxGeometry(1.85, 1.05, 1.45), paint, 0, 1.35, 0.35);
-  add(new BoxGeometry(1.55, 0.55, 0.08), glass, 0, 1.5, 1.05);
-  add(new BoxGeometry(1.7, 0.1, 1.3), shade, 0, 1.92, 0.32);
-  add(new BoxGeometry(0.05, 0.42, 1.05), glass, 0.95, 1.48, 0.35);
-  add(new BoxGeometry(0.05, 0.42, 1.05), glass, -0.95, 1.48, 0.35);
-  // Door / B-pillar lines
-  for (const z of [0.75, 0.05]) {
-    add(new BoxGeometry(0.07, 0.7, 0.07), shade, 0.94, 1.4, z);
-    add(new BoxGeometry(0.07, 0.7, 0.07), shade, -0.94, 1.4, z);
-  }
-
-  // Open cargo bed (separate from cab — pickup cue)
-  add(new BoxGeometry(1.75, 0.1, 1.55), shade, 0, 0.88, -1.35);
-  add(new BoxGeometry(0.1, 0.55, 1.5), shade, -0.9, 1.15, -1.35);
-  add(new BoxGeometry(0.1, 0.55, 1.5), shade, 0.9, 1.15, -1.35);
-  add(new BoxGeometry(1.75, 0.55, 0.1), paint, 0, 1.15, -2.1);
-  // Cab rear wall
-  add(new BoxGeometry(1.8, 0.95, 0.1), paint, 0, 1.3, -0.4);
-
-  // Black fender flares (category target)
-  for (const [x, z] of [
-    [-1.05, 1.15],
-    [1.05, 1.15],
-    [-1.08, -1.25],
-    [1.08, -1.25],
-  ]) {
-    add(new BoxGeometry(0.35, 0.55, 0.85), shade, x, 0.75, z);
-  }
-
-  // Side steps + mirrors
-  for (const sx of [-1.05, 1.05]) {
-    add(new BoxGeometry(0.18, 0.07, 1.5), shade, sx, 0.4, 0.2);
-    add(new BoxGeometry(0.14, 0.1, 0.25), shade, sx * 1.02, 1.45, 0.95);
+  // Wheel meshes Mesh2–Mesh7
+  if (/mesh[2-7]/i.test(n)) {
+    if (m.includes("lightgray") || m.includes("m06") || m.includes("gainsboro") || m.includes("0132")) {
+      return "chrome";
+    }
+    return "tire";
   }
 
   // Lights
-  add(new BoxGeometry(0.28, 0.14, 0.08), chrome, -0.55, 0.85, 2.12);
-  add(new BoxGeometry(0.28, 0.14, 0.08), chrome, 0.55, 0.85, 2.12);
-  add(new BoxGeometry(0.35, 0.16, 0.08), paint, -0.55, 1.2, -2.16);
-  add(new BoxGeometry(0.35, 0.16, 0.08), paint, 0.55, 1.2, -2.16);
+  if (m.includes("a05")) return "tail"; // red
+  if (m.includes("d05") || m.includes("gainsboro") || m.includes("0130")) return "chrome";
 
-  // Fat off-road wheels with rims
-  const wheel = (x, z, r, w) => {
-    add(new CylinderGeometry(r, r, w, 18), tire, x, r + 0.05, z, 0, 0, Math.PI / 2);
-    add(new CylinderGeometry(r * 0.58, r * 0.58, w * 1.1, 12), rim, x, r + 0.05, z, 0, 0, Math.PI / 2);
-    add(new CylinderGeometry(r * 0.22, r * 0.22, w * 1.16, 8), chrome, x, r + 0.05, z, 0, 0, Math.PI / 2);
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      add(
-        new BoxGeometry(w * 0.3, 0.07, 0.09),
-        tire,
-        x,
-        r + 0.05 + Math.sin(a) * r * 0.9,
-        z + Math.cos(a) * r * 0.9,
-      );
-    }
-  };
-  wheel(-1.05, 1.2, 0.55, 0.42);
-  wheel(1.05, 1.2, 0.55, 0.42);
-  wheel(-1.08, -1.3, 0.58, 0.45);
-  wheel(1.08, -1.3, 0.58, 0.45);
+  // Windows / deep black glass
+  if (m.includes("m08") || m.includes("l05") || m.includes("0137") || m.includes("black")) {
+    return "glass";
+  }
 
-  const bytes = await exportGroupGlb(group, "bison.glb");
-  console.log(`bison.glb ← generated pickup (${bytes} bytes)`);
+  // L200 body panels are mostly Charcoal / DarkGray / white accents → garage paint
+  if (
+    m.includes("charcoal") ||
+    m.includes("0136") ||
+    m.includes("darkgray") ||
+    m.includes("0135") ||
+    m.includes("dimgray") ||
+    m.includes("0134") ||
+    m.includes("m00") ||
+    m.includes("frontcolor") ||
+    m.includes("snow") ||
+    m.includes("m02") ||
+    m.includes("m06") ||
+    m.includes("0132")
+  ) {
+    return "body";
+  }
+
+  return "body";
+}
+
+/** Modern crew-cab L200 — natural panel curves (CC-BY 3.0, credit in SOURCES.md). */
+async function bakeBisonPickup() {
+  const live = join(outDir, "bison.glb");
+  const source = join(outDir, "bison.source.glb");
+  await ensureBisonSource(source);
+
+  const body = new MeshStandardMaterial({ name: "BodyPaint", color: 0x2f9e44, metalness: 0, roughness: 0.85 });
+  const tire = new MeshStandardMaterial({ name: "Tire", color: 0x1a1a1a, metalness: 0, roughness: 0.95 });
+  const chrome = new MeshStandardMaterial({ name: "Chrome", color: 0xdce2e8, metalness: 0.4, roughness: 0.45 });
+  const dark = new MeshStandardMaterial({ name: "Dark", color: 0x1b1b1f, metalness: 0, roughness: 0.9 });
+  const glass = new MeshStandardMaterial({ name: "Glass", color: 0x10141c, metalness: 0, roughness: 0.35 });
+  const tail = new MeshStandardMaterial({ name: "TailLight", color: 0xe03131, metalness: 0, roughness: 0.7 });
+
+  const byKind = { body, tire, chrome, dark, glass, tail };
+
+  const gltf = await loadGlb(source);
+  const root = gltf.scene;
+  root.name = "bison";
+
+  root.traverse((obj) => {
+    const mesh = obj;
+    if (!mesh.isMesh) return;
+    const meshName = mesh.name || mesh.parent?.name || "";
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const next = mats.map((mat) => byKind[classifyL200(mat?.name, meshName)] ?? body);
+    mesh.material = next.length === 1 ? next[0] : next;
+  });
+
+  const bytes = await exportGroupGlb(root, "bison.glb");
+  console.log(`bison.glb ← L200 crew-cab rematerialized (${bytes} bytes)`);
 }
 
 async function generateHotRod() {
@@ -172,7 +164,7 @@ async function generateHotRod() {
   const shade = new MeshStandardMaterial({ name: "Dark", color: 0x1b1b1f, metalness: 0, roughness: 0.9 });
   const chrome = new MeshStandardMaterial({ name: "Chrome", color: 0xc8ccd4, metalness: 0.4, roughness: 0.45 });
   const tire = new MeshStandardMaterial({ name: "Tire", color: 0x1a1a1a, metalness: 0, roughness: 0.95 });
-  const glass = new MeshStandardMaterial({ name: "Glass", color: 0x10141c, metalness: 0, roughness: 0.4 });
+  const glassMat = new MeshStandardMaterial({ name: "Glass", color: 0x10141c, metalness: 0, roughness: 0.4 });
   const rim = new MeshStandardMaterial({ name: "Chrome", color: 0xe9ecef, metalness: 0.35, roughness: 0.5 });
 
   const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) =>
@@ -183,7 +175,7 @@ async function generateHotRod() {
   add(new BoxGeometry(1.35, 0.2, 1.65), paint, 0, 0.62, 0.95);
   add(new BoxGeometry(1.35, 0.58, 0.95), paint, 0, 0.88, -0.95);
   add(new BoxGeometry(1.15, 0.08, 0.8), shade, 0, 1.2, -0.95);
-  add(new BoxGeometry(1.1, 0.42, 0.08), glass, 0, 1.0, -0.45);
+  add(new BoxGeometry(1.1, 0.42, 0.08), glassMat, 0, 1.0, -0.45);
   add(new BoxGeometry(1.3, 0.28, 0.55), paint, 0, 0.62, -1.6);
   add(new BoxGeometry(0.85, 0.55, 0.95), chrome, 0, 0.95, 0.35);
   for (const z of [-0.2, 0, 0.2]) {
@@ -222,6 +214,6 @@ async function generateHotRod() {
   console.log(`donnerbuechse.glb ← generated hot rod (${bytes} bytes)`);
 }
 
-await generatePickup();
+await bakeBisonPickup();
 await generateHotRod();
 console.log("ok");
