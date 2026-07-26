@@ -6,7 +6,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 |-----|------|--------|---------|
 | **Blitz** (sport) | `blitz.glb` | Quaternius Sports Car via [GetGLB](https://www.getglb.com/vehicles/sports-car/) → `Sports-Car.glb` | Free redistrib (GetGLB mirror) |
 | **Bison** (pickup) | `bison.glb` | **Generated** crew-cab pickup (`scripts/polish-car-glbs.mjs`) — silhouette inspired by common pickup refs; **not** TurboSquid (paid) | Project CC0 bake |
-| **Käferkraft** (buggy) | `kaeferkraft.glb` | **Generated** dune-hunter / sand-rail (`scripts/polish-car-glbs.mjs`) — silhouette inspired by common dune-buggy refs; **not** TurboSquid (paid) | Project CC0 bake |
+| **Käferkraft** (buggy) | `kaeferkraft.glb` | [GetGLB Buggy](https://www.getglb.com/vehicles/buggy/) (restored; generated dune bake reverted) | Free via GetGLB |
 | **Donnerbüchse** (hotrod) | `donnerbuechse.glb` | **Generated** classic hot-rod volumes (`scripts/polish-car-glbs.mjs`) — silhouette inspired by common free/hot-rod refs; **not** TurboSquid (paid) | Project CC0 bake |
 | **Bunker** (armor) | `bunker.glb` | [GetGLB Military Truck](https://www.getglb.com/vehicles/military-truck/); arcade `scale` in `carModels.ts` | Free via GetGLB |
 

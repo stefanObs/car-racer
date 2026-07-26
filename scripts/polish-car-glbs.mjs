@@ -2,7 +2,7 @@
 /**
  * Polish shipped car GLBs (free assets only — no TurboSquid).
  * - Bison: generated crew-cab pickup (TurboSquid pickup ref only)
- * - Käferkraft: generated dune-hunter / sand-rail buggy
+ * - Käferkraft: keep GetGLB buggy (do not overwrite — nicer silhouette)
  * - Donnerbüchse: generated classic hot-rod
  *
  * Usage: node scripts/polish-car-glbs.mjs
@@ -146,83 +146,6 @@ async function generatePickup() {
   console.log(`bison.glb ← generated pickup (${bytes} bytes)`);
 }
 
-/** Dune-hunter / sand-rail silhouette (TurboSquid 2179513 as visual ref only). */
-async function generateDuneBuggy() {
-  const group = new Group();
-  group.name = "kaeferkraft";
-
-  const paint = new MeshStandardMaterial({ name: "BodyPaint", color: 0x12b886, metalness: 0, roughness: 0.85 });
-  const shade = new MeshStandardMaterial({ name: "Dark", color: 0x1b1b1f, metalness: 0, roughness: 0.9 });
-  const chrome = new MeshStandardMaterial({ name: "Chrome", color: 0xc8ccd4, metalness: 0.35, roughness: 0.5 });
-  const tire = new MeshStandardMaterial({ name: "Tire", color: 0x141414, metalness: 0, roughness: 0.95 });
-  const rim = new MeshStandardMaterial({ name: "Chrome", color: 0xe9ecef, metalness: 0.3, roughness: 0.55 });
-  const spring = new MeshStandardMaterial({ name: "Chrome", color: 0xffe066, metalness: 0.15, roughness: 0.7 });
-
-  const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) =>
-    addMesh(group, geo, mat, x, y, z, rx, ry, rz);
-
-  add(new BoxGeometry(1.15, 0.14, 2.05), shade, 0, 0.42, 0.05);
-  add(new BoxGeometry(1.05, 0.1, 1.85), shade, 0, 0.32, 0.05);
-  add(new BoxGeometry(1.05, 0.42, 0.65), paint, 0, 0.68, 1.15);
-  add(new BoxGeometry(0.12, 0.48, 1.35), paint, -0.62, 0.72, 0.15);
-  add(new BoxGeometry(0.12, 0.48, 1.35), paint, 0.62, 0.72, 0.15);
-  add(new BoxGeometry(1.1, 0.38, 0.4), paint, 0, 0.68, -0.95);
-
-  for (const sx of [-0.28, 0.28]) {
-    add(new BoxGeometry(0.38, 0.38, 0.42), shade, sx, 0.72, 0.2);
-    add(new BoxGeometry(0.38, 0.5, 0.12), shade, sx, 1.05, -0.02);
-  }
-
-  const tube = (r, h, x, y, z, rx = 0, rz = 0) =>
-    add(new CylinderGeometry(r, r, h, 10), shade, x, y, z, rx, 0, rz);
-  tube(0.055, 1.35, -0.52, 1.25, -0.15);
-  tube(0.055, 1.35, 0.52, 1.25, -0.15);
-  tube(0.05, 1.15, 0, 1.9, -0.15, 0, Math.PI / 2);
-  tube(0.048, 1.25, -0.48, 1.2, 0.55, 0.7, 0);
-  tube(0.048, 1.25, 0.48, 1.2, 0.55, 0.7, 0);
-  tube(0.045, 0.95, 0, 1.6, 0.75, 0, Math.PI / 2);
-  tube(0.05, 1.05, -0.42, 1.15, -0.85, -0.4, 0);
-  tube(0.05, 1.05, 0.42, 1.15, -0.85, -0.4, 0);
-  tube(0.045, 0.9, 0, 1.55, -0.9, 0, Math.PI / 2);
-  tube(0.04, 1.05, 0, 1.05, -0.15, 0, Math.PI / 2);
-  tube(0.038, 0.85, 0, 1.45, 0.2, 0, Math.PI / 2);
-
-  add(new BoxGeometry(0.72, 0.48, 0.55), shade, 0, 0.78, -1.25);
-  add(new CylinderGeometry(0.13, 0.16, 0.38, 12), chrome, 0, 1.18, -1.25);
-  add(new TorusGeometry(0.16, 0.03, 6, 14), chrome, 0, 1.38, -1.25, Math.PI / 2);
-
-  for (const [wx, wz] of [
-    [-0.72, 0.95],
-    [0.72, 0.95],
-    [-0.75, -0.9],
-    [0.75, -0.9],
-  ]) {
-    add(new CylinderGeometry(0.07, 0.07, 0.45, 8), spring, wx, 0.58, wz);
-    add(new TorusGeometry(0.09, 0.025, 6, 10), spring, wx, 0.48, wz, Math.PI / 2);
-    add(new TorusGeometry(0.09, 0.025, 6, 10), spring, wx, 0.68, wz, Math.PI / 2);
-  }
-
-  add(new SphereGeometry(0.14, 12, 10), chrome, -0.38, 0.72, 1.48);
-  add(new SphereGeometry(0.14, 12, 10), chrome, 0.38, 0.72, 1.48);
-
-  const wheel = (x, z, r, w) => {
-    add(new CylinderGeometry(r, r, w, 18), tire, x, r + 0.02, z, 0, 0, Math.PI / 2);
-    add(new CylinderGeometry(r * 0.58, r * 0.58, w * 1.08, 12), rim, x, r + 0.02, z, 0, 0, Math.PI / 2);
-    add(new CylinderGeometry(r * 0.2, r * 0.2, w * 1.15, 8), chrome, x, r + 0.02, z, 0, 0, Math.PI / 2);
-    for (let i = 0; i < 8; i++) {
-      const a = (i / 8) * Math.PI * 2;
-      add(new BoxGeometry(w * 0.35, 0.08, 0.1), tire, x, r + 0.02 + Math.sin(a) * r * 0.92, z + Math.cos(a) * r * 0.92);
-    }
-  };
-  wheel(-0.88, 1.05, 0.5, 0.38);
-  wheel(0.88, 1.05, 0.5, 0.38);
-  wheel(-0.92, -1.0, 0.55, 0.42);
-  wheel(0.92, -1.0, 0.55, 0.42);
-
-  const bytes = await exportGroupGlb(group, "kaeferkraft.glb");
-  console.log(`kaeferkraft.glb ← generated dune buggy (${bytes} bytes)`);
-}
-
 async function generateHotRod() {
   const group = new Group();
   group.name = "donnerbuechse";
@@ -282,6 +205,5 @@ async function generateHotRod() {
 }
 
 await generatePickup();
-await generateDuneBuggy();
 await generateHotRod();
 console.log("ok");
