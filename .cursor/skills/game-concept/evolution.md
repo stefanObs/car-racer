@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-26 — v3.16 Käferkraft nose props (Bidr / Hund)
+
+- Trigger: user — horns belong to skull; default bare; Stier→Bidr bird; Sternkopf→Hund dog
+- Decision: Free3D links were Personal Use / blocked → Sketchfab CC-BY bird + sitting dog. Skull+Dark horns toggle together. Default kit sticker `none`.
+- CONCEPT §§ touched: §6.2 → v3.16
+
 ### 2026-07-26 — v3.15 Sticker textures + buggy nose
 
 - Trigger: user — textures instead of overlays; car-specific stickers; buggy nose models; Bunker ironClad door replaceable

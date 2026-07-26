@@ -30,8 +30,8 @@ describe("car sticker textures", () => {
   it("maps buggy stickers to nose variants", () => {
     expect(buggyNoseFromSticker("none")).toBe("none");
     expect(buggyNoseFromSticker("flames")).toBe("skull");
-    expect(buggyNoseFromSticker("bolt")).toBe("bull");
-    expect(buggyNoseFromSticker("star")).toBe("star");
+    expect(buggyNoseFromSticker("bolt")).toBe("bird");
+    expect(buggyNoseFromSticker("star")).toBe("dog");
   });
 
   it("defines bunker door UV slots for ironClad replacement", () => {

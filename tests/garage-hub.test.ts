@@ -67,7 +67,10 @@ describe("garage hub", () => {
     });
     expect(buggy).toContain("Nase / Kopf");
     expect(buggy).toContain("Totenkopf");
-    expect(buggy).toContain("Stier");
+    expect(buggy).toContain("Bidr");
+    expect(buggy).toContain("Hund");
+    expect(buggy).toContain("Glatt");
+    expect(emptyKit("kaeferkraft").sticker).toBe("none");
 
     const bunker = renderGarageHtml({
       chf: 5000,

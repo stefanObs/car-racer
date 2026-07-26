@@ -179,6 +179,9 @@ export class RaceRenderer {
     this.idleCar = visual.root;
     this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);
+    if (import.meta.env.DEV) {
+      (window as unknown as { __idleCar?: Group }).__idleCar = visual.root;
+    }
 
     this.applyGarageEnvironment();
   }

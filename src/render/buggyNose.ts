@@ -1,31 +1,81 @@
 /**
  * Käferkraft nose / head variants (garage cosmetics — no flat stickers).
- * Reuses kit.sticker ids: none | flames(skull) | bolt(bull) | star(starhead).
+ * Sticker ids: none | flames(skull+horns) | bolt(bird/Bidr) | star(dog/Hund).
  */
 import {
   Box3,
-  BoxGeometry,
-  ConeGeometry,
   Group,
   Mesh,
-  SphereGeometry,
   Vector3,
   type MeshToonMaterial,
   type Object3D,
 } from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { comicToon } from "./comicMaterials";
-import { ComicPalette } from "./palette";
 
-export type BuggyNoseId = "none" | "skull" | "bull" | "star";
+export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
+
+const noseTemplates = new Map<"bird" | "dog", Group>();
+let preloadPromise: Promise<void> | null = null;
+
+const NOSE_URLS = {
+  bird: "/models/props/buggy-bird.glb",
+  dog: "/models/props/buggy-dog.glb",
+} as const;
 
 export function buggyNoseFromSticker(sticker: string): BuggyNoseId {
-  if (sticker === "bolt" || sticker === "lightning") return "bull";
-  if (sticker === "star") return "star";
+  if (sticker === "bolt" || sticker === "lightning" || sticker === "bird") return "bird";
+  if (sticker === "star" || sticker === "dog") return "dog";
   if (sticker === "flames" || sticker === "skull") return "skull";
   return "none";
 }
 
-/** Swap front head: hide stock skull for non-skull variants; attach procedural noses. */
+/** Load bird/dog nose GLBs once (call with car preload). */
+export function preloadBuggyNoses(): Promise<void> {
+  if (preloadPromise) return preloadPromise;
+  preloadPromise = (async () => {
+    const loader = new GLTFLoader();
+    await Promise.all(
+      (Object.keys(NOSE_URLS) as (keyof typeof NOSE_URLS)[]).map(async (id) => {
+        const gltf = await loader.loadAsync(NOSE_URLS[id]);
+        const root = gltf.scene;
+        root.traverse((obj) => {
+          const mesh = obj as Mesh;
+          if (!mesh.isMesh) return;
+          const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+          const next = mats.map((m) => {
+            const name = ((m as MeshToonMaterial)?.name ?? "").toLowerCase();
+            const hex = name.includes("eye")
+              ? 0xf2261e
+              : name.includes("dark")
+                ? 0x262628
+                : name.includes("light")
+                  ? 0xecebe8
+                  : 0xe0dcd4;
+            const toon = comicToon(hex);
+            toon.name = (m as MeshToonMaterial)?.name ?? "Body";
+            return toon;
+          });
+          mesh.material = next.length === 1 ? next[0]! : next;
+        });
+        // Face buggy forward (-X). Bird model is Y-up with wings in XZ.
+        if (id === "bird") {
+          root.rotation.set(0, Math.PI, 0);
+        } else {
+          root.rotation.y = Math.PI / 2;
+        }
+        noseTemplates.set(id, root);
+      }),
+    );
+  })();
+  return preloadPromise;
+}
+
+export function hasBuggyNose(id: "bird" | "dog"): boolean {
+  return noseTemplates.has(id);
+}
+
+/** Swap front head: skull+horns together; bird/dog GLB props; none = bare bumper. */
 export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
   const variant = buggyNoseFromSticker(sticker);
   const prev = root.getObjectByName("buggyNoseVariant");
@@ -35,32 +85,65 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
   const showStockSkull = variant === "skull";
   for (const m of skullParts) m.visible = showStockSkull;
 
-  if (variant === "skull") return;
+  if (variant === "skull" || variant === "none") return;
+
+  const propId = variant === "bird" ? "bird" : "dog";
+  const template = noseTemplates.get(propId);
+  if (!template) {
+    console.warn(`Buggy nose GLB not loaded: ${propId}. Call preloadBuggyNoses().`);
+    return;
+  }
 
   root.updateMatrixWorld(true);
-  const nose = buildNoseMesh(variant);
+  const nose = template.clone(true);
+  nose.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh) return;
+    if (mesh.geometry) mesh.geometry = mesh.geometry.clone();
+    if (Array.isArray(mesh.material)) mesh.material = mesh.material.map((m) => m.clone());
+    else if (mesh.material) mesh.material = mesh.material.clone();
+  });
   nose.name = "buggyNoseVariant";
-  nose.position.copy(noseAnchorLocal(root, skullParts));
-  // Stock skull is ~0.4m; procedural heads need a bit of presence at the bumper
-  nose.scale.setScalar(1.15);
+  const anchor = noseAnchorLocal(root, skullParts);
+  nose.position.copy(anchor);
+  // Slightly forward of the skull center so the prop clears the front tubes.
+  nose.position.x -= 0.18;
+  nose.position.y = Math.max(anchor.y - 0.05, 0.06);
+  nose.scale.setScalar(propId === "bird" ? 0.95 : 1.05);
   root.add(nose);
+  root.userData.buggyNoseApplied = propId;
 }
 
 function findSkullParts(root: Object3D): Mesh[] {
   const skullParts: Mesh[] = [];
   root.traverse((obj) => {
     const mesh = obj as Mesh;
-    if (!mesh.isMesh) return;
+    if (!mesh.isMesh || !mesh.geometry) return;
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    let isSkullFace = false;
+    let isDark = false;
     for (const m of mats) {
       const n = ((m as MeshToonMaterial)?.name ?? mesh.name ?? "").toLowerCase();
       if (n.includes("skull") || n.includes("eyered") || (n.includes("eye") && !n.includes("grey"))) {
-        skullParts.push(mesh);
-        break;
+        isSkullFace = true;
       }
+      if (n === "dark" || n.includes("dark")) isDark = true;
     }
+    if (isSkullFace) {
+      skullParts.push(mesh);
+      return;
+    }
+    if (isDark && isFrontHornMesh(mesh)) skullParts.push(mesh);
   });
   return skullParts;
+}
+
+/** Dark horn shards sit at local X ≈ -1.2 with tip above the skull. */
+function isFrontHornMesh(mesh: Mesh): boolean {
+  if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+  const b = mesh.geometry.boundingBox;
+  if (!b) return false;
+  return b.max.x < -1.0 && b.max.y > 0.2;
 }
 
 /** Skull/nose point in `root` local space (matrix-safe). */
@@ -80,7 +163,6 @@ export function noseAnchorLocal(root: Object3D, skullParts: Mesh[]): Vector3 {
     }
   } else {
     box.setFromObject(root);
-    // Fall back toward the most negative X (model forward for Käferkraft)
     const size = new Vector3();
     box.getSize(size);
     const c = new Vector3();
@@ -92,48 +174,4 @@ export function noseAnchorLocal(root: Object3D, skullParts: Mesh[]): Vector3 {
   const world = new Vector3();
   box.getCenter(world);
   return root.worldToLocal(world);
-}
-
-function buildNoseMesh(variant: BuggyNoseId): Group {
-  const g = new Group();
-  if (variant === "none") {
-    const cone = new Mesh(new ConeGeometry(0.32, 0.62, 10), comicToon(0xf1f3f5));
-    cone.rotation.z = Math.PI / 2; // point along -X (Käferkraft forward)
-    cone.position.x = -0.12;
-    const base = new Mesh(new SphereGeometry(0.36, 12, 10), comicToon(0xe9ecef));
-    g.add(base, cone);
-    return g;
-  }
-
-  if (variant === "bull") {
-    const head = new Mesh(new SphereGeometry(0.42, 12, 10), comicToon(0xf8f9fa));
-    const snout = new Mesh(new BoxGeometry(0.36, 0.2, 0.28), comicToon(0xe9ecef));
-    snout.position.set(-0.32, -0.06, 0);
-    const hornL = new Mesh(new ConeGeometry(0.08, 0.48, 8), comicToon(0xadb5bd));
-    hornL.position.set(-0.05, 0.34, -0.3);
-    hornL.rotation.z = 0.45;
-    hornL.rotation.y = 0.35;
-    const hornR = new Mesh(new ConeGeometry(0.08, 0.48, 8), comicToon(0xadb5bd));
-    hornR.position.set(-0.05, 0.34, 0.3);
-    hornR.rotation.z = 0.45;
-    hornR.rotation.y = -0.35;
-    const eyeL = new Mesh(new SphereGeometry(0.08, 8, 8), comicToon(0xff1e1e, { emissive: 0xff1e1e }));
-    eyeL.position.set(-0.34, 0.1, -0.14);
-    const eyeR = eyeL.clone();
-    eyeR.position.z = 0.14;
-    g.add(head, snout, hornL, hornR, eyeL, eyeR);
-    return g;
-  }
-
-  const head = new Mesh(new SphereGeometry(0.4, 12, 10), comicToon(0xf1f3f5));
-  const plate = new Mesh(new BoxGeometry(0.1, 0.46, 0.46), comicToon(0x3db9c7));
-  plate.position.x = -0.38;
-  const spike = new Mesh(new ConeGeometry(0.14, 0.32, 5), comicToon(ComicPalette.nitroCyan));
-  spike.position.set(0, 0.48, 0);
-  const eyeL = new Mesh(new SphereGeometry(0.09, 8, 8), comicToon(0xffe066, { emissive: 0xffe066 }));
-  eyeL.position.set(-0.36, 0.08, -0.14);
-  const eyeR = eyeL.clone();
-  eyeR.position.z = 0.14;
-  g.add(head, plate, spike, eyeL, eyeR);
-  return g;
 }
