@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buggyNoseFromSticker,
   bumperHeadlightPerchLocal,
+  DOG_HEAD_SCALE,
   isBuggySkullCosmeticName,
   noseAnchorLocal,
 } from "../src/render/buggyNose";
@@ -63,6 +64,10 @@ describe("buggy nose helpers", () => {
     // Hund must sit on this bar (not the skull anchor ~y 0.4).
     expect(perch.y).toBeLessThan(0.05);
     expect(perch.x).toBeLessThan(-1.2);
+  });
+
+  it("scales the dog-head ornament larger than the pigeon", () => {
+    expect(DOG_HEAD_SCALE).toBeGreaterThan(1.2);
   });
 
   it("anchors nose in root-local space near skull meshes", () => {

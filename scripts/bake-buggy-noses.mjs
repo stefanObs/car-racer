@@ -28,7 +28,15 @@ const outDir = join(rootDir, "public/models/props");
 
 const JOBS = [
   { source: "buggy-bird.source.glb", out: "buggy-bird.glb", targetH: 0.4, maxSpan: 0.65, simplifyRatio: 0.45 },
-  { source: "buggy-dog.source.glb", out: "buggy-dog.glb", targetH: 0.34, maxSpan: 0.42, simplifyRatio: 0.4 },
+  // Head-only crop (see cropDogToHead); larger bumper ornament.
+  {
+    source: "buggy-dog.source.glb",
+    out: "buggy-dog.glb",
+    targetH: 0.48,
+    maxSpan: 0.55,
+    simplifyRatio: 0.55,
+    cropDogHead: true,
+  },
 ];
 
 function matKind(name, factor) {
@@ -75,7 +83,88 @@ function stripRigAndClips(doc) {
   for (const skin of [...root.listSkins()]) skin.dispose();
 }
 
-async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1) {
+/**
+ * Keep only the sitting dog's head (upper ~48% of height). Body/paws discarded
+ * so the bumper ornament is a big head on the headlight bar.
+ */
+function cropDogToHead(doc) {
+  const scene = doc.getRoot().listScenes()[0];
+  const bounds = getBounds(scene);
+  const minY = bounds.min[1];
+  const sizeY = Math.max(bounds.max[1] - minY, 0.001);
+  const neckY = minY + sizeY * 0.72;
+  // Head cluster is high-Y and toward +Z (see source high-Y mean).
+  const zCut = bounds.min[2] + (bounds.max[2] - bounds.min[2]) * 0.35;
+
+
+  for (const mesh of doc.getRoot().listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const pos = prim.getAttribute("POSITION");
+      if (!pos) continue;
+      const indices = prim.getIndices();
+      const triCount = indices ? indices.getCount() / 3 : Math.floor(pos.getCount() / 3);
+      const keepOld = [];
+      for (let t = 0; t < triCount; t++) {
+        let a;
+        let b;
+        let c;
+        if (indices) {
+          a = indices.getScalar(t * 3);
+          b = indices.getScalar(t * 3 + 1);
+          c = indices.getScalar(t * 3 + 2);
+        } else {
+          a = t * 3;
+          b = t * 3 + 1;
+          c = t * 3 + 2;
+        }
+        const ya = pos.getElement(a, [])[1];
+        const yb = pos.getElement(b, [])[1];
+        const yc = pos.getElement(c, [])[1];
+        const za = pos.getElement(a, [])[2];
+        const zb = pos.getElement(b, [])[2];
+        const zc = pos.getElement(c, [])[2];
+        const avgY = (ya + yb + yc) / 3;
+        const avgZ = (za + zb + zc) / 3;
+        if (avgY >= neckY && avgZ >= zCut) keepOld.push(a, b, c);
+      }
+      if (keepOld.length < 9) {
+        throw new Error("Dog head crop removed all triangles — adjust neck cut.");
+      }
+
+      const sems = ["POSITION", "NORMAL", "TEXCOORD_0", "TEXCOORD_1", "COLOR_0"].filter((s) =>
+        prim.getAttribute(s),
+      );
+      const remap = new Map();
+      const packed = Object.fromEntries(sems.map((s) => [s, []]));
+      const mapVert = (oldIdx) => {
+        if (remap.has(oldIdx)) return remap.get(oldIdx);
+        const ni = remap.size;
+        remap.set(oldIdx, ni);
+        for (const s of sems) {
+          const attr = prim.getAttribute(s);
+          packed[s].push(...attr.getElement(oldIdx, []));
+        }
+        return ni;
+      };
+      const newIdx = keepOld.map(mapVert);
+
+      for (const s of sems) {
+        const attr = prim.getAttribute(s);
+        const Typed = attr.getArray().constructor;
+        attr.setArray(new Typed(packed[s]));
+      }
+      if (indices) {
+        const Typed = indices.getArray().constructor;
+        indices.setArray(new Typed(newIdx));
+      } else {
+        const acc = doc.createAccessor().setType("SCALAR").setArray(new Uint32Array(newIdx));
+        prim.setIndices(acc);
+      }
+    }
+  }
+}
+
+async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1, cropDogHead = false) {
   const sourcePath = join(outDir, sourceName);
   const livePath = join(outDir, outName);
   if (!existsSync(sourcePath)) {
@@ -88,6 +177,7 @@ async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1)
   bakeAllNodeTransforms(doc);
   stripRigAndClips(doc);
   await doc.transform(dedup(), prune());
+  if (cropDogHead) cropDogToHead(doc);
 
   for (const mat of doc.getRoot().listMaterials()) {
     const factor = mat.getBaseColorFactor();
@@ -160,5 +250,5 @@ async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1)
 }
 
 for (const job of JOBS) {
-  await bakeOne(job.source, job.out, job.targetH, job.maxSpan, job.simplifyRatio);
+  await bakeOne(job.source, job.out, job.targetH, job.maxSpan, job.simplifyRatio, !!job.cropDogHead);
 }

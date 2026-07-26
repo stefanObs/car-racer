@@ -16,6 +16,9 @@ import { buggyNoseTexture } from "./buggyNoseTextures";
 
 export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
 
+/** Runtime scale for the baked dog-head ornament (larger than Vogel). */
+export const DOG_HEAD_SCALE = 1.45;
+
 const noseTemplates = new Map<"bird" | "dog", Group>();
 let preloadPromise: Promise<void> | null = null;
 
@@ -121,10 +124,11 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
     else if (mesh.material) mesh.material = mesh.material.clone();
   });
   nose.name = "buggyNoseVariant";
-  // Feet on the tube between bumper headlights (bird + dog).
+  // Feet / neck cut on the tube between bumper headlights.
   const perch = bumperHeadlightPerchLocal(root);
   nose.position.copy(perch);
-  nose.scale.setScalar(propId === "dog" ? 0.82 : 1.05);
+  // Dog is head-only after bake — larger ornament than the full sitting mesh.
+  nose.scale.setScalar(propId === "dog" ? DOG_HEAD_SCALE : 1.05);
   root.add(nose);
   root.userData.buggyNoseApplied = propId;
 }
