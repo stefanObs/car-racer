@@ -33,7 +33,8 @@ export const CAR_MODELS: Record<CarId, CarModelSpec> = {
     id: "bison",
     gearClass: "pickup",
     url: "/models/cars/bison.glb",
-    scale: 1,
+    /** L200 export is ~2.1m long; peers land ~3.2–3.9m after normalize. */
+    scale: 1.8,
     yaw: 0,
     y: 0,
     collisionRadius: 1.25,

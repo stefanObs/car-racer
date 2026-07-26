@@ -97,6 +97,14 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(CAR_MODELS.bunker.collisionRadius).toBeLessThanOrEqual(1.25);
   });
 
+  it("bison arcade scale lifts the short L200 export toward peer car length", () => {
+    expect(CAR_MODELS.bison.scale).toBeGreaterThanOrEqual(1.7);
+    expect(CAR_MODELS.bison.scale).toBeLessThanOrEqual(2.0);
+    // Raw L200 longest ~2.1m → scaled ~3.7–3.8m (Blitz/Donner range).
+    expect(2.097 * CAR_MODELS.bison.scale).toBeGreaterThan(3.5);
+    expect(2.097 * CAR_MODELS.bison.scale).toBeLessThan(4.2);
+  });
+
   it("uses per-car silhouette radii for contact (not mesh shape)", () => {
     const stats = mergeStats(CARS.blitz.stats, []);
     const a = createCarState({
