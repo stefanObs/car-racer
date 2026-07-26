@@ -52,7 +52,8 @@ export const CAR_MODELS: Record<CarId, CarModelSpec> = {
     id: "donnerbuechse",
     gearClass: "hotrod",
     url: "/models/cars/donnerbuechse.glb",
-    scale: 1,
+    /** Sketchfab Hotrod raw longest ~1.09m → peer arcade length. */
+    scale: 3.5,
     yaw: 0,
     y: 0,
     collisionRadius: 1.15,

@@ -80,17 +80,14 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(b).toBeGreaterThan(g);
   });
 
-  it("donnerbuechse ships curved hot-rod bake with readable V8 materials", () => {
+  it("donnerbuechse ships Sketchfab Hotrod comic bake", () => {
     const path = resolve("public/models/cars/donnerbuechse.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
     const text = buf.toString("latin1");
     expect(text).toContain("BodyPaint");
-    expect(text).toContain("Chrome");
-    expect(text).toContain("Tire");
-    expect(text).toContain("EngineBlock");
-    expect(text).toContain("EngineValve");
-    expect(statSync(path).size).toBeGreaterThan(40_000);
+    expect(statSync(path).size).toBeGreaterThan(500_000);
+    expect(CAR_MODELS.donnerbuechse.scale).toBeGreaterThanOrEqual(3.0);
   });
 
   it("bunker arcade scale is smaller than raw military truck export", () => {
