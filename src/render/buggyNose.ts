@@ -20,9 +20,18 @@ export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
  * (lamp centers ≈ ±0.21 m; unscaled head span ≈ 0.47 m).
  */
 export const DOG_HEAD_SCALE = 0.58;
-export const DOG_HEAD_Y_OFFSET = -0.14;
-/** Yaw so the dog snout (+Z in the baked GLB) aims at buggy forward (−X). */
-export const DOG_HEAD_YAW = -Math.PI / 2;
+/**
+ * Authored snout is not +Z (≈ −28° yaw from +Z, ≈ +36° pitch).
+ * Euler XYZ: Ry then Rz so the snout aims exactly at buggy forward (−X).
+ */
+export const DOG_HEAD_YAW = -Math.PI / 2 - Math.atan2(-0.3733, 0.715);
+export const DOG_HEAD_PITCH = Math.atan2(0.5911, 0.8066);
+/**
+ * After orient, contact patch / bottom sit slightly off the local origin.
+ * Applied × scale so the neck rests on the headlight crossbar (not sunk below it).
+ */
+export const DOG_HEAD_CONTACT_X = 0.095;
+export const DOG_HEAD_CONTACT_Y = 0.04;
 
 const noseTemplates = new Map<"bird" | "dog", Group>();
 let preloadPromise: Promise<void> | null = null;
@@ -77,8 +86,12 @@ export function preloadBuggyNoses(): Promise<void> {
           });
           mesh.material = next.length === 1 ? next[0]! : next;
         });
-        // Bird authored along −Z → +90°; dog snout along +Z → −90°; both aim at buggy −X.
-        root.rotation.y = id === "dog" ? DOG_HEAD_YAW : Math.PI / 2;
+        // Bird authored along −Z → +90°. Dog: measured snout aim → buggy −X (level).
+        if (id === "dog") {
+          root.rotation.set(0, DOG_HEAD_YAW, DOG_HEAD_PITCH);
+        } else {
+          root.rotation.y = Math.PI / 2;
+        }
         noseTemplates.set(id, root);
       }),
     );
@@ -119,12 +132,14 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
     else if (mesh.material) mesh.material = mesh.material.clone();
   });
   nose.name = "buggyNoseVariant";
-  // Neck cut on the bumper crossbar; dog sits a bit lower than the lamp midline.
+  // Neck/feet on the bumper crossbar between headlights.
   const perch = bumperHeadlightPerchLocal(root);
   nose.position.copy(perch);
   if (propId === "dog") {
-    nose.position.y += DOG_HEAD_Y_OFFSET;
     nose.scale.setScalar(DOG_HEAD_SCALE);
+    // Shift so oriented contact sits on the bar (rearward + up from local origin).
+    nose.position.x += DOG_HEAD_CONTACT_X * DOG_HEAD_SCALE;
+    nose.position.y += DOG_HEAD_CONTACT_Y * DOG_HEAD_SCALE;
   } else {
     nose.scale.setScalar(1.05);
   }
