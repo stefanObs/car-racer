@@ -20,6 +20,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 
 - Collision stays silhouette (`collisionRadius`); mesh is visual only.
 - Loader strips embedded lights/cameras, skips outline shells on tiny shards, mesh-only bounds before autoscale.
+- Non-Hotrod cars get runtime Asphalt-Comic albedo atlases (`comicCarAtlases.ts`) + box UVs when exports lack usable TEXCOORD_0. Donnerbüchse keeps its Sketchfab atlas.
 - Rebuild generated cars: `npm run cars:polish`
 - Fetch Donnerbüchse source (needs `SKETCHFAB_API_TOKEN`): `npm run cars:fetch-donnerbuechse`
 - Retune Käferkraft materials: `npm run cars:tune-kaeferkraft` (reads `kaeferkraft.source.glb` when present)

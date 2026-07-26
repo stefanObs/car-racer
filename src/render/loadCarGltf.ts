@@ -13,6 +13,12 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { CAR_IDS, type CarId } from "../data/cars";
 import { CAR_MODELS, type CarModelSpec } from "../data/carModels";
 import { comicToon, outlineMaterial, inflateGeometry } from "./comicMaterials";
+import {
+  atlasRoleFromName,
+  carUsesAuthoredAtlas,
+  comicAtlasForRole,
+} from "./comicCarAtlases";
+import { ensureComicBoxUvs } from "./comicCarUvs";
 
 type Template = {
   root: Object3D;
@@ -102,7 +108,7 @@ function normalizeCarScene(root: Object3D, spec: CarModelSpec): void {
     if (!mesh.isMesh) return;
     mesh.castShadow = false;
     mesh.receiveShadow = false;
-    convertToComicMaterial(mesh);
+    convertToComicMaterial(mesh, spec.id);
   });
 }
 
@@ -139,7 +145,7 @@ function meshBounds(root: Object3D): Box3 {
   return box;
 }
 
-function convertToComicMaterial(mesh: Mesh): void {
+function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
   const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
   const next = mats.map((mat) => {
     const color = materialColor(mat);
@@ -165,6 +171,20 @@ function convertToComicMaterial(mesh: Mesh): void {
     // Keep authored atlas maps (e.g. Sketchfab Hotrod) under cel shading.
     if (map) {
       toon.map = map;
+      toon.needsUpdate = true;
+    } else if (
+      !carUsesAuthoredAtlas(carId) &&
+      mesh.geometry &&
+      !name.includes("skull") &&
+      !name.includes("eyered") &&
+      !(name.includes("eye") && !name.includes("grey"))
+    ) {
+      // Asphalt-Comic detail atlases for flat free GLBs (Hotrod excluded).
+      ensureComicBoxUvs(mesh.geometry);
+      const role = atlasRoleFromName(mat?.name ?? mesh.name ?? "", carId);
+      const atlas = comicAtlasForRole(carId, role);
+      toon.map = atlas;
+      toon.userData.comicTintable = role === "body" || role === "armor";
       toon.needsUpdate = true;
     }
     toon.name = mat?.name ?? mesh.name ?? "BodyPaint";
@@ -193,9 +213,14 @@ function applyPaint(root: Object3D, paint: string): void {
       if (!shouldApplyGaragePaint(name)) continue;
       const toon = mat as MeshToonMaterial;
       if (!toon.color) continue;
-      // Atlas-mapped cars (e.g. Sketchfab Hotrod): keep authored albedo; paint would wash the map.
+      // Full-color authored atlases (Hotrod): keep white so map reads true.
+      // Tintable comic detail maps: multiply garage paint through white+ink atlas.
       if (toon.map) {
-        toon.color.setRGB(1, 1, 1);
+        if (toon.userData?.comicTintable) {
+          toon.color.copy(paintColor);
+        } else {
+          toon.color.setRGB(1, 1, 1);
+        }
         continue;
       }
       toon.color.copy(paintColor);
