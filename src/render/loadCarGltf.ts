@@ -13,6 +13,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { CAR_IDS, type CarId } from "../data/cars";
 import { CAR_MODELS, type CarModelSpec } from "../data/carModels";
 import { comicToon, outlineMaterial, inflateGeometry } from "./comicMaterials";
+import { attachKaeferkraftSteeringWheel } from "./kaeferkraftProps";
 
 type Template = {
   root: Object3D;
@@ -61,6 +62,9 @@ export function cloneGltfCar(id: CarId, paint: string): Group | null {
   if (!hit) return null;
   const clone = hit.root.clone(true);
   applyPaint(clone, paint);
+  if (id === "kaeferkraft") {
+    attachKaeferkraftSteeringWheel(clone);
+  }
   // Busy free-asset edges: outline shells read as black debris under wheel arches.
   addOutlineShells(clone, { skip: id === "kaeferkraft" || id === "bison" || id === "donnerbuechse" });
   const wrap = new Group();
@@ -162,8 +166,6 @@ function convertToComicMaterial(mesh: Mesh): void {
       toon = comicToon(0xdce2e8);
     } else if (name.includes("eyered") || (name.includes("eye") && !name.includes("grey"))) {
       toon = comicToon(0xff1e1e);
-    } else if (name.includes("cage")) {
-      toon = comicToon(0xff7a00);
     } else if (name.includes("skull")) {
       toon = comicToon(0xf1f3f5);
     } else if (name.includes("seat") || name === "dark") {
@@ -238,7 +240,6 @@ function isNonPaintMaterial(name: string): boolean {
     name.includes("light") ||
     name.includes("emit") ||
     name.includes("engine") ||
-    name.includes("cage") ||
     name.includes("skull") ||
     name.includes("eyered") ||
     name.includes("eye") ||

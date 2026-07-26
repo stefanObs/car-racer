@@ -56,7 +56,8 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
   root.userData.gearClass = gear;
   root.userData.fromGltf = true;
 
-  root.add(cloneGltfCar(id, car.paint)!);
+  const gltf = cloneGltfCar(id, car.paint)!;
+  root.add(gltf);
 
   const body = new Mesh();
   body.visible = false;
@@ -352,9 +353,9 @@ function buildBuggyCar(car: CarState): ComicCarParts {
     root.add(seat, back);
   }
 
-  // Tubular roll cage (dominant silhouette)
+  // Tubular roll cage — same paint as body panels
   const tube = (r: number, h: number, x: number, y: number, z: number, rx = 0, rz = 0) => {
-    const c = withOutline(new CylinderGeometry(r, r, h, 8), m.dark, 0.03);
+    const c = withOutline(new CylinderGeometry(r, r, h, 8), m.paint, 0.03);
     c.position.set(x, y, z);
     c.rotation.x = rx;
     c.rotation.z = rz;

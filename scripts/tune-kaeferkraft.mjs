@@ -1,11 +1,10 @@
 #!/usr/bin/env node
 /**
  * Tune Käferkraft GetGLB buggy materials/meshes (free asset).
+ * - Roll cage + rear under-engine tray → BodyPaint (garage color)
  * - Engine + exhaust → silver Chrome
- * - Roll cage over driver → orange
- * - Front skull eyes → red
- * - Skull horns → dark grey/black
- * - Cabin seats → black
+ * - Front skull eyes → red; horns → dark grey
+ * - Seats, pedals, gear shift, steering column → black
  * - Drop thin black overlay strips beside body panels
  *
  * Prefers public/models/cars/kaeferkraft.source.glb when present.
@@ -66,24 +65,19 @@ function isBlackPanelStrip(c, id) {
   if (id !== 23) return false;
   const [sx, sy, sz] = c.size;
   const thinnest = Math.min(sx, sy, sz);
-  // Tire sidewall discs: keep (fat + low + outward)
   if (c.y < 0.05 && Math.abs(c.z) > 0.5 && Math.max(sx, sy) > 0.45) return false;
-  // Engine block shadow volume: keep → chrome later
   if (c.x > 0.9 && Math.max(...c.size) > 0.6) return false;
-  // Skull face cavity: keep → skull later
   if (c.x < -1.2 && c.verts >= 40 && Math.max(...c.size) > 0.2) return false;
   return thinnest < 0.16 || c.verts <= 24;
 }
 
-/** Tiny orange coplanar edge flakes (mat13, 4 verts) that read as debris — not cage. */
 function isTinyEdgeFlake(c, id) {
   if (id !== 13) return false;
-  if (c.y > 0.28) return false; // high mat13 = cage accent
+  if (c.y > 0.28) return false;
   return c.verts <= 8 && Math.min(...c.size) < 0.08;
 }
 
 function isWheel(c) {
-  // Real tires are squat discs (two similar large axes + thin width) — not long rails.
   if (c.y > 0.05 || Math.abs(c.z) < 0.5) return false;
   const dims = [...c.size].sort((a, b) => a - b);
   const [thin, mid, long] = dims;
@@ -91,7 +85,6 @@ function isWheel(c) {
 }
 
 function isSkullEye(c, id) {
-  // Front skull eyes: yellow discs + silver housings → solid red read
   if (![12, 15, 16].includes(id)) return false;
   return (
     c.x < -1.22 &&
@@ -104,15 +97,12 @@ function isSkullEye(c, id) {
 }
 
 function isSkullHorn(c, id) {
-  // Horn shells on the front skull (mat18/mat20) — wide left/right peaks above the face.
-  // Not the white skull face (mat21) and not low chassis mat18 panels.
   if (id !== 18 && id !== 20) return false;
   if (c.x > -1.05 || c.x < -1.35) return false;
   return c.size[1] > 0.25 && c.size[2] > 0.6 && c.y > 0.05;
 }
 
 function isSeat(c, id) {
-  // Bucket seats in the cockpit (originally mat22 grey)
   if (id !== 22) return false;
   if (c.x > 0.45 || c.x < -0.55) return false;
   if (c.y < 0.05 || c.y > 0.55) return false;
@@ -120,8 +110,8 @@ function isSeat(c, id) {
   return c.size[1] > 0.4 && Math.max(c.size[0], c.size[2]) > 0.4;
 }
 
+/** Tubular bars over the cockpit — follow garage paint. */
 function isRollCage(c, id) {
-  // Tubular bars over the cockpit (originally mat13/mat14 orange-red)
   if (id !== 13 && id !== 14) return false;
   if (c.y < 0.28) return false;
   const [sx, sy, sz] = c.size;
@@ -130,15 +120,65 @@ function isRollCage(c, id) {
   return thin && tallOrWide;
 }
 
+/** Wide flat tray + cradle + lower engine carrier — garage paint, not chrome. */
+function isRearUnderEngine(c, id) {
+  if (c.x < 0.55 || c.x > 1.35) return false;
+  if (isWheel(c)) return false;
+  if (![14, 15, 16, 17, 22].includes(id)) return false;
+  // Wide skid trays
+  if (c.y <= 0.05 && c.size[2] > 0.55 && c.size[1] < 0.22) return true;
+  // Compact cradle mounts under the motor
+  if (
+    c.y > 0.15 &&
+    c.y < 0.45 &&
+    c.verts < 300 &&
+    Math.max(...c.size) < 0.55 &&
+    Math.min(...c.size) > 0.04
+  ) {
+    return true;
+  }
+  // Lower carrier plate of the engine cluster (reads as “under the motor”)
+  if (c.y > 0.02 && c.y < 0.22 && c.verts > 400 && c.verts < 1400 && c.size[1] > 0.4) {
+    return true;
+  }
+  return false;
+}
+
+/** Floor pedals in the footwell. */
+function isPedal(c, id) {
+  if (c.y > -0.08 || c.y < -0.28) return false;
+  if (c.x < -0.55 || c.x > 0.05) return false;
+  if (Math.abs(c.z) > 0.45) return false;
+  if (c.size[1] > 0.14) return false;
+  return Math.max(c.size[0], c.size[2]) > 0.07 && Math.max(c.size[0], c.size[2]) < 0.45;
+}
+
+/** Gear lever beside the seats. */
+function isGearShift(c, id) {
+  if (c.x < -0.45 || c.x > -0.1) return false;
+  if (c.y < 0.12 || c.y > 0.45) return false;
+  if (c.z < 0.08 || c.z > 0.4) return false;
+  return Math.max(...c.size) < 0.4 && Math.min(...c.size) < 0.2;
+}
+
+/** Steering column shaft + hub (wheel added at runtime). */
+function isSteeringColumn(c, id) {
+  if (c.x < -0.4 || c.x > -0.1) return false;
+  if (Math.abs(c.z) > 0.12) return false;
+  // Tall thin shaft
+  if (c.size[1] > 0.2 && Math.min(c.size[0], c.size[2]) < 0.12) return true;
+  // Hub knob
+  if (c.y > 0.05 && c.y < 0.25 && Math.max(...c.size) < 0.12 && c.verts > 50) return true;
+  return false;
+}
+
 function isRearEngineChrome(c, id) {
-  // Rear engine / exhaust cluster (+X), metal greys
   if (c.x < 0.55) return false;
+  if (isRearUnderEngine(c, id)) return false;
   if ([15, 16, 17, 19, 21, 22, 23].includes(id)) {
-    // Exclude rear tire discs
     if (isWheel(c)) return false;
     return true;
   }
-  // Tall exhaust stack / muffler bits
   if (c.y > 0.2 && c.size[1] > 0.15 && Math.max(c.size[0], c.size[2]) < 0.55) {
     return id === 12 || id === 14 || id === 15 || id === 16;
   }
@@ -151,6 +191,7 @@ function classify(c, matName) {
   if (isSkullEye(c, id)) return "eye";
   if (isSkullHorn(c, id)) return "horn";
   if (isSeat(c, id)) return "seat";
+  if (isPedal(c, id) || isGearShift(c, id) || isSteeringColumn(c, id)) return "dark";
   if (isBlackPanelStrip(c, id) || isTinyEdgeFlake(c, id)) return "drop";
 
   if (isWheel(c)) {
@@ -158,28 +199,25 @@ function classify(c, matName) {
     return "tire";
   }
 
-  // Long thin chassis rails must never become Tire (reads as black junk beside body).
   if (id === 17 || id === 23) {
     const dims = [...c.size].sort((a, b) => a - b);
     if (dims[2] > 0.5 && dims[2] / Math.max(dims[1], 0.01) > 1.6) return "drop";
   }
 
-  if (isRollCage(c, id)) return "cage";
+  // Cage + under-engine tray take garage paint
+  if (isRollCage(c, id) || isRearUnderEngine(c, id)) return "body";
   if (isRearEngineChrome(c, id)) return "chrome";
 
-  // Front skull bone (white) — drop black face overlay so red eyes read
   if (c.x < -1.15 && id === 21) return "skull";
   if (c.x < -1.2 && id === 23 && c.verts >= 40) return "drop";
 
-  // Front eye housings already handled by isSkullEye; leftover front chrome trim
   if (c.x < -1.2 && (id === 15 || id === 16) && Math.abs(c.z) > 0.1) return "chrome";
 
-  // Body / fenders / hood — garage paint
   if ([13, 14, 18, 19, 20].includes(id)) return "body";
 
   if ([15, 16, 22].includes(id)) return "chrome";
   if (id === 17 || id === 23) return "drop";
-  if (id === 12) return "chrome"; // leftover yellow bits
+  if (id === 12) return "chrome";
   if (id === 21) return "skull";
 
   return "body";
@@ -196,17 +234,15 @@ async function main() {
   const root = doc.getRoot();
 
   const body = makeMat(doc, "BodyPaint", 0x12b886);
-  const cage = makeMat(doc, "CageOrange", 0xff7a00);
   const chrome = makeMat(doc, "Chrome", 0xd8dde3, { metal: 0.55, rough: 0.35 });
   const tire = makeMat(doc, "Tire", 0x1a1a1a);
   const skull = makeMat(doc, "Skull", 0xf1f3f5);
   const eye = makeMat(doc, "EyeRed", 0xff1e1e);
-  const horn = makeMat(doc, "Dark", 0x2c2e33);
+  const dark = makeMat(doc, "Dark", 0x1a1a1a);
   const seat = makeMat(doc, "Seat", 0x1a1a1a);
 
   const counts = {
     body: 0,
-    cage: 0,
     chrome: 0,
     tire: 0,
     rim: 0,
@@ -214,6 +250,7 @@ async function main() {
     eye: 0,
     horn: 0,
     seat: 0,
+    dark: 0,
     drop: 0,
   };
   const dropPrims = [];
@@ -229,9 +266,6 @@ async function main() {
       counts[kind] = (counts[kind] || 0) + 1;
 
       switch (kind) {
-        case "cage":
-          prim.setMaterial(cage);
-          break;
         case "chrome":
         case "rim":
           prim.setMaterial(chrome);
@@ -246,7 +280,8 @@ async function main() {
           prim.setMaterial(eye);
           break;
         case "horn":
-          prim.setMaterial(horn);
+        case "dark":
+          prim.setMaterial(dark);
           break;
         case "seat":
           prim.setMaterial(seat);
@@ -260,7 +295,6 @@ async function main() {
     }
   }
 
-  // Remove dropped primitives; detach empty meshes from the scene.
   for (const { mesh, prim } of dropPrims) {
     mesh.removePrimitive(prim);
   }
@@ -278,7 +312,6 @@ async function main() {
   }
 
   for (const t of [...root.listTextures()]) t.dispose();
-  // Dispose unused original materials
   for (const m of [...root.listMaterials()]) {
     const used = root.listMeshes().some((mesh) =>
       mesh.listPrimitives().some((p) => p.getMaterial() === m),
