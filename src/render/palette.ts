@@ -25,4 +25,5 @@ export const ComicPaletteCss = {
   outline: "#1B1B1F",
   repairSpark: "#FFE066",
   curbLight: "#F8F9FA",
+  sky: "#5BA3D9",
 } as const;

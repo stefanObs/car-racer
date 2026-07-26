@@ -46,6 +46,17 @@ export function comicToon(
   return mat;
 }
 
+/** Unlit flat comic fill — keeps env/prop atlases bright (no toon darkening). */
+export function comicFlat(
+  color: string | number,
+  opts?: { map?: import("three").Texture },
+): MeshBasicMaterial {
+  return new MeshBasicMaterial({
+    color: new Color(color),
+    map: opts?.map ?? null,
+  });
+}
+
 export function outlineMaterial(): MeshBasicMaterial {
   if (sharedOutlineMat) return sharedOutlineMat;
   sharedOutlineMat = new MeshBasicMaterial({

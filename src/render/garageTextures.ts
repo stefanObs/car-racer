@@ -1,5 +1,5 @@
 /**
- * Asphalt-Comic textures for garage bay meshes (applied as material maps — no floating decals).
+ * Bright Asphalt-Comic garage textures — flat base + bold ink detail (reference daylight look).
  */
 import {
   CanvasTexture,
@@ -22,11 +22,11 @@ export function garageTextureCacheSize(): number {
   return texCache.size;
 }
 
-function outline(): string {
+function ink(): string {
   return ComicPaletteCss.outline;
 }
 
-function fallbackTex(r = 180, g = 180, b = 185): DataTexture {
+function fallbackTex(r = 200, g = 205, b = 210): DataTexture {
   const data = new Uint8Array([r, g, b, 255]);
   const tex = new DataTexture(data, 1, 1, RGBAFormat);
   tex.needsUpdate = true;
@@ -63,46 +63,41 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
   return tex;
 }
 
-function hatch(
+function roundRect(
   ctx: CanvasRenderingContext2D,
   x: number,
   y: number,
   w: number,
   h: number,
-  spacing = 12,
-  angle = -0.4,
-  alpha = 0.28,
+  r: number,
 ): void {
-  ctx.save();
+  const rr = Math.min(r, w / 2, h / 2);
   ctx.beginPath();
-  ctx.rect(x, y, w, h);
-  ctx.clip();
-  ctx.strokeStyle = outline();
-  ctx.lineWidth = 1.5;
-  ctx.globalAlpha = alpha;
-  const pad = Math.hypot(w, h);
-  ctx.translate(x + w / 2, y + h / 2);
-  ctx.rotate(angle);
-  for (let i = -pad; i < pad; i += spacing) {
-    ctx.beginPath();
-    ctx.moveTo(i, -pad * 0.55);
-    ctx.lineTo(i, pad * 0.55);
-    ctx.stroke();
-  }
-  ctx.restore();
-  ctx.globalAlpha = 1;
+  ctx.moveTo(x + rr, y);
+  ctx.arcTo(x + w, y, x + w, y + h, rr);
+  ctx.arcTo(x + w, y + h, x, y + h, rr);
+  ctx.arcTo(x, y + h, x, y, rr);
+  ctx.arcTo(x, y, x + w, y, rr);
+  ctx.closePath();
 }
 
-/** Outer garage floor — dark concrete, light panel grid only. */
+/** Bright workshop concrete floor with comic tile seams. */
 export function floorTexture(): Texture {
-  return canvasTex("garage-floor-v3", 512, 512, (ctx) => {
+  return canvasTex("garage-floor-v5", 512, 512, (ctx) => {
     const w = 512;
     const h = 512;
-    ctx.fillStyle = "#3A4046";
+    ctx.fillStyle = "#E4E7EC";
     ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = outline();
+    // Checker warmth
+    ctx.fillStyle = "#D5DAE0";
+    for (let y = 0; y < h; y += 64) {
+      for (let x = 0; x < w; x += 64) {
+        if (((x + y) / 64) % 2 === 0) ctx.fillRect(x, y, 64, 64);
+      }
+    }
+    ctx.strokeStyle = ink();
     ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.35;
+    ctx.globalAlpha = 0.55;
     for (let x = 64; x < w; x += 64) {
       ctx.beginPath();
       ctx.moveTo(x, 0);
@@ -116,242 +111,464 @@ export function floorTexture(): Texture {
       ctx.stroke();
     }
     ctx.globalAlpha = 1;
+    // Corner bolts
+    ctx.fillStyle = ink();
+    for (let y = 32; y < h; y += 64) {
+      for (let x = 32; x < w; x += 64) {
+        ctx.beginPath();
+        ctx.arc(x, y, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
   });
 }
 
-/** Race pad asphalt with curb lines + dashed center (baked in). */
+/** Sunny race-pad asphalt with curb + dashes + ink grain. */
 export function asphaltPadTexture(): Texture {
-  return canvasTex("garage-asphalt-pad-v3", 512, 640, (ctx) => {
-    const w = 512;
-    const h = 640;
-    ctx.fillStyle = ComicPaletteCss.asphalt;
+  return canvasTex("garage-asphalt-pad-v5", 640, 768, (ctx) => {
+    const w = 640;
+    const h = 768;
+    ctx.fillStyle = "#8A9098";
+    ctx.fillRect(0, 0, w, h);
+    // Light/dark bands (comic asphalt grain)
+    ctx.strokeStyle = "#7A8088";
+    ctx.lineWidth = 2;
+    ctx.globalAlpha = 0.65;
+    for (let y = 20; y < h; y += 14) {
+      ctx.beginPath();
+      ctx.moveTo(40, y);
+      ctx.lineTo(w - 40, y + (y % 28 === 0 ? 3 : -2));
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+
+    // Soft spotlight pool under car
+    const grad = ctx.createRadialGradient(w * 0.5, h * 0.48, 40, w * 0.5, h * 0.48, 220);
+    grad.addColorStop(0, "rgba(255,248,220,0.28)");
+    grad.addColorStop(1, "rgba(255,248,220,0)");
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, w, h);
 
-    // Soft center shade (one clean ellipse)
-    ctx.fillStyle = "rgba(27, 27, 31, 0.16)";
-    ctx.beginPath();
-    ctx.ellipse(w * 0.5, h * 0.5, 150, 70, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Two clean tire arcs
-    ctx.strokeStyle = outline();
+    // Tire arcs
+    ctx.strokeStyle = ink();
     ctx.lineCap = "round";
-    ctx.globalAlpha = 0.4;
+    ctx.globalAlpha = 0.45;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.arc(230, 460, 100, 0.25, 1.35);
+    ctx.stroke();
     ctx.lineWidth = 4;
     ctx.beginPath();
-    ctx.arc(200, 380, 90, 0.3, 1.3);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.arc(320, 390, 100, -0.2, 1.0);
+    ctx.arc(400, 470, 115, -0.25, 1.05);
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    // Yellow curb rails
-    ctx.fillStyle = ComicPaletteCss.repairSpark;
-    ctx.fillRect(16, 36, 20, h - 72);
-    ctx.fillRect(w - 36, 36, 20, h - 72);
-    ctx.strokeStyle = outline();
-    ctx.lineWidth = 3;
-    ctx.strokeRect(16, 36, 20, h - 72);
-    ctx.strokeRect(w - 36, 36, 20, h - 72);
-
-    // White dashed center
-    ctx.fillStyle = ComicPaletteCss.asphaltLine;
-    for (let y = 56; y < h - 56; y += 46) {
-      ctx.fillRect(w * 0.5 - 5, y, 10, 22);
-      ctx.strokeStyle = outline();
-      ctx.lineWidth = 2;
-      ctx.strokeRect(w * 0.5 - 5, y, 10, 22);
+    // Yellow curbs with black segments
+    for (const x of [14, w - 38] as const) {
+      for (let y = 30; y < h - 30; y += 36) {
+        ctx.fillStyle = y % 72 < 36 ? ComicPaletteCss.repairSpark : ink();
+        ctx.fillRect(x, y, 24, 34);
+      }
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 4;
+      ctx.strokeRect(x, 30, 24, h - 60);
     }
 
-    ctx.strokeStyle = outline();
-    ctx.lineWidth = 8;
+    // Center dashes
+    for (let y = 50; y < h - 50; y += 52) {
+      ctx.fillStyle = ComicPaletteCss.asphaltLine;
+      roundRect(ctx, w * 0.5 - 7, y, 14, 28, 3);
+      ctx.fill();
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 2.5;
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 10;
     ctx.strokeRect(6, 6, w - 12, h - 12);
   });
 }
 
-/** Concrete wall panels with seams. */
+/** Light concrete wall with comic panel seams. */
 export function wallPanelTexture(seed: number): Texture {
-  return canvasTex(`garage-wall-v3-${seed}`, 512, 384, (ctx) => {
-    const w = 512;
-    const h = 384;
-    ctx.fillStyle = seed % 2 === 0 ? "#6A7178" : "#5A6168";
+  return canvasTex(`garage-wall-v5-${seed}`, 640, 480, (ctx) => {
+    const w = 640;
+    const h = 480;
+    ctx.fillStyle = seed % 2 === 0 ? "#EEF1F4" : "#E4E8ED";
     ctx.fillRect(0, 0, w, h);
+    // Top shade band
+    ctx.fillStyle = "rgba(90,100,110,0.08)";
+    ctx.fillRect(0, 0, w, h * 0.18);
 
-    ctx.strokeStyle = outline();
-    ctx.lineWidth = 5;
-    ctx.globalAlpha = 0.7;
-    for (const x of [128, 256, 384]) {
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 6;
+    for (const x of [160, 320, 480]) {
       ctx.beginPath();
-      ctx.moveTo(x, 10);
-      ctx.lineTo(x, h - 10);
+      ctx.moveTo(x, 14);
+      ctx.lineTo(x, h - 14);
       ctx.stroke();
     }
     ctx.beginPath();
-    ctx.moveTo(10, h * 0.5);
-    ctx.lineTo(w - 10, h * 0.5);
+    ctx.moveTo(14, h * 0.42);
+    ctx.lineTo(w - 14, h * 0.42);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(14, h * 0.72);
+    ctx.lineTo(w - 14, h * 0.72);
+    ctx.stroke();
+
+    // Rivets
+    ctx.fillStyle = ink();
+    for (const x of [160, 320, 480]) {
+      for (let y = 36; y < h - 28; y += 44) {
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#F1F3F5";
+        ctx.beginPath();
+        ctx.arc(x - 1, y - 1, 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = ink();
+      }
+    }
+
+    // One comic crack per wall
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 2.5;
+    ctx.globalAlpha = 0.55;
+    const ox = 40 + seed * 40;
+    ctx.beginPath();
+    ctx.moveTo(ox, 80);
+    ctx.lineTo(ox + 35, 120);
+    ctx.lineTo(ox + 18, 170);
+    ctx.lineTo(ox + 50, 210);
     ctx.stroke();
     ctx.globalAlpha = 1;
 
-    // Rivets
-    ctx.fillStyle = outline();
-    ctx.globalAlpha = 0.45;
-    for (const x of [128, 256, 384]) {
-      for (let y = 32; y < h - 24; y += 40) {
-        ctx.beginPath();
-        ctx.arc(x, y, 3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-    ctx.globalAlpha = 1;
+    ctx.lineWidth = 10;
+    ctx.strokeRect(5, 5, w - 10, h - 10);
+  });
+}
 
-    ctx.strokeStyle = outline();
+/** Bold hazard chevrons. */
+export function hazardChevronTexture(): Texture {
+  return canvasTex("garage-hazard-v4", 640, 128, (ctx) => {
+    const w = 640;
+    const h = 128;
+    ctx.fillStyle = ComicPaletteCss.repairSpark;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = ink();
+    const step = 56;
+    for (let x = -h; x < w + h; x += step) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + h * 0.5, 0);
+      ctx.lineTo(x + h * 0.5 + h, h);
+      ctx.lineTo(x + h, h);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.strokeStyle = ink();
     ctx.lineWidth = 8;
     ctx.strokeRect(4, 4, w - 8, h - 8);
   });
 }
 
-/** Black / yellow hazard chevrons. */
-export function hazardChevronTexture(): Texture {
-  return canvasTex("garage-hazard-v2", 512, 96, (ctx) => {
-    const w = 512;
-    const h = 96;
-    ctx.fillStyle = ComicPaletteCss.repairSpark;
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = outline();
-    const step = 48;
-    for (let x = -h; x < w + h; x += step) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x + h * 0.55, 0);
-      ctx.lineTo(x + h * 0.55 + h, h);
-      ctx.lineTo(x + h, h);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.strokeStyle = outline();
-    ctx.lineWidth = 6;
-    ctx.strokeRect(3, 3, w - 6, h - 6);
-  });
-}
-
-/** Red locker door face. */
+/** Detailed red locker door. */
 export function cabinetDoorTexture(): Texture {
-  return canvasTex("garage-cabinet-v2", 256, 384, (ctx) => {
-    const w = 256;
-    const h = 384;
+  return canvasTex("garage-cabinet-v4", 320, 480, (ctx) => {
+    const w = 320;
+    const h = 480;
     ctx.fillStyle = "#E03131";
     ctx.fillRect(0, 0, w, h);
-    hatch(ctx, 12, 12, w - 24, h - 24, 10, -0.55, 0.18);
+    // Highlight stripe
+    ctx.fillStyle = "rgba(255,255,255,0.12)";
+    ctx.fillRect(18, 18, 36, h - 36);
 
-    ctx.strokeStyle = outline();
-    ctx.lineWidth = 8;
-    ctx.strokeRect(8, 8, w - 16, h - 16);
-    ctx.lineWidth = 4;
-    ctx.strokeRect(26, 26, w - 52, h - 52);
-
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(26, h * 0.48);
-    ctx.lineTo(w - 26, h * 0.48);
-    ctx.stroke();
-
-    ctx.fillStyle = ComicPaletteCss.repairSpark;
-    ctx.fillRect(w - 58, h * 0.42, 22, 55);
-    ctx.strokeStyle = outline();
-    ctx.lineWidth = 3;
-    ctx.strokeRect(w - 58, h * 0.42, 22, 55);
-  });
-}
-
-/** Shipping crate face. */
-export function crateFaceTexture(fill: string): Texture {
-  return canvasTex(`garage-crate-v2-${fill}`, 256, 256, (ctx) => {
-    const w = 256;
-    const h = 256;
-    ctx.fillStyle = fill;
-    ctx.fillRect(0, 0, w, h);
-    ctx.strokeStyle = outline();
+    ctx.strokeStyle = ink();
     ctx.lineWidth = 10;
     ctx.strokeRect(10, 10, w - 20, h - 20);
     ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(40, 40);
-    ctx.lineTo(w - 40, h - 40);
-    ctx.moveTo(w - 40, 40);
-    ctx.lineTo(40, h - 40);
-    ctx.stroke();
-    ctx.fillStyle = outline();
-    ctx.globalAlpha = 0.75;
-    for (let i = 0; i < 5; i++) ctx.fillRect(48 + i * 14, h - 52, 8, 28);
+    ctx.strokeRect(28, 28, w - 56, h - 56);
+
+    // Two door panels
+    ctx.lineWidth = 4;
+    ctx.strokeRect(40, 44, w - 80, h * 0.38);
+    ctx.strokeRect(40, h * 0.5, w - 80, h * 0.38);
+
+    // Louvers
+    ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.7;
+    for (let i = 0; i < 5; i++) {
+      const y = 60 + i * 28;
+      ctx.beginPath();
+      ctx.moveTo(52, y);
+      ctx.lineTo(w - 52, y);
+      ctx.stroke();
+    }
     ctx.globalAlpha = 1;
+
+    // Handle plate + grip
+    ctx.fillStyle = ComicPaletteCss.repairSpark;
+    roundRect(ctx, w - 72, h * 0.44, 28, 70, 4);
+    ctx.fill();
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    ctx.fillStyle = ink();
+    roundRect(ctx, w - 64, h * 0.48, 12, 42, 3);
+    ctx.fill();
+
+    // Vent dots
+    ctx.fillStyle = ink();
+    for (let i = 0; i < 4; i++) {
+      ctx.beginPath();
+      ctx.arc(56 + i * 22, h - 70, 5, 0, Math.PI * 2);
+      ctx.fill();
+    }
   });
 }
 
-/** Shop banner face. */
-export function bannerTexture(): Texture {
-  return canvasTex("garage-banner-v2", 640, 128, (ctx) => {
-    const w = 640;
-    const h = 128;
-    ctx.fillStyle = "#E03131";
+/** Shipping crate with X brace + stencil. */
+export function crateFaceTexture(fill: string): Texture {
+  return canvasTex(`garage-crate-v4-${fill}`, 320, 320, (ctx) => {
+    const w = 320;
+    const h = 320;
+    ctx.fillStyle = fill;
     ctx.fillRect(0, 0, w, h);
-    hatch(ctx, 0, 0, w, h, 10, -0.55, 0.2);
+    ctx.fillStyle = "rgba(0,0,0,0.1)";
+    ctx.fillRect(0, h * 0.55, w, h * 0.45);
 
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 12;
+    ctx.strokeRect(12, 12, w - 24, h - 24);
+    ctx.lineWidth = 6;
+    ctx.strokeRect(28, 28, w - 56, h - 56);
+
+    // X brace
+    ctx.lineWidth = 8;
+    ctx.beginPath();
+    ctx.moveTo(48, 48);
+    ctx.lineTo(w - 48, h - 48);
+    ctx.moveTo(w - 48, 48);
+    ctx.lineTo(48, h - 48);
+    ctx.stroke();
+
+    // Corner plates
     ctx.fillStyle = ComicPaletteCss.repairSpark;
-    ctx.fillRect(20, h * 0.68, w - 40, 12);
-    ctx.fillStyle = outline();
-    ctx.fillRect(20, 14, w - 40, 8);
-
-    ctx.fillStyle = ComicPaletteCss.curbLight;
-    const blocks = [
-      [70, 38, 70, 26],
-      [155, 38, 48, 26],
-      [220, 38, 88, 26],
-      [330, 38, 40, 26],
-      [390, 38, 100, 26],
-      [510, 38, 55, 26],
-    ] as const;
-    for (const [x, y, bw, bh] of blocks) {
-      ctx.fillRect(x, y, bw, bh);
-      ctx.strokeStyle = outline();
+    for (const [x, y] of [
+      [20, 20],
+      [w - 52, 20],
+      [20, h - 52],
+      [w - 52, h - 52],
+    ] as const) {
+      ctx.fillRect(x, y, 32, 32);
+      ctx.strokeStyle = ink();
       ctx.lineWidth = 3;
-      ctx.strokeRect(x, y, bw, bh);
+      ctx.strokeRect(x, y, 32, 32);
     }
 
-    ctx.strokeStyle = outline();
+    // Barcode
+    ctx.fillStyle = ink();
+    for (let i = 0; i < 7; i++) {
+      ctx.fillRect(70 + i * 16, h - 70, 8 + (i % 2) * 4, 36);
+    }
+  });
+}
+
+/** Shop banner — CRASH CIRCUIT blocks. */
+export function bannerTexture(): Texture {
+  return canvasTex("garage-banner-v4", 768, 160, (ctx) => {
+    const w = 768;
+    const h = 160;
+    ctx.fillStyle = "#E03131";
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(255,255,255,0.1)";
+    ctx.fillRect(0, 0, w, 28);
+
+    ctx.fillStyle = ComicPaletteCss.repairSpark;
+    ctx.fillRect(16, h - 28, w - 32, 12);
+    ctx.fillStyle = ink();
+    ctx.fillRect(16, 16, w - 32, 8);
+
+    // Word marks
+    ctx.fillStyle = "#F8F9FA";
+    const blocks = [
+      [48, 48, 78, 36],
+      [140, 48, 56, 36],
+      [210, 48, 90, 36],
+      [320, 48, 48, 36],
+      [386, 48, 110, 36],
+      [516, 48, 62, 36],
+      [600, 48, 100, 36],
+    ] as const;
+    for (const [x, y, bw, bh] of blocks) {
+      roundRect(ctx, x, y, bw, bh, 4);
+      ctx.fill();
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 3;
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 10;
+    ctx.strokeRect(6, 6, w - 12, h - 12);
+  });
+}
+
+/** Comic race poster. */
+export function posterTexture(accent: string): Texture {
+  return canvasTex(`garage-poster-v4-${accent}`, 320, 240, (ctx) => {
+    const w = 320;
+    const h = 240;
+    ctx.fillStyle = accent;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = "rgba(255,255,255,0.15)";
+    ctx.fillRect(20, 20, w - 40, 50);
+
+    // Horizon stripe
+    ctx.fillStyle = ComicPaletteCss.sky;
+    ctx.fillRect(24, 80, w - 48, 70);
+    ctx.fillStyle = ComicPaletteCss.asphalt;
+    ctx.fillRect(24, 140, w - 48, 50);
+
+    // Mini car silhouette
+    ctx.fillStyle = ComicPaletteCss.repairSpark;
+    ctx.beginPath();
+    ctx.moveTo(90, 155);
+    ctx.lineTo(140, 145);
+    ctx.lineTo(190, 148);
+    ctx.lineTo(220, 160);
+    ctx.lineTo(210, 175);
+    ctx.lineTo(100, 175);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 3;
+    ctx.stroke();
+    ctx.fillStyle = ink();
+    ctx.beginPath();
+    ctx.arc(120, 178, 10, 0, Math.PI * 2);
+    ctx.arc(190, 178, 10, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Star badge
+    ctx.fillStyle = ComicPaletteCss.repairSpark;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.78, 36);
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+      const b = a + Math.PI / 5;
+      ctx.lineTo(w * 0.78 + Math.cos(a) * 22, 48 + Math.sin(a) * 22);
+      ctx.lineTo(w * 0.78 + Math.cos(b) * 10, 48 + Math.sin(b) * 10);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    ctx.lineWidth = 12;
+    ctx.strokeRect(8, 8, w - 16, h - 16);
+    ctx.lineWidth = 4;
+    ctx.strokeRect(22, 22, w - 44, h - 44);
+  });
+}
+
+/** Wood workbench top. */
+export function woodBenchTexture(): Texture {
+  return canvasTex("garage-wood-v4", 512, 160, (ctx) => {
+    const w = 512;
+    const h = 160;
+    ctx.fillStyle = "#C48A4A";
+    ctx.fillRect(0, 0, w, h);
+    ctx.strokeStyle = "#8B5A2B";
+    ctx.lineWidth = 3;
+    for (let y = 18; y < h; y += 22) {
+      ctx.beginPath();
+      ctx.moveTo(8, y);
+      ctx.bezierCurveTo(w * 0.3, y - 4, w * 0.6, y + 5, w - 8, y);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 8;
+    ctx.strokeRect(4, 4, w - 8, h - 8);
+    // Knots
+    ctx.fillStyle = "#8B5A2B";
+    ctx.beginPath();
+    ctx.ellipse(120, 70, 14, 9, 0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(360, 90, 12, 8, -0.2, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
+/** Orange oil drum label. */
+export function drumLabelTexture(): Texture {
+  return canvasTex("garage-drum-v4", 256, 320, (ctx) => {
+    const w = 256;
+    const h = 320;
+    ctx.fillStyle = "#E8590C";
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = ComicPaletteCss.repairSpark;
+    ctx.fillRect(0, 40, w, 36);
+    ctx.fillStyle = ink();
+    ctx.fillRect(0, 120, w, 28);
+    ctx.fillStyle = "#F8F9FA";
+    roundRect(ctx, 48, 170, w - 96, 70, 6);
+    ctx.fill();
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    // Warning triangle
+    ctx.fillStyle = ComicPaletteCss.repairSpark;
+    ctx.beginPath();
+    ctx.moveTo(w * 0.5, 185);
+    ctx.lineTo(w * 0.5 + 28, 225);
+    ctx.lineTo(w * 0.5 - 28, 225);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 3;
+    ctx.stroke();
     ctx.lineWidth = 8;
     ctx.strokeRect(6, 6, w - 12, h - 12);
   });
 }
 
-/** Wall poster panel. */
-export function posterTexture(accent: string): Texture {
-  return canvasTex(`garage-poster-v2-${accent}`, 256, 192, (ctx) => {
+/** Sky peek through open bay door. */
+export function skyPeekTexture(): Texture {
+  return canvasTex("garage-sky-v4", 256, 384, (ctx) => {
     const w = 256;
-    const h = 192;
-    ctx.fillStyle = accent;
+    const h = 384;
+    const g = ctx.createLinearGradient(0, 0, 0, h);
+    g.addColorStop(0, "#6BB3E8");
+    g.addColorStop(0.55, "#5BA3D9");
+    g.addColorStop(1, "#A8D4F0");
+    ctx.fillStyle = g;
     ctx.fillRect(0, 0, w, h);
-    hatch(ctx, 16, 16, w - 32, h - 32, 9, -0.4, 0.3);
-
-    ctx.fillStyle = ComicPaletteCss.repairSpark;
-    ctx.beginPath();
-    ctx.moveTo(w * 0.5, 44);
-    ctx.lineTo(w * 0.56, 78);
-    ctx.lineTo(w * 0.74, 78);
-    ctx.lineTo(w * 0.59, 98);
-    ctx.lineTo(w * 0.65, 130);
-    ctx.lineTo(w * 0.5, 110);
-    ctx.lineTo(w * 0.35, 130);
-    ctx.lineTo(w * 0.41, 98);
-    ctx.lineTo(w * 0.26, 78);
-    ctx.lineTo(w * 0.44, 78);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = outline();
+    // Comic clouds
+    ctx.fillStyle = "#F8F9FA";
+    for (const [x, y, r] of [
+      [60, 90, 28],
+      [90, 85, 34],
+      [120, 92, 26],
+      [160, 180, 30],
+      [190, 175, 36],
+    ] as const) {
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = ink();
     ctx.lineWidth = 3;
+    ctx.globalAlpha = 0.35;
+    ctx.beginPath();
+    ctx.moveTo(40, 100);
+    ctx.quadraticCurveTo(90, 70, 140, 100);
     ctx.stroke();
-
-    ctx.lineWidth = 10;
-    ctx.strokeRect(6, 6, w - 12, h - 12);
+    ctx.globalAlpha = 1;
   });
 }

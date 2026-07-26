@@ -79,6 +79,8 @@ export class RaceRenderer {
   private garageDragging = false;
   private fxTime = 0;
   private readonly hemi: HemisphereLight;
+  private readonly ambient: AmbientLight;
+  private readonly sun: DirectionalLight;
   private readonly groundMesh: Mesh;
   private readonly skyMesh: Mesh;
   private readonly fog: Fog;
@@ -103,10 +105,11 @@ export class RaceRenderer {
 
     this.hemi = new HemisphereLight(look.hemiSky, look.hemiGround, 0.65);
     this.scene.add(this.hemi);
-    this.scene.add(new AmbientLight(0xffffff, 0.4));
-    const sun = new DirectionalLight(0xfff1d6, 1.25);
-    sun.position.set(18, 28, 12);
-    this.scene.add(sun);
+    this.ambient = new AmbientLight(0xffffff, 0.4);
+    this.scene.add(this.ambient);
+    this.sun = new DirectionalLight(0xfff1d6, 1.25);
+    this.sun.position.set(18, 28, 12);
+    this.scene.add(this.sun);
 
     this.groundMesh = new Mesh(new PlaneGeometry(480, 480), comicToon(look.ground));
     this.groundMesh.rotation.x = -Math.PI / 2;
@@ -176,13 +179,19 @@ export class RaceRenderer {
 
     this.groundMesh.visible = false;
     this.skyMesh.visible = false;
-    this.scene.background = new Color(0x2a3038);
-    this.fog.color.setHex(0x2a3038);
-    this.fog.near = 22;
-    this.fog.far = 60;
-    this.renderer.setClearColor(0x2a3038, 1);
-    this.hemi.color.setHex(0xffe8c8);
-    this.hemi.groundColor.setHex(0x3a3030);
+    // Sunny open-bay look (Asphalt-Comic daylight — not a cave)
+    this.scene.background = new Color(0x5ba3d9);
+    this.fog.color.setHex(0x8ec4e8);
+    this.fog.near = 40;
+    this.fog.far = 90;
+    this.renderer.setClearColor(0x5ba3d9, 1);
+    this.hemi.color.setHex(0xfff4e0);
+    this.hemi.groundColor.setHex(0xd0d6dc);
+    this.hemi.intensity = 1.25;
+    this.ambient.intensity = 0.95;
+    this.sun.color.setHex(0xfff8ee);
+    this.sun.intensity = 2.15;
+    this.sun.position.set(8, 22, 14);
   }
 
   setGarageLook(look: { paint: string; sticker: string; modelId: CarId }): void {
@@ -229,6 +238,11 @@ export class RaceRenderer {
     this.renderer.setClearColor(look.sky, 1);
     this.hemi.color.setHex(look.hemiSky);
     this.hemi.groundColor.setHex(look.hemiGround);
+    this.hemi.intensity = 0.65;
+    this.ambient.intensity = 0.4;
+    this.sun.color.setHex(0xfff1d6);
+    this.sun.intensity = 1.25;
+    this.sun.position.set(18, 28, 12);
     (this.groundMesh.material as MeshToonMaterial).color.setHex(look.ground);
     const skyMat = this.skyMesh.material as MeshBasicMaterial;
     skyMat.map?.dispose();
