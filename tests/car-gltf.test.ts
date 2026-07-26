@@ -80,7 +80,7 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(b).toBeGreaterThan(g);
   });
 
-  it("donnerbuechse ships RatRod bake (BodyPaint + Chrome + Tire)", () => {
+  it("donnerbuechse ships curved hot-rod bake with readable V8 materials", () => {
     const path = resolve("public/models/cars/donnerbuechse.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
@@ -88,6 +88,8 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(text).toContain("BodyPaint");
     expect(text).toContain("Chrome");
     expect(text).toContain("Tire");
+    expect(text).toContain("EngineBlock");
+    expect(text).toContain("EngineValve");
     expect(statSync(path).size).toBeGreaterThan(40_000);
   });
 

@@ -413,75 +413,86 @@ function buildBuggyCar(car: CarState): ComicCarParts {
   return { root, body: nose, ...fx };
 }
 
-/** Donnerbüchse — chopped hot rod, huge blower, triple side pipes, fat rears. */
+/** Donnerbüchse — curved hot rod, exposed V8 blower, side pipes, fat rears. */
 function buildHotRodCar(car: CarState): ComicCarParts {
   const root = new Group();
   root.userData.gearClass = "hotrod";
   const m = mats(car.paint);
+  const engine = comicToon(0x3a3a42);
+  const valve = comicToon(0xc92a2a);
   root.add(groundBlob(1.55));
 
-  // Long low body
-  const body = withOutline(new RoundedBoxGeometry(1.6, 0.38, 3.0, 2, 0.08), m.paint, 0.05);
-  body.position.set(0, 0.48, 0);
-  const under = withOutline(new RoundedBoxGeometry(1.45, 0.18, 2.8, 2, 0.05), m.shade, 0.04);
-  under.position.set(0, 0.28, 0);
+  const body = withOutline(new RoundedBoxGeometry(1.48, 0.3, 3.35, 4, 0.12), m.paint, 0.05);
+  body.position.set(0, 0.4, 0.05);
+  const under = withOutline(new RoundedBoxGeometry(1.32, 0.14, 3.1, 3, 0.08), m.shade, 0.04);
+  under.position.set(0, 0.22, 0.05);
 
-  // Long hood deck
-  const hood = withOutline(new RoundedBoxGeometry(1.4, 0.22, 1.5, 2, 0.05), m.paint, 0.045);
-  hood.position.set(0, 0.7, 0.85);
+  const hood = withOutline(new RoundedBoxGeometry(1.28, 0.18, 1.45, 4, 0.1), m.paint, 0.04);
+  hood.position.set(0, 0.58, 1.05);
+  const noseTip = withOutline(new SphereGeometry(0.32, 12, 10), m.paint, 0.035);
+  noseTip.position.set(0, 0.52, 2.12);
+  noseTip.scale.set(1.45, 0.7, 0.85);
 
-  // Chopped cabin (short / low roof at rear) — must read behind the blower
-  const cabin = withOutline(new RoundedBoxGeometry(1.4, 0.65, 1.05, 2, 0.05), m.paint, 0.048);
-  cabin.position.set(0, 0.95, -0.85);
-  const glass = withOutline(new RoundedBoxGeometry(1.2, 0.45, 0.1, 1, 0.02), m.glass, 0.035);
-  glass.position.set(0, 1.1, -0.3);
-  glass.rotation.x = -0.35;
-  const roof = withOutline(new RoundedBoxGeometry(1.25, 0.1, 0.85, 1, 0.02), m.dark, 0.04);
-  roof.position.set(0, 1.32, -0.85);
-  const trunk = withOutline(new RoundedBoxGeometry(1.4, 0.35, 0.6, 2, 0.05), m.paint, 0.04);
-  trunk.position.set(0, 0.7, -1.55);
+  const cabin = withOutline(new RoundedBoxGeometry(1.35, 0.58, 1.05, 4, 0.14), m.paint, 0.045);
+  cabin.position.set(0, 0.95, -0.72);
+  const glass = withOutline(new RoundedBoxGeometry(1.15, 0.4, 0.08, 2, 0.04), m.glass, 0.03);
+  glass.position.set(0, 1.05, -0.15);
+  glass.rotation.x = -0.3;
+  const roof = withOutline(new RoundedBoxGeometry(1.15, 0.1, 0.88, 2, 0.05), m.dark, 0.035);
+  roof.position.set(0, 1.28, -0.75);
+  const trunk = withOutline(new RoundedBoxGeometry(1.28, 0.32, 0.58, 3, 0.1), m.paint, 0.04);
+  trunk.position.set(0, 0.62, -1.52);
 
-  // Massive exposed V8 + triple blower stacks
-  const block = withOutline(new RoundedBoxGeometry(0.85, 0.7, 1.0, 2, 0.05), m.chrome, 0.05);
-  block.position.set(0, 1.05, 0.45);
-  for (const lz of [-0.22, 0, 0.22] as const) {
-    const stack = withOutline(new CylinderGeometry(0.1, 0.12, 0.55, 10), m.chrome, 0.035);
-    stack.position.set(0, 1.55, 0.45 + lz);
-    root.add(stack);
-    const lip = withOutline(new TorusGeometry(0.12, 0.03, 6, 12), m.chrome, 0.025);
-    lip.rotation.x = Math.PI / 2;
-    lip.position.set(0, 1.82, 0.45 + lz);
-    root.add(lip);
+  for (const side of [-1, 1] as const) {
+    const arch = withOutline(new TorusGeometry(0.32, 0.075, 8, 16, Math.PI * 1.1), m.paint, 0.03);
+    arch.rotation.set(0, side > 0 ? Math.PI / 2 : -Math.PI / 2, Math.PI / 2);
+    arch.position.set(side * 0.68, 0.38, 1.28);
+    root.add(arch);
+    const haunch = withOutline(new SphereGeometry(0.42, 12, 10), m.paint, 0.035);
+    haunch.position.set(side * 0.82, 0.48, -1.12);
+    haunch.scale.set(0.7, 0.65, 1.05);
+    root.add(haunch);
   }
-  // Valve covers
+
+  const pan = withOutline(new RoundedBoxGeometry(0.78, 0.2, 0.95, 2, 0.05), m.shade, 0.035);
+  pan.position.set(0, 0.68, 0.42);
+  const block = withOutline(new RoundedBoxGeometry(0.9, 0.48, 1.05, 3, 0.07), engine, 0.045);
+  block.position.set(0, 0.98, 0.42);
   for (const sx of [-0.4, 0.4] as const) {
-    const cover = withOutline(new RoundedBoxGeometry(0.22, 0.25, 0.85, 1, 0.03), m.chrome, 0.03);
-    cover.position.set(sx, 1.15, 0.45);
+    const cover = withOutline(new RoundedBoxGeometry(0.28, 0.26, 0.98, 2, 0.05), valve, 0.03);
+    cover.position.set(sx, 1.22, 0.42);
+    cover.rotation.z = sx > 0 ? 0.42 : -0.42;
     root.add(cover);
   }
+  const blower = withOutline(new RoundedBoxGeometry(0.34, 0.2, 0.7, 2, 0.04), engine, 0.03);
+  blower.position.set(0, 1.38, 0.42);
+  for (const lz of [-0.2, 0, 0.2] as const) {
+    const stack = withOutline(new CylinderGeometry(0.09, 0.11, 0.32, 12), m.chrome, 0.03);
+    stack.position.set(0, 1.72, 0.42 + lz);
+    root.add(stack);
+    const lip = withOutline(new TorusGeometry(0.11, 0.022, 6, 12), m.shade, 0.02);
+    lip.rotation.x = Math.PI / 2;
+    lip.position.set(0, 1.88, 0.42 + lz);
+    root.add(lip);
+  }
 
-  // Triple chrome side-exit exhausts each side
   for (const side of [-1, 1] as const) {
-    for (let i = 0; i < 3; i++) {
-      const pipe = withOutline(new CylinderGeometry(0.06, 0.07, 0.85, 8), m.chrome, 0.03);
-      pipe.rotation.z = side * (0.85 + i * 0.08);
-      pipe.rotation.x = 0.15;
-      pipe.position.set(side * 0.7, 0.75 - i * 0.05, 0.15 - i * 0.12);
+    for (let i = 0; i < 4; i++) {
+      const pipe = withOutline(new CylinderGeometry(0.04, 0.05, 0.9, 8), m.chrome, 0.025);
+      pipe.rotation.z = side * (0.95 + i * 0.05);
+      pipe.rotation.x = 0.1;
+      pipe.position.set(side * 0.78, 0.7 - i * 0.04, 0.05 - i * 0.1);
       root.add(pipe);
-      const tip = withOutline(new CylinderGeometry(0.08, 0.07, 0.12, 8), m.chrome, 0.025);
-      tip.rotation.z = side * 0.9;
-      tip.position.set(side * 1.05, 0.45 - i * 0.08, -0.15 - i * 0.1);
-      root.add(tip);
     }
   }
 
-  addRoundHeadlights(root, 0.55, 1.85, 0.13);
-  addTailLightBar(root, 0.55, -1.65);
+  addRoundHeadlights(root, 0.55, 2.15, 0.13);
+  addTailLightBar(root, 0.48, -1.9);
   addWheels(root, {
-    frontR: 0.32,
-    rearR: 0.58,
-    track: 0.82,
-    zs: [1.15, -1.15],
+    frontR: 0.3,
+    rearR: 0.56,
+    track: 0.88,
+    zs: [1.28, -1.18],
     rim: m.rim,
     spokes: true,
   });
@@ -493,7 +504,23 @@ function buildHotRodCar(car: CarState): ComicCarParts {
     gearClass: "hotrod",
   });
   const fx = makeFxGroups(-1.7);
-  root.add(body, under, hood, cabin, glass, roof, trunk, block, overlays, fx.smoke, fx.sparks, fx.nitro);
+  root.add(
+    body,
+    under,
+    hood,
+    noseTip,
+    cabin,
+    glass,
+    roof,
+    trunk,
+    pan,
+    block,
+    blower,
+    overlays,
+    fx.smoke,
+    fx.sparks,
+    fx.nitro,
+  );
   return { root, body, ...fx };
 }
 
