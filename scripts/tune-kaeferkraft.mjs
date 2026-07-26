@@ -1,0 +1,256 @@
+#!/usr/bin/env node
+/**
+ * Tune Käferkraft GetGLB buggy materials/meshes (free asset).
+ * - Engine + exhaust → silver Chrome
+ * - Roll cage over driver → orange
+ * - Front skull eyes → red
+ * - Drop thin black overlay strips beside body panels
+ *
+ * Prefers public/models/cars/kaeferkraft.source.glb when present.
+ * Usage: node scripts/tune-kaeferkraft.mjs
+ */
+import { copyFileSync, existsSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { NodeIO } from "@gltf-transform/core";
+import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
+
+const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
+const outDir = join(rootDir, "public/models/cars");
+const live = join(outDir, "kaeferkraft.glb");
+const source = join(outDir, "kaeferkraft.source.glb");
+
+const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+
+function makeMat(doc, name, hex, { metal = 0, rough = 0.85 } = {}) {
+  const r = ((hex >> 16) & 255) / 255;
+  const g = ((hex >> 8) & 255) / 255;
+  const b = (hex & 255) / 255;
+  return doc
+    .createMaterial(name)
+    .setBaseColorFactor([r, g, b, 1])
+    .setMetallicFactor(metal)
+    .setRoughnessFactor(rough);
+}
+
+function primCenter(prim) {
+  const arr = prim.getAttribute("POSITION")?.getArray();
+  if (!arr || arr.length < 3) return { x: 0, y: 0, z: 0, size: [0, 0, 0], verts: 0 };
+  let min = [Infinity, Infinity, Infinity];
+  let max = [-Infinity, -Infinity, -Infinity];
+  for (let i = 0; i < arr.length; i += 3) {
+    for (let k = 0; k < 3; k++) {
+      const v = arr[i + k];
+      if (v < min[k]) min[k] = v;
+      if (v > max[k]) max[k] = v;
+    }
+  }
+  return {
+    x: (min[0] + max[0]) / 2,
+    y: (min[1] + max[1]) / 2,
+    z: (min[2] + max[2]) / 2,
+    size: [max[0] - min[0], max[1] - min[1], max[2] - min[2]],
+    verts: arr.length / 3,
+  };
+}
+
+function matId(name) {
+  const m = String(name || "").match(/mat(\d+)/i);
+  return m ? Number(m[1]) : -1;
+}
+
+/** Black coplanar accents glued beside body panels (mat23). */
+function isBlackPanelStrip(c, id) {
+  if (id !== 23) return false;
+  const [sx, sy, sz] = c.size;
+  const thinnest = Math.min(sx, sy, sz);
+  // Tire sidewall discs: keep (fat + low + outward)
+  if (c.y < 0.05 && Math.abs(c.z) > 0.5 && Math.max(sx, sy) > 0.45) return false;
+  // Engine block shadow volume: keep → chrome later
+  if (c.x > 0.9 && Math.max(...c.size) > 0.6) return false;
+  // Skull face cavity: keep → skull later
+  if (c.x < -1.2 && c.verts >= 40 && Math.max(...c.size) > 0.2) return false;
+  return thinnest < 0.16 || c.verts <= 24;
+}
+
+/** Tiny orange coplanar edge flakes (mat13, 4 verts) that read as debris — not cage. */
+function isTinyEdgeFlake(c, id) {
+  if (id !== 13) return false;
+  if (c.y > 0.28) return false; // high mat13 = cage accent
+  return c.verts <= 8 && Math.min(...c.size) < 0.08;
+}
+
+function isWheel(c) {
+  // Real tires are squat discs (two similar large axes + thin width) — not long rails.
+  if (c.y > 0.05 || Math.abs(c.z) < 0.5) return false;
+  const dims = [...c.size].sort((a, b) => a - b);
+  const [thin, mid, long] = dims;
+  return mid > 0.35 && long > 0.4 && thin < 0.4 && mid / Math.max(thin, 0.01) > 1.15 && long / mid < 1.35;
+}
+
+function isSkullEye(c, id) {
+  // Front skull eyes: yellow discs + silver housings → solid red read
+  if (![12, 15, 16].includes(id)) return false;
+  return (
+    c.x < -1.22 &&
+    c.y > -0.1 &&
+    c.y < 0.22 &&
+    Math.abs(c.z) > 0.12 &&
+    Math.abs(c.z) < 0.35 &&
+    Math.max(...c.size) < 0.35
+  );
+}
+
+function isRollCage(c, id) {
+  // Tubular bars over the cockpit (originally mat13/mat14 orange-red)
+  if (id !== 13 && id !== 14) return false;
+  if (c.y < 0.28) return false;
+  const [sx, sy, sz] = c.size;
+  const thin = Math.min(sx, sz) < 0.28 || Math.min(sx, sy, sz) < 0.14;
+  const tallOrWide = sy > 0.3 || Math.max(sx, sz) > 0.7;
+  return thin && tallOrWide;
+}
+
+function isRearEngineChrome(c, id) {
+  // Rear engine / exhaust cluster (+X), metal greys
+  if (c.x < 0.55) return false;
+  if ([15, 16, 17, 19, 21, 22, 23].includes(id)) {
+    // Exclude rear tire discs
+    if (isWheel(c)) return false;
+    return true;
+  }
+  // Tall exhaust stack / muffler bits
+  if (c.y > 0.2 && c.size[1] > 0.15 && Math.max(c.size[0], c.size[2]) < 0.55) {
+    return id === 12 || id === 14 || id === 15 || id === 16;
+  }
+  return false;
+}
+
+function classify(c, matName) {
+  const id = matId(matName);
+
+  if (isSkullEye(c, id)) return "eye";
+  if (isBlackPanelStrip(c, id) || isTinyEdgeFlake(c, id)) return "drop";
+
+  if (isWheel(c)) {
+    if (id === 15 || id === 16) return "rim";
+    return "tire";
+  }
+
+  // Long thin chassis rails must never become Tire (reads as black junk beside body).
+  if (id === 17 || id === 23) {
+    const dims = [...c.size].sort((a, b) => a - b);
+    if (dims[2] > 0.5 && dims[2] / Math.max(dims[1], 0.01) > 1.6) return "drop";
+  }
+
+  if (isRollCage(c, id)) return "cage";
+  if (isRearEngineChrome(c, id)) return "chrome";
+
+  // Front skull bone (white) — drop black face overlay so red eyes read
+  if (c.x < -1.15 && id === 21) return "skull";
+  if (c.x < -1.2 && id === 23 && c.verts >= 40) return "drop";
+
+  // Front eye housings already handled by isSkullEye; leftover front chrome trim
+  if (c.x < -1.2 && (id === 15 || id === 16) && Math.abs(c.z) > 0.1) return "chrome";
+
+  // Body / fenders / hood — garage paint
+  if ([13, 14, 18, 19, 20].includes(id)) return "body";
+
+  if ([15, 16, 22].includes(id)) return "chrome";
+  if (id === 17 || id === 23) return "drop";
+  if (id === 12) return "chrome"; // leftover yellow bits
+  if (id === 21) return "skull";
+
+  return "body";
+}
+
+async function main() {
+  if (!existsSync(source) && existsSync(live)) {
+    copyFileSync(live, source);
+  }
+  const readPath = existsSync(source) ? source : live;
+  if (!existsSync(readPath)) throw new Error(`Missing ${readPath}`);
+
+  const doc = await io.read(readPath);
+  const root = doc.getRoot();
+
+  const body = makeMat(doc, "BodyPaint", 0x12b886);
+  const cage = makeMat(doc, "CageOrange", 0xff7a00);
+  const chrome = makeMat(doc, "Chrome", 0xd8dde3, { metal: 0.55, rough: 0.35 });
+  const tire = makeMat(doc, "Tire", 0x1a1a1a);
+  const skull = makeMat(doc, "Skull", 0xf1f3f5);
+  const eye = makeMat(doc, "EyeRed", 0xff1e1e);
+
+  const counts = { body: 0, cage: 0, chrome: 0, tire: 0, rim: 0, skull: 0, eye: 0, drop: 0 };
+  const dropPrims = [];
+
+  for (const node of root.listNodes()) {
+    const mesh = node.getMesh();
+    if (!mesh) continue;
+
+    for (const prim of mesh.listPrimitives()) {
+      const c = primCenter(prim);
+      const matName = prim.getMaterial()?.getName() || "";
+      const kind = classify(c, matName);
+      counts[kind] = (counts[kind] || 0) + 1;
+
+      switch (kind) {
+        case "cage":
+          prim.setMaterial(cage);
+          break;
+        case "chrome":
+        case "rim":
+          prim.setMaterial(chrome);
+          break;
+        case "tire":
+          prim.setMaterial(tire);
+          break;
+        case "skull":
+          prim.setMaterial(skull);
+          break;
+        case "eye":
+          prim.setMaterial(eye);
+          break;
+        case "drop":
+          dropPrims.push({ mesh, prim, node });
+          break;
+        default:
+          prim.setMaterial(body);
+      }
+    }
+  }
+
+  // Remove dropped primitives; detach empty meshes from the scene.
+  for (const { mesh, prim } of dropPrims) {
+    mesh.removePrimitive(prim);
+  }
+  for (const node of root.listNodes()) {
+    const mesh = node.getMesh();
+    if (!mesh) continue;
+    if (mesh.listPrimitives().length > 0) continue;
+    node.setMesh(null);
+    for (const parent of root.listNodes()) {
+      if (parent.listChildren().includes(node)) parent.removeChild(node);
+    }
+    for (const scene of root.listScenes()) {
+      if (scene.listChildren().includes(node)) scene.removeChild(node);
+    }
+  }
+
+  for (const t of [...root.listTextures()]) t.dispose();
+  // Dispose unused original materials
+  for (const m of [...root.listMaterials()]) {
+    const used = root.listMeshes().some((mesh) =>
+      mesh.listPrimitives().some((p) => p.getMaterial() === m),
+    );
+    if (!used) m.dispose();
+  }
+
+  await io.write(live, doc);
+  console.log("kaeferkraft.glb tuned", counts);
+}
+
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

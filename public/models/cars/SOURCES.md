@@ -6,7 +6,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 |-----|------|--------|---------|
 | **Blitz** (sport) | `blitz.glb` | Quaternius Sports Car via [GetGLB](https://www.getglb.com/vehicles/sports-car/) → `Sports-Car.glb` | Free redistrib (GetGLB mirror) |
 | **Bison** (pickup) | `bison.glb` | **Generated** lifted crew-cab pickup (`scripts/polish-car-glbs.mjs`) — silhouette inspired by TurboSquid 1675577 / category target; **not** a paid TurboSquid mesh | Project CC0 bake |
-| **Käferkraft** (buggy) | `kaeferkraft.glb` | [GetGLB Buggy](https://www.getglb.com/vehicles/buggy/) (restored; generated dune bake reverted) | Free via GetGLB |
+| **Käferkraft** (buggy) | `kaeferkraft.glb` | [GetGLB Buggy](https://www.getglb.com/vehicles/buggy/) + `npm run cars:tune-kaeferkraft` (chrome engine, orange cage, red skull eyes; black strip cleanup) | Free via GetGLB |
 | **Donnerbüchse** (hotrod) | `donnerbuechse.glb` | **Generated** classic hot-rod volumes (`scripts/polish-car-glbs.mjs`) — silhouette inspired by common free/hot-rod refs; **not** TurboSquid (paid) | Project CC0 bake |
 | **Bunker** (armor) | `bunker.glb` | [GetGLB Military Truck](https://www.getglb.com/vehicles/military-truck/); arcade `scale` in `carModels.ts` | Free via GetGLB |
 
@@ -21,3 +21,4 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 - Collision stays silhouette (`collisionRadius`); mesh is visual only.
 - Loader strips embedded lights/cameras, skips outline shells on tiny shards, mesh-only bounds before autoscale.
 - Rebuild generated cars: `npm run cars:polish`
+- Retune Käferkraft materials: `npm run cars:tune-kaeferkraft` (reads `kaeferkraft.source.glb` when present)

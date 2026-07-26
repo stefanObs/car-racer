@@ -38,6 +38,22 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(shouldApplyGaragePaint("Headlights")).toBe(false);
     expect(shouldApplyGaragePaint("Grey")).toBe(false);
     expect(shouldApplyGaragePaint("Black")).toBe(false);
+    expect(shouldApplyGaragePaint("Chrome")).toBe(false);
+    expect(shouldApplyGaragePaint("CageOrange")).toBe(false);
+    expect(shouldApplyGaragePaint("EyeRed")).toBe(false);
+    expect(shouldApplyGaragePaint("Skull")).toBe(false);
+  });
+
+  it("kaeferkraft ships tuned materials (cage/chrome/eyes, no black strip mats)", () => {
+    const path = resolve("public/models/cars/kaeferkraft.glb");
+    const buf = readFileSync(path);
+    expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
+    const text = buf.toString("latin1");
+    expect(text).toContain("CageOrange");
+    expect(text).toContain("Chrome");
+    expect(text).toContain("EyeRed");
+    expect(text).toContain("Skull");
+    expect(text).toContain("BodyPaint");
   });
 
   it("donnerbuechse ships a real GLB (hotrod visual; mesh-only bounds in loader)", () => {

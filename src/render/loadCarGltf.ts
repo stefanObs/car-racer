@@ -61,7 +61,8 @@ export function cloneGltfCar(id: CarId, paint: string): Group | null {
   if (!hit) return null;
   const clone = hit.root.clone(true);
   applyPaint(clone, paint);
-  addOutlineShells(clone);
+  // Käferkraft already has busy free-asset edges; outline shells read as black debris.
+  addOutlineShells(clone, { skip: id === "kaeferkraft" });
   const wrap = new Group();
   wrap.name = `gltf-${id}`;
   wrap.userData.gearClass = hit.spec.gearClass;
@@ -157,7 +158,13 @@ function convertToComicMaterial(mesh: Mesh): void {
     } else if (name.includes("tire") || name.includes("rubber") || name.includes("wheel")) {
       toon = comicToon(0x1a1a1a);
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
-      toon = comicToon(0xc8ccd4);
+      toon = comicToon(0xdce2e8);
+    } else if (name.includes("eyered") || (name.includes("eye") && !name.includes("grey"))) {
+      toon = comicToon(0xff1e1e);
+    } else if (name.includes("cage")) {
+      toon = comicToon(0xff7a00);
+    } else if (name.includes("skull")) {
+      toon = comicToon(0xf1f3f5);
     } else {
       toon = comicToon(color.getHex());
     }
@@ -227,7 +234,11 @@ function isNonPaintMaterial(name: string): boolean {
     name.includes("chrome") ||
     name.includes("light") ||
     name.includes("emit") ||
-    name.includes("engine")
+    name.includes("engine") ||
+    name.includes("cage") ||
+    name.includes("skull") ||
+    name.includes("eyered") ||
+    name.includes("eye")
   );
 }
 
@@ -245,7 +256,8 @@ function isNamedTrimMaterial(name: string): boolean {
   );
 }
 
-function addOutlineShells(root: Object3D): void {
+function addOutlineShells(root: Object3D, opts?: { skip?: boolean }): void {
+  if (opts?.skip) return;
   const outline = outlineMaterial();
   root.traverse((obj) => {
     const mesh = obj as Mesh;
