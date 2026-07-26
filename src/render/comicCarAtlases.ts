@@ -157,7 +157,7 @@ export function comicAtlasForRole(carId: CarId, role: ComicAtlasRole): Texture {
 }
 
 function bodyAtlas(carId: CarId): Texture {
-  return canvasTex(`comic-body-v3:${carId}`, 512, 512, (ctx) => {
+  return canvasTex(`comic-body-v4:${carId}`, 512, 512, (ctx) => {
     const w = 512;
     const h = 512;
     ctx.fillStyle = "#F6F7F9";
@@ -202,31 +202,9 @@ function bodyAtlas(carId: CarId): Texture {
         [470, 470],
       ]);
     } else if (carId === "kaeferkraft") {
-      ctx.strokeStyle = ink();
-      ctx.lineWidth = 9;
-      ctx.beginPath();
-      ctx.moveTo(50, 60);
-      ctx.lineTo(200, 200);
-      ctx.lineTo(80, 400);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(460, 70);
-      ctx.lineTo(300, 220);
-      ctx.lineTo(440, 420);
-      ctx.stroke();
-      ctx.lineWidth = 6;
-      ctx.strokeRect(70, 100, 150, 110);
-      ctx.strokeRect(290, 300, 150, 120);
-      cornerBolts(ctx, [
-        [70, 100],
-        [220, 100],
-        [70, 210],
-        [220, 210],
-        [290, 300],
-        [440, 300],
-        [290, 420],
-        [440, 420],
-      ]);
+      // Roll-cage tubes: cylindrical comic shade (reads round, not flat plate grid).
+      drawTubeFrameAtlas(ctx, w, h);
+      return;
     } else {
       armorDraw(ctx, w, h);
     }
@@ -235,6 +213,70 @@ function bodyAtlas(carId: CarId): Texture {
     ctx.lineWidth = 12;
     ctx.strokeRect(8, 8, w - 16, h - 16);
   });
+}
+
+/** Fake tube roundness via soft axial bands + circular weld rings (Asphalt-Comic). */
+function drawTubeFrameAtlas(ctx: CanvasRenderingContext2D, w: number, h: number): void {
+  ctx.fillStyle = "#F2F4F6";
+  ctx.fillRect(0, 0, w, h);
+
+  // Soft cylinder bands (light → mid → light) along V — box UVs on tubes pick this up as roundness
+  for (let y = 0; y < h; y++) {
+    const t = (y % 96) / 96;
+    const shade = Math.sin(t * Math.PI);
+    const c = Math.round(228 + shade * 22);
+    ctx.fillStyle = `rgb(${c},${c + 1},${c + 3})`;
+    ctx.fillRect(0, y, w, 1);
+  }
+  // Second axis bands (U) slightly weaker — helps when UV projects sideways
+  for (let x = 0; x < w; x++) {
+    const t = (x % 80) / 80;
+    const shade = Math.sin(t * Math.PI);
+    ctx.fillStyle = `rgba(255,255,255,${0.04 + shade * 0.1})`;
+    ctx.fillRect(x, 0, 1, h);
+  }
+
+  // Soft specular stripe (reads as chrome-tube highlight)
+  const spec = ctx.createLinearGradient(0, 0, 0, h);
+  spec.addColorStop(0, "rgba(255,255,255,0)");
+  spec.addColorStop(0.35, "rgba(255,255,255,0.35)");
+  spec.addColorStop(0.45, "rgba(255,255,255,0.55)");
+  spec.addColorStop(0.55, "rgba(255,255,255,0.2)");
+  spec.addColorStop(1, "rgba(255,255,255,0)");
+  ctx.fillStyle = spec;
+  ctx.fillRect(w * 0.38, 0, w * 0.12, h);
+
+  // Dark edge falloff (limb darkening of a tube)
+  const edgeL = ctx.createLinearGradient(0, 0, w * 0.2, 0);
+  edgeL.addColorStop(0, "rgba(27,27,31,0.18)");
+  edgeL.addColorStop(1, "rgba(27,27,31,0)");
+  ctx.fillStyle = edgeL;
+  ctx.fillRect(0, 0, w * 0.22, h);
+  const edgeR = ctx.createLinearGradient(w, 0, w * 0.8, 0);
+  edgeR.addColorStop(0, "rgba(27,27,31,0.18)");
+  edgeR.addColorStop(1, "rgba(27,27,31,0)");
+  ctx.fillStyle = edgeR;
+  ctx.fillRect(w * 0.78, 0, w * 0.22, h);
+
+  // Circular weld / clamp rings (round cues, not square plates)
+  ctx.strokeStyle = ink();
+  ctx.lineWidth = 4;
+  ctx.globalAlpha = 0.55;
+  for (const [cx, cy, r] of [
+    [120, 100, 28],
+    [380, 140, 24],
+    [160, 360, 30],
+    [360, 380, 26],
+    [256, 240, 34],
+  ] as const) {
+    ctx.beginPath();
+    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, r * 0.55, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
 }
 
 function armorDraw(ctx: CanvasRenderingContext2D, w: number, h: number): void {
