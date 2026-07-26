@@ -30,10 +30,14 @@ export function toonGradient(): DataTexture {
   return tex;
 }
 
-export function comicToon(color: string | number, opts?: { emissive?: number; emissiveIntensity?: number }): MeshToonMaterial {
+export function comicToon(
+  color: string | number,
+  opts?: { emissive?: number; emissiveIntensity?: number; map?: import("three").Texture },
+): MeshToonMaterial {
   const mat = new MeshToonMaterial({
     color: new Color(color),
     gradientMap: toonGradient(),
+    map: opts?.map ?? null,
   });
   if (opts?.emissive !== undefined) {
     mat.emissive = new Color(opts.emissive);

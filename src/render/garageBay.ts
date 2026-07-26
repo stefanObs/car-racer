@@ -6,35 +6,40 @@ import {
   PlaneGeometry,
   SphereGeometry,
   TorusGeometry,
+  type Texture,
 } from "three";
 import { comicToon, withOutline } from "./comicMaterials";
-import { buildGarageOverlays } from "./garageOverlays";
+import {
+  asphaltPadTexture,
+  bannerTexture,
+  cabinetDoorTexture,
+  crateFaceTexture,
+  floorTexture,
+  hazardChevronTexture,
+  posterTexture,
+  wallPanelTexture,
+} from "./garageTextures";
 import { ComicPalette } from "./palette";
 
-/** Comic tuner garage bay — props behind the HUD panel. */
+/** Cel-shaded material with a clean comic atlas map (white tint so map reads true). */
+function mapped(map: Texture, fallback = 0xffffff) {
+  return comicToon(fallback, { map });
+}
+
+/** Comic tuner garage bay — textured volumes, no floating decal overlays. */
 export function buildGarageBay(): Group {
   const g = new Group();
   g.name = "garageBay";
 
-  const floor = new Mesh(new PlaneGeometry(28, 30), comicToon(0x343a40));
+  const floor = new Mesh(new PlaneGeometry(28, 30), mapped(floorTexture(), 0x343a40));
   floor.rotation.x = -Math.PI / 2;
   g.add(floor);
 
-  const pad = withOutline(new BoxGeometry(11, 0.08, 16), comicToon(ComicPalette.asphalt), 0.04);
+  const pad = withOutline(new BoxGeometry(11, 0.08, 16), mapped(asphaltPadTexture(), ComicPalette.asphalt), 0.04);
   pad.position.set(1.5, 0.04, 0);
   g.add(pad);
 
-  for (const x of [-2.7, 5.7] as const) {
-    const mark = new Mesh(new PlaneGeometry(0.35, 12), comicToon(ComicPalette.repairSpark));
-    mark.rotation.x = -Math.PI / 2;
-    mark.position.set(x, 0.1, 0);
-    g.add(mark);
-  }
-  const centerLine = new Mesh(new PlaneGeometry(0.18, 12), comicToon(ComicPalette.asphaltLine));
-  centerLine.rotation.x = -Math.PI / 2;
-  centerLine.position.set(1.5, 0.1, 0);
-  g.add(centerLine);
-
+  // Door threshold checker
   for (let i = 0; i < 10; i++) {
     const tile = new Mesh(
       new PlaneGeometry(1.15, 1.15),
@@ -45,11 +50,11 @@ export function buildGarageBay(): Group {
     g.add(tile);
   }
 
-  const back = withOutline(new BoxGeometry(26, 11, 0.4), comicToon(0x5c636a), 0.05);
+  const back = withOutline(new BoxGeometry(26, 11, 0.4), mapped(wallPanelTexture(1), 0x5c636a), 0.05);
   back.position.set(1, 5.5, -11);
-  const left = withOutline(new BoxGeometry(0.4, 11, 24), comicToon(0x4e555c), 0.05);
+  const left = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(2), 0x4e555c), 0.05);
   left.position.set(-11.5, 5.5, 0);
-  const right = withOutline(new BoxGeometry(0.4, 11, 24), comicToon(0x4e555c), 0.05);
+  const right = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(3), 0x4e555c), 0.05);
   right.position.set(12.5, 5.5, 0);
   g.add(back, left, right);
 
@@ -63,14 +68,10 @@ export function buildGarageBay(): Group {
   skyPeek.position.set(10.25, 4, 11.1);
   g.add(doorL, doorR, doorTop, skyPeek);
 
-  for (let i = 0; i < 8; i++) {
-    const stripe = new Mesh(
-      new PlaneGeometry(1.4, 0.55),
-      comicToon(i % 2 === 0 ? ComicPalette.repairSpark : ComicPalette.outline),
-    );
-    stripe.position.set(-4 + i * 1.5, 1.1, -10.7);
-    g.add(stripe);
-  }
+  // Hazard strip on back wall (textured box, not a floating plane)
+  const hazard = withOutline(new BoxGeometry(12.5, 0.85, 0.12), mapped(hazardChevronTexture(), ComicPalette.repairSpark), 0.03);
+  hazard.position.set(1.5, 1.15, -10.72);
+  g.add(hazard);
 
   for (const z of [-5, 0, 5] as const) {
     const housing = withOutline(new BoxGeometry(9, 0.35, 0.9), comicToon(0x2b3036), 0.03);
@@ -84,19 +85,17 @@ export function buildGarageBay(): Group {
     g.add(housing, lamp);
   }
 
-  const banner = withOutline(new BoxGeometry(12, 1.6, 0.2), comicToon(0xe03131), 0.05);
+  const banner = withOutline(new BoxGeometry(12, 1.6, 0.2), mapped(bannerTexture(), 0xe03131), 0.05);
   banner.position.set(1.5, 7.6, -10.7);
   const bannerBar = withOutline(new BoxGeometry(12.6, 0.25, 0.22), comicToon(ComicPalette.outline), 0.03);
   bannerBar.position.set(1.5, 8.5, -10.65);
-  const bannerAccent = new Mesh(new PlaneGeometry(11.4, 0.25), comicToon(ComicPalette.repairSpark));
-  bannerAccent.position.set(1.5, 6.95, -10.55);
-  g.add(banner, bannerBar, bannerAccent);
+  g.add(banner, bannerBar);
 
   for (const [x, z] of [
     [-8.2, -7],
     [-8.2, -3.5],
   ] as const) {
-    const cab = withOutline(new BoxGeometry(1.8, 2.4, 1.2), comicToon(0xe03131), 0.05);
+    const cab = withOutline(new BoxGeometry(1.8, 2.4, 1.2), mapped(cabinetDoorTexture(), 0xe03131), 0.05);
     cab.position.set(x, 1.2, z);
     const handle = withOutline(new BoxGeometry(0.15, 0.5, 0.08), comicToon(ComicPalette.repairSpark), 0.02);
     handle.position.set(x + 0.95, 1.3, z);
@@ -114,12 +113,10 @@ export function buildGarageBay(): Group {
   const shelf = withOutline(new BoxGeometry(4.5, 0.18, 1), comicToon(ComicPalette.concrete), 0.03);
   shelf.position.set(8.5, 2.6, -9.2);
   g.add(shelf);
+  const crateColors = ["#E03131", "#339AF0", "#F08C00", "#37B24D"] as const;
   for (let i = 0; i < 4; i++) {
-    const crate = withOutline(
-      new BoxGeometry(0.85, 0.7, 0.7),
-      comicToon([0xe03131, 0x339af0, 0xf08c00, 0x37b24d][i]!),
-      0.04,
-    );
+    const hex = crateColors[i]!;
+    const crate = withOutline(new BoxGeometry(0.85, 0.7, 0.7), mapped(crateFaceTexture(hex), Number.parseInt(hex.slice(1), 16)), 0.04);
     crate.position.set(7 + i * 1.05, 3.05, -9.15);
     g.add(crate);
   }
@@ -171,10 +168,12 @@ export function buildGarageBay(): Group {
     }
   }
 
+  const posterAccents = ["#339AF0", "#F08C00", "#E03131"] as const;
   for (let i = 0; i < 3; i++) {
+    const accent = posterAccents[i]!;
     const poster = withOutline(
       new BoxGeometry(1.6, 1.2, 0.08),
-      comicToon([0x339af0, 0xf08c00, 0xe03131][i]!),
+      mapped(posterTexture(accent), Number.parseInt(accent.slice(1), 16)),
       0.03,
     );
     poster.position.set(-10.9, 4 + (i % 2) * 0.3, -4 + i * 3.2);
@@ -194,16 +193,6 @@ export function buildGarageBay(): Group {
   const wrenchHead = withOutline(new SphereGeometry(0.35, 8, 8), comicToon(0x868e96), 0.03);
   wrenchHead.position.set(-9.5, 6.2, -10.5);
   g.add(wrench, wrenchHead);
-
-  const glow = new Mesh(
-    new PlaneGeometry(8, 11),
-    comicToon(0xffe066, { emissive: 0xffe066, emissiveIntensity: 0.22 }),
-  );
-  glow.rotation.x = -Math.PI / 2;
-  glow.position.set(1.5, 0.06, 0);
-  g.add(glow);
-
-  g.add(buildGarageOverlays());
 
   return g;
 }
