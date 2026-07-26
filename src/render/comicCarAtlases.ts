@@ -157,7 +157,7 @@ export function comicAtlasForRole(carId: CarId, role: ComicAtlasRole): Texture {
 }
 
 function bodyAtlas(carId: CarId): Texture {
-  return canvasTex(`comic-body-v2:${carId}`, 512, 512, (ctx) => {
+  return canvasTex(`comic-body-v3:${carId}`, 512, 512, (ctx) => {
     const w = 512;
     const h = 512;
     ctx.fillStyle = "#F6F7F9";
@@ -190,23 +190,16 @@ function bodyAtlas(carId: CarId): Texture {
         [460, 320],
       ]);
     } else if (carId === "bison") {
-      inkStroke(ctx, w * 0.4, 30, w * 0.4, h - 30, 8);
-      inkStroke(ctx, 30, h * 0.55, w - 30, h * 0.55, 6);
+      // Pickup: soft comic shade only — no hood grid / vent lattice (box UVs made those ugly).
       ctx.strokeStyle = ink();
       ctx.lineWidth = 5;
-      roundRect(ctx, w * 0.44, 210, 55, 22, 5);
+      roundRect(ctx, w * 0.42, 230, 48, 18, 5);
       ctx.stroke();
-      vents(ctx, 45, 55, 110, 50, 3);
-      ctx.globalAlpha = 0.35;
-      for (let i = 0; i < 4; i++) inkStroke(ctx, 60 + i * 100, 320, 100 + i * 100, 470, 3);
-      ctx.globalAlpha = 1;
       cornerBolts(ctx, [
         [40, 40],
         [470, 40],
         [40, 470],
         [470, 470],
-        [w * 0.4, 40],
-        [w * 0.4, 470],
       ]);
     } else if (carId === "kaeferkraft") {
       ctx.strokeStyle = ink();
