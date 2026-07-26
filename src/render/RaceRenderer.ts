@@ -37,6 +37,7 @@ import {
   garageDisplayYaw,
   GARAGE_YAW_DEFAULT,
 } from "../ui/garageOrbit";
+import { ensureIdleClearsRaceField } from "./idleRaceTeardown";
 
 function hexCss(n: number): string {
   return `#${n.toString(16).padStart(6, "0")}`;
@@ -78,6 +79,8 @@ export class RaceRenderer {
   private garageYaw = GARAGE_YAW_DEFAULT;
   private garageDragging = false;
   private fxTime = 0;
+  /** True while track/scenery from the last race are still meant to be shown. */
+  private raceFieldActive = false;
   private readonly hemi: HemisphereLight;
   private readonly ambient: AmbientLight;
   private readonly sun: DirectionalLight;
@@ -177,6 +180,10 @@ export class RaceRenderer {
     this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);
 
+    this.applyGarageEnvironment();
+  }
+
+  private applyGarageEnvironment(): void {
     this.groundMesh.visible = false;
     this.skyMesh.visible = false;
     // Sunny open-bay look (Asphalt-Comic daylight — not a cave)
@@ -192,6 +199,13 @@ export class RaceRenderer {
     this.sun.color.setHex(0xfff8ee);
     this.sun.intensity = 2.15;
     this.sun.position.set(8, 22, 14);
+  }
+
+  private hideRaceFieldMeshes(): void {
+    this.trackGroup.visible = false;
+    this.sceneryGroup.visible = false;
+    this.obstacleGroup.visible = false;
+    this.raceFieldActive = false;
   }
 
   setGarageLook(look: { paint: string; sticker: string; modelId: CarId }): void {
@@ -210,6 +224,13 @@ export class RaceRenderer {
   }
 
   renderIdle(): void {
+    ensureIdleClearsRaceField({
+      raceCarCount: this.carVisuals.size,
+      raceFieldVisible: this.raceFieldActive,
+      clearRaceCars: () => this.clearCars(),
+      hideRaceField: () => this.hideRaceFieldMeshes(),
+      restoreGarageEnvironment: () => this.applyGarageEnvironment(),
+    });
     this.fxTime += 1 / 60;
     this.idleGroup.visible = true;
     if (this.idleCar) {
@@ -264,6 +285,10 @@ export class RaceRenderer {
     this.trackGroup = buildSmoothTrack(session.track);
     this.sceneryGroup = buildThemeScenery(session.track, session.level.theme);
     this.obstacleGroup = buildLevelObstacles(session.level);
+    this.trackGroup.visible = true;
+    this.sceneryGroup.visible = true;
+    this.obstacleGroup.visible = true;
+    this.raceFieldActive = true;
     this.clearCelebrate();
     this.scene.add(this.trackGroup, this.sceneryGroup, this.obstacleGroup);
     this.clearCars();
