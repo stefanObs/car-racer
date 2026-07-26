@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
   buggyNoseFromSticker,
+  bumperHeadlightPerchLocal,
   isBuggySkullCosmeticName,
   noseAnchorLocal,
 } from "../src/render/buggyNose";
-import { Group, Mesh, SphereGeometry, MeshBasicMaterial, Vector3 } from "three";
+import { BoxGeometry, Group, Mesh, SphereGeometry, MeshBasicMaterial, Vector3 } from "three";
 import { emptyKit } from "../src/meta/save";
 
 describe("buggy nose helpers", () => {
@@ -23,6 +24,29 @@ describe("buggy nose helpers", () => {
     expect(isBuggySkullCosmeticName("Skull")).toBe(true);
     expect(isBuggySkullCosmeticName("EyeRed")).toBe(false);
     expect(isBuggySkullCosmeticName("Headlight")).toBe(false);
+  });
+
+  it("perches Vogel on the BodyPaint bar nearest headlight height", () => {
+    const root = new Group();
+    const left = new Mesh(new SphereGeometry(0.08, 6, 6), new MeshBasicMaterial({ name: "Headlight" }));
+    left.position.set(-1.3, 0.0, -0.21);
+    const right = new Mesh(new SphereGeometry(0.08, 6, 6), new MeshBasicMaterial({ name: "Headlight" }));
+    right.position.set(-1.3, 0.0, 0.21);
+    // Between headlights (near lamp Y).
+    const between = new Mesh(new BoxGeometry(0.05, 0.06, 0.7), new MeshBasicMaterial({ name: "BodyPaint" }));
+    between.position.set(-1.305, -0.09, 0);
+    // Lower skid lip — must not win.
+    const lip = new Mesh(new BoxGeometry(0.07, 0.06, 0.7), new MeshBasicMaterial({ name: "BodyPaint" }));
+    lip.position.set(-1.335, -0.22, 0);
+    const cage = new Mesh(new BoxGeometry(0.2, 0.32, 0.8), new MeshBasicMaterial({ name: "Dark" }));
+    cage.position.set(-1.18, 0.15, 0);
+    root.add(left, right, between, lip, cage);
+    root.updateMatrixWorld(true);
+    const perch = bumperHeadlightPerchLocal(root);
+    expect(perch.x).toBeCloseTo(-1.305, 1);
+    expect(perch.z).toBeCloseTo(0, 1);
+    expect(perch.y).toBeCloseTo(-0.06, 1);
+    expect(perch.y).toBeGreaterThan(-0.12);
   });
 
   it("anchors nose in root-local space near skull meshes", () => {

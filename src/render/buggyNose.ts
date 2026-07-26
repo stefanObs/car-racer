@@ -67,11 +67,8 @@ export function preloadBuggyNoses(): Promise<void> {
           mesh.material = next.length === 1 ? next[0]! : next;
         });
         // Authored pigeon looks along −Z; +90° yaw aims the beak at buggy −X.
-        if (id === "bird") {
-          root.rotation.set(0.18, Math.PI / 2, 0);
-        } else {
-          root.rotation.y = Math.PI / 2;
-        }
+        // No pitch — keeps feet at local y=0 on the bumper crossbar.
+        root.rotation.y = Math.PI / 2;
         noseTemplates.set(id, root);
       }),
     );
@@ -112,19 +109,107 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
     else if (mesh.material) mesh.material = mesh.material.clone();
   });
   nose.name = "buggyNoseVariant";
-  const anchor = noseAnchorLocal(root, skullParts);
-  nose.position.copy(anchor);
   if (propId === "bird") {
-    // Feet on the front crossbar between bumper lamps; slight pitch = gripping stance.
-    nose.position.set(-1.34, 0.12, 0);
-    nose.scale.setScalar(1.1);
+    // Feet on the tube between the two bumper headlights (not the diagonal cage strut).
+    const perch = bumperHeadlightPerchLocal(root);
+    nose.position.copy(perch);
+    nose.scale.setScalar(1.05);
   } else {
+    const anchor = noseAnchorLocal(root, skullParts);
+    nose.position.copy(anchor);
     nose.position.x -= 0.18;
     nose.position.y = Math.max(anchor.y - 0.05, 0.06);
     nose.scale.setScalar(1.05);
   }
   root.add(nose);
   root.userData.buggyNoseApplied = propId;
+}
+
+/**
+ * Feet on the thin bumper tube that runs between left/right headlights.
+ * Käferkraft has several BodyPaint Z-tubes on the nose — pick the one whose
+ * top is nearest the bumper lamp midlines (not a lower lip / skid bar).
+ */
+export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
+  root.updateMatrixWorld(true);
+
+  const lampCenters: Vector3[] = [];
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const isLamp = mats.some((m) => {
+      const n = ((m as MeshToonMaterial)?.name ?? "").toLowerCase();
+      return n.includes("headlight") || n.includes("eyered");
+    });
+    if (!isLamp) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const b = mesh.geometry.boundingBox;
+    if (!b) return;
+    const world = b.clone().applyMatrix4(mesh.matrixWorld);
+    const c = new Vector3();
+    world.getCenter(c);
+    root.worldToLocal(c);
+    if (c.y > 0.35 || c.x > -1.0) return;
+    lampCenters.push(c);
+  });
+
+  const lampY =
+    lampCenters.length > 0
+      ? lampCenters.reduce((s, c) => s + c.y, 0) / lampCenters.length
+      : 0;
+  const lampX =
+    lampCenters.length > 0
+      ? lampCenters.reduce((s, c) => s + c.x, 0) / lampCenters.length
+      : -1.3;
+
+  type Bar = { x: number; yTop: number; paint: boolean };
+  const bars: Bar[] = [];
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const b = mesh.geometry.boundingBox;
+    if (!b) return;
+    const world = b.clone().applyMatrix4(mesh.matrixWorld);
+    const size = new Vector3();
+    world.getSize(size);
+    const centerWorld = new Vector3();
+    world.getCenter(centerWorld);
+    const topWorld = new Vector3(centerWorld.x, world.max.y, centerWorld.z);
+    root.worldToLocal(centerWorld);
+    root.worldToLocal(topWorld);
+    // Thin Z-tube on the nose (exclude thick Dark cage).
+    if (
+      centerWorld.x > -1.45 &&
+      centerWorld.x < -1.15 &&
+      size.z > 0.35 &&
+      size.y < 0.12 &&
+      size.x < 0.12
+    ) {
+      const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      const paint = mats.some((m) => ((m as MeshToonMaterial)?.name ?? "").toLowerCase().includes("body"));
+      bars.push({ x: centerWorld.x, yTop: topWorld.y, paint });
+    }
+  });
+
+  if (bars.length > 0) {
+    // Prefer BodyPaint tube whose top is nearest bumper-lamp height
+    // (= bar between headlights; not a lower skid lip further forward).
+    bars.sort((a, b) => {
+      const paintBias = Number(b.paint) - Number(a.paint);
+      if (paintBias !== 0) return paintBias;
+      return Math.abs(a.yTop - lampY) - Math.abs(b.yTop - lampY);
+    });
+    const bar = bars[0]!;
+    return new Vector3(bar.x, bar.yTop, 0);
+  }
+
+  if (lampCenters.length >= 2) {
+    return new Vector3(lampX, lampY - 0.05, 0);
+  }
+
+  return new Vector3(-1.305, -0.058, 0);
 }
 
 function findSkullParts(root: Object3D): Mesh[] {
