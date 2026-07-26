@@ -21,17 +21,17 @@ export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
  */
 export const DOG_HEAD_SCALE = 0.58;
 /**
- * Authored snout is not +Z (≈ −28° yaw from +Z, ≈ +36° pitch).
- * Euler XYZ: Ry then Rz so the snout aims exactly at buggy forward (−X).
+ * Authored snout is ~28° off +Z in the bake. Yaw-only (no roll/pitch) keeps the
+ * head upright and aims the snout at buggy forward (−X) in plan view.
  */
 export const DOG_HEAD_YAW = -Math.PI / 2 - Math.atan2(-0.3733, 0.715);
-export const DOG_HEAD_PITCH = Math.atan2(0.5911, 0.8066);
 /**
- * After orient, contact patch / bottom sit slightly off the local origin.
- * Applied × scale so the neck rests on the headlight crossbar (not sunk below it).
+ * After yaw, the neck contact sits ~+0.10 m in local X (rear of origin).
+ * Shift by −contact×scale so the cut rests on the headlight crossbar; Y stays 0
+ * because the bake bottom is already at y=0.
  */
-export const DOG_HEAD_CONTACT_X = 0.095;
-export const DOG_HEAD_CONTACT_Y = 0.04;
+export const DOG_HEAD_CONTACT_X = -0.104;
+export const DOG_HEAD_CONTACT_Y = -0.01;
 
 const noseTemplates = new Map<"bird" | "dog", Group>();
 let preloadPromise: Promise<void> | null = null;
@@ -86,12 +86,8 @@ export function preloadBuggyNoses(): Promise<void> {
           });
           mesh.material = next.length === 1 ? next[0]! : next;
         });
-        // Bird authored along −Z → +90°. Dog: measured snout aim → buggy −X (level).
-        if (id === "dog") {
-          root.rotation.set(0, DOG_HEAD_YAW, DOG_HEAD_PITCH);
-        } else {
-          root.rotation.y = Math.PI / 2;
-        }
+        // Bird authored along −Z → +90°. Dog: yaw-only snout aim → buggy −X (upright).
+        root.rotation.y = id === "dog" ? DOG_HEAD_YAW : Math.PI / 2;
         noseTemplates.set(id, root);
       }),
     );
@@ -137,7 +133,7 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
   nose.position.copy(perch);
   if (propId === "dog") {
     nose.scale.setScalar(DOG_HEAD_SCALE);
-    // Shift so oriented contact sits on the bar (rearward + up from local origin).
+    // Neck cut onto the bar (X) with a slight embed (Y) so it does not float.
     nose.position.x += DOG_HEAD_CONTACT_X * DOG_HEAD_SCALE;
     nose.position.y += DOG_HEAD_CONTACT_Y * DOG_HEAD_SCALE;
   } else {

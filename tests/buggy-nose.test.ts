@@ -6,7 +6,6 @@ import {
   bumperHeadlightPerchLocal,
   DOG_HEAD_CONTACT_X,
   DOG_HEAD_CONTACT_Y,
-  DOG_HEAD_PITCH,
   DOG_HEAD_SCALE,
   DOG_HEAD_YAW,
   isBuggySkullCosmeticName,
@@ -78,17 +77,17 @@ describe("buggy nose helpers", () => {
     expect(DOG_HEAD_SCALE * 0.47).toBeLessThan(0.35);
   });
 
-  it("aims the authored snout exactly at buggy forward (−X), level", () => {
-    // Snout is not +Z — compensate azimuth so yaw ≠ −π/2 alone.
+  it("aims the authored snout at buggy forward (−X) with yaw only (upright)", () => {
+    // Snout is not +Z — compensate azimuth; no pitch/roll (that made the head lean).
     expect(DOG_HEAD_YAW).toBeCloseTo(-Math.PI / 2 - Math.atan2(-0.3733, 0.715), 5);
-    expect(DOG_HEAD_PITCH).toBeGreaterThan(0.5);
-    expect(DOG_HEAD_PITCH).toBeLessThan(0.8);
+    expect(DOG_HEAD_YAW).not.toBeCloseTo(-Math.PI / 2, 2);
   });
 
-  it("seats the dog contact patch on the headlight bar (not sunk below)", () => {
-    expect(DOG_HEAD_CONTACT_X).toBeGreaterThan(0.05);
-    expect(DOG_HEAD_CONTACT_Y).toBeGreaterThan(0.02);
-    expect(DOG_HEAD_CONTACT_Y * DOG_HEAD_SCALE).toBeLessThan(0.05);
+  it("seats the dog neck on the headlight bar without floating", () => {
+    // Contact is rear of origin after yaw → negative X shift; Y embeds slightly.
+    expect(DOG_HEAD_CONTACT_X).toBeLessThan(0);
+    expect(DOG_HEAD_CONTACT_Y).toBeLessThanOrEqual(0);
+    expect(Math.abs(DOG_HEAD_CONTACT_Y * DOG_HEAD_SCALE)).toBeLessThan(0.02);
   });
 
   it("keeps dog authored UVs + GLB albedo (no planar face atlas)", () => {
