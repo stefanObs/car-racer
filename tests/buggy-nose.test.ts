@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { buggyNoseFromSticker, noseAnchorLocal } from "../src/render/buggyNose";
+import {
+  buggyNoseFromSticker,
+  isBuggySkullCosmeticName,
+  noseAnchorLocal,
+} from "../src/render/buggyNose";
 import { Group, Mesh, SphereGeometry, MeshBasicMaterial, Vector3 } from "three";
 import { emptyKit } from "../src/meta/save";
 
@@ -13,6 +17,12 @@ describe("buggy nose helpers", () => {
 
   it("defaults Käferkraft kit to bare bumper (no front prop)", () => {
     expect(emptyKit("kaeferkraft").sticker).toBe("none");
+  });
+
+  it("treats Skull as cosmetic but bumper EyeRed/Headlight as car parts", () => {
+    expect(isBuggySkullCosmeticName("Skull")).toBe(true);
+    expect(isBuggySkullCosmeticName("EyeRed")).toBe(false);
+    expect(isBuggySkullCosmeticName("Headlight")).toBe(false);
   });
 
   it("anchors nose in root-local space near skull meshes", () => {

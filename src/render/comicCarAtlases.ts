@@ -19,6 +19,7 @@ export type ComicAtlasRole =
   | "chrome"
   | "glass"
   | "light"
+  | "headlight"
   | "dark"
   | "armor"
   | "engine";
@@ -150,6 +151,7 @@ export function comicAtlasForRole(carId: CarId, role: ComicAtlasRole): Texture {
   if (role === "tire") return tireAtlas();
   if (role === "chrome") return chromeAtlas();
   if (role === "glass") return glassAtlas();
+  if (role === "headlight") return headlightAtlas();
   if (role === "light") return lightAtlas();
   if (role === "engine") return engineAtlas();
   if (role === "armor") return armorAtlas();
@@ -426,6 +428,59 @@ function lightAtlas(): Texture {
   });
 }
 
+/** Round front headlamp — chrome bezel + warm lens (Käferkraft bumper lamps). */
+function headlightAtlas(): Texture {
+  return canvasTex("comic-headlight-v1", 128, 128, (ctx) => {
+    const w = 128;
+    const h = 128;
+    const cx = 64;
+    const cy = 64;
+    // Housing
+    ctx.fillStyle = "#2A2C30";
+    ctx.fillRect(0, 0, w, h);
+    // Chrome rim
+    ctx.fillStyle = "#D8DEE6";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 54, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 5;
+    ctx.stroke();
+    // Warm glass
+    const g = ctx.createRadialGradient(cx - 10, cy - 12, 4, cx, cy, 46);
+    g.addColorStop(0, "#FFFDF5");
+    g.addColorStop(0.45, "#FFE9A0");
+    g.addColorStop(1, "#F0B429");
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.arc(cx, cy, 44, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 4;
+    ctx.stroke();
+    // Fresnel rings
+    ctx.beginPath();
+    ctx.arc(cx, cy, 28, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(cx, cy, 14, 0, Math.PI * 2);
+    ctx.stroke();
+    // Cross hair (comic sealed-beam cue)
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(cx - 38, cy);
+    ctx.lineTo(cx + 38, cy);
+    ctx.moveTo(cx, cy - 38);
+    ctx.lineTo(cx, cy + 38);
+    ctx.stroke();
+    // Spec highlight
+    ctx.fillStyle = "rgba(255,255,255,0.55)";
+    ctx.beginPath();
+    ctx.ellipse(cx - 14, cy - 16, 12, 7, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+  });
+}
+
 function engineAtlas(): Texture {
   return canvasTex("comic-engine-v2", 256, 256, (ctx) => {
     const w = 256;
@@ -474,6 +529,7 @@ export function atlasRoleFromName(name: string, carId: CarId): ComicAtlasRole {
     return "chrome";
   }
   if (n.includes("glass") || n.includes("window")) return "glass";
+  if (n.includes("eyered") || (n.includes("eye") && !n.includes("grey"))) return "headlight";
   if (n.includes("light") || n.includes("head") || n.includes("tail") || n.includes("lamp")) return "light";
   if (n.includes("engine")) return "engine";
   if (n.includes("seat") || n === "dark" || n.includes("black") || n.includes("skull")) return "dark";

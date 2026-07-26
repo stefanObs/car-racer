@@ -54,6 +54,8 @@ describe("comic car atlases", () => {
     expect(atlasRoleFromName("Chrome", "kaeferkraft")).toBe("chrome");
     expect(atlasRoleFromName("TruckDark", "bunker")).toBe("armor");
     expect(atlasRoleFromName("Headlights", "blitz")).toBe("light");
+    expect(atlasRoleFromName("EyeRed", "kaeferkraft")).toBe("headlight");
+    expect(comicAtlasForRole("kaeferkraft", "headlight")).toBeTruthy();
   });
 
   it("builds per-car body atlases and shared trim atlases", () => {

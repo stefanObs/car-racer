@@ -182,7 +182,8 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
       toon = comicToon(0xdce2e8);
     } else if (name.includes("eyered") || (name.includes("eye") && !name.includes("grey"))) {
-      toon = comicToon(0xff1e1e);
+      // Käferkraft bumper lamps — permanent headlights (not skull cosmetics).
+      toon = comicToon(0xfff8e8);
     } else if (name.includes("skull")) {
       toon = comicToon(0xf1f3f5);
     } else if (name.includes("seat") || name === "dark") {
@@ -194,14 +195,9 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     if (map) {
       toon.map = map;
       toon.needsUpdate = true;
-    } else if (
-      !carUsesAuthoredAtlas(carId) &&
-      mesh.geometry &&
-      !name.includes("skull") &&
-      !name.includes("eyered") &&
-      !(name.includes("eye") && !name.includes("grey"))
-    ) {
+    } else if (!carUsesAuthoredAtlas(carId) && mesh.geometry && !name.includes("skull")) {
       // Asphalt-Comic detail atlases for flat free GLBs (Hotrod excluded).
+      // EyeRed → headlight atlas (stays visible on all nose variants).
       ensureComicBoxUvs(mesh.geometry);
       const role = atlasRoleFromName(mat?.name ?? mesh.name ?? "", carId);
       const atlas = comicAtlasForRole(carId, role);
@@ -209,7 +205,10 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
       toon.userData.comicTintable = role === "body" || role === "armor";
       toon.needsUpdate = true;
     }
-    toon.name = mat?.name ?? mesh.name ?? "BodyPaint";
+    toon.name =
+      name.includes("eyered") || (name.includes("eye") && !name.includes("grey"))
+        ? "Headlight"
+        : (mat?.name ?? mesh.name ?? "BodyPaint");
     return toon;
   });
   mesh.material = next.length === 1 ? next[0]! : next;
@@ -315,6 +314,7 @@ function isNonPaintMaterial(name: string): boolean {
     name.includes("engine") ||
     name.includes("skull") ||
     name.includes("eyered") ||
+    name.includes("headlight") ||
     name.includes("eye") ||
     name.includes("seat") ||
     name === "dark"

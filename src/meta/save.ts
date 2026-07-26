@@ -46,7 +46,7 @@ export function emptyKit(carId: CarId): CarKit {
     ownedParts: [],
     equippedParts: [],
     paint: CARS[carId].defaultPaint,
-    // Bunker ships with door badge; Käferkraft default = stock skull nose
+    // Bunker ships with door badge; others default to no sticker / bare nose
     sticker: carId === "bunker" ? "ironClad" : "none",
   };
 }

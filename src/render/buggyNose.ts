@@ -124,9 +124,8 @@ function findSkullParts(root: Object3D): Mesh[] {
     let isDark = false;
     for (const m of mats) {
       const n = ((m as MeshToonMaterial)?.name ?? mesh.name ?? "").toLowerCase();
-      if (n.includes("skull") || n.includes("eyered") || (n.includes("eye") && !n.includes("grey"))) {
-        isSkullFace = true;
-      }
+      // EyeRed / Headlight lamps stay on the car — only Skull mesh + front horns toggle.
+      if (n.includes("skull")) isSkullFace = true;
       if (n === "dark" || n.includes("dark")) isDark = true;
     }
     if (isSkullFace) {
@@ -136,6 +135,15 @@ function findSkullParts(root: Object3D): Mesh[] {
     if (isDark && isFrontHornMesh(mesh)) skullParts.push(mesh);
   });
   return skullParts;
+}
+
+/** True when a material belongs to the skull cosmetic (not bumper headlights). */
+export function isBuggySkullCosmeticName(materialOrMeshName: string): boolean {
+  const n = materialOrMeshName.toLowerCase();
+  if (n.includes("headlight") || n.includes("eyered")) return false;
+  if (n.includes("skull")) return true;
+  if (n === "dark" || n.includes("dark")) return false; // horns need geometry check
+  return false;
 }
 
 /** Dark horn shards sit at local X ≈ -1.2 with tip above the skull. */

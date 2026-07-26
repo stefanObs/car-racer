@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-07-26 — v3.17 Käferkraft bumper lamps are car headlights
+
+- Trigger: user — red Totenkopf lamps belong to the car; style as front headlights with textures
+- Decision: EyeRed meshes stay visible on all nose variants; comic headlight atlas (chrome bezel + warm lens). Only Skull + front horns toggle with Totenkopf.
+- CONCEPT §§ touched: §6.2 → v3.17
+
 ### 2026-07-26 — v3.16 Käferkraft nose props (Bidr / Hund)
 
 - Trigger: user — horns belong to skull; default bare; Stier→Bidr bird; Sternkopf→Hund dog
