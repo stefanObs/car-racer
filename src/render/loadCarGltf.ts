@@ -206,7 +206,9 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
       // Bone skull ornament — comic albedo (YZ UVs; authored UVs are atlas-scrap).
       toon = comicToon(0xffffff);
       if (mesh.geometry) {
-        ensureNoseOrnamentUvs(mesh.geometry);
+        if (!mesh.userData.keepAuthoredUvs && !mesh.name.toLowerCase().includes("skullhornknuckle")) {
+          ensureNoseOrnamentUvs(mesh.geometry);
+        }
         const skullMap = buggyNoseTexture("skull");
         if (skullMap) {
           toon.map = skullMap;
@@ -398,6 +400,20 @@ function addOutlineShells(root: Object3D, opts?: { skip?: boolean }): void {
     const mesh = obj as Mesh;
     if (!mesh.isMesh || !mesh.geometry) return;
     if (mesh.userData.outlineShell) return;
+    // Horn roots must blend into the skull — an ink shell draws a hard “stuck-on” ring.
+    const matName = (
+      Array.isArray(mesh.material)
+        ? mesh.material.map((m) => m?.name ?? "").join(" ")
+        : (mesh.material?.name ?? "")
+    ).toLowerCase();
+    const meshName = mesh.name.toLowerCase();
+    if (
+      matName.includes("skullhorn") ||
+      meshName.includes("skullhorn") ||
+      meshName.includes("skullhornknuckle")
+    ) {
+      return;
+    }
     // Tiny free-asset shards look like floating debris when outlined.
     if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
     const r = mesh.geometry.boundingSphere?.radius ?? 1;

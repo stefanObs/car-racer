@@ -8,7 +8,7 @@
  * - Drop thin black overlay strips beside body panels
  *
  * Prefers public/models/cars/kaeferkraft.source.glb when present.
- * After tune, run `npm run cars:reshape-buggy-horns` so horns match the V horn sheet.
+ * After tune, run `npm run cars:reshape-buggy-horns` so horns plant on skull stubs.
  * Usage: node scripts/tune-kaeferkraft.mjs
  */
 import { copyFileSync, existsSync } from "node:fs";
