@@ -8,6 +8,7 @@ import {
   TorusGeometry,
 } from "three";
 import { comicToon, withOutline } from "./comicMaterials";
+import { buildGarageOverlays } from "./garageOverlays";
 import { ComicPalette } from "./palette";
 
 /** Comic tuner garage bay — props behind the HUD panel. */
@@ -201,6 +202,8 @@ export function buildGarageBay(): Group {
   glow.rotation.x = -Math.PI / 2;
   glow.position.set(1.5, 0.06, 0);
   g.add(glow);
+
+  g.add(buildGarageOverlays());
 
   return g;
 }
