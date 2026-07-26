@@ -22,7 +22,7 @@ import {
   carUsesAuthoredAtlas,
   comicAtlasForRole,
 } from "./comicCarAtlases";
-import { ensureComicBoxUvs, ensureCylinderUvs } from "./comicCarUvs";
+import { ensureComicBoxUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
 import { bakeAuthoredWhiteToPaint } from "./paintAuthoredWhite";
 
 type Template = {
@@ -195,10 +195,10 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
       toon = comicToon(0xdce2e8);
     } else if (isHornMat) {
-      // Cylinder UVs + keratin strip — rings follow the horn mesh, not a flat drawing.
+      // Matching bone-horn albedo for the Totenkopf horns.
       toon = comicToon(0xffffff);
       if (mesh.geometry) {
-        ensureCylinderUvs(mesh.geometry);
+        ensureNoseOrnamentUvs(mesh.geometry);
         const hornMap = buggyNoseTexture("skullHorn");
         if (hornMap) {
           toon.map = hornMap;
@@ -206,10 +206,10 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
         }
       }
     } else if (name.includes("skull")) {
-      // Box UVs + bone plate atlas (authored UVs are scrap; no face-sheet stretch).
+      // Bone skull ornament — comic albedo (YZ UVs; authored UVs are atlas-scrap).
       toon = comicToon(0xffffff);
       if (mesh.geometry) {
-        ensureComicBoxUvs(mesh.geometry, true);
+        ensureNoseOrnamentUvs(mesh.geometry);
         const skullMap = buggyNoseTexture("skull");
         if (skullMap) {
           toon.map = skullMap;

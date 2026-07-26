@@ -29,8 +29,8 @@ export function meshNeedsComicUvs(geometry: BufferGeometry): boolean {
 }
 
 /** Planar box projection from dominant normal — stable 0..1-ish coverage. */
-export function ensureComicBoxUvs(geometry: BufferGeometry, force = false): void {
-  if (!force && !meshNeedsComicUvs(geometry)) return;
+export function ensureComicBoxUvs(geometry: BufferGeometry): void {
+  if (!meshNeedsComicUvs(geometry)) return;
   if (!geometry.getAttribute("normal")) geometry.computeVertexNormals();
   geometry.computeBoundingBox();
   const box = geometry.boundingBox;
@@ -69,45 +69,24 @@ export function ensureComicBoxUvs(geometry: BufferGeometry, force = false): void
 }
 
 /**
- * Cylindrical UVs fitted to the mesh: V along the longest axis, U around it.
- * For horn/tube meshes so a ring-strip keratin atlas follows the geometry.
+ * Front-planar UVs for the skull nose ornament sheet.
+ * Projects local YZ → UV fitted to 0..1 so a centered face atlas reads on the bumper.
  */
-export function ensureCylinderUvs(geometry: BufferGeometry): void {
+export function ensureNoseOrnamentUvs(geometry: BufferGeometry): void {
   geometry.computeBoundingBox();
   const box = geometry.boundingBox;
   const pos = geometry.getAttribute("position");
   if (!box || !pos) return;
   const size = new Vector3();
   box.getSize(size);
-  const cx = (box.min.x + box.max.x) * 0.5;
-  const cy = (box.min.y + box.max.y) * 0.5;
-  const cz = (box.min.z + box.max.z) * 0.5;
-  const axis = size.x >= size.y && size.x >= size.z ? "x" : size.y >= size.z ? "y" : "z";
-  const span =
-    axis === "x" ? Math.max(size.x, 0.001) : axis === "y" ? Math.max(size.y, 0.001) : Math.max(size.z, 0.001);
+  const spanZ = Math.max(size.z, 0.001);
+  const spanY = Math.max(size.y, 0.001);
   const uvs = new Float32Array(pos.count * 2);
   for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i);
     const y = pos.getY(i);
     const z = pos.getZ(i);
-    let along: number;
-    let a: number;
-    let b: number;
-    if (axis === "x") {
-      along = (x - box.min.x) / span;
-      a = y - cy;
-      b = z - cz;
-    } else if (axis === "y") {
-      along = (y - box.min.y) / span;
-      a = x - cx;
-      b = z - cz;
-    } else {
-      along = (z - box.min.z) / span;
-      a = x - cx;
-      b = y - cy;
-    }
-    uvs[i * 2] = Math.atan2(b, a) / (Math.PI * 2) + 0.5;
-    uvs[i * 2 + 1] = along;
+    uvs[i * 2] = (z - box.min.z) / spanZ;
+    uvs[i * 2 + 1] = (y - box.min.y) / spanY;
   }
   geometry.setAttribute("uv", new BufferAttribute(uvs, 2));
 }
