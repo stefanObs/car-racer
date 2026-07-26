@@ -1,13 +1,10 @@
 #!/usr/bin/env node
 /**
- * Restore mesh for the comic single-horn sheet (pre–V-bake texture):
- * public/textures/buggy-skull-horn.png — one curved horn drawing.
- *
- * Builds left/right extruded silhouettes from that texture so YZ/planar UVs
- * match the drawing 1:1 (left arm mirrors U).
+ * Solid curved SkullHorns for Käferkraft that match buggy-skull-horn.png,
+ * seat on the skull crown, stay closed (no hollow openings), and read round
+ * from the side.
  *
  * Usage: node scripts/reshape-buggy-skull-horns.mjs
- * Expects the prior horn PNG already in public/textures/buggy-skull-horn.png
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -16,12 +13,10 @@ import { Blob } from "node:buffer";
 import sharp from "sharp";
 import {
   BufferAttribute,
-  ExtrudeGeometry,
-  Matrix4,
+  BufferGeometry,
+  CatmullRomCurve3,
   Mesh,
   MeshStandardMaterial,
-  Shape,
-  Vector2,
   Vector3,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -49,19 +44,23 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const glbPath = join(rootDir, "public/models/cars/kaeferkraft.glb");
 const texPath = join(rootDir, "public/textures/buggy-skull-horn.png");
 
-/** Bumper placement for the twin horns (front of Käferkraft). */
-const PLACE = {
-  x: -1.18,
-  /** World size of one horn sheet (texture full 0..1 → this rect in YZ). */
-  y0: -0.02,
-  y1: 0.34,
-  /** Right horn sits in +Z; left mirrors. */
-  zRight0: 0.02,
-  zRight1: 0.42,
-  depth: 0.07,
-};
-
 const BG = [232, 220, 200];
+
+/** Seat horns on the main skull crown (local bumper frame). */
+const ATTACH = {
+  // Slightly into the skull so the base is buried (no visible opening).
+  x: -1.28,
+  y: 0.08,
+  z: 0.11,
+  /** Tip flares outward / up / a bit forward of the crown. */
+  tipX: -1.22,
+  tipY: 0.3,
+  tipZ: 0.38,
+  rBase: 0.038,
+  rTip: 0.012,
+  tubular: 28,
+  radial: 10,
+};
 
 function isHornPixel(r, g, b) {
   if (Math.hypot(r - BG[0], g - BG[1], b - BG[2]) < 28) return false;
@@ -69,117 +68,201 @@ function isHornPixel(r, g, b) {
   return true;
 }
 
-/** Moore neighborhood contour (outer), clockwise, pixel centers. */
-function extractContour(mask, W, H) {
-  const key = (x, y) => y * W + x;
-  let sx = -1;
-  let sy = -1;
-  outer: for (let y = 0; y < H; y++) {
-    for (let x = 0; x < W; x++) {
-      if (mask[key(x, y)]) {
-        sx = x;
-        sy = y;
-        break outer;
-      }
-    }
-  }
-  if (sx < 0) throw new Error("No horn pixels in texture");
-
-  // N, NE, E, SE, S, SW, W, NW
-  const dx = [0, 1, 1, 1, 0, -1, -1, -1];
-  const dy = [-1, -1, 0, 1, 1, 1, 0, -1];
-  const pts = [];
-  let x = sx;
-  let y = sy;
-  let dir = 4; // come from west → start looking south-ish
-  const start = key(sx, sy);
-  let guard = 0;
-  do {
-    pts.push([x + 0.5, y + 0.5]);
-    let found = false;
-    for (let i = 0; i < 8; i++) {
-      const nd = (dir + 6 + i) % 8; // turn left first
-      const nx = x + dx[nd];
-      const ny = y + dy[nd];
-      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
-      if (!mask[key(nx, ny)]) continue;
-      x = nx;
-      y = ny;
-      dir = nd;
-      found = true;
-      break;
-    }
-    if (!found) break;
-    guard++;
-  } while ((x !== sx || y !== sy) && guard < W * H);
-
-  // Decimate
-  const step = Math.max(1, Math.floor(pts.length / 120));
-  const slim = [];
-  for (let i = 0; i < pts.length; i += step) slim.push(pts[i]);
-  return slim;
-}
-
-async function loadHornMask() {
+/** Medial axis + half-width of the comic horn drawing (U,V-up). */
+async function extractMedialPath() {
   const { data, info } = await sharp(texPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
   const W = info.width;
   const H = info.height;
   const mask = new Uint8Array(W * H);
-  let count = 0;
-  for (let i = 0, p = 0; p < W * H; p++, i += 4) {
-    if (isHornPixel(data[i], data[i + 1], data[i + 2])) {
-      mask[p] = 1;
-      count++;
+  for (let p = 0, i = 0; p < W * H; p++, i += 4) {
+    if (isHornPixel(data[i], data[i + 1], data[i + 2])) mask[p] = 1;
+  }
+  const rows = [];
+  for (let y = H - 1; y >= 0; y--) {
+    let sx = 0;
+    let n = 0;
+    let x0 = W;
+    let x1 = 0;
+    for (let x = 0; x < W; x++) {
+      if (!mask[y * W + x]) continue;
+      sx += x;
+      n++;
+      x0 = Math.min(x0, x);
+      x1 = Math.max(x1, x);
+    }
+    if (n > 8) {
+      rows.push({
+        u: sx / n / (W - 1),
+        v: 1 - y / (H - 1),
+        halfU: (x1 - x0) / 2 / (W - 1),
+      });
     }
   }
-  if (count < 100) throw new Error("Horn texture mask too small — wrong PNG?");
-  return { mask, W, H, count };
+  if (rows.length < 4) throw new Error("Could not read horn medial path from texture");
+  const step = Math.max(1, Math.floor(rows.length / 20));
+  const path = [];
+  for (let i = 0; i < rows.length; i += step) path.push(rows[i]);
+  if (path[path.length - 1] !== rows[rows.length - 1]) path.push(rows[rows.length - 1]);
+  // Normalize along-parameter 0..1 (base→tip). Rows were bottom→top = base→tip in this sheet.
+  return path;
 }
 
-function contourToShape(contour, W, H, mirrorU) {
-  const shape = new Shape();
-  const toXZ = (px, py) => {
-    // Image: x→U, y down. Shape in local (u, vUp) before world scale.
-    let u = px / W;
-    const vUp = 1 - py / H;
-    if (mirrorU) u = 1 - u;
-    return new Vector2(u, vUp);
-  };
-  const p0 = toXZ(contour[0][0], contour[0][1]);
-  shape.moveTo(p0.x, p0.y);
-  for (let i = 1; i < contour.length; i++) {
-    const p = toXZ(contour[i][0], contour[i][1]);
-    shape.lineTo(p.x, p.y);
-  }
-  shape.closePath();
-  return shape;
-}
+/**
+ * Variable-radius tube (closed ends) along a curve.
+ * UVs sample the comic sheet along the medial path (rings wrap the tube).
+ */
+function makeTaperedHorn(curve, radii, texPathPts, mirrorZ) {
+  const tubular = ATTACH.tubular;
+  const radial = ATTACH.radial;
+  const frames = curve.computeFrenetFrames(tubular, false);
+  const vertCount = (tubular + 1) * (radial + 1);
+  const positions = new Float32Array(vertCount * 3);
+  const uvs = new Float32Array(vertCount * 2);
+  const normals = new Float32Array(vertCount * 3);
 
-function extrudeHorn(shape, z0, z1, y0, y1, mirrorU) {
-  const geo = new ExtrudeGeometry(shape, {
-    depth: PLACE.depth,
-    bevelEnabled: false,
-    curveSegments: 1,
-    steps: 1,
-  });
-  // Shape XY = (u,vUp); Extrude +Z local. Map → world: u→Z band, vUp→Y, depth→X.
-  const pos = geo.getAttribute("position");
-  const uvs = new Float32Array(pos.count * 2);
-  for (let i = 0; i < pos.count; i++) {
-    const u = pos.getX(i);
-    const vUp = pos.getY(i);
-    const d = pos.getZ(i); // 0..depth
-    const z = z0 + u * (z1 - z0);
-    const y = y0 + vUp * (y1 - y0);
-    const x = PLACE.x - PLACE.depth * 0.5 + d;
-    pos.setXYZ(i, x, y, z);
-    // Texture UVs: same as shape (mirrored for left).
-    uvs[i * 2] = mirrorU ? 1 - u : u;
-    uvs[i * 2 + 1] = vUp;
+  for (let i = 0; i <= tubular; i++) {
+    const t = i / tubular;
+    const center = curve.getPointAt(t);
+    const normal = frames.normals[i];
+    const binormal = frames.binormals[i];
+    const r = radii[0] * (1 - t) + radii[1] * t;
+    const tex = samplePath(texPathPts, t);
+    for (let j = 0; j <= radial; j++) {
+      const v = j / radial;
+      const angle = v * Math.PI * 2;
+      const sin = Math.sin(angle);
+      const cos = Math.cos(angle);
+      const cx = -r * (cos * normal.x + sin * binormal.x);
+      const cy = -r * (cos * normal.y + sin * binormal.y);
+      const cz = -r * (cos * normal.z + sin * binormal.z);
+      let x = center.x + cx;
+      let y = center.y + cy;
+      let z = center.z + cz;
+      if (mirrorZ) z = -z;
+      const idx = i * (radial + 1) + j;
+      positions[idx * 3] = x;
+      positions[idx * 3 + 1] = y;
+      positions[idx * 3 + 2] = z;
+      // Map tube angle into the drawn horn width; length along medial V/U.
+      const across = Math.cos(angle);
+      let tu = tex.u + across * tex.halfU;
+      const tv = tex.v;
+      if (mirrorZ) tu = 1 - tu;
+      uvs[idx * 2] = tu;
+      uvs[idx * 2 + 1] = tv;
+      const nx = cx;
+      const ny = cy;
+      const nz = mirrorZ ? -cz : cz;
+      const nl = Math.hypot(nx, ny, nz) || 1;
+      normals[idx * 3] = nx / nl;
+      normals[idx * 3 + 1] = ny / nl;
+      normals[idx * 3 + 2] = nz / nl;
+    }
   }
-  geo.setAttribute("uv", new BufferAttribute(uvs, 2));
+
+  const indices = [];
+  for (let i = 0; i < tubular; i++) {
+    for (let j = 0; j < radial; j++) {
+      const a = i * (radial + 1) + j;
+      const b = (i + 1) * (radial + 1) + j;
+      const c = (i + 1) * (radial + 1) + (j + 1);
+      const d = i * (radial + 1) + (j + 1);
+      indices.push(a, b, d, b, c, d);
+    }
+  }
+
+  // Closed tip (no opening): fan to tip center.
+  const tipCenter = curve.getPointAt(1);
+  if (mirrorZ) tipCenter.z = -tipCenter.z;
+  const tipIdx = vertCount;
+  const tipPos = new Float32Array(positions.length + 3);
+  tipPos.set(positions);
+  tipPos[positions.length] = tipCenter.x;
+  tipPos[positions.length + 1] = tipCenter.y;
+  tipPos[positions.length + 2] = tipCenter.z;
+  const tipUv = new Float32Array(uvs.length + 2);
+  tipUv.set(uvs);
+  const tipTex = samplePath(texPathPts, 1);
+  tipUv[uvs.length] = mirrorZ ? 1 - tipTex.u : tipTex.u;
+  tipUv[uvs.length + 1] = tipTex.v;
+  const tipNor = new Float32Array(normals.length + 3);
+  tipNor.set(normals);
+  const tipT = curve.getTangentAt(1);
+  tipNor[normals.length] = tipT.x;
+  tipNor[normals.length + 1] = tipT.y;
+  tipNor[normals.length + 2] = mirrorZ ? -tipT.z : tipT.z;
+  for (let j = 0; j < radial; j++) {
+    const a = tubular * (radial + 1) + j;
+    const b = tubular * (radial + 1) + (j + 1);
+    indices.push(a, tipIdx, b);
+  }
+
+  // Closed base: fan buried into skull (opening not visible).
+  const baseCenter = curve.getPointAt(0);
+  if (mirrorZ) baseCenter.z = -baseCenter.z;
+  // Pull base center slightly into skull (+X / rearward).
+  baseCenter.x += 0.03;
+  const baseIdx = tipIdx + 1;
+  const pos2 = new Float32Array(tipPos.length + 3);
+  pos2.set(tipPos);
+  pos2[tipPos.length] = baseCenter.x;
+  pos2[tipPos.length + 1] = baseCenter.y;
+  pos2[tipPos.length + 2] = baseCenter.z;
+  const uv2 = new Float32Array(tipUv.length + 2);
+  uv2.set(tipUv);
+  const baseTex = samplePath(texPathPts, 0);
+  uv2[tipUv.length] = mirrorZ ? 1 - baseTex.u : baseTex.u;
+  uv2[tipUv.length + 1] = baseTex.v;
+  const nor2 = new Float32Array(tipNor.length + 3);
+  nor2.set(tipNor);
+  const baseT = curve.getTangentAt(0);
+  nor2[tipNor.length] = -baseT.x;
+  nor2[tipNor.length + 1] = -baseT.y;
+  nor2[tipNor.length + 2] = mirrorZ ? baseT.z : -baseT.z;
+  for (let j = 0; j < radial; j++) {
+    const a = j;
+    const b = j + 1;
+    indices.push(baseIdx, a, b);
+  }
+
+  const geo = new BufferGeometry();
+  geo.setAttribute("position", new BufferAttribute(pos2, 3));
+  geo.setAttribute("uv", new BufferAttribute(uv2, 2));
+  geo.setAttribute("normal", new BufferAttribute(nor2, 3));
+  geo.setIndex(indices);
   geo.computeVertexNormals();
   return geo;
+}
+
+function samplePath(path, t) {
+  const f = t * (path.length - 1);
+  const i = Math.min(path.length - 2, Math.floor(f));
+  const u = f - i;
+  const a = path[i];
+  const b = path[i + 1];
+  return {
+    u: a.u * (1 - u) + b.u * u,
+    v: a.v * (1 - u) + b.v * u,
+    halfU: a.halfU * (1 - u) + b.halfU * u,
+  };
+}
+
+/** World curve for the right horn: texture curvature mapped onto skull attach → tip. */
+function buildRightCurve(texPath) {
+  const pts = [];
+  for (let i = 0; i < texPath.length; i++) {
+    const t = i / (texPath.length - 1);
+    // Blend attach→tip with the sheet's lateral curve (u shift from base).
+    const u0 = texPath[0].u;
+    const lateral = (texPath[i].u - u0) / Math.max(1e-6, texPath[texPath.length - 1].u - u0);
+    const x = ATTACH.x * (1 - t) + ATTACH.tipX * t;
+    // Lift follows texture V, scaled into attach→tip Y.
+    const y = ATTACH.y + (ATTACH.tipY - ATTACH.y) * ((texPath[i].v - texPath[0].v) / Math.max(1e-6, texPath[texPath.length - 1].v - texPath[0].v));
+    const z = ATTACH.z + (ATTACH.tipZ - ATTACH.z) * (0.15 + 0.85 * Math.max(0, lateral));
+    pts.push(new Vector3(x, y, z));
+  }
+  // Smooth: ease tip a bit more outward.
+  return new CatmullRomCurve3(pts, false, "catmullrom", 0.35);
 }
 
 function loadGlb(path) {
@@ -198,8 +281,12 @@ async function exportGlb(root, path) {
   writeFileSync(path, Buffer.from(ab));
 }
 
-const { mask, W, H, count } = await loadHornMask();
-const contour = extractContour(mask, W, H);
+const texPathPts = await extractMedialPath();
+const curveR = buildRightCurve(texPathPts);
+const geoR = makeTaperedHorn(curveR, [ATTACH.rBase, ATTACH.rTip], texPathPts, false);
+const geoL = makeTaperedHorn(curveR, [ATTACH.rBase, ATTACH.rTip], texPathPts, true);
+const merged = mergeGeometries([geoL, geoR], false);
+if (!merged) throw new Error("merge failed");
 
 const gltf = await loadGlb(glbPath);
 const root = gltf.scene;
@@ -214,17 +301,9 @@ root.traverse((obj) => {
 });
 for (const m of toRemove) m.removeFromParent();
 
-const shapeR = contourToShape(contour, W, H, false);
-const shapeL = contourToShape(contour, W, H, true);
-const zSpan = PLACE.zRight1 - PLACE.zRight0;
-const geoR = extrudeHorn(shapeR, PLACE.zRight0, PLACE.zRight1, PLACE.y0, PLACE.y1, false);
-const geoL = extrudeHorn(shapeL, -PLACE.zRight1, -PLACE.zRight0, PLACE.y0, PLACE.y1, true);
-const merged = mergeGeometries([geoL, geoR], false);
-if (!merged) throw new Error("merge failed");
-
 const mat = new MeshStandardMaterial({
   name: "SkullHorn",
-  color: 0xe8dcc8,
+  color: 0xffffff,
   roughness: 0.85,
   metalness: 0.05,
 });
@@ -233,10 +312,20 @@ hornMesh.name = "SkullHorns";
 root.add(hornMesh);
 await exportGlb(root, glbPath);
 
-console.log("Reshaped horns to prior single-horn texture silhouette", {
+const pos = merged.getAttribute("position");
+let min = [Infinity, Infinity, Infinity];
+let max = [-Infinity, -Infinity, -Infinity];
+for (let i = 0; i < pos.count; i++) {
+  for (let c = 0; c < 3; c++) {
+    const v = pos.getComponent(i, c);
+    min[c] = Math.min(min[c], v);
+    max[c] = Math.max(max[c], v);
+  }
+}
+console.log("Solid closed horns on skull crown", {
   removed: toRemove.length,
-  texPixels: count,
-  contour: contour.length,
-  verts: merged.getAttribute("position").count,
-  zSpan,
+  verts: pos.count,
+  pathPts: texPathPts.length,
+  min: min.map((v) => +v.toFixed(3)),
+  max: max.map((v) => +v.toFixed(3)),
 });
