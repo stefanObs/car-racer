@@ -1,4 +1,3 @@
-import { APP_VERSION } from "./core/version";
 import { preloadCarModels } from "./render/loadCarGltf";
 import { GameApp } from "./ui/GameApp";
 
@@ -19,14 +18,12 @@ const gameCanvas = canvas;
 const gameUi = uiRoot;
 
 async function boot(): Promise<void> {
-  void APP_VERSION;
   const touchCapable =
     (navigator.maxTouchPoints ?? 0) > 0 ||
     window.matchMedia("(pointer: coarse)").matches ||
     window.matchMedia("(hover: none)").matches;
   if (touchCapable) document.documentElement.dataset.touch = "1";
 
-  // External GLBs (public/models/cars/*.glb) — optional; procedural fallback if missing
   await preloadCarModels();
 
   const app = new GameApp(gameCanvas, gameUi);

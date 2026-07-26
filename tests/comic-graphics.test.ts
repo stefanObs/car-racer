@@ -12,7 +12,7 @@ describe("Asphalt-Comic palette", () => {
     expect(ComicPalette.concrete).toBe(0x8b9098);
     expect(ComicPalette.outline).toBe(0x1b1b1f);
     expect(ComicPaletteCss.asphalt).toBe("#4A4F57");
-    expect(ComicPaletteCss.sky).toBe("#5BA3D9");
+    expect(ComicPaletteCss.grass).toBe("#3F8F3A");
   });
 
   it("builds toon materials with stepped gradient and outline shell", () => {

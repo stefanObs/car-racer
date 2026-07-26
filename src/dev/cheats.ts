@@ -16,7 +16,7 @@ export function clampFinishPlace(place: number, fieldSize: number): number {
 /** Assign stable data-dev-name labels for F1 name overlay. */
 export function assignDevNames(root: ParentNode): void {
   const nodes = root.querySelectorAll<HTMLElement>(
-    "button, a, input, label, h1, h2, h3, .panel, .race-hud, .brand, .tag, .meta, .help, .stack, .parts, .part, .touch-controls, [data-act], [data-touch], [id]",
+    "button, a, input, label, h1, h2, h3, .panel, .race-hud, .brand, .tag, .meta, .help, .stack, .garage-parts, .touch-controls, [data-act], [data-touch], [id]",
   );
   nodes.forEach((el) => {
     if (el.dataset.devName) return;

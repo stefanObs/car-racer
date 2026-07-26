@@ -54,9 +54,8 @@ export class GameApp {
     bindKeyboard();
     window.addEventListener("keydown", (e) => this.onMenuKeyDown(e));
     const created = createGameRenderer(canvas);
-    this.renderer = created.renderer;
-    void created.mode;
-    this.bindGarageOrbit(canvas);
+  this.renderer = created;
+  this.bindGarageOrbit(canvas);
     const host = uiRoot.parentElement ?? document.body;
     this.dev = new DevTools(host, {
       getChf: () => this.save.chf,
@@ -379,7 +378,6 @@ export class GameApp {
 
   private renderUi(): void {
     document.documentElement.dataset.screen = this.screen;
-    const buttons: string[] = [];
     let body = "";
     if (this.screen === "menu") {
       body = `
@@ -476,7 +474,6 @@ export class GameApp {
     this.uiRoot.innerHTML = `${statsPopup}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
     this.wireUi();
     this.dev.tagUi(this.uiRoot);
-    void buttons;
   }
 
   private wireUi(): void {

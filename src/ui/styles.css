@@ -1,7 +1,6 @@
 :root {
   color-scheme: dark;
   --asphalt: #4a4f57;
-  --grass: #3f8f3a;
   --outline: #1b1b1f;
   --accent: #e03131;
   --sky: #5ba3d9;
@@ -111,9 +110,7 @@ html[data-screen="garage"] #game-canvas.is-orbiting {
 .tag,
 .help,
 .meta,
-.dim,
-.syn,
-.stats {
+.dim {
   margin: 0 0 10px;
   line-height: 1.35;
 }
@@ -539,19 +536,6 @@ button[data-act="race"]:not(:disabled) {
   background: var(--accent);
 }
 
-
-.parts {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.part small {
-  display: block;
-  margin: 4px 0 0;
-  opacity: 0.85;
-}
 
 .race-hud {
   pointer-events: none;
@@ -1160,11 +1144,5 @@ html.dev-show-names .dev-dialog {
 @media (orientation: landscape) and (min-width: 900px) {
   .panel.garage {
     max-width: min(560px, calc(100% - 320px));
-  }
-
-  .panel.garage .parts {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px 14px;
   }
 }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CAR_IDS, CARS, gearClassOf, type CarId } from "../src/data/cars";
+import { CAR_IDS, CARS, gearClassOf } from "../src/data/cars";
 import { mergeStats } from "../src/data/parts";
 import {
   activeKit,
@@ -9,24 +9,7 @@ import {
   migrateV1ToV2,
   normalizeSave,
 } from "../src/meta/save";
-import { buildComicCar, carGearClass } from "../src/render/comicCarMesh";
-import { createCarState } from "../src/sim/vehicle";
-
-function meshFor(id: CarId) {
-  return buildComicCar(
-    createCarState({
-      id: id,
-      isPlayer: true,
-      x: 0,
-      z: 0,
-      heading: 0,
-      paint: CARS[id].defaultPaint,
-      sticker: "none",
-      modelId: id,
-      stats: { ...mergeStats(CARS[id].stats, []) },
-    }),
-  );
-}
+import { carGearClass } from "../src/render/comicCarMesh";
 
 describe("car models and per-car kits", () => {
   it("ships all five category cars from the target sheet", () => {
@@ -38,27 +21,10 @@ describe("car models and per-car kits", () => {
     expect(gearClassOf("bunker")).toBe("armor");
   });
 
-  it("builds target-sheet signature props per class", () => {
-    const sport = meshFor("blitz");
-    const pickup = meshFor("bison");
-    const buggy = meshFor("kaeferkraft");
-    const hotrod = meshFor("donnerbuechse");
-    const armor = meshFor("bunker");
-    // Hard-edged rebuilds are denser than the old blob cars
-    expect(sport.root.children.length).toBeGreaterThan(20);
-    expect(pickup.root.children.length).toBeGreaterThan(25);
-    expect(buggy.root.children.length).toBeGreaterThan(30);
-    expect(hotrod.root.children.length).toBeGreaterThan(30);
-    expect(armor.root.children.length).toBeGreaterThan(30);
+  it("maps modelId to gear class for visuals", () => {
     expect(carGearClass({ modelId: "blitz" } as never)).toBe("sport");
     expect(carGearClass({ modelId: "kaeferkraft" } as never)).toBe("buggy");
-    expect(new Set([
-      sport.root.children.length,
-      pickup.root.children.length,
-      buggy.root.children.length,
-      hotrod.root.children.length,
-      armor.root.children.length,
-    ]).size).toBe(5);
+    expect(carGearClass({ modelId: "donnerbuechse" } as never)).toBe("hotrod");
   });
 
   it("applies class-innate nitro and grass mitigation in mergeStats", () => {

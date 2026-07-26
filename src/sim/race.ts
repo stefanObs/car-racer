@@ -48,7 +48,6 @@ export class RaceSession {
   }
 
   private spawnField(): void {
-    const grid = this.level.spawn.grid;
     const playerStats = mergeStats(CARS[this.config.playerCarId].stats, this.config.playerParts);
 
     const aiSpecs: Array<{ id: string; paint: string; carId: CarId; skill: number }> = [
@@ -59,8 +58,6 @@ export class RaceSession {
       { id: "ai-olli", paint: "#868e96", carId: "bunker", skill: 0.9 },
     ];
 
-    const playerSlot = grid[0] ?? [-8, 0];
-    void playerSlot;
     const start = sampleCenterline(this.track, 8);
     const head = Math.atan2(start.tangent.z, start.tangent.x);
 

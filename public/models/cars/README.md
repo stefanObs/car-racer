@@ -14,4 +14,4 @@ Tune `scale` / `yaw` / `y` / `collisionRadius` in `src/data/carModels.ts`.
 
 Optional Blender material names for nicer paint mapping: `BodyPaint`, `Glass`, `Tire`, `Chrome`. The loader also tints common free-asset names (`White`, `Truck`, `Atlas`, `mat*`, …).
 
-See [SOURCES.md](./SOURCES.md) for provenance. Placeholder baker: `npm run cars:glb`.
+See [SOURCES.md](./SOURCES.md) for provenance. Rebuild generated cars: `npm run cars:polish`.

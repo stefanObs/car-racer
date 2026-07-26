@@ -152,9 +152,6 @@ export function stepCar(
     if (car.koTimer <= 0) {
       car.hp = 1;
       car.healFx = 0.6;
-      // Respawn near track
-      const sample = surfaceAt(track, car.x, car.z, 0, 1);
-      void sample;
     }
     return { hitWall: false, stage: 4 };
   }

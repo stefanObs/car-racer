@@ -23,7 +23,7 @@ type Template = {
 const templates = new Map<CarId, Template>();
 let preloadPromise: Promise<void> | null = null;
 
-/** Load all car GLBs once (missing files are skipped — procedural fallback). */
+/** Load all car GLBs once. Missing files fail boot (no procedural fallback). */
 export function preloadCarModels(): Promise<void> {
   if (preloadPromise) return preloadPromise;
   preloadPromise = (async () => {
@@ -31,14 +31,10 @@ export function preloadCarModels(): Promise<void> {
     await Promise.all(
       CAR_IDS.map(async (id) => {
         const spec = CAR_MODELS[id];
-        try {
-          const gltf = await loader.loadAsync(spec.url);
-          const root = gltf.scene;
-          normalizeCarScene(root, spec);
-          templates.set(id, { root, spec });
-        } catch (err) {
-          console.warn(`[cars] GLB missing for ${id}, using procedural mesh.`, err);
-        }
+        const gltf = await loader.loadAsync(spec.url);
+        const root = gltf.scene;
+        normalizeCarScene(root, spec);
+        templates.set(id, { root, spec });
       }),
     );
   })();
@@ -47,10 +43,6 @@ export function preloadCarModels(): Promise<void> {
 
 export function hasGltfCar(id: CarId): boolean {
   return templates.has(id);
-}
-
-export function loadedGltfCarIds(): CarId[] {
-  return [...templates.keys()];
 }
 
 /**

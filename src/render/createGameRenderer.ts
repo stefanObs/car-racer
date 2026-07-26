@@ -32,17 +32,14 @@ function supportsWebGL(): boolean {
  * Asphalt-Comic requires WebGL (toon meshes, outlines, chase 3D).
  * Canvas2D fallback removed — it could not match the concept look.
  */
-export function createGameRenderer(canvas: HTMLCanvasElement): {
-  renderer: GameRenderer;
-  mode: "webgl";
-} {
+export function createGameRenderer(canvas: HTMLCanvasElement): GameRenderer {
   if (!supportsWebGL()) {
     throw new Error(
       "WebGL wird benötigt für Crash Circuit (Asphalt-Comic).\n\nBitte einen aktuellen Browser mit aktivierter Hardware-Beschleunigung nutzen (Chrome, Firefox oder Edge).",
     );
   }
   try {
-    return { renderer: new RaceRenderer(canvas), mode: "webgl" };
+    return new RaceRenderer(canvas);
   } catch (err) {
     const detail = err instanceof Error ? err.message : String(err);
     throw new Error(
