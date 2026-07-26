@@ -10,7 +10,7 @@ import {
 
 const URLS = {
   skull: "/textures/buggy-skull.png",
-  dogStatue: "/textures/buggy-dog-statue.png",
+  dogStatue: "/textures/buggy-dog-head.png",
 } as const;
 
 const maps = new Map<"skull" | "dogStatue", Texture>();

@@ -3,6 +3,7 @@ import {
   buggyNoseFromSticker,
   bumperHeadlightPerchLocal,
   DOG_HEAD_SCALE,
+  DOG_HEAD_Y_OFFSET,
   isBuggySkullCosmeticName,
   noseAnchorLocal,
 } from "../src/render/buggyNose";
@@ -66,8 +67,10 @@ describe("buggy nose helpers", () => {
     expect(perch.x).toBeLessThan(-1.2);
   });
 
-  it("scales the dog-head ornament larger than the pigeon", () => {
-    expect(DOG_HEAD_SCALE).toBeGreaterThan(1.2);
+  it("matches dog-head ornament scale to the Totenkopf and sits lower on the bumper", () => {
+    // Unscaled baked head is ~0.48m — same height as the stock skull mesh.
+    expect(DOG_HEAD_SCALE).toBe(1);
+    expect(DOG_HEAD_Y_OFFSET).toBeLessThan(0);
   });
 
   it("anchors nose in root-local space near skull meshes", () => {

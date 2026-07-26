@@ -13,11 +13,16 @@ import {
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { comicToon } from "./comicMaterials";
 import { buggyNoseTexture } from "./buggyNoseTextures";
+import { ensureNoseOrnamentUvs } from "./comicCarUvs";
 
 export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
 
-/** Runtime scale for the baked dog-head ornament (larger than Vogel). */
-export const DOG_HEAD_SCALE = 1.45;
+/**
+ * Match Totenkopf ornament height (~0.48m unscaled head mesh).
+ * Extra Y sink places the neck cut lower on the bumper stack.
+ */
+export const DOG_HEAD_SCALE = 1.0;
+export const DOG_HEAD_Y_OFFSET = -0.14;
 
 const noseTemplates = new Map<"bird" | "dog", Group>();
 let preloadPromise: Promise<void> | null = null;
@@ -62,7 +67,8 @@ export function preloadBuggyNoses(): Promise<void> {
             const toon = comicToon(hex);
             toon.name = (m as MeshToonMaterial)?.name ?? "Body";
             if (id === "dog") {
-              // Tileable stone albedo on the dog's authored UVs → carved statue read.
+              // Face atlas (eyes + teeth) on front-planar UVs — reads as a dog-head statue.
+              ensureNoseOrnamentUvs(mesh.geometry);
               const statue = buggyNoseTexture("dogStatue");
               if (statue) {
                 toon.map = statue;
@@ -124,11 +130,15 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
     else if (mesh.material) mesh.material = mesh.material.clone();
   });
   nose.name = "buggyNoseVariant";
-  // Feet / neck cut on the tube between bumper headlights.
+  // Neck cut on the bumper crossbar; dog sits a bit lower than the lamp midline.
   const perch = bumperHeadlightPerchLocal(root);
   nose.position.copy(perch);
-  // Dog is head-only after bake — larger ornament than the full sitting mesh.
-  nose.scale.setScalar(propId === "dog" ? DOG_HEAD_SCALE : 1.05);
+  if (propId === "dog") {
+    nose.position.y += DOG_HEAD_Y_OFFSET;
+    nose.scale.setScalar(DOG_HEAD_SCALE);
+  } else {
+    nose.scale.setScalar(1.05);
+  }
   root.add(nose);
   root.userData.buggyNoseApplied = propId;
 }
