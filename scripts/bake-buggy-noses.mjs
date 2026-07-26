@@ -56,7 +56,7 @@ function bakeNodeTree(node) {
   for (const child of node.listChildren()) bakeNodeTree(child);
 }
 
-async function bakeOne(sourceName, outName, targetH, maxSpan) {
+async function bakeOne(sourceName, outName, targetH, maxSpan, simplifyRatio = 1) {
   const sourcePath = join(outDir, sourceName);
   const livePath = join(outDir, outName);
   if (!existsSync(sourcePath)) {
@@ -110,8 +110,13 @@ async function bakeOne(sourceName, outName, targetH, maxSpan) {
     }
   }
 
-  await doc.transform(weld({ tolerance: 0.0002 }), dedup());
-  // Keep all primitives — prune was dropping wing shards on the animated bird.
+  await MeshoptSimplifier.ready;
+  const transforms = [weld({ tolerance: 0.0002 }), dedup()];
+  if (simplifyRatio < 0.999) {
+    transforms.splice(1, 0, simplify({ simplifier: MeshoptSimplifier, ratio: simplifyRatio, error: 0.001 }));
+    transforms.push(prune());
+  }
+  await doc.transform(...transforms);
   const bytes = await io.writeBinary(doc);
   writeFileSync(livePath, bytes);
   const h = size[1] * scale;
@@ -120,5 +125,5 @@ async function bakeOne(sourceName, outName, targetH, maxSpan) {
 }
 
 for (const job of JOBS) {
-  await bakeOne(job.source, job.out, job.targetH, job.maxSpan);
+  await bakeOne(job.source, job.out, job.targetH, job.maxSpan, job.simplifyRatio);
 }
