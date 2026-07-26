@@ -22,7 +22,7 @@ import {
   carUsesAuthoredAtlas,
   comicAtlasForRole,
 } from "./comicCarAtlases";
-import { ensureComicBoxUvs, ensureHornSheetUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
+import { ensureComicBoxUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
 import { bakeAuthoredWhiteToPaint } from "./paintAuthoredWhite";
 
 type Template = {
@@ -195,15 +195,12 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     } else if (name.includes("chrome") || name.includes("metal") || name.includes("rim")) {
       toon = comicToon(0xdce2e8);
     } else if (isHornMat) {
-      // V-horn mesh (reshaped to texture) + fixed YZ sheet UVs.
+      // Silhouette mesh UVs authored by reshape-buggy-skull-horns.mjs (match horn PNG).
       toon = comicToon(0xffffff);
-      if (mesh.geometry) {
-        ensureHornSheetUvs(mesh.geometry);
-        const hornMap = buggyNoseTexture("skullHorn");
-        if (hornMap) {
-          toon.map = hornMap;
-          toon.needsUpdate = true;
-        }
+      const hornMap = buggyNoseTexture("skullHorn");
+      if (hornMap) {
+        toon.map = hornMap;
+        toon.needsUpdate = true;
       }
     } else if (name.includes("skull")) {
       // Bone skull ornament — comic albedo (YZ UVs; authored UVs are atlas-scrap).

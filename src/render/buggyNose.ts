@@ -261,7 +261,7 @@ export function isBuggySkullCosmeticName(materialOrMeshName: string): boolean {
   return false;
 }
 
-/** Front V-horn mesh on the bumper (reshaped to the horn sheet silhouette). */
+/** Twin extruded horns from the comic horn sheet (left + right of bumper center). */
 export function isBuggySkullHornMesh(mesh: Mesh): boolean {
   if (!mesh.geometry) return false;
   if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
@@ -269,8 +269,7 @@ export function isBuggySkullHornMesh(mesh: Mesh): boolean {
   if (!b) return false;
   const sy = b.max.y - b.min.y;
   const sz = b.max.z - b.min.z;
-  // Wide Z span (left+right tips), sits on the nose, modest height.
-  return b.max.x < -1.0 && b.min.x > -1.4 && b.max.y > 0.15 && sy > 0.2 && sz > 0.5;
+  return b.max.x < -1.0 && b.min.x > -1.45 && b.max.y > 0.15 && sy > 0.2 && sz > 0.45;
 }
 
 /** Skull/nose point in `root` local space (matrix-safe). */

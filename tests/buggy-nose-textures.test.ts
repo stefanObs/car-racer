@@ -15,14 +15,13 @@ describe("buggy nose textures", () => {
     expect(atlasRoleFromName("SkullHorn", "kaeferkraft")).toBe("body");
   });
 
-  it("ships a baked double-horn sheet for YZ skull-horn UVs", () => {
+  it("ships the comic single-horn sheet used by reshaped SkullHorn meshes", () => {
     const path = resolve("public/textures/buggy-skull-horn.png");
     expect(existsSync(path)).toBe(true);
     const buf = readFileSync(path);
-    expect(buf.length).toBeGreaterThan(10_000);
+    // Prior comic horn (v0.2.82) is ~247KB; V-bake was ~77KB — keep the larger sheet.
+    expect(buf.length).toBeGreaterThan(100_000);
     expect(buf[0]).toBe(0x89);
-    expect(buf[1]).toBe(0x50);
-    expect(existsSync(resolve("scripts/bake-buggy-skull-horn.mjs"))).toBe(true);
     expect(existsSync(resolve("scripts/reshape-buggy-skull-horns.mjs"))).toBe(true);
   });
 });

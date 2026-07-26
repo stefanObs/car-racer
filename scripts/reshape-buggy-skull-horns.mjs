@@ -1,23 +1,27 @@
 #!/usr/bin/env node
 /**
- * Replace Käferkraft SkullHorn meshes with a single V-shaped double-horn mesh
- * that matches public/textures/buggy-skull-horn.png under YZ ornament UVs.
+ * Restore mesh for the comic single-horn sheet (pre–V-bake texture):
+ * public/textures/buggy-skull-horn.png — one curved horn drawing.
  *
- * Keeps the last baked horn texture; adapts geometry to its silhouette.
+ * Builds left/right extruded silhouettes from that texture so YZ/planar UVs
+ * match the drawing 1:1 (left arm mirrors U).
  *
  * Usage: node scripts/reshape-buggy-skull-horns.mjs
+ * Expects the prior horn PNG already in public/textures/buggy-skull-horn.png
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { Blob } from "node:buffer";
+import sharp from "sharp";
 import {
   BufferAttribute,
-  CylinderGeometry,
+  ExtrudeGeometry,
   Matrix4,
   Mesh,
   MeshStandardMaterial,
-  Quaternion,
+  Shape,
+  Vector2,
   Vector3,
 } from "three";
 import { mergeGeometries } from "three/examples/jsm/utils/BufferGeometryUtils.js";
@@ -43,53 +47,139 @@ globalThis.FileReader = FileReaderPolyfill;
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const glbPath = join(rootDir, "public/models/cars/kaeferkraft.glb");
+const texPath = join(rootDir, "public/textures/buggy-skull-horn.png");
 
-/** UV anchors matching scripts/bake-buggy-skull-horn.mjs → bumper YZ frame. */
-const HORN = {
+/** Bumper placement for the twin horns (front of Käferkraft). */
+const PLACE = {
   x: -1.18,
-  y0: -0.01,
-  y1: 0.31,
-  z0: -0.41,
-  z1: 0.41,
-  baseU: 0.5,
-  baseV: 0.02,
-  tipLU: 0.06,
-  tipLV: 0.92,
-  tipRU: 0.94,
-  tipRV: 0.92,
-  rBase: 0.045,
-  rTip: 0.018,
+  /** World size of one horn sheet (texture full 0..1 → this rect in YZ). */
+  y0: -0.02,
+  y1: 0.34,
+  /** Right horn sits in +Z; left mirrors. */
+  zRight0: 0.02,
+  zRight1: 0.42,
+  depth: 0.07,
 };
 
-function uvToWorld(u, v) {
-  const z = HORN.z0 + u * (HORN.z1 - HORN.z0);
-  const y = HORN.y0 + v * (HORN.y1 - HORN.y0);
-  return new Vector3(HORN.x, y, z);
+const BG = [232, 220, 200];
+
+function isHornPixel(r, g, b) {
+  if (Math.hypot(r - BG[0], g - BG[1], b - BG[2]) < 28) return false;
+  if (r > 245 && g > 245 && b > 240) return false;
+  return true;
 }
 
-function makeHornArmGeo(base, tip, rBase, rTip) {
-  const dir = new Vector3().subVectors(tip, base);
-  const len = dir.length();
-  dir.normalize();
-  const geo = new CylinderGeometry(rTip, rBase, len, 10, 6, false);
-  const q = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), dir);
-  const mid = new Vector3().addVectors(base, tip).multiplyScalar(0.5);
-  geo.applyMatrix4(new Matrix4().compose(mid, q, new Vector3(1, 1, 1)));
-  return geo;
+/** Moore neighborhood contour (outer), clockwise, pixel centers. */
+function extractContour(mask, W, H) {
+  const key = (x, y) => y * W + x;
+  let sx = -1;
+  let sy = -1;
+  outer: for (let y = 0; y < H; y++) {
+    for (let x = 0; x < W; x++) {
+      if (mask[key(x, y)]) {
+        sx = x;
+        sy = y;
+        break outer;
+      }
+    }
+  }
+  if (sx < 0) throw new Error("No horn pixels in texture");
+
+  // N, NE, E, SE, S, SW, W, NW
+  const dx = [0, 1, 1, 1, 0, -1, -1, -1];
+  const dy = [-1, -1, 0, 1, 1, 1, 0, -1];
+  const pts = [];
+  let x = sx;
+  let y = sy;
+  let dir = 4; // come from west → start looking south-ish
+  const start = key(sx, sy);
+  let guard = 0;
+  do {
+    pts.push([x + 0.5, y + 0.5]);
+    let found = false;
+    for (let i = 0; i < 8; i++) {
+      const nd = (dir + 6 + i) % 8; // turn left first
+      const nx = x + dx[nd];
+      const ny = y + dy[nd];
+      if (nx < 0 || ny < 0 || nx >= W || ny >= H) continue;
+      if (!mask[key(nx, ny)]) continue;
+      x = nx;
+      y = ny;
+      dir = nd;
+      found = true;
+      break;
+    }
+    if (!found) break;
+    guard++;
+  } while ((x !== sx || y !== sy) && guard < W * H);
+
+  // Decimate
+  const step = Math.max(1, Math.floor(pts.length / 120));
+  const slim = [];
+  for (let i = 0; i < pts.length; i += step) slim.push(pts[i]);
+  return slim;
 }
 
-/** Shared YZ sheet UVs (same space for both arms → texture V aligns). */
-function applyHornSheetUvs(geo) {
+async function loadHornMask() {
+  const { data, info } = await sharp(texPath).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const W = info.width;
+  const H = info.height;
+  const mask = new Uint8Array(W * H);
+  let count = 0;
+  for (let i = 0, p = 0; p < W * H; p++, i += 4) {
+    if (isHornPixel(data[i], data[i + 1], data[i + 2])) {
+      mask[p] = 1;
+      count++;
+    }
+  }
+  if (count < 100) throw new Error("Horn texture mask too small — wrong PNG?");
+  return { mask, W, H, count };
+}
+
+function contourToShape(contour, W, H, mirrorU) {
+  const shape = new Shape();
+  const toXZ = (px, py) => {
+    // Image: x→U, y down. Shape in local (u, vUp) before world scale.
+    let u = px / W;
+    const vUp = 1 - py / H;
+    if (mirrorU) u = 1 - u;
+    return new Vector2(u, vUp);
+  };
+  const p0 = toXZ(contour[0][0], contour[0][1]);
+  shape.moveTo(p0.x, p0.y);
+  for (let i = 1; i < contour.length; i++) {
+    const p = toXZ(contour[i][0], contour[i][1]);
+    shape.lineTo(p.x, p.y);
+  }
+  shape.closePath();
+  return shape;
+}
+
+function extrudeHorn(shape, z0, z1, y0, y1, mirrorU) {
+  const geo = new ExtrudeGeometry(shape, {
+    depth: PLACE.depth,
+    bevelEnabled: false,
+    curveSegments: 1,
+    steps: 1,
+  });
+  // Shape XY = (u,vUp); Extrude +Z local. Map → world: u→Z band, vUp→Y, depth→X.
   const pos = geo.getAttribute("position");
   const uvs = new Float32Array(pos.count * 2);
-  const spanZ = HORN.z1 - HORN.z0;
-  const spanY = HORN.y1 - HORN.y0;
   for (let i = 0; i < pos.count; i++) {
-    uvs[i * 2] = (pos.getZ(i) - HORN.z0) / spanZ;
-    uvs[i * 2 + 1] = (pos.getY(i) - HORN.y0) / spanY;
+    const u = pos.getX(i);
+    const vUp = pos.getY(i);
+    const d = pos.getZ(i); // 0..depth
+    const z = z0 + u * (z1 - z0);
+    const y = y0 + vUp * (y1 - y0);
+    const x = PLACE.x - PLACE.depth * 0.5 + d;
+    pos.setXYZ(i, x, y, z);
+    // Texture UVs: same as shape (mirrored for left).
+    uvs[i * 2] = mirrorU ? 1 - u : u;
+    uvs[i * 2 + 1] = vUp;
   }
   geo.setAttribute("uv", new BufferAttribute(uvs, 2));
   geo.computeVertexNormals();
+  return geo;
 }
 
 function loadGlb(path) {
@@ -108,9 +198,11 @@ async function exportGlb(root, path) {
   writeFileSync(path, Buffer.from(ab));
 }
 
+const { mask, W, H, count } = await loadHornMask();
+const contour = extractContour(mask, W, H);
+
 const gltf = await loadGlb(glbPath);
 const root = gltf.scene;
-
 const toRemove = [];
 root.traverse((obj) => {
   const mesh = obj;
@@ -122,15 +214,13 @@ root.traverse((obj) => {
 });
 for (const m of toRemove) m.removeFromParent();
 
-const base = uvToWorld(HORN.baseU, HORN.baseV);
-const tipL = uvToWorld(HORN.tipLU, HORN.tipLV);
-const tipR = uvToWorld(HORN.tipRU, HORN.tipRV);
-
-const left = makeHornArmGeo(base, tipL, HORN.rBase, HORN.rTip);
-const right = makeHornArmGeo(base, tipR, HORN.rBase, HORN.rTip);
-const merged = mergeGeometries([left, right], false);
-if (!merged) throw new Error("Failed to merge horn arms");
-applyHornSheetUvs(merged);
+const shapeR = contourToShape(contour, W, H, false);
+const shapeL = contourToShape(contour, W, H, true);
+const zSpan = PLACE.zRight1 - PLACE.zRight0;
+const geoR = extrudeHorn(shapeR, PLACE.zRight0, PLACE.zRight1, PLACE.y0, PLACE.y1, false);
+const geoL = extrudeHorn(shapeL, -PLACE.zRight1, -PLACE.zRight0, PLACE.y0, PLACE.y1, true);
+const merged = mergeGeometries([geoL, geoR], false);
+if (!merged) throw new Error("merge failed");
 
 const mat = new MeshStandardMaterial({
   name: "SkullHorn",
@@ -141,24 +231,12 @@ const mat = new MeshStandardMaterial({
 const hornMesh = new Mesh(merged, mat);
 hornMesh.name = "SkullHorns";
 root.add(hornMesh);
-
 await exportGlb(root, glbPath);
 
-const pos = merged.getAttribute("position");
-let minY = Infinity;
-let maxY = -Infinity;
-let minZ = Infinity;
-let maxZ = -Infinity;
-for (let i = 0; i < pos.count; i++) {
-  minY = Math.min(minY, pos.getY(i));
-  maxY = Math.max(maxY, pos.getY(i));
-  minZ = Math.min(minZ, pos.getZ(i));
-  maxZ = Math.max(maxZ, pos.getZ(i));
-}
-console.log("Reshaped SkullHorns to texture V", {
+console.log("Reshaped horns to prior single-horn texture silhouette", {
   removed: toRemove.length,
-  verts: pos.count,
-  tipL: tipL.toArray().map((v) => +v.toFixed(3)),
-  tipR: tipR.toArray().map((v) => +v.toFixed(3)),
-  yz: { y: [+minY.toFixed(3), +maxY.toFixed(3)], z: [+minZ.toFixed(3), +maxZ.toFixed(3)] },
+  texPixels: count,
+  contour: contour.length,
+  verts: merged.getAttribute("position").count,
+  zSpan,
 });
