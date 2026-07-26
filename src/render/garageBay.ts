@@ -6,7 +6,6 @@ import {
   MeshBasicMaterial,
   PlaneGeometry,
   PointLight,
-  SphereGeometry,
   TorusGeometry,
   type Texture,
 } from "three";
@@ -21,6 +20,7 @@ import {
   hazardChevronTexture,
   posterTexture,
   skyPeekTexture,
+  toolBoardTexture,
   wallPanelTexture,
   woodBenchTexture,
 } from "./garageTextures";
@@ -246,21 +246,15 @@ export function buildGarageBay(): Group {
     g.add(cone, band);
   }
 
-  // Wall-mounted wrench set
-  const wrench = withOutline(new BoxGeometry(0.25, 1.8, 0.12), comicFlat(0xa8adb4), 0.03);
-  wrench.position.set(-9.5, 5.2, -10.5);
-  const wrenchHead = withOutline(new SphereGeometry(0.35, 8, 8), comicFlat(0xa8adb4), 0.03);
-  wrenchHead.position.set(-9.5, 6.2, -10.5);
-  const wrench2 = withOutline(new BoxGeometry(0.2, 1.4, 0.1), comicFlat(0x868e96), 0.03);
-  wrench2.position.set(-8.6, 5.0, -10.5);
-  const wrench2Head = withOutline(new SphereGeometry(0.28, 8, 8), comicFlat(0x868e96), 0.03);
-  wrench2Head.position.set(-8.6, 5.8, -10.5);
-  g.add(wrench, wrenchHead, wrench2, wrench2Head);
-
-  // Pegboard strip behind tools
-  const peg = withOutline(new BoxGeometry(2.8, 2.2, 0.1), comicFlat(0xd4a574), 0.03);
-  peg.position.set(-9.1, 5.4, -10.7);
-  g.add(peg);
+  // Wall tool board — pegboard with comic wrenches (readable prop)
+  const toolBoard = withOutline(
+    new BoxGeometry(2.6, 2.1, 0.12),
+    mapped(toolBoardTexture(), 0xe8c48a),
+    0.04,
+  );
+  toolBoard.name = "garageToolBoard";
+  toolBoard.position.set(-9.1, 5.5, -10.7);
+  g.add(toolBoard);
 
   return g;
 }

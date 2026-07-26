@@ -14,6 +14,7 @@ import {
   skyPeekTexture,
   wallPanelTexture,
   woodBenchTexture,
+  toolBoardTexture,
 } from "../src/render/garageTextures";
 
 describe("garage bay comic textures", () => {
@@ -35,13 +36,15 @@ describe("garage bay comic textures", () => {
     expect(woodBenchTexture()).toBeTruthy();
     expect(drumLabelTexture()).toBeTruthy();
     expect(skyPeekTexture()).toBeTruthy();
-    expect(garageTextureCacheSize()).toBeGreaterThanOrEqual(7);
+    expect(toolBoardTexture()).toBeTruthy();
+    expect(garageTextureCacheSize()).toBeGreaterThanOrEqual(8);
   });
 
-  it("builds a bright bay without floating overlay decals", () => {
+  it("builds a bright bay with a readable tool board", () => {
     const bay = buildGarageBay();
     expect(bay.name).toBe("garageBay");
     expect(bay.getObjectByName("garageOverlays")).toBeFalsy();
-    expect(bay.children.length).toBeGreaterThan(35);
+    expect(bay.getObjectByName("garageToolBoard")).toBeTruthy();
+    expect(bay.children.length).toBeGreaterThan(30);
   });
 });
