@@ -9,7 +9,7 @@ import { instanceTrackProp } from "./trackKit";
 /**
  * On-track props.
  * Solid (bounce): concrete_barrier, tire_stack — tall, clearly blocking.
- * Passable (drive over): uneven rumble strips, oil — low + high-contrast markings.
+ * Passable (drive over): uneven rumble strips, oil, ramp (Schanze) — low + high-contrast.
  */
 export function buildLevelObstacles(level: LevelDefinition): Group {
   const root = new Group();
@@ -24,6 +24,9 @@ export function buildLevelObstacles(level: LevelDefinition): Group {
         break;
       case "uneven":
         root.add(makeRumbleStrip(x, z, o.radius ?? 6));
+        break;
+      case "ramp":
+        root.add(makeRamp(x, z, o.radius ?? 4.5));
         break;
       case "oil":
         root.add(makeOil(x, z, o.radius ?? 2));
@@ -96,6 +99,39 @@ function makeRumbleStrip(x: number, z: number, radius: number): Group {
     );
     stripe.position.set(0, 0.19, (i - (stripes - 1) / 2) * 0.55);
     g.add(stripe);
+  }
+  return g;
+}
+
+/** Passable Schanze — wedge ramp, yellow chevron face. */
+function makeRamp(x: number, z: number, radius: number): Group {
+  const g = new Group();
+  g.position.set(x, 0, z);
+  const len = Math.max(3.2, radius * 1.1);
+  const base = withOutline(
+    new RoundedBoxGeometry(len * 0.7, 0.22, len, 2, 0.05),
+    comicToon(0x8b9098),
+    0.04,
+  );
+  base.position.set(0, 0.2, 0);
+  base.rotation.x = -0.28;
+  g.add(base);
+  const face = withOutline(
+    new RoundedBoxGeometry(len * 0.55, 0.08, len * 0.85, 1, 0.03),
+    comicToon(ComicPalette.repairSpark),
+    0.03,
+  );
+  face.position.set(0, 0.38, -0.05);
+  face.rotation.x = -0.28;
+  g.add(face);
+  for (let i = 0; i < 3; i++) {
+    const chev = new Mesh(
+      new RoundedBoxGeometry(0.35, 0.06, 0.55, 1, 0.02),
+      comicToon(ComicPalette.outline),
+    );
+    chev.position.set((i - 1) * 0.55, 0.42, 0.1 - i * 0.15);
+    chev.rotation.x = -0.28;
+    g.add(chev);
   }
   return g;
 }

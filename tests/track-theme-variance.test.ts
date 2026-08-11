@@ -10,6 +10,30 @@ describe("cup track variance", () => {
     expect(new Set(prints).size).toBe(CUP_LEVELS.length);
   });
 
+  it("gives each cup a distinct normalized centerline silhouette", () => {
+    const sigs = CUP_LEVELS.map((l) => {
+      const track = buildTrackFromLevel(l);
+      let minX = Infinity;
+      let maxX = -Infinity;
+      let minZ = Infinity;
+      let maxZ = -Infinity;
+      for (const p of track.centerline) {
+        minX = Math.min(minX, p.x);
+        maxX = Math.max(maxX, p.x);
+        minZ = Math.min(minZ, p.z);
+        maxZ = Math.max(maxZ, p.z);
+      }
+      const w = Math.max(1e-6, maxX - minX);
+      const h = Math.max(1e-6, maxZ - minZ);
+      const step = Math.max(1, Math.floor(track.centerline.length / 24));
+      return track.centerline
+        .filter((_, i) => i % step === 0)
+        .map((p) => `${((p.x - minX) / w).toFixed(2)},${((p.z - minZ) / h).toFixed(2)}`)
+        .join(";");
+    });
+    expect(new Set(sigs).size).toBe(CUP_LEVELS.length);
+  });
+
   it("maps each cup to a distinct theme with matching scenery kinds", () => {
     const themes = CUP_LEVELS.map((l) => l.theme);
     expect(new Set(themes).size).toBe(CUP_LEVELS.length);

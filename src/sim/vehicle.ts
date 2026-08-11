@@ -372,7 +372,7 @@ export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boo
   const carR = collisionRadiusFor(car.modelId);
 
   for (const o of obstacles) {
-    if (o.type === "uneven" || o.type === "oil") continue;
+    if (o.type === "uneven" || o.type === "oil" || o.type === "ramp") continue;
     const [ox, oz] = o.position;
     const obstR = o.radius ?? (o.type === "tire_stack" ? 1.5 : 1.2);
     const minDist = obstR + carR;
@@ -432,6 +432,9 @@ export function passableObstacleMods(
       gripMul = Math.min(gripMul, 0.32 + 0.2 * (1 - t));
     } else if (o.type === "uneven") {
       bumpAdd = Math.max(bumpAdd, (o.intensity ?? 0.55) * t);
+    } else if (o.type === "ramp") {
+      // Schanze — strong hop; suspension still mitigates via surface path.
+      bumpAdd = Math.max(bumpAdd, (o.intensity ?? 0.9) * t * 1.35);
     }
   }
   return { gripMul, bumpAdd };

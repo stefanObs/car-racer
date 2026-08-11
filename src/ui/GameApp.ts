@@ -9,7 +9,7 @@ import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, ty
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
 import { DAMAGE_LABELS } from "../sim/damage";
 import { RaceSession } from "../sim/race";
-import { APP_VERSION } from "../core/version";
+import { renderTrackPlanSvg } from "./trackPlan";
 import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
 import type { LevelDefinition } from "../track/types";
 import { renderGarageHtml } from "./garageHtml";
@@ -409,20 +409,32 @@ export class GameApp {
       const rows = CUP_LEVELS.map((l) => {
         const locked = (l.cupIndex ?? 99) > this.save.cupIndexUnlocked;
         const stars = this.save.cupStars[l.id] ?? 0;
-        return `<button data-nav data-act="race" data-level="${l.id}" ${locked ? "disabled" : ""}>
-          ${l.cupIndex}. ${l.displayName} ${locked ? "(gesperrt)" : ""} ${"★".repeat(stars)}
+        const plan = renderTrackPlanSvg(l, 132);
+        return `<button data-nav data-act="race" data-level="${l.id}" class="track-pick" ${locked ? "disabled" : ""}>
+          ${plan}
+          <span class="track-pick__meta">
+            <strong>${l.cupIndex}. ${l.displayName}</strong>
+            <span class="dim">${locked ? "Gesperrt" : l.description}</span>
+            <span class="track-pick__stars">${"★".repeat(stars)}</span>
+          </span>
         </button>`;
       }).join("");
-      body = `<h2>Blitz-Cup</h2><div class="stack">${rows}</div><button data-nav data-act="garage">Garage</button>`;
+      body = `<h2>Blitz-Cup</h2><div class="stack track-pick-list">${rows}</div><button data-nav data-act="garage">Garage</button>`;
     } else if (this.screen === "free") {
       const levels = freeLevels(this.save.unlockedLevels);
       const rows = levels
-        .map(
-          (l) =>
-            `<button data-nav data-act="race" data-level="${l.id}">${l.displayName}</button>`,
-        )
+        .map((l) => {
+          const plan = renderTrackPlanSvg(l, 132);
+          return `<button data-nav data-act="race" data-level="${l.id}" class="track-pick">
+            ${plan}
+            <span class="track-pick__meta">
+              <strong>${l.displayName}</strong>
+              <span class="dim">${l.description}</span>
+            </span>
+          </button>`;
+        })
         .join("");
-      body = `<h2>Freier Modus</h2><div class="stack">${rows || "<p>Noch keine Strecken freigeschaltet.</p>"}</div><button data-nav data-act="garage">Garage</button>`;
+      body = `<h2>Freier Modus</h2><div class="stack track-pick-list">${rows || "<p>Noch keine Strecken freigeschaltet.</p>"}</div><button data-nav data-act="garage">Garage</button>`;
     } else if (this.screen === "adhoc") {
       const preview = generateAdhocLevel({ seed: this.adhocSeed, length: this.adhocLength });
       this.lastAdhoc = preview;
@@ -433,9 +445,11 @@ export class GameApp {
           return `<button data-nav data-act="adhoc-length" data-length="${len}">${label}${on}</button>`;
         })
         .join("");
+      const plan = renderTrackPlanSvg(preview, 160);
       body = `
         <h2>Ad-hoc</h2>
         <p class="tag">Zufallsstrecke zum Teilen — Seed zeigt die gleiche Runde.</p>
+        <div class="track-pick track-pick--preview">${plan}</div>
         <p class="meta">Seed <strong id="adhoc-seed-label">${this.adhocSeed}</strong> · ${preview.theme} · ${preview.laps} Runden</p>
         <label class="seed-field">Seed
           <input data-seed-input maxlength="6" value="${this.adhocSeed}" autocomplete="off" spellcheck="false" />

@@ -496,4 +496,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.24 — Blitz zeigt eingebaute Teile als kleine Add-on-Meshes (keine Extra-Stats).*
+*Dokumentstand: Konzept v3.25 — Cup-Strecken mit einzigartigen Top-Down-Plänen; Schanzen (Rampen) als passierbare Hindernisse.*

@@ -133,6 +133,56 @@ html[data-screen="garage"] #game-canvas.is-orbiting {
   flex-wrap: wrap;
 }
 
+.track-pick-list {
+  gap: 12px;
+}
+
+.track-pick {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-align: left;
+  padding: 10px 12px !important;
+  background: rgba(248, 249, 250, 0.92) !important;
+  border: 3px solid #1b1b1f !important;
+  color: #1b1b1f !important;
+}
+
+.track-pick:disabled {
+  opacity: 0.45;
+}
+
+.track-pick--preview {
+  display: flex;
+  justify-content: center;
+  padding: 8px;
+  pointer-events: none;
+}
+
+.track-pick__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.track-pick__meta strong {
+  font-family: Impact, Haettenschweiler, "Arial Narrow Bold", sans-serif;
+  font-size: 1.15rem;
+  letter-spacing: 0.02em;
+}
+
+.track-pick__stars {
+  color: #f08c00;
+  letter-spacing: 0.08em;
+}
+
+.track-plan-svg {
+  flex: 0 0 auto;
+  display: block;
+  border-radius: 10px;
+}
+
 button {
   font: inherit;
   min-height: 44px;

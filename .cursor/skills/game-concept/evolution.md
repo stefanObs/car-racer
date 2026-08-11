@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.25 Unique cup track plans + Schanzen
+
+- Trigger: user — 2D top-down plan for every race, unique look matching the name, different track form; Schanzen allowed
+- Decision: Redesign the five Blitz-Cup layouts with distinct silhouettes (stadium / long coastal / city square / factory plates / canyon triangle). Cup/Free/Ad-hoc UI shows Asphalt-Comic SVG track plans with theme tints. Passable `ramp` obstacles (Schanzen) on Buckelpiste and Cup-Finale; drive-over bump, not solid walls.
+- CONCEPT §§ touched: Dokumentstand v3.25; obstacle palette aligns with level-editor `ramp`
+
 ### 2026-08-11 — v3.24 Blitz equipped-Teile meshes
 
 - Trigger: user — Blitz should show small Asphalt-Comic add-on meshes for equipped tuning parts
