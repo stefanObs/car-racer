@@ -81,6 +81,14 @@ tests/
 - **Collision** is a circle (`collisionRadius`) — visual mesh may overhang.
 - Provenance: `public/models/cars/SOURCES.md`
 
+### Track kit (walls + harbor scenery)
+
+- Asphalt/grass ribbons stay spline-extruded. Discrete walls/obstacles/scenery use a small Tripo kit in `public/models/track/`.
+- Tire modules on corners, concrete + chain-link fence on straights; `tire_stack` / `concrete_barrier` reuse the same modules.
+- Harbor cranes use the kit; containers/tanks stay procedural if those optional GLBs are absent.
+- Collision/physics unchanged (visuals may overhang).
+- Authoring bake: `track:bake-tripo` from `assets/tripo-out/track/` (gitignored). Provenance: `public/models/track/SOURCES.md`.
+
 ### Camera (locks open decision toward MVP)
 
 **Flat chase / slightly elevated 3D** behind the car (concept recommendation). Readable line, grass, and wall types — not top-down sim, not cinematic only.
