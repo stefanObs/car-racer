@@ -1,6 +1,6 @@
 /**
- * Asphalt-Comic albedo atlases for non-Hotrod cars (tintable white+ink detail).
- * Hotrod keeps its Sketchfab atlas untouched.
+ * Asphalt-Comic albedo atlases for cars that lack an authored map.
+ * Tripo cars (Bison, Donnerbüchse, Blitz, Käferkraft, Bunker) keep their baked atlas.
  */
 import {
   CanvasTexture,
@@ -141,9 +141,9 @@ function cornerBolts(ctx: CanvasRenderingContext2D, pts: readonly (readonly [num
   }
 }
 
-/** Cars that already ship Sketchfab-quality atlases — do not overlay. */
+/** Cars that ship a Tripo/authored albedo — do not overlay a comic atlas. */
 export function carUsesAuthoredAtlas(id: CarId): boolean {
-  return id === "donnerbuechse";
+  return id === "donnerbuechse" || id === "bison";
 }
 
 export function comicAtlasForRole(carId: CarId, role: ComicAtlasRole): Texture {

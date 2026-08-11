@@ -58,10 +58,10 @@ describe("comic car UVs", () => {
 describe("comic car atlases", () => {
   beforeEach(() => clearComicCarAtlasCache());
 
-  it("leaves hotrod as authored-atlas car", () => {
+  it("leaves Tripo pickup and hot rod as authored-atlas cars", () => {
     expect(carUsesAuthoredAtlas("donnerbuechse")).toBe(true);
+    expect(carUsesAuthoredAtlas("bison")).toBe(true);
     expect(carUsesAuthoredAtlas("blitz")).toBe(false);
-    expect(carUsesAuthoredAtlas("bison")).toBe(false);
     expect(carUsesAuthoredAtlas("kaeferkraft")).toBe(false);
     expect(carUsesAuthoredAtlas("bunker")).toBe(false);
   });
