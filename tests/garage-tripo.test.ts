@@ -46,4 +46,14 @@ describe("garage Tripo workshop bake", () => {
       expect(isOutsideGaragePad(place.position.x, place.position.z), place.name).toBe(true);
     }
   });
+
+  it("keeps workshop props in a tight ring near the pad (camera frustum)", () => {
+    const cx = 1.5;
+    const cz = 0;
+    for (const place of [...GARAGE_STOCK, ...GARAGE_HERO]) {
+      const r = Math.hypot(place.position.x - cx, place.position.z - cz);
+      expect(r, place.name).toBeGreaterThan(GARAGE_PAD_RADIUS + 0.35);
+      expect(r, place.name).toBeLessThan(7.5);
+    }
+  });
 });

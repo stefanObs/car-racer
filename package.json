@@ -1,9 +1,9 @@
 {
   "name": "car-racer",
-  "version": "0.3.17",
+  "version": "0.3.18",
   "private": true,
   "type": "module",
-  "description": "Crash Circuit \u2014 arcade racer (free OSS stack)",
+  "description": "Crash Circuit — arcade racer (free OSS stack)",
   "scripts": {
     "start": "vite",
     "dev": "vite",
@@ -22,8 +22,8 @@
     "cars:bake-blitz-parts-tripo": "node scripts/bake-blitz-parts-tripo.mjs",
     "cars:bake-bison-tripo": "node scripts/bake-bison-tripo.mjs",
     "cars:bake-donnerbuechse-tripo": "node scripts/bake-donnerbuechse-tripo.mjs",
+    "cars:strip-donner-flames": "node scripts/strip-donner-flames.mjs",
     "cars:bake-bunker-tripo": "node scripts/bake-bunker-tripo.mjs",
-    "cars:bake-wheels-tripo": "node scripts/bake-wheels-tripo.mjs",
     "cars:reshape-buggy-horns": "node scripts/reshape-buggy-skull-horns.mjs",
     "cars:fetch-buggy-noses": "node scripts/fetch-buggy-noses.mjs",
     "cars:bake-buggy-noses": "node scripts/bake-buggy-noses.mjs",

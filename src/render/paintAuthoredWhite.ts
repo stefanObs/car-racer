@@ -205,7 +205,8 @@ export function isGreenBodyPixel(r: number, g: number, b: number): boolean {
 
 /**
  * Tripo Donnerbüchse body — chromatic blue at any luminance, including comic shadows.
- * Skips chrome engine/exhaust, orange flames, and black tires.
+ * Skips chrome engine/exhaust and black tires. Orange door flames are handled separately
+ * via {@link isHotRodFlamePixel} / {@link recolorDonnerBodyPixels}.
  */
 export function isBlueBodyPixel(r: number, g: number, b: number): boolean {
   if (isTireOrRimPixel(r, g, b)) return false;
@@ -217,6 +218,18 @@ export function isBlueBodyPixel(r: number, g: number, b: number): boolean {
   if (b < r + 8 || b < g + 16) return false;
   if (g >= b * 0.78 && g > r + 40) return false;
   if (r >= b * 0.38 && r > g + 20) return false;
+  return true;
+}
+
+/** Baked Hot-Rod door flames (orange tongues) — stock albedo should not keep these. */
+export function isHotRodFlamePixel(r: number, g: number, b: number): boolean {
+  if (isTireOrRimPixel(r, g, b)) return false;
+  if (r < 150) return false;
+  if (r <= g + 12) return false;
+  if (b > g * 0.9 && b > 70) return false;
+  if (!(r > g && g >= b - 10)) return false;
+  if (r - b < 55) return false;
+  if (g < 35) return false;
   return true;
 }
 
@@ -437,7 +450,7 @@ export function bakeAuthoredGreenToPaint(
   );
 }
 
-/** Mutates RGBA: blue body panels → garage paint, keep chrome engine and orange flames. */
+/** Mutates RGBA: blue body panels → garage paint (chrome/tires stay). */
 export function recolorBlueBodyPixels(
   data: Uint8ClampedArray | Uint8Array,
   paintR: number,
@@ -448,6 +461,31 @@ export function recolorBlueBodyPixels(
   return shadeMatchingPixels(data, paintR, paintG, paintB, isBlueBodyPixel, skipTexels);
 }
 
+/** Mutates RGBA: leftover orange flame islands → garage paint. */
+export function recolorHotRodFlamePixels(
+  data: Uint8ClampedArray | Uint8Array,
+  paintR: number,
+  paintG: number,
+  paintB: number,
+  skipTexels?: Uint8Array,
+): number {
+  return shadeMatchingPixels(data, paintR, paintG, paintB, isHotRodFlamePixel, skipTexels);
+}
+
+/** Blue body + any residual door flames → paint; chrome/tires stay. */
+export function recolorDonnerBodyPixels(
+  data: Uint8ClampedArray | Uint8Array,
+  paintR: number,
+  paintG: number,
+  paintB: number,
+  skipTexels?: Uint8Array,
+): number {
+  return (
+    recolorHotRodFlamePixels(data, paintR, paintG, paintB, skipTexels) +
+    recolorBlueBodyPixels(data, paintR, paintG, paintB, skipTexels)
+  );
+}
+
 export function bakeAuthoredBlueToPaint(
   base: Texture,
   paint: string,
@@ -456,8 +494,8 @@ export function bakeAuthoredBlueToPaint(
   return bakeAuthoredMap(
     base,
     paint,
-    mapCacheKey("donnerbuechse-blue", paint, base, wheelUvTris),
-    recolorBlueBodyPixels,
+    mapCacheKey("donnerbuechse-blue-v2", paint, base, wheelUvTris),
+    recolorDonnerBodyPixels,
     wheelUvTris,
   );
 }

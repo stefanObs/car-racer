@@ -496,4 +496,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.25 — Cup-Strecken mit einzigartigen Top-Down-Plänen; Schanzen (Rampen) als passierbare Hindernisse.*
+*Dokumentstand: Konzept v3.26 — Aufkleber-Redraw + Donner stock ohne Flammen; Garage-Props im Kameraring.*

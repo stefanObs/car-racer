@@ -157,16 +157,16 @@ function buildTurntable(): Group {
 function buildParkingBox(): Group {
   const g = new Group();
   g.name = "garageParkingBox";
-  const hw = 6.2;
-  const hd = 7.4;
+  // Tight square curb around the circular pad (concept / layout sheet).
+  const half = GARAGE_PAD_RADIUS + 0.35;
   const y = 0.09;
   const cx = GARAGE_PAD_CENTER.x;
   const cz = GARAGE_PAD_CENTER.z;
   const segs: Array<[number, number, number, number]> = [
-    [cx, cz - hd, hw * 2, 0.12],
-    [cx, cz + hd, hw * 2, 0.12],
-    [cx - hw, cz, 0.12, hd * 2],
-    [cx + hw, cz, 0.12, hd * 2],
+    [cx, cz - half, half * 2, 0.12],
+    [cx, cz + half, half * 2, 0.12],
+    [cx - half, cz, 0.12, half * 2],
+    [cx + half, cz, 0.12, half * 2],
   ];
   for (const [x, z, w, d] of segs) {
     const line = withOutline(new BoxGeometry(w, 0.04, d), comicFlat(ComicPalette.repairSpark), 0.02);

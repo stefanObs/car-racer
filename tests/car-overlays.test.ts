@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it } from "vitest";
+import { existsSync, readFileSync } from "node:fs";
 import { buggyNoseFromSticker } from "../src/render/buggyNose";
+import { emptyKit } from "../src/meta/save";
 import { Texture } from "three";
 import {
   authoredSideCacheKey,
@@ -18,6 +20,27 @@ describe("car sticker textures", () => {
     expect(stickerTexture("bolt", "bison")).toBeTruthy();
     expect(stickerTexture("ironClad", "bunker")).toBeTruthy();
     expect(stickerTexture("none")).toBeNull();
+  });
+
+  it("defaults bunker IronClad and donner none (no baked flames required)", () => {
+    expect(emptyKit("bunker").sticker).toBe("ironClad");
+    expect(emptyKit("donnerbuechse").sticker).toBe("none");
+    expect(emptyKit("blitz").sticker).toBe("none");
+  });
+
+  it("ships sticker-v4 Hot-Rod flame / bolt / star / IronClad art helpers", () => {
+    const src = readFileSync("src/render/carStickers.ts", "utf8");
+    expect(src).toContain("sticker-v4:");
+    expect(src).toContain("comic-stamp-v4:");
+    expect(src).toContain("drawHotRodFlames");
+    expect(src).toContain("drawPowerBolt");
+    expect(src).toContain("drawRacingStar");
+    expect(src).toContain('strokeText("IC"');
+    expect(existsSync("assets/tripo-concepts/sticker-proposal-flames.png")).toBe(true);
+    expect(existsSync("assets/tripo-concepts/sticker-proposal-bolt.png")).toBe(true);
+    expect(existsSync("assets/tripo-concepts/sticker-proposal-star.png")).toBe(true);
+    expect(existsSync("assets/tripo-concepts/sticker-proposal-ironclad.png")).toBe(true);
+    expect(existsSync("assets/tripo-concepts/garage-bay-layout-proposal.png")).toBe(true);
   });
 
   it("places stickers per car (no buggy stickers)", () => {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { shouldApplyGaragePaint } from "../src/render/loadCarGltf";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 
 describe("car wheels (authored tires, no fake spin overlays)", () => {
   it("still skips garage paint on Tire and Wheel names", () => {
@@ -16,5 +16,11 @@ describe("car wheels (authored tires, no fake spin overlays)", () => {
     expect(main).not.toContain("preloadComicWheel");
     expect(load).not.toContain("mountCarWheels");
     expect(mesh).not.toContain("mountCarWheels");
+  });
+
+  it("removes the dead comic-wheel module and asset", () => {
+    expect(existsSync("src/render/carWheels.ts")).toBe(false);
+    expect(existsSync("public/models/props/comic-wheel.glb")).toBe(false);
+    expect(existsSync("scripts/bake-wheels-tripo.mjs")).toBe(false);
   });
 });

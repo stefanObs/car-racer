@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.26 Aufkleber redraw + flame-free Donner + garage ring
+
+- Trigger: finish Blitz-Teile plan leftovers (stickers, garage frustum, dead wheels)
+- Decision: Canvas Aufkleber v4 (Hot-Rod Flammen / Blitz-Bolt / Stern / IronClad). Donnerbüchse stock albedo stripped of baked door flames; paint path also recolors residual flame texels. Garage STOCK/HERO pulled into a tight ring outside pad r=4.5. Dead comic-wheel module/asset removed. Blitz Teile remain stance-lift + add-on meshes (no fake hubs).
+- CONCEPT §§ touched: Dokumentstand v3.26; cosmetics §6.2 unchanged (no stats)
+
 ### 2026-08-12 — v3.25 Unique cup track plans + Schanzen
 
 - Trigger: user — 2D top-down plan for every race, unique look matching the name, different track form; Schanzen allowed

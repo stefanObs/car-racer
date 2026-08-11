@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildWheelTexelMask,
   isBlueBodyPixel,
+  isHotRodFlamePixel,
   isGreenBodyPixel,
   isNearWhitePaintPixel,
   isOrangeBodyPixel,
@@ -10,6 +11,7 @@ import {
   isWheelPaintVertex,
   paintSrgb01,
   recolorBlueBodyPixels,
+  recolorDonnerBodyPixels,
   recolorGreenBodyPixels,
   recolorNearWhitePixels,
   recolorOrangeBodyPixels,
@@ -160,24 +162,25 @@ describe("Donnerbüchse blue body → garage paint", () => {
     expect(isBlueBodyPixel(51, 154, 240)).toBe(true); // #339af0
     expect(isBlueBodyPixel(40, 90, 180)).toBe(true);
     expect(isBlueBodyPixel(20, 20, 22)).toBe(false);
-    expect(isBlueBodyPixel(220, 110, 40)).toBe(false); // orange flames
+    expect(isBlueBodyPixel(220, 110, 40)).toBe(false); // orange flames are not blue
+    expect(isHotRodFlamePixel(220, 110, 40)).toBe(true);
     expect(isBlueBodyPixel(180, 180, 190)).toBe(false); // chrome
     expect(isBlueBodyPixel(96, 120, 134)).toBe(false); // blue-grey rim
   });
 
-  it("recolors blue panels and leaves chrome engine and flames", () => {
+  it("recolors blue panels and leftover flames; chrome stays", () => {
     const data = new Uint8ClampedArray([
       51, 154, 240, 255,
       40, 90, 180, 255,
       200, 200, 210, 255,
       220, 110, 40, 255,
     ]);
-    const n = recolorBlueBodyPixels(data, 0.07, 0.72, 0.53); // teal-green
-    expect(n).toBe(2);
+    const n = recolorDonnerBodyPixels(data, 0.07, 0.72, 0.53); // teal-green
+    expect(n).toBe(3);
     expect(data[1]!).toBeGreaterThan(data[2]!);
     expect(data[5]!).toBeGreaterThan(data[6]!);
     expect(data[8]).toBe(200);
-    expect(data[12]).toBe(220);
+    expect(data[13]!).toBeGreaterThan(data[12]!); // flame → paint green channel
   });
 });
 

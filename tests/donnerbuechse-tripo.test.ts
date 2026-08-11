@@ -43,4 +43,26 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     // Chopped cabin / fat rear tires sit on −Z; long hood is the lower +Z half.
     expect(maxYNeg).toBeGreaterThan(maxYPos - 0.02);
   });
+
+  it("stock albedo has almost no baked door-flame oranges", async () => {
+    const path = resolve("public/models/cars/donnerbuechse.glb");
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
+    const sharp = (await import("sharp")).default;
+    let orange = 0;
+    let total = 0;
+    for (const tex of doc.getRoot().listTextures()) {
+      const raw = tex.getImage();
+      if (!raw) continue;
+      const { data } = await sharp(Buffer.from(raw)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+      for (let i = 0; i < data.length; i += 4) {
+        total++;
+        const r = data[i]!;
+        const g = data[i + 1]!;
+        const b = data[i + 2]!;
+        if (r > 150 && r > g + 12 && r - b > 55 && g > 35 && g >= b - 10) orange++;
+      }
+    }
+    expect(total).toBeGreaterThan(10_000);
+    expect(orange / total).toBeLessThan(0.005);
+  });
 });

@@ -83,28 +83,80 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
   return tex;
 }
 
-function flameTongue(ctx: CanvasRenderingContext2D, x: number, y: number, h: number, lean: number): void {
+/** Hot-Rod door flames — thick tongues leaning rearward (sticker-proposal-flames). */
+function flameTongue(
+  ctx: CanvasRenderingContext2D,
+  tipX: number,
+  tipY: number,
+  baseX: number,
+  baseY: number,
+  halfW: number,
+): void {
+  const mx = (tipX + baseX) / 2;
+  const my = (tipY + baseY) / 2;
   ctx.beginPath();
-  ctx.moveTo(x, y);
-  ctx.bezierCurveTo(x - 16 + lean, y - h * 0.35, x - 8 + lean, y - h * 0.72, x + lean * 0.5, y - h);
-  ctx.bezierCurveTo(x + 14 + lean, y - h * 0.68, x + 22, y - h * 0.32, x + 6, y);
+  ctx.moveTo(baseX, baseY - halfW);
+  ctx.quadraticCurveTo(mx - halfW * 0.35, my - halfW * 0.2, tipX, tipY);
+  ctx.quadraticCurveTo(mx + halfW * 0.45, my + halfW * 0.15, baseX, baseY + halfW);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
 }
 
+function drawHotRodFlames(ctx: CanvasRenderingContext2D, carId: CarId, w: number, h: number): void {
+  const outer =
+    carId === "bunker" ? "#FF6B1A" : carId === "bison" ? "#FF8A1F" : carId === "donnerbuechse" ? "#FF5A00" : "#FF7A18";
+  const core = "#FFE066";
+  // Rearward lean: tips toward -X (left), bases toward door trailing edge
+  ctx.fillStyle = outer;
+  ctx.lineWidth = Math.max(4, Math.min(w, h) * 0.055);
+  flameTongue(ctx, w * 0.08, h * 0.42, w * 0.78, h * 0.28, h * 0.16);
+  flameTongue(ctx, w * 0.05, h * 0.62, w * 0.82, h * 0.55, h * 0.2);
+  flameTongue(ctx, w * 0.12, h * 0.82, w * 0.72, h * 0.78, h * 0.14);
+  ctx.fillStyle = core;
+  ctx.lineWidth = Math.max(2.5, ctx.lineWidth * 0.55);
+  flameTongue(ctx, w * 0.18, h * 0.44, w * 0.62, h * 0.34, h * 0.07);
+  flameTongue(ctx, w * 0.14, h * 0.62, w * 0.66, h * 0.56, h * 0.09);
+}
+
+/** Bold comic bolt with white core flash (sticker-proposal-bolt). */
 function boltMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number): void {
   ctx.beginPath();
-  ctx.moveTo(cx - s * 0.15, cy - s * 0.55);
-  ctx.lineTo(cx + s * 0.35, cy - s * 0.55);
-  ctx.lineTo(cx + s * 0.05, cy - s * 0.08);
-  ctx.lineTo(cx + s * 0.45, cy - s * 0.08);
-  ctx.lineTo(cx - s * 0.25, cy + s * 0.55);
-  ctx.lineTo(cx + s * 0.05, cy + s * 0.05);
-  ctx.lineTo(cx - s * 0.4, cy + s * 0.05);
+  ctx.moveTo(cx - s * 0.08, cy - s * 0.58);
+  ctx.lineTo(cx + s * 0.42, cy - s * 0.58);
+  ctx.lineTo(cx + s * 0.12, cy - s * 0.05);
+  ctx.lineTo(cx + s * 0.48, cy - s * 0.05);
+  ctx.lineTo(cx - s * 0.22, cy + s * 0.58);
+  ctx.lineTo(cx + s * 0.02, cy + s * 0.02);
+  ctx.lineTo(cx - s * 0.42, cy + s * 0.02);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
+}
+
+function drawPowerBolt(ctx: CanvasRenderingContext2D, carId: CarId, w: number, h: number): void {
+  const cx = w * 0.52;
+  const cy = h * 0.5;
+  const s = Math.min(w, h) * 0.88;
+  ctx.fillStyle = carId === "blitz" ? "#FFE066" : carId === "bunker" ? "#7CF0FF" : "#FFD43B";
+  ctx.lineWidth = Math.max(5, Math.min(w, h) * 0.07);
+  boltMark(ctx, cx, cy, s);
+  ctx.fillStyle = "#FFF8D6";
+  ctx.lineWidth = Math.max(2.5, ctx.lineWidth * 0.45);
+  boltMark(ctx, cx - s * 0.02, cy, s * 0.48);
+  // Spark ticks
+  ctx.strokeStyle = ink();
+  ctx.lineWidth = Math.max(2, h * 0.035);
+  for (const [x0, y0, x1, y1] of [
+    [w * 0.12, h * 0.22, w * 0.02, h * 0.12],
+    [w * 0.88, h * 0.28, w * 0.96, h * 0.16],
+    [w * 0.9, h * 0.78, w * 0.98, h * 0.9],
+  ] as const) {
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.lineTo(x1, y1);
+    ctx.stroke();
+  }
 }
 
 function starMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
@@ -121,51 +173,72 @@ function starMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: numb
   ctx.stroke();
 }
 
+function drawRacingStar(ctx: CanvasRenderingContext2D, carId: CarId, w: number, h: number): void {
+  const fill = carId === "bison" ? "#69DB7C" : carId === "bunker" ? "#FFD43B" : "#3DB9C7";
+  const cx = w * 0.48;
+  const cy = h * 0.52;
+  const r = Math.min(w, h) * 0.42;
+  ctx.fillStyle = fill;
+  ctx.lineWidth = Math.max(5, Math.min(w, h) * 0.07);
+  starMark(ctx, cx, cy, r);
+  ctx.fillStyle = "#F8F9FA";
+  ctx.lineWidth = Math.max(2.5, ctx.lineWidth * 0.5);
+  starMark(ctx, cx - r * 0.06, cy - r * 0.08, r * 0.38);
+  // Secondary burst
+  ctx.fillStyle = fill;
+  ctx.lineWidth = Math.max(3, Math.min(w, h) * 0.04);
+  starMark(ctx, w * 0.82, h * 0.28, Math.min(w, h) * 0.14);
+}
+
 function ironCladLogo(ctx: CanvasRenderingContext2D, w: number, h: number): void {
   ctx.clearRect(0, 0, w, h);
   ctx.lineJoin = "round";
-  ctx.fillStyle = "#F0C000";
+  ctx.lineCap = "round";
+  // Steel plate
+  ctx.fillStyle = "#C5CAD0";
   ctx.strokeStyle = ink();
-  ctx.lineWidth = Math.max(3, h * 0.08);
-  // slanted badge
+  ctx.lineWidth = Math.max(4, h * 0.075);
   ctx.beginPath();
-  ctx.moveTo(h * 0.15, h * 0.12);
-  ctx.lineTo(w - h * 0.08, h * 0.12);
-  ctx.lineTo(w - h * 0.02, h * 0.88);
-  ctx.lineTo(h * 0.02, h * 0.88);
+  ctx.moveTo(h * 0.18, h * 0.14);
+  ctx.lineTo(w - h * 0.1, h * 0.14);
+  ctx.lineTo(w - h * 0.04, h * 0.86);
+  ctx.lineTo(h * 0.06, h * 0.86);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  // i pill
-  const pillR = h * 0.28;
-  ctx.fillStyle = ink();
-  const px = h * 0.12;
-  const py = h * 0.22;
-  const pw = pillR * 1.35;
-  const ph = h * 0.56;
-  const pr = pillR * 0.45;
+  // Yellow accent stripe
+  ctx.fillStyle = ComicPaletteCss.repairSpark;
+  ctx.fillRect(h * 0.14, h * 0.2, w * 0.72, h * 0.12);
+  ctx.strokeStyle = ink();
+  ctx.lineWidth = Math.max(2.5, h * 0.04);
+  ctx.strokeRect(h * 0.14, h * 0.2, w * 0.72, h * 0.12);
+  // Shield + IC
+  ctx.fillStyle = "#8B9098";
   ctx.beginPath();
-  ctx.moveTo(px + pr, py);
-  ctx.lineTo(px + pw - pr, py);
-  ctx.quadraticCurveTo(px + pw, py, px + pw, py + pr);
-  ctx.lineTo(px + pw, py + ph - pr);
-  ctx.quadraticCurveTo(px + pw, py + ph, px + pw - pr, py + ph);
-  ctx.lineTo(px + pr, py + ph);
-  ctx.quadraticCurveTo(px, py + ph, px, py + ph - pr);
-  ctx.lineTo(px, py + pr);
-  ctx.quadraticCurveTo(px, py, px + pr, py);
+  const sx = h * 0.22;
+  const sy = h * 0.4;
+  const sw = h * 0.42;
+  const sh = h * 0.4;
+  ctx.moveTo(sx + sw * 0.5, sy);
+  ctx.lineTo(sx + sw, sy + sh * 0.28);
+  ctx.lineTo(sx + sw * 0.82, sy + sh);
+  ctx.lineTo(sx + sw * 0.18, sy + sh);
+  ctx.lineTo(sx, sy + sh * 0.28);
   ctx.closePath();
   ctx.fill();
-  ctx.fillStyle = "#F0C000";
-  ctx.font = `bold ${Math.floor(h * 0.42)}px Impact, Haettenschweiler, sans-serif`;
+  ctx.stroke();
+  ctx.fillStyle = ComicPaletteCss.repairSpark;
+  ctx.font = `bold ${Math.floor(h * 0.22)}px Impact, Haettenschweiler, sans-serif`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("i", h * 0.12 + pillR * 0.68, h * 0.52);
+  ctx.strokeStyle = ink();
+  ctx.lineWidth = Math.max(2, h * 0.03);
+  ctx.strokeText("IC", sx + sw * 0.5, sy + sh * 0.48);
+  ctx.fillText("IC", sx + sw * 0.5, sy + sh * 0.48);
   ctx.fillStyle = ink();
-  ctx.font = `bold ${Math.floor(h * 0.38)}px Impact, Haettenschweiler, sans-serif`;
+  ctx.font = `bold ${Math.floor(h * 0.28)}px Impact, Haettenschweiler, sans-serif`;
   ctx.textAlign = "left";
-  ctx.fillText("RONCLAD", h * 0.12 + pillR * 1.55, h * 0.48);
-  ctx.fillRect(h * 0.12 + pillR * 1.55, h * 0.68, w * 0.55, h * 0.06);
+  ctx.fillText("IRONCLAD", h * 0.22 + sw * 1.15, h * 0.62);
 }
 
 /** Draw sticker art into a rect (transparent outside). Car-themed colors. */
@@ -189,41 +262,22 @@ export function drawStickerArt(
   }
 
   if (sticker === "flames") {
-    const outer = carId === "bunker" ? "#FF6B1A" : carId === "bison" ? "#FF8A1F" : carId === "donnerbuechse" ? "#FF5A00" : "#FF7A18";
-    const inner = "#FFE066";
-    ctx.fillStyle = outer;
-    flameTongue(ctx, w * 0.28, h * 0.92, h * 0.78, -6);
-    flameTongue(ctx, w * 0.5, h * 0.95, h * 0.88, 0);
-    flameTongue(ctx, w * 0.72, h * 0.9, h * 0.72, 8);
-    ctx.fillStyle = inner;
-    ctx.lineWidth = Math.max(3, ctx.lineWidth * 0.7);
-    flameTongue(ctx, w * 0.4, h * 0.92, h * 0.48, -2);
-    flameTongue(ctx, w * 0.62, h * 0.93, h * 0.52, 4);
+    drawHotRodFlames(ctx, carId, w, h);
     return;
   }
 
   if (sticker === "bolt" || sticker === "lightning") {
-    ctx.fillStyle = carId === "blitz" ? "#FFE066" : carId === "bunker" ? "#7CF0FF" : "#FFD43B";
-    boltMark(ctx, w * 0.5, h * 0.5, Math.min(w, h) * 0.85);
-    if (carId === "blitz") {
-      ctx.fillStyle = "#FFF8D6";
-      ctx.lineWidth = 3;
-      boltMark(ctx, w * 0.5, h * 0.5, Math.min(w, h) * 0.45);
-    }
+    drawPowerBolt(ctx, carId, w, h);
     return;
   }
 
-  // star (+ default)
-  ctx.fillStyle = carId === "bison" ? "#69DB7C" : carId === "bunker" ? "#FFD43B" : "#3DB9C7";
-  starMark(ctx, w * 0.32, h * 0.55, Math.min(w, h) * 0.28);
-  starMark(ctx, w * 0.55, h * 0.42, Math.min(w, h) * 0.34);
-  starMark(ctx, w * 0.78, h * 0.58, Math.min(w, h) * 0.24);
+  drawRacingStar(ctx, carId, w, h);
 }
 
 /** Standalone sticker texture (tests / previews). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none") return null;
-  return canvasTex(`sticker-v3:${carId}:${sticker}`, 256, 128, (ctx) => {
+  return canvasTex(`sticker-v4:${carId}:${sticker}`, 256, 128, (ctx) => {
     drawStickerArt(ctx, sticker, carId, 256, 128);
   });
 }
@@ -243,8 +297,7 @@ export function applyCarStickers(root: Object3D, carId: CarId, stickerRaw: strin
   if (slots.length === 0) return;
 
   if (carId === "bunker") {
-    // Tripo atlas has no authored IronClad badge; skip default to avoid UV-miss stamps.
-    if (sticker === "ironClad") return;
+    // Default IronClad + swappable Tür-Aufkleber stamp into side albedo.
     patchAuthoredSideStickers(root, carId, sticker, slots);
     return;
   }
@@ -276,7 +329,7 @@ function stampComicBodyMap(
   slots: StickerSlot[],
   paintHex: string,
 ): Texture {
-  const key = `comic-stamp-v3:${carId}:${sticker}:${slots.join(",")}:${paintHex}`;
+  const key = `comic-stamp-v4:${carId}:${sticker}:${slots.join(",")}:${paintHex}`;
   const hit = texCache.get(key);
   if (hit) return hit;
 
