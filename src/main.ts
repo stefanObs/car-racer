@@ -1,8 +1,6 @@
 import { preloadCarModels } from "./render/loadCarGltf";
-import { preloadBlitzParts } from "./render/blitzParts";
 import { preloadBuggyNoses } from "./render/buggyNose";
 import { preloadBuggyNoseTextures } from "./render/buggyNoseTextures";
-import { preloadComicWheel } from "./render/carWheels";
 import { preloadGarageProps } from "./render/loadGarageGltf";
 import { GameApp } from "./ui/GameApp";
 
@@ -30,13 +28,7 @@ async function boot(): Promise<void> {
   if (touchCapable) document.documentElement.dataset.touch = "1";
 
   await preloadBuggyNoseTextures();
-  await Promise.all([
-    preloadCarModels(),
-    preloadBuggyNoses(),
-    preloadGarageProps(),
-    preloadComicWheel(),
-    preloadBlitzParts(),
-  ]);
+  await Promise.all([preloadCarModels(), preloadBuggyNoses(), preloadGarageProps()]);
 
   const app = new GameApp(gameCanvas, gameUi);
   let last = performance.now();

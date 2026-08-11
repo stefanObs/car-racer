@@ -36,6 +36,12 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(shouldApplyGaragePaint("mat14")).toBe(true);
     expect(shouldApplyGaragePaint("Windows")).toBe(false);
     expect(shouldApplyGaragePaint("Tire")).toBe(false);
+    expect(shouldApplyGaragePaint("Wheel")).toBe(false);
+    expect(shouldApplyGaragePaint("Rubber")).toBe(false);
+    expect(shouldApplyGaragePaint("Rim")).toBe(false);
+    expect(shouldApplyGaragePaint("Hubcap")).toBe(false);
+    expect(shouldApplyGaragePaint("WheelRim")).toBe(false);
+    expect(shouldApplyGaragePaint("WheelSpin_FL")).toBe(false);
     expect(shouldApplyGaragePaint("Headlights")).toBe(false);
     expect(shouldApplyGaragePaint("Grey")).toBe(false);
     expect(shouldApplyGaragePaint("Black")).toBe(false);
@@ -83,35 +89,28 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(existsSync(resolve("public/models/props/buggy-bird.glb"))).toBe(true);
   });
 
-  it("bison ships modern L200 pickup with BodyPaint + blue Glass + Tire", async () => {
+  it("bison ships a Tripo BodyPaint pickup", () => {
     const path = resolve("public/models/cars/bison.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
     const text = buf.toString("latin1");
     expect(text).toContain("BodyPaint");
-    expect(text).toContain("Glass");
-    expect(text).toContain("Tire");
-    expect(statSync(path).size).toBeGreaterThan(40_000);
-    expect(statSync(path).size).toBeLessThan(2_000_000);
-
-    const { NodeIO } = await import("@gltf-transform/core");
-    const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
-    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
-    const glass = doc.getRoot().listMaterials().find((m) => m.getName() === "Glass");
-    expect(glass).toBeTruthy();
-    const [, g, b] = glass!.getBaseColorFactor();
-    expect(b).toBeGreaterThan(0.35);
-    expect(b).toBeGreaterThan(g);
+    expect(statSync(path).size).toBeGreaterThan(20_000);
+    expect(statSync(path).size).toBeLessThan(8_000_000);
+    expect(CAR_MODELS.bison.scale).toBe(1);
+    expect(CAR_MODELS.bison.yaw).toBe(0);
   });
 
-  it("donnerbuechse ships Sketchfab Hotrod comic bake", () => {
+  it("donnerbuechse ships a Tripo BodyPaint hot rod", () => {
     const path = resolve("public/models/cars/donnerbuechse.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
     const text = buf.toString("latin1");
     expect(text).toContain("BodyPaint");
-    expect(statSync(path).size).toBeGreaterThan(500_000);
-    expect(CAR_MODELS.donnerbuechse.scale).toBeGreaterThanOrEqual(3.0);
+    expect(statSync(path).size).toBeGreaterThan(20_000);
+    expect(statSync(path).size).toBeLessThan(8_000_000);
+    expect(CAR_MODELS.donnerbuechse.scale).toBe(1);
+    expect(CAR_MODELS.donnerbuechse.yaw).toBe(0);
   });
 
   it("bunker ships a Tripo BodyPaint APC", () => {
@@ -127,12 +126,11 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(CAR_MODELS.bunker.collisionRadius).toBeLessThanOrEqual(1.3);
   });
 
-  it("bison arcade scale lifts the short L200 export toward peer car length", () => {
-    expect(CAR_MODELS.bison.scale).toBeGreaterThanOrEqual(1.7);
-    expect(CAR_MODELS.bison.scale).toBeLessThanOrEqual(2.0);
-    // Raw L200 longest ~2.1m → scaled ~3.7–3.8m (Blitz/Donner range).
-    expect(2.097 * CAR_MODELS.bison.scale).toBeGreaterThan(3.5);
-    expect(2.097 * CAR_MODELS.bison.scale).toBeLessThan(4.2);
+  it("bison and donnerbuechse arcade scale is 1 after the Tripo bake", () => {
+    expect(CAR_MODELS.bison.scale).toBe(1);
+    expect(CAR_MODELS.donnerbuechse.scale).toBe(1);
+    expect(CAR_MODELS.bison.collisionRadius).toBeLessThanOrEqual(1.3);
+    expect(CAR_MODELS.donnerbuechse.collisionRadius).toBeLessThanOrEqual(1.3);
   });
 
   it("uses per-car silhouette radii for contact (not mesh shape)", () => {
