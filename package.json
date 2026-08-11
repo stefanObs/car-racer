@@ -3,7 +3,7 @@
   "version": "0.3.6",
   "private": true,
   "type": "module",
-  "description": "Crash Circuit — arcade racer (free OSS stack)",
+  "description": "Crash Circuit \u2014 arcade racer (free OSS stack)",
   "scripts": {
     "start": "vite",
     "dev": "vite",
