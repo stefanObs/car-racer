@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-11 — v3.23 Bison + Donnerbüchse Tripo meshes
+
+- Trigger: user — redo Bison (pickup) and Donnerbüchse (hot rod) via the Blitz Tripo pipeline
+- Decision: Authoring-time Tripo from Asphalt-Comic 3/4-front concepts; runtime ships baked GLBs (no Tripo at play). Nose +Z. Garage paint recolors green (Bison) / blue (Donnerbüchse) body pixels; tires, chrome engine, orange flames, and bed liner stay. Side (+ hood on Bison) stickers remain cosmetic with no stats.
+- CONCEPT §§ touched: Dokumentstand v3.23 (class look in §2 / §5.1 / cosmetics in §6.2 unchanged)
+
 ### 2026-08-11 — v3.22 Bunker Tripo APC mesh
 
 - Trigger: user — redo the Bunker

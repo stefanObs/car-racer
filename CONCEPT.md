@@ -494,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.22 — Bunker Panzerwagen: Tripo-Mesh, IronClad-Aufkleber unverändert.*
+*Dokumentstand: Konzept v3.23 — Bison Pick-up und Donnerbüchse Hot Rod: Tripo-Meshes, Lack/Aufkleber unverändert (keine Stats).*
