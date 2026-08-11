@@ -13,6 +13,8 @@ import {
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { CAR_IDS, type CarId } from "../data/cars";
 import { CAR_MODELS, type CarModelSpec } from "../data/carModels";
+import type { PartId } from "../data/parts";
+import { applyEquippedPartVisuals } from "./blitzParts";
 import { applyBuggyNoseVariant, isBuggySkullHornMesh } from "./buggyNose";
 import { buggyNoseTexture } from "./buggyNoseTextures";
 import { applyCarStickers, carUsesNoseVariants } from "./carStickers";
@@ -24,9 +26,12 @@ import {
 } from "./comicCarAtlases";
 import { ensureComicBoxUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
 import {
+  bakeAuthoredBlueToPaint,
+  bakeAuthoredGreenToPaint,
   bakeAuthoredOrangeToPaint,
   bakeAuthoredRedToPaint,
   bakeAuthoredWhiteToPaint,
+  isWheelPaintVertex,
 } from "./paintAuthoredWhite";
 
 type Template = {
@@ -61,13 +66,19 @@ export function hasGltfCar(id: CarId): boolean {
 
 /**
  * Clone a preloaded GLB, tint body paint, bake sticker textures / buggy nose, outlines.
- * Returns null when no template is loaded for this id.
+ * `equippedParts` add Blitz Teile meshes (visual only). Returns null when no template is loaded.
  */
-export function cloneGltfCar(id: CarId, paint: string, sticker = "none"): Group | null {
+export function cloneGltfCar(
+  id: CarId,
+  paint: string,
+  sticker = "none",
+  equippedParts: readonly PartId[] = [],
+): Group | null {
   const hit = templates.get(id);
   if (!hit) return null;
   const clone = hit.root.clone(true);
   detachSharedResources(clone);
+  applyEquippedPartVisuals(clone, id, equippedParts);
   applyPaint(clone, paint, id);
   applyCosmetics(clone, id, sticker);
   // Busy free-asset edges: outline shells read as black debris under wheel arches.
@@ -196,7 +207,12 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     let toon;
     if (name.includes("glass") || name.includes("window")) {
       toon = comicToon(color.getHex());
-    } else if (name.includes("tire") || name.includes("rubber") || name.includes("wheel")) {
+    } else if (
+      name.includes("tire") ||
+      name.includes("rubber") ||
+      name.includes("wheel") ||
+      name.includes("hubcap")
+    ) {
       toon = comicToon(0x3a3a42);
     } else if (isHeadlamp) {
       // Bumper EyeRed + roll-cage pods — same sealed-beam look.
@@ -230,7 +246,7 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
       toon = comicToon(color.getHex());
     }
     const skullOrnament = isHornMat || name.includes("skull");
-    // Keep authored atlas maps (e.g. Sketchfab Hotrod) under cel shading.
+    // Keep authored atlas maps (Tripo bake / leftover free-asset maps) under cel shading.
     if (map && !skullOrnament) {
       toon.map = map;
       toon.needsUpdate = true;
@@ -297,12 +313,62 @@ function applyCosmetics(root: Object3D, id: CarId, sticker: string): void {
   applyCarStickers(root, id, sticker);
 }
 
+function collectWheelUvTriangles(root: Object3D): number[] {
+  const tris: number[] = [];
+  root.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(root);
+  const size = new Vector3();
+  box.getSize(size);
+  const bounds = {
+    minY: box.min.y,
+    height: size.y,
+    maxAbsX: Math.max(Math.abs(box.min.x), Math.abs(box.max.x)),
+  };
+  const a = new Vector3();
+  const b = new Vector3();
+  const c = new Vector3();
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    const geo = mesh.geometry;
+    const pos = geo.attributes.position;
+    const uv = geo.attributes.uv;
+    if (!pos || !uv) return;
+    const wholeWheel = Boolean(mesh.name) && !shouldApplyGaragePaint(mesh.name);
+    const index = geo.index;
+    const triCount = index ? index.count / 3 : Math.floor(pos.count / 3);
+    const vert = (t: number, k: number) => (index ? index.getX(t * 3 + k) : t * 3 + k);
+    for (let t = 0; t < triCount; t++) {
+      const i0 = vert(t, 0);
+      const i1 = vert(t, 1);
+      const i2 = vert(t, 2);
+      a.fromBufferAttribute(pos, i0).applyMatrix4(mesh.matrixWorld);
+      b.fromBufferAttribute(pos, i1).applyMatrix4(mesh.matrixWorld);
+      c.fromBufferAttribute(pos, i2).applyMatrix4(mesh.matrixWorld);
+      if (
+        !wholeWheel &&
+        !(
+          isWheelPaintVertex(a.x, a.y, a.z, bounds) &&
+          isWheelPaintVertex(b.x, b.y, b.z, bounds) &&
+          isWheelPaintVertex(c.x, c.y, c.z, bounds)
+        )
+      ) {
+        continue;
+      }
+      tris.push(uv.getX(i0), uv.getY(i0), uv.getX(i1), uv.getY(i1), uv.getX(i2), uv.getY(i2));
+    }
+  });
+  return tris;
+}
+
 function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
   const paintColor = new Color(paint);
   const replaced = new Map<Texture, Texture>();
+  const wheelUvTris = collectWheelUvTriangles(root);
   root.traverse((obj) => {
     const mesh = obj as Mesh;
     if (!mesh.isMesh) return;
+    if (mesh.name && !shouldApplyGaragePaint(mesh.name)) return;
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const mat of mats) {
       if (!mat) continue;
@@ -311,15 +377,15 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
       const toon = mat as MeshToonMaterial;
       if (!toon.color) continue;
 
-      if (toon.map && (name.includes("body") || name.includes("paint"))) {
+      if (toon.map) {
         const baker = authoredBodyPaintBaker(carId);
-        if (baker) {
+        if (baker && !toon.userData?.comicTintable) {
           const prev = toon.map;
           const hit = replaced.get(prev);
           if (hit) {
             toon.map = hit;
           } else {
-            const next = baker(prev, paint);
+            const next = baker(prev, paint, wheelUvTris);
             replaced.set(prev, next);
             toon.map = next;
           }
@@ -327,11 +393,6 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
           toon.needsUpdate = true;
           continue;
         }
-      }
-
-      // Full-color authored atlases (Hotrod): keep white so map reads true.
-      // Tintable comic detail maps: multiply garage paint through white+ink atlas.
-      if (toon.map) {
         if (toon.userData?.comicTintable) {
           toon.color.copy(paintColor);
         } else {
@@ -346,9 +407,11 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
 
 function authoredBodyPaintBaker(
   carId: CarId | undefined,
-): ((map: Texture, paint: string) => Texture) | null {
+): ((map: Texture, paint: string, wheelUvTris?: ArrayLike<number>) => Texture) | null {
   if (carId === "blitz") return bakeAuthoredRedToPaint;
+  if (carId === "bison") return bakeAuthoredGreenToPaint;
   if (carId === "kaeferkraft") return bakeAuthoredOrangeToPaint;
+  if (carId === "donnerbuechse") return bakeAuthoredBlueToPaint;
   if (carId === "bunker") return bakeAuthoredWhiteToPaint;
   return null;
 }
@@ -386,10 +449,17 @@ function isNonPaintMaterial(name: string): boolean {
     name.includes("tire") ||
     name.includes("rubber") ||
     name.includes("wheel") ||
+    name.includes("rim") ||
+    name.includes("hubcap") ||
     name.includes("chrome") ||
     name.includes("light") ||
     name.includes("emit") ||
     name.includes("engine") ||
+    name.includes("spoiler") ||
+    name.includes("nitro") ||
+    name.includes("spike") ||
+    name.includes("carbon") ||
+    name.includes("spring") ||
     name.includes("skull") ||
     name.includes("eyered") ||
     name.includes("headlight") ||
