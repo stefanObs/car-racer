@@ -24,9 +24,20 @@ export function isNearWhitePaintPixel(r: number, g: number, b: number): boolean 
   return max >= 175 && max - min <= 48;
 }
 
-/** Tripo Käferkraft body panels (orange hood/sides, not black cage/tires). */
+/**
+ * Tripo Käferkraft body — orange/rust at any luminance, including comic shadows.
+ * Skips black cage/tires, grey, and yellow coils.
+ */
 export function isOrangeBodyPixel(r: number, g: number, b: number): boolean {
-  return r >= 90 && r >= g + 12 && r >= b + 28 && g >= b - 8 && r + g + b >= 180;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const chroma = max - min;
+  if (max < 16 || r < max) return false;
+  if (chroma / max < 0.22) return false;
+  if (g >= r * 0.78 && g > b + 40) return false;
+  if (b >= r * 0.38 && b > g + 20) return false;
+  if (r < g + 6 || r < b + 8) return false;
+  return true;
 }
 
 /**

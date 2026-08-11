@@ -41,21 +41,27 @@ describe("bunker authored white → garage paint", () => {
 });
 
 describe("Käferkraft orange body → garage paint", () => {
-  it("treats saturated orange panels as body, not black cage", () => {
+  it("treats bright and shaded orange as body, not black cage or grey", () => {
     expect(isOrangeBodyPixel(220, 110, 40)).toBe(true);
+    expect(isOrangeBodyPixel(80, 41, 12)).toBe(true);
+    expect(isOrangeBodyPixel(55, 37, 25)).toBe(true);
     expect(isOrangeBodyPixel(20, 20, 22)).toBe(false);
     expect(isOrangeBodyPixel(90, 90, 95)).toBe(false);
   });
 
-  it("recolors orange pixels and leaves dark cage alone", () => {
+  it("recolors shaded orange into a darker paint, not leftover rust", () => {
     const data = new Uint8ClampedArray([
       210, 95, 35, 255,
+      80, 41, 12, 255,
       18, 18, 20, 255,
     ]);
-    const n = recolorOrangeBodyPixels(data, 0.07, 0.72, 0.53); // teal
-    expect(n).toBe(1);
-    expect(data[1]!).toBeGreaterThan(data[0]!);
-    expect(data[4]).toBe(18);
+    const n = recolorOrangeBodyPixels(data, 0.2, 0.4, 0.85); // blue
+    expect(n).toBe(2);
+    expect(data[2]!).toBeGreaterThan(data[0]!);
+    expect(data[6]!).toBeGreaterThan(data[4]!);
+    expect(data[6]!).toBeLessThan(data[2]!);
+    expect(data[4]).not.toBe(80);
+    expect(data[8]).toBe(18);
   });
 });
 
