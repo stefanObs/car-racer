@@ -20,7 +20,7 @@ let sharedOutlineMat: MeshBasicMaterial | null = null;
 export function toonGradient(): DataTexture {
   if (sharedGradient) return sharedGradient;
   const data = new Uint8Array([
-    55, 55, 60, 255, 110, 110, 118, 255, 175, 175, 182, 255, 255, 255, 255, 255,
+    88, 88, 96, 255, 130, 130, 138, 255, 185, 185, 192, 255, 255, 255, 255, 255,
   ]);
   const tex = new DataTexture(data, 4, 1, RGBAFormat);
   tex.minFilter = NearestFilter;

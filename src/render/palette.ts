@@ -27,3 +27,6 @@ export const ComicPaletteCss = {
   curbLight: "#F8F9FA",
   sky: "#5BA3D9",
 } as const;
+
+/** Garage black — charcoal so cel steps stay readable (ink-black crushes toon). */
+export const CAR_PAINT_BLACK = "#52545e";

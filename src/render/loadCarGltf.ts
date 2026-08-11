@@ -197,7 +197,7 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     if (name.includes("glass") || name.includes("window")) {
       toon = comicToon(color.getHex());
     } else if (name.includes("tire") || name.includes("rubber") || name.includes("wheel")) {
-      toon = comicToon(0x1a1a1a);
+      toon = comicToon(0x3a3a42);
     } else if (isHeadlamp) {
       // Bumper EyeRed + roll-cage pods — same sealed-beam look.
       toon = comicToon(0xfff8e8);
@@ -225,7 +225,7 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
         }
       }
     } else if (name.includes("seat") || name === "dark") {
-      toon = comicToon(0x1a1a1a);
+      toon = comicToon(0x3a3a42);
     } else {
       toon = comicToon(color.getHex());
     }

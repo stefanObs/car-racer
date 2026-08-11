@@ -3,10 +3,12 @@ import {
   isNearWhitePaintPixel,
   isOrangeBodyPixel,
   isRedBodyPixel,
+  paintSrgb01,
   recolorNearWhitePixels,
   recolorOrangeBodyPixels,
   recolorRedBodyPixels,
 } from "../src/render/paintAuthoredWhite";
+import { CAR_PAINT_BLACK } from "../src/render/palette";
 
 describe("bunker authored white → garage paint", () => {
   it("treats bright low-chroma pixels as body white", () => {
@@ -90,6 +92,18 @@ describe("Blitz red body → garage paint", () => {
     expect(data[4]).not.toBe(80);
     expect(data[9]!).toBeGreaterThan(data[8]!);
     expect(data[12]).toBe(20);
+  });
+
+  it("keeps charcoal black paint bright enough for cel shading", () => {
+    const paint = paintSrgb01(CAR_PAINT_BLACK);
+    expect(paint.r * 255).toBeGreaterThanOrEqual(70);
+    const data = new Uint8ClampedArray([
+      210, 48, 48, 255,
+      80, 18, 18, 255,
+    ]);
+    expect(recolorRedBodyPixels(data, paint.r, paint.g, paint.b)).toBe(2);
+    expect(data[0]!).toBeGreaterThan(40);
+    expect(data[0]!).toBeGreaterThan(data[4]! + 8);
   });
 });
 

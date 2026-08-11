@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { emptyKit } from "../src/meta/save";
 import { buildGarageBay } from "../src/render/garageBay";
+import { CAR_PAINT_BLACK } from "../src/render/palette";
 import { renderGarageHtml } from "../src/ui/garageHtml";
 
 describe("garage hub", () => {
@@ -25,6 +26,7 @@ describe("garage hub", () => {
     const paintAt = html.indexOf("Schmücken");
     expect(equipAt).toBeGreaterThan(-1);
     expect(paintAt).toBeGreaterThan(equipAt);
+    expect(html).toContain(`data-color="${CAR_PAINT_BLACK}"`);
   });
 
   it("shows shop buy label for unowned parts", () => {

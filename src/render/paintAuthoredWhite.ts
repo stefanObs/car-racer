@@ -4,7 +4,6 @@
  */
 import {
   CanvasTexture,
-  Color,
   NearestFilter,
   SRGBColorSpace,
   type Texture,
@@ -56,6 +55,23 @@ export function isRedBodyPixel(r: number, g: number, b: number): boolean {
   return true;
 }
 
+/** Hex paint → 0..1 sRGB (canvas albedo, not three.js linear Color). */
+export function paintSrgb01(paint: string): { r: number; g: number; b: number } {
+  const hex = paint.replace("#", "");
+  if (hex.length < 6) return { r: 1, g: 1, b: 1 };
+  return {
+    r: Number.parseInt(hex.slice(0, 2), 16) / 255,
+    g: Number.parseInt(hex.slice(2, 4), 16) / 255,
+    b: Number.parseInt(hex.slice(4, 6), 16) / 255,
+  };
+}
+
+function shadeScale(lum: number, paintR: number, paintG: number, paintB: number): number {
+  const paintLum = (paintR + paintG + paintB) / 3;
+  const floor = paintLum < 0.28 ? 0.52 : 0.35;
+  return floor + (1 - floor) * lum;
+}
+
 function shadeMatchingPixels(
   data: Uint8ClampedArray | Uint8Array,
   paintR: number,
@@ -70,7 +86,7 @@ function shadeMatchingPixels(
     const b = data[i + 2]!;
     if (!match(r, g, b)) continue;
     const lum = (r + g + b) / (3 * 255);
-    const shade = 0.35 + 0.65 * lum;
+    const shade = shadeScale(lum, paintR, paintG, paintB);
     data[i] = Math.round(paintR * 255 * shade);
     data[i + 1] = Math.round(paintG * 255 * shade);
     data[i + 2] = Math.round(paintB * 255 * shade);
@@ -140,7 +156,7 @@ function bakeAuthoredMap(
   }
 
   const imageData = ctx.getImageData(0, 0, w, h);
-  const paintColor = new Color(paint);
+  const paintColor = paintSrgb01(paint);
   recolor(imageData.data, paintColor.r, paintColor.g, paintColor.b);
   ctx.putImageData(imageData, 0, 0);
 

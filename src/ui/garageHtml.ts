@@ -4,8 +4,9 @@ import { APP_VERSION } from "../core/version";
 import { isUnownedPreview, showcaseCarId } from "../meta/carShop";
 import { formatChf, type CarKit, type StickerId } from "../meta/save";
 import { carUsesNoseVariants } from "../render/carStickers";
+import { CAR_PAINT_BLACK } from "../render/palette";
 
-const PAINTS = ["#e03131", "#339af0", "#f08c00", "#12b886", "#2f9e44", "#868e96", "#ffffff", "#1b1b1f"] as const;
+const PAINTS = ["#e03131", "#339af0", "#f08c00", "#12b886", "#2f9e44", "#868e96", "#ffffff", CAR_PAINT_BLACK] as const;
 
 function cosmeticsForCar(carId: CarId): { ids: StickerId[]; labels: Record<StickerId, string>; title: string } {
   if (carUsesNoseVariants(carId)) {
