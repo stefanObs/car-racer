@@ -37,6 +37,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Cup / Freier Modus / Ad-hoc CTAs present; focus defaults to Cup
 - [ ] Ausrüsten / Laden clearly above Schmücken
 - [ ] Comic garage bay visible behind the panel (car turntable)
+- [ ] Unowned car: marked **Vorschau** (not instant buy) + **Kaufen**
 - [ ] Hilfe reachable if needed; Esc returns to Garage
 
 ### Cup-Karte

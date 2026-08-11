@@ -107,6 +107,31 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.locator("#game-canvas")).toBeVisible();
   });
 
+  test("unowned car opens a marked preview then buy owns it", async ({ page }) => {
+    await page.addInitScript(() => {
+      localStorage.setItem(
+        "crash-circuit-save-v1",
+        JSON.stringify({
+          version: 2,
+          chf: 2000,
+          ownedCars: ["blitz"],
+          activeCar: "blitz",
+          kits: { blitz: { ownedParts: [], equippedParts: [], paint: "#e03131", sticker: "none" } },
+          unlockedLevels: ["blitz_cup_01_hafenstart"],
+          cupStars: {},
+          cupIndexUnlocked: 1,
+        }),
+      );
+    });
+    await page.goto("/");
+    await page.getByRole("button", { name: /Bison/ }).click();
+    await expect(page.locator("[data-dev-name='garage.preview']")).toBeVisible();
+    await expect(page.getByRole("button", { name: /Kaufen/ }).first()).toBeEnabled();
+    await page.locator("[data-act='buy-car']").click();
+    await expect(page.locator("[data-dev-name='garage.preview']")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: /Bison/ })).toContainText("Aktiv");
+  });
+
   test("opens ad-hoc seed screen and can start a race", async ({ page }) => {
     await page.goto("/");
     await page.getByRole("button", { name: "Ad-hoc" }).click();

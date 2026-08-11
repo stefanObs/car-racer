@@ -1,9 +1,10 @@
-import { CARS, type CarId } from "../data/cars";
+import { type CarId } from "../data/cars";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
 import { PARTS, type PartId } from "../data/parts";
 import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
+import { buyCar, selectCarInGarage, showcaseCarId, showcaseKit } from "../meta/carShop";
 import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
 import { DAMAGE_LABELS } from "../sim/damage";
@@ -45,6 +46,8 @@ export class GameApp {
   private adhocSeed = randomSeed();
   private adhocLength: AdhocLength = "medium";
   private lastAdhoc: LevelDefinition | null = null;
+  /** Unowned car shown in the bay until bought or another owned car is picked. */
+  private previewCar: CarId | null = null;
   private stylePops = new StylePopupQueue();
   private lastUi = {
     confirm: false,
@@ -377,11 +380,11 @@ export class GameApp {
   }
 
   private syncGarageLook(): void {
-    const kit = activeKit(this.save);
+    const kit = showcaseKit(this.save, this.previewCar);
     this.renderer.setGarageLook({
       paint: kit.paint,
       sticker: kit.sticker,
-      modelId: this.save.activeCar,
+      modelId: showcaseCarId(this.save.activeCar, this.previewCar),
     });
   }
 
@@ -449,6 +452,7 @@ export class GameApp {
         activeCar: this.save.activeCar,
         ownedCars: this.save.ownedCars,
         kit: activeKit(this.save),
+        previewCar: this.previewCar,
       });
       this.syncGarageLook();
     } else if (this.screen === "race") {
@@ -479,11 +483,15 @@ export class GameApp {
     const statsPopup =
       this.screen === "garage"
         ? renderCarStatsPopup({
-            carId: this.save.activeCar,
-            equippedParts: activeKit(this.save).equippedParts,
+            carId: showcaseCarId(this.save.activeCar, this.previewCar),
+            equippedParts: showcaseKit(this.save, this.previewCar).equippedParts,
           })
         : "";
-    this.uiRoot.innerHTML = `${statsPopup}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
+    const previewStamp =
+      this.screen === "garage" && this.previewCar
+        ? `<div class="garage-preview-stamp" data-dev-name="garage.preview.stamp">Vorschau</div>`
+        : "";
+    this.uiRoot.innerHTML = `${statsPopup}${previewStamp}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
     this.wireUi({ preserveFocus: preserveScroll, focusIndex: savedFocusIndex });
     if (preserveScroll) writePanelScrollTop(this.uiRoot, savedScrollTop);
     this.dev.tagUi(this.uiRoot);
@@ -562,19 +570,18 @@ export class GameApp {
     }
     if (act === "car" && btn.dataset.car) {
       const id = btn.dataset.car as CarId;
-      if (!this.save.ownedCars.includes(id)) {
-        const price = CARS[id].priceChf;
-        if (this.save.chf >= price) {
-          this.save.chf -= price;
-          this.save.ownedCars.push(id);
-          ensureKit(this.save, id);
-          this.save.activeCar = id;
-        }
-      } else {
-        this.save.activeCar = id;
-        ensureKit(this.save, id);
-      }
+      const next = selectCarInGarage(this.save.ownedCars, this.save.activeCar, id);
+      this.save.activeCar = next.activeCar;
+      this.previewCar = next.previewCar;
+      if (next.previewCar == null) ensureKit(this.save, next.activeCar);
       writeSave(this.save);
+    }
+    if (act === "buy-car" && btn.dataset.car) {
+      const id = btn.dataset.car as CarId;
+      if (buyCar(this.save, id)) {
+        this.previewCar = null;
+        writeSave(this.save);
+      }
     }
     if (act === "paint" && btn.dataset.color) {
       activeKit(this.save).paint = btn.dataset.color;

@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-11 — v3.20 Garage car preview then buy
+
+- Trigger: user — clicking a car that must be bought should show a clearly marked preview, plus a Buy button
+- Decision: Unowned roster click = Vorschau (3D + stats, no CHF, no race switch). **Kaufen** spends CHF and activates. Tuning locked until owned.
+- CONCEPT §§ touched: §6.2, §9 → v3.20
+
 ### 2026-08-11 — v3.19 Käferkraft Tripo mesh + noses
 
 - Trigger: user — better-looking buggy than GetGLB; alternative fronts (skull, dog, bird) via Tripo3D

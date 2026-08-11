@@ -298,6 +298,56 @@ button.garage-cta--primary {
   border-style: dashed;
 }
 
+.garage-car.is-preview {
+  outline: 3px dashed #ffe066;
+  outline-offset: 0;
+  background: #3d3420;
+  opacity: 1;
+}
+
+.garage-bay-card--preview {
+  border: 3px dashed #ffe066;
+  border-radius: 6px;
+  padding: 10px 10px 4px;
+  background: rgba(255, 224, 102, 0.08);
+}
+
+.garage-preview-banner {
+  margin: 0 0 8px;
+  padding: 8px 10px;
+  background: #ffe066;
+  color: #1b1b1f;
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
+
+.garage-buy {
+  width: 100%;
+  margin: 8px 0 6px;
+  background: var(--accent);
+  font-weight: 700;
+  min-height: 48px;
+}
+
+.garage-preview-stamp {
+  pointer-events: none;
+  position: absolute;
+  left: 52%;
+  bottom: 14%;
+  z-index: 3;
+  padding: 8px 18px;
+  background: #ffe066;
+  color: #1b1b1f;
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+  box-shadow: 5px 5px 0 rgba(27, 27, 31, 0.4);
+}
+
 .garage-car__name {
   font-weight: 700;
 }
@@ -1144,5 +1194,11 @@ html.dev-show-names .dev-dialog {
 @media (orientation: landscape) and (min-width: 900px) {
   .panel.garage {
     max-width: min(560px, calc(100% - 320px));
+  }
+}
+
+@media (max-width: 899px) {
+  .garage-preview-stamp {
+    display: none;
   }
 }

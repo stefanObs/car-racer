@@ -254,7 +254,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 ### 6.2 Drei Ausgaben-Säulen
 
 1. **Schmücken (Kosmetik)** — Lack, **Aufkleber** (Flammen, Blitze, Sterne, Emblem…; **Bunker:** Tür-Badge „IronClad“ austauschbar), Felgen-Look, Spoiler-Optik, Unterbodenlicht, Nummernschild-Text, Horn-Sound. **Käferkraft:** statt Flach-Aufkleber **Nasen-/Kopf-Modellvarianten** (Glatt, Totenkopf inkl. Hörner, Vogel, Hund); die vorderen **Scheinwerfer** gehören zum Auto (nicht zur Nasen-Kosmetik). **Kein Stats-Vorteil** (fair, sammelbar, stolz zeigen).
-2. **Neues Auto kaufen** — andere Klasse oder Variante innerhalb der Klasse.
+2. **Neues Auto kaufen** — andere Klasse oder Variante innerhalb der Klasse. Antippen zeigt eine **klar markierte Vorschau** (3D-Bay + Eigenschaften, ohne Tuning). **Kaufen** bucht CHF und macht das Auto aktiv. Rennen starten weiter mit dem bereits besessenen Auto, bis der Kauf durch ist.
 3. **Teile tunen** — echte Stats, immer mit Trade-off.
 
 **Aufkleber-Details:** Texturen auf Lack (Seite / Motorhaube / Tür je nach Auto); Sets freischaltbar über Cups oder CHF.
@@ -389,7 +389,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse.
 
 ## 9. UX / Screens (Spielerfluss)
 
-1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch** frei drehen, **ausrüsten**, Lack/Aufkleber; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
+1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch** frei drehen, **ausrüsten**, Lack/Aufkleber; ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
 4. **Renn-HUD** — Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt  
@@ -494,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.19 — Käferkraft-Mesh + Nasen (Totenkopf/Vogel/Hund) aus Tripo-Konzepten, Asphalt-Comic.*
+*Dokumentstand: Konzept v3.20 — Garage: ungekauftes Auto als markierte Vorschau, Kauf extra.*

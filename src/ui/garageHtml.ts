@@ -1,6 +1,7 @@
 import { CARS, type CarId } from "../data/cars";
 import { PARTS, type PartId } from "../data/parts";
 import { APP_VERSION } from "../core/version";
+import { isUnownedPreview, showcaseCarId } from "../meta/carShop";
 import { formatChf, type CarKit, type StickerId } from "../meta/save";
 import { carUsesNoseVariants } from "../render/carStickers";
 
@@ -52,19 +53,25 @@ export function renderGarageHtml(opts: {
   activeCar: CarId;
   ownedCars: CarId[];
   kit: CarKit;
+  previewCar?: CarId | null;
 }): string {
-  const car = CARS[opts.activeCar];
+  const previewing = isUnownedPreview(opts.ownedCars, opts.previewCar ?? null);
+  const shownId = showcaseCarId(opts.activeCar, previewing ? opts.previewCar! : null);
+  const car = CARS[shownId];
+  const racer = CARS[opts.activeCar];
 
   const carButtons = (Object.keys(CARS) as CarId[])
     .map((id) => {
       const c = CARS[id];
       const owned = opts.ownedCars.includes(id);
-      const active = opts.activeCar === id;
-      const cls = `garage-car${active ? " is-active" : ""}${owned ? "" : " is-locked"}`;
-      return `<button data-nav data-act="car" data-car="${id}" class="${cls}" ${!owned && opts.chf < c.priceChf ? "" : ""}>
+      const active = opts.activeCar === id && !previewing;
+      const preview = previewing && opts.previewCar === id;
+      const cls = `garage-car${active ? " is-active" : ""}${preview ? " is-preview" : ""}${owned ? "" : " is-locked"}`;
+      const meta = preview ? "Vorschau" : active ? "Aktiv" : owned ? "Wählen" : "Anschauen";
+      return `<button data-nav data-act="car" data-car="${id}" class="${cls}">
         <span class="garage-car__name">${c.name}</span>
         <span class="garage-car__class">${c.classLabel}</span>
-        <span class="garage-car__meta">${active ? "Aktiv" : owned ? "Wählen" : formatChf(c.priceChf)}</span>
+        <span class="garage-car__meta">${meta}${owned ? "" : ` · ${formatChf(c.priceChf)}`}</span>
       </button>`;
     })
     .join("");
@@ -138,14 +145,32 @@ export function renderGarageHtml(opts: {
       </div>
     </section>
 
-    <section class="garage-bay-card" aria-label="Aktives Auto">
-      <h2 class="garage-section">Dein Auto</h2>
-      <p class="garage-active"><strong>${car.name}</strong> · ${car.classLabel}</p>
-      <p class="dim">Teile, Lack und Aufkleber gehören nur zu diesem Auto.</p>
+    <section class="garage-bay-card${previewing ? " garage-bay-card--preview" : ""}" aria-label="${previewing ? "Autovorschau" : "Aktives Auto"}">
+      <h2 class="garage-section">${previewing ? "Vorschau" : "Dein Auto"}</h2>
+      ${
+        previewing
+          ? `<p class="garage-preview-banner" data-dev-name="garage.preview">
+              <strong>Vorschau</strong> — ${car.name} ist noch nicht deins.
+            </p>
+            <p class="garage-active"><strong>${car.name}</strong> · ${car.classLabel}</p>
+            <p class="dim">${car.description}</p>
+            <button data-nav data-act="buy-car" data-car="${shownId}" class="garage-buy" ${opts.chf >= car.priceChf ? "" : "disabled"}>
+              Kaufen ${formatChf(car.priceChf)}
+            </button>
+            <p class="dim">Rennen fährst du weiter mit <strong>${racer.name}</strong>, bis du kaufst.</p>`
+          : `<p class="garage-active"><strong>${car.name}</strong> · ${car.classLabel}</p>
+            <p class="dim">Teile, Lack und Aufkleber gehören nur zu diesem Auto.</p>`
+      }
       <div class="garage-cars">${carButtons}</div>
     </section>
 
-    <section class="garage-equip" aria-label="Ausrüstung">
+    ${
+      previewing
+        ? `<section class="garage-preview-tune" aria-label="Tuning gesperrt">
+            <h2 class="garage-section">Ausrüsten</h2>
+            <p class="dim">Erst kaufen — dann Teile, Lack und Aufkleber für ${car.name}.</p>
+          </section>`
+        : `<section class="garage-equip" aria-label="Ausrüstung">
       <h2 class="garage-section garage-section--equip">Ausrüsten <span class="dim">(${car.name})</span></h2>
       <div class="garage-parts">
         ${equipRows || `<p class="dim">Noch keine Teile — unten im Laden kaufen.</p>`}
@@ -161,7 +186,8 @@ export function renderGarageHtml(opts: {
       <div class="stack row garage-swatches">${paints}</div>
       <h3 class="garage-sub">${cosmetics.title}</h3>
       <div class="stack row garage-chips">${stickers}</div>
-    </section>
+    </section>`
+    }
 
     <p class="help">Tastatur · Controller · Tablet · Dev F1/F2/F3</p>
     <button data-nav data-act="menu" class="garage-help-link">Hilfe</button>

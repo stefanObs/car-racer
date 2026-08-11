@@ -58,6 +58,35 @@ describe("garage hub", () => {
     expect(html).toContain("Bunker");
   });
 
+  it("marks an unowned car as Vorschau with a Kaufen button (no instant buy)", () => {
+    const html = renderGarageHtml({
+      chf: 5000,
+      activeCar: "blitz",
+      ownedCars: ["blitz"],
+      kit: emptyKit("blitz"),
+      previewCar: "bison",
+    });
+    expect(html).toContain("garage-preview-banner");
+    expect(html).toContain("Vorschau");
+    expect(html).toContain('data-act="buy-car"');
+    expect(html).toContain("Kaufen");
+    expect(html).toContain("is-preview");
+    expect(html).toContain("Erst kaufen");
+    expect(html).toContain("Bison");
+    expect(html).not.toContain("Ablegen");
+  });
+
+  it("disables Kaufen when the purse cannot cover the car", () => {
+    const html = renderGarageHtml({
+      chf: 10,
+      activeCar: "blitz",
+      ownedCars: ["blitz"],
+      kit: emptyKit("blitz"),
+      previewCar: "bison",
+    });
+    expect(html).toMatch(/data-act="buy-car"[^>]*disabled/);
+  });
+
   it("shows buggy nose options and bunker IronClad door sticker", () => {
     const buggy = renderGarageHtml({
       chf: 2000,
