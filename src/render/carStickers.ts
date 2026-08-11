@@ -368,7 +368,7 @@ function patchAuthoredSideStickers(
       const mat = raw as MeshToonMaterial;
       if (!mat?.map) continue;
       const name = (mat.name ?? mesh.name ?? "").toLowerCase();
-      if (name.includes("tire") || name.includes("glass")) continue;
+      if (name.includes("tire") || name.includes("wheel") || name.includes("glass")) continue;
       const prev = mat.map;
       const hit = replaced.get(prev);
       if (hit) {

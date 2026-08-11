@@ -23,9 +23,14 @@ import { createCarState } from "../sim/vehicle";
 import { surfaceAt } from "../sim/zones";
 import { sampleCenterline } from "../track/buildTrack";
 import { CARS, type CarId } from "../data/cars";
+import type { PartId } from "../data/parts";
+import { garageLookCacheKey } from "./blitzParts";
 import type { FinishCelebrate } from "../ui/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../ui/finishCelebrate";
+import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
+import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
+import { GARAGE_IDLE_WHEEL_SPEED, spinCarWheels, steerFromHeadingDelta } from "./carWheels";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { buildGarageBay } from "./garageBay";
 import { buildLevelObstacles } from "./levelObstacles";
@@ -75,6 +80,7 @@ export class RaceRenderer {
   private celebrateSeed = -1;
   private idleGroup = new Group();
   private idleCar: Group | null = null;
+  private idleWheels: ComicCarParts["wheels"] = [];
   private idleLookKey = "";
   private garageYaw = GARAGE_YAW_DEFAULT;
   private garageDragging = false;
@@ -149,16 +155,23 @@ export class RaceRenderer {
     this.renderIdle();
   }
 
-  private buildIdleShowcase(look?: { paint: string; sticker: string; modelId: CarId }): void {
+  private buildIdleShowcase(look?: {
+    paint: string;
+    sticker: string;
+    modelId: CarId;
+    equippedParts?: readonly PartId[];
+  }): void {
     if (this.idleGroup.parent) this.scene.remove(this.idleGroup);
     disposeObject(this.idleGroup);
     this.idleGroup = buildGarageBay();
     this.idleCar = null;
+    this.idleWheels = [];
 
     const paint = look?.paint ?? "#E03131";
     const sticker = look?.sticker ?? "none";
     const modelId = look?.modelId ?? "blitz";
-    this.idleLookKey = `${modelId}|${paint}|${sticker}`;
+    const equippedParts = look?.equippedParts ?? [];
+    this.idleLookKey = garageLookCacheKey({ modelId, paint, sticker, equippedParts });
 
     const visual = buildComicCar(
       createCarState({
@@ -170,19 +183,22 @@ export class RaceRenderer {
         paint,
         sticker,
         modelId,
+        equippedParts: [...equippedParts],
         stats: { ...CARS[modelId].stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
       }),
     );
+    upgradeCarFx(visual);
     visual.root.position.set(1.5, 0.12, 0);
     visual.root.rotation.y = this.garageYaw;
     visual.root.scale.setScalar(1.35);
     this.idleCar = visual.root;
+    this.idleWheels = visual.wheels ?? [];
     this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);
     if (import.meta.env.DEV) {
-      const dbg = window as unknown as { __idleCar?: Group; __garageBay?: Group };
-      dbg.__idleCar = visual.root;
-      dbg.__garageBay = this.idleGroup;
+      const w = window as unknown as { __idleCar?: Group; __idleWheels?: ComicCarParts["wheels"] };
+      w.__idleCar = visual.root;
+      w.__idleWheels = visual.wheels;
     }
 
     this.applyGarageEnvironment();
@@ -213,8 +229,13 @@ export class RaceRenderer {
     this.raceFieldActive = false;
   }
 
-  setGarageLook(look: { paint: string; sticker: string; modelId: CarId }): void {
-    const key = `${look.modelId}|${look.paint}|${look.sticker}`;
+  setGarageLook(look: {
+    paint: string;
+    sticker: string;
+    modelId: CarId;
+    equippedParts?: readonly PartId[];
+  }): void {
+    const key = garageLookCacheKey(look);
     if (key === this.idleLookKey && this.idleCar) return;
     this.buildIdleShowcase(look);
   }
@@ -240,10 +261,11 @@ export class RaceRenderer {
     this.idleGroup.visible = true;
     if (this.idleCar) {
       this.idleCar.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
+      spinCarWheels(this.idleWheels ?? [], GARAGE_IDLE_WHEEL_SPEED, 1 / 60, 0);
     }
     // Front-biased camera — nose toward viewer
-    this.camera.position.set(3.4, 2.7, 9.2);
-    this.camera.lookAt(1.5, 0.9, 0.2);
+    this.camera.position.set(3.2, 2.35, 7.6);
+    this.camera.lookAt(1.5, 0.85, 0.2);
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -300,6 +322,7 @@ export class RaceRenderer {
     this.lastNitro.clear();
     for (const car of session.cars) {
       const visual = buildComicCar(car);
+      upgradeCarFx(visual);
       this.carVisuals.set(car.id, visual);
       this.scene.add(visual.root);
     }
@@ -347,10 +370,11 @@ export class RaceRenderer {
       let visual = this.carVisuals.get(car.id);
       if (!visual) {
         visual = buildComicCar(car);
+        upgradeCarFx(visual);
         this.carVisuals.set(car.id, visual);
         this.scene.add(visual.root);
       }
-      const { root, smoke, sparks, nitro } = visual;
+      const { root } = visual;
       const stage = stageFromHp(car.hp);
       root.visible = !(car.koTimer > 0 && car.hp <= 0 && Math.sin(car.koTimer * 20) <= 0);
 
@@ -363,33 +387,27 @@ export class RaceRenderer {
       root.rotation.y = Math.PI / 2 - car.heading;
       root.rotation.z = lean * Math.sin(this.fxTime * 10);
 
-      const showSmoke = stage >= 1 && stage < 4;
-      smoke.children.forEach((child, i) => {
-        const m = child as Mesh;
-        m.visible = showSmoke && i < (stage === 1 ? 2 : stage === 2 ? 4 : 6);
-        if (!m.visible) return;
-        const t = this.fxTime * (1.5 + i * 0.2) + i;
-        m.position.set(Math.sin(t) * 0.25, 1.05 + (t % 1.2) * 0.85, -1.15 - i * 0.12);
-        m.scale.setScalar(0.7 + (t % 1));
-      });
-
-      const healing = car.healFx > 0.25;
-      sparks.children.forEach((child, i) => {
-        const m = child as Mesh;
-        m.visible = healing;
-        if (!m.visible) return;
-        const t = this.fxTime * 8 + i;
-        m.position.set(Math.cos(t + i) * 0.85, 0.5 + Math.abs(Math.sin(t)) * 0.7, Math.sin(t * 1.3) * 0.9);
-      });
+      const wheels = visual.wheels ?? [];
+      const steer = steerFromHeadingDelta(visual.lastHeading ?? car.heading, car.heading);
+      visual.lastHeading = car.heading;
+      spinCarWheels(wheels, car.speed, 1 / 60, steer);
+      if (import.meta.env.DEV && car.isPlayer) {
+        (window as unknown as { __playerWheels?: ComicCarParts["wheels"] }).__playerWheels = wheels;
+      }
 
       const prevNitro = this.lastNitro.get(car.id) ?? car.nitro;
-      const boosting = car.nitro < prevNitro - 0.001;
+      const boosting = nitroBoosting(prevNitro, car.nitro);
       this.lastNitro.set(car.id, car.nitro);
-      nitro.children.forEach((child, i) => {
-        const m = child as Mesh;
-        m.visible = boosting;
-        if (m.visible) m.scale.z = 1 + (i % 3) * 0.15 + Math.sin(this.fxTime * 20 + i) * 0.1;
-      });
+      applyCarFx(
+        {
+          smoke: visual.smoke,
+          sparks: visual.sparks,
+          nitro: visual.nitro,
+          fxRearZ: fxRearZOf(visual),
+        },
+        { stage, healFx: car.healFx, boosting },
+        this.fxTime,
+      );
     }
 
     const player = session.player();

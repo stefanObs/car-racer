@@ -5,12 +5,13 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 | Car | File | Source | License |
 |-----|------|--------|---------|
 | **Blitz** (sport) | `blitz.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-blitz-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
-| **Bison** (pickup) | `bison.glb` | [Mitsubishi L200](https://poly.pizza/m/4qjS9tFhsJg) by Muhammad Reyhan (CC-BY 3.0) via Poly Pizza — rematerialized by `npm run cars:polish`; modern crew-cab curves. Silhouette also informed by [TurboSquid 1675577](https://www.turbosquid.com/3d-models/car-pickup-model-1675577) (ref only — TS mesh not shipped) | CC-BY 3.0 |
+| **Blitz Teile** | `../parts/blitz-*.glb` | Tripo3D add-on props for equipped Teile (`npm run cars:bake-blitz-parts-tripo`). Visuals only — no extra stats. | Generated mesh (shipped bake) |
+| **Bison** (pickup) | `bison.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-bison-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 | **Käferkraft** (buggy) | `kaeferkraft.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-kaeferkraft-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 | **Käferkraft Totenkopf** (nose) | `props/buggy-skull.glb` | Tripo3D from Asphalt-Comic skull concept (horns in-mesh) | Generated mesh (shipped bake) |
 | **Käferkraft Vogel** (nose) | `props/buggy-bird.glb` | Tripo3D from Asphalt-Comic bird concept | Generated mesh (shipped bake) |
 | **Käferkraft Hund** (nose) | `props/buggy-dog.glb` | Tripo3D from Asphalt-Comic dog concept | Generated mesh (shipped bake) |
-| **Donnerbüchse** (hotrod) | `donnerbuechse.glb` | [Hotrod](https://sketchfab.com/3d-models/hotrod-944a5d1535cd45cb82cafef5a8d991f7) by [car-go](https://sketchfab.com/car-go) on Sketchfab — albedo atlas kept under cel shading (`npm run cars:fetch-donnerbuechse` + `npm run cars:polish`). Provided by Sketchfab. | [CC-BY 4.0](http://creativecommons.org/licenses/by/4.0/) |
+| **Donnerbüchse** (hotrod) | `donnerbuechse.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-donnerbuechse-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 | **Bunker** (armor) | `bunker.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-bunker-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 
 ## Also useful
@@ -23,9 +24,10 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 
 - Collision stays silhouette (`collisionRadius`); mesh is visual only.
 - Loader strips embedded lights/cameras, skips outline shells on tiny shards, mesh-only bounds before autoscale.
-- Non-Hotrod cars get runtime Asphalt-Comic albedo atlases (`comicCarAtlases.ts`) + box UVs when exports lack usable TEXCOORD_0. Donnerbüchse keeps its Sketchfab atlas. Käferkraft keeps its Tripo albedo (garage paint recolors orange body pixels). Blitz keeps its Tripo albedo (garage paint recolors red body pixels). Bunker keeps its Tripo albedo (garage paint recolors pale armor pixels).
-- Rebuild Bison/Donnerbüchse: `npm run cars:polish`
-- Fetch Donnerbüchse source (needs `SKETCHFAB_API_TOKEN`): `npm run cars:fetch-donnerbuechse`
+- Cars with Tripo albedo keep the authored map. Garage paint recolors body pixels (Bison green, Donnerbüchse blue, Käferkraft orange, Blitz red, Bunker pale armor). Comic atlases (`comicCarAtlases.ts`) are a fallback when a GLB has no usable map.
+- Rebuild Bison from Tripo sources: `npm run cars:bake-bison-tripo` (needs `assets/tripo-out/bison/`, gitignored)
+- Rebuild Donnerbüchse from Tripo sources: `npm run cars:bake-donnerbuechse-tripo` (needs `assets/tripo-out/donnerbuechse/`, gitignored)
 - Rebuild Käferkraft from Tripo sources: `npm run cars:bake-kaeferkraft-tripo` (needs `assets/tripo-out/`, gitignored)
 - Rebuild Blitz from Tripo sources: `npm run cars:bake-blitz-tripo` (needs `assets/tripo-out/blitz/`, gitignored)
 - Rebuild Bunker from Tripo sources: `npm run cars:bake-bunker-tripo` (needs `assets/tripo-out/bunker/`, gitignored)
+- Shared spinning wheel: `public/models/props/comic-wheel.glb` from `assets/tripo-concepts/comic-wheel.png` (`npm run cars:bake-wheels-tripo`). Runtime covers painted-on tires; Donnerbüchse rears are scaled larger.

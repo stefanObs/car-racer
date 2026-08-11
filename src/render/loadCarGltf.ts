@@ -14,6 +14,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { CAR_IDS, type CarId } from "../data/cars";
 import { CAR_MODELS, type CarModelSpec } from "../data/carModels";
 import { applyBuggyNoseVariant, isBuggySkullHornMesh } from "./buggyNose";
+import { mountCarWheels, preloadComicWheel } from "./carWheels";
 import { buggyNoseTexture } from "./buggyNoseTextures";
 import { applyCarStickers, carUsesNoseVariants } from "./carStickers";
 import { comicToon, outlineMaterial, inflateGeometry } from "./comicMaterials";
@@ -54,6 +55,7 @@ export function preloadCarModels(): Promise<void> {
         templates.set(id, { root, spec });
       }),
     );
+    await preloadComicWheel();
   })();
   return preloadPromise;
 }
@@ -87,6 +89,7 @@ export function cloneGltfCar(id: CarId, paint: string, sticker = "none"): Group 
   wrap.userData.gearClass = hit.spec.gearClass;
   wrap.userData.fromGltf = true;
   wrap.add(clone);
+  wrap.userData.wheels = mountCarWheels(wrap, id);
   return wrap;
 }
 
