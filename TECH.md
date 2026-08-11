@@ -81,6 +81,14 @@ tests/
 - **Collision** is a circle (`collisionRadius`) — visual mesh may overhang.
 - Provenance: `public/models/cars/SOURCES.md`
 
+### Race FX (shared, all cars)
+
+- Damage smoke, repair sparks, and nitro trails are **shared** Tripo meshes (`public/models/fx/`), not per-car cosmetics and not stickers.
+- Boot: `preloadFxModels()`. `upgradeCarFx` swaps placeholder spheres after `buildComicCar` using the car mesh rear (−Z).
+- Sim contract unchanged: `RaceRenderer` shows/hides/animates from damage stage, `healFx`, and nitro drain. Nitro is orange/cyan (`#FF7A18` / `#3DB9C7`) — no purple bloom.
+- Authoring bake: `fx:bake-tripo` from `assets/tripo-out/fx/` (gitignored). Provenance: `public/models/fx/README.md`.
+
+
 ### Track kit (walls + harbor scenery)
 
 - Asphalt/grass ribbons stay spline-extruded. Discrete walls/obstacles/scenery use a small Tripo kit in `public/models/track/`.

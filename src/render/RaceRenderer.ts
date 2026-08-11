@@ -415,6 +415,12 @@ export class RaceRenderer {
       );
     }
 
+    if (import.meta.env.DEV) {
+      const w = window as unknown as { __ccCars?: typeof session.cars; __ccFxTripo?: boolean };
+      w.__ccCars = session.cars;
+      w.__ccFxTripo = [...this.carVisuals.values()].every((v) => v.smoke.userData.tripoFx === true);
+    }
+
     const player = session.player();
     if (celebrate) {
       this.ensureCelebrateBurst(session, celebrate);

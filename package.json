@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.11",
+  "version": "0.3.12",
   "private": true,
   "type": "module",
   "description": "Crash Circuit \u2014 arcade racer (free OSS stack)",
@@ -28,7 +28,8 @@
     "cars:fetch-buggy-noses": "node scripts/fetch-buggy-noses.mjs",
     "cars:bake-buggy-noses": "node scripts/bake-buggy-noses.mjs",
     "track:bake-tripo": "node scripts/bake-track-tripo.mjs",
-    "garage:bake-tripo": "node scripts/bake-garage-tripo.mjs"
+    "garage:bake-tripo": "node scripts/bake-garage-tripo.mjs",
+    "fx:bake-tripo": "node scripts/bake-fx-tripo.mjs"
   },
   "engines": {
     "node": ">=20"
