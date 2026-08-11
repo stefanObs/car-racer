@@ -23,7 +23,9 @@ import { createCarState } from "../sim/vehicle";
 import { surfaceAt } from "../sim/zones";
 import { sampleCenterline } from "../track/buildTrack";
 import { CARS, type CarId } from "../data/cars";
+import type { PartId } from "../data/parts";
 import type { FinishCelebrate } from "../ui/finishCelebrate";
+import { garageLookCacheKey } from "./blitzParts";
 import { finishCelebrateProgress, isPodiumPlace } from "../ui/finishCelebrate";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
@@ -180,7 +182,9 @@ export class RaceRenderer {
     this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);
     if (import.meta.env.DEV) {
-      (window as unknown as { __idleCar?: Group }).__idleCar = visual.root;
+      const dbg = window as unknown as { __idleCar?: Group; __garageBay?: Group };
+      dbg.__idleCar = visual.root;
+      dbg.__garageBay = this.idleGroup;
     }
 
     this.applyGarageEnvironment();
@@ -240,8 +244,8 @@ export class RaceRenderer {
       this.idleCar.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
     }
     // Front-biased camera — nose toward viewer
-    this.camera.position.set(3.2, 2.35, 7.6);
-    this.camera.lookAt(1.5, 0.85, 0.2);
+    this.camera.position.set(3.4, 2.7, 9.2);
+    this.camera.lookAt(1.5, 0.9, 0.2);
     this.renderer.render(this.scene, this.camera);
   }
 

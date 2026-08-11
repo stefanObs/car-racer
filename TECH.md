@@ -72,7 +72,8 @@ tests/
 - Drop `{carId}.glb` into `public/models/cars/` (see README there).
 - Tunables: `src/data/carModels.ts` (`scale`, `yaw`, `collisionRadius`).
 - Boot calls `preloadCarModels()`; all five GLBs are required (no procedural fallback).
-- Donnerbüchse mesh: Sketchfab Hotrod (CC-BY 4.0, credit car-go + Sketchfab); fetch with `SKETCHFAB_API_TOKEN`.
+- Bison mesh: Tripo3D authoring bake (`cars:bake-bison-tripo`); runtime is the shipped GLB (no Tripo at play time).
+- Donnerbüchse mesh: Tripo3D authoring bake (`cars:bake-donnerbuechse-tripo`); runtime is the shipped GLB (no Tripo at play time).
 - Bunker mesh: Tripo3D authoring bake (`cars:bake-bunker-tripo`); runtime is the shipped GLB (no Tripo at play time).
 - Käferkraft mesh + nose props: Tripo3D authoring bake (`cars:bake-kaeferkraft-tripo`); runtime is the shipped GLBs (no Tripo at play time).
 - Blitz mesh: Tripo3D authoring bake (`cars:bake-blitz-tripo`); runtime is the shipped GLB (no Tripo at play time).

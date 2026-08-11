@@ -49,6 +49,7 @@ describe("garage hub", () => {
     expect(pad).toBeTruthy();
     expect(pad!.position.x).toBe(GARAGE_PAD_CENTER.x);
     expect(pad!.position.z).toBe(GARAGE_PAD_CENTER.z);
+    expect(bay.getObjectByName("garageStock")).toBeTruthy();
   });
 
   it("renders five category cars in the garage roster", () => {
