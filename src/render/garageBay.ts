@@ -6,37 +6,35 @@ import {
   MeshBasicMaterial,
   PlaneGeometry,
   PointLight,
-  TorusGeometry,
   type Texture,
 } from "three";
+import { GARAGE_PROP_IDS, GARAGE_PROPS } from "../data/garageProps";
 import { comicFlat, comicToon, withOutline } from "./comicMaterials";
 import {
   asphaltPadTexture,
   bannerTexture,
-  cabinetDoorTexture,
-  crateFaceTexture,
-  drumLabelTexture,
   floorTexture,
   hazardChevronTexture,
   posterTexture,
   skyPeekTexture,
   wallPanelTexture,
-  woodBenchTexture,
 } from "./garageTextures";
-import { buildBenchLooseTools, buildGarageToolRack } from "./garageToolRack";
+import { cloneGarageProp } from "./loadGarageGltf";
 import { ComicPalette } from "./palette";
+
+/** Turntable pad center — car sits here; workshop props stay off this volume. */
+export const GARAGE_PAD_CENTER = { x: 1.5, y: 0.04, z: 0 } as const;
 
 /** Bright unlit atlas fill — garage env stays sunny (toon gradient would muddle maps). */
 function mapped(map: Texture, fallback = 0xffffff) {
   return comicFlat(fallback, { map });
 }
 
-/** Bright Asphalt-Comic tuner garage — textured props, daylight fill. */
+/** Bright Asphalt-Comic tuner garage — architecture + Tripo workshop stock. */
 export function buildGarageBay(): Group {
   const g = new Group();
   g.name = "garageBay";
 
-  // Local fill so the bay reads sunny even under race lighting defaults
   const keyFill = new PointLight(0xfff4e0, 3.2, 32, 1.2);
   keyFill.position.set(1.5, 7.2, 2);
   const rimFill = new PointLight(0xc8e4ff, 1.8, 24, 1.4);
@@ -50,10 +48,10 @@ export function buildGarageBay(): Group {
   g.add(floor);
 
   const pad = withOutline(new BoxGeometry(11, 0.08, 16), mapped(asphaltPadTexture(), 0x8a9098), 0.04);
-  pad.position.set(1.5, 0.04, 0);
+  pad.name = "garagePad";
+  pad.position.set(GARAGE_PAD_CENTER.x, GARAGE_PAD_CENTER.y, GARAGE_PAD_CENTER.z);
   g.add(pad);
 
-  // Door threshold checker
   for (let i = 0; i < 10; i++) {
     const tile = new Mesh(
       new PlaneGeometry(1.15, 1.15),
@@ -72,7 +70,6 @@ export function buildGarageBay(): Group {
   right.position.set(12.5, 5.5, 0);
   g.add(back, left, right);
 
-  // Open bay door — bright sky peek
   const doorL = withOutline(new BoxGeometry(0.5, 8, 0.5), comicFlat(0x8b9098), 0.04);
   doorL.position.set(8.5, 4, 11.2);
   const doorR = withOutline(new BoxGeometry(0.5, 8, 0.5), comicFlat(0x8b9098), 0.04);
@@ -90,7 +87,6 @@ export function buildGarageBay(): Group {
   hazard.position.set(1.5, 1.15, -10.72);
   g.add(hazard);
 
-  // Ceiling lamp banks — brighter emissive panels
   for (const z of [-5, 0, 5] as const) {
     const housing = withOutline(new BoxGeometry(9, 0.35, 0.9), comicFlat(0x5c636a), 0.03);
     housing.position.set(1.5, 9.6, z);
@@ -110,117 +106,6 @@ export function buildGarageBay(): Group {
   const bannerBarBot = withOutline(new BoxGeometry(12.6, 0.18, 0.2), comicFlat(ComicPalette.repairSpark), 0.03);
   bannerBarBot.position.set(1.5, 6.7, -10.65);
   g.add(banner, bannerBar, bannerBarBot);
-
-  for (const [x, z] of [
-    [-8.2, -7],
-    [-8.2, -3.5],
-    [-8.2, 0],
-  ] as const) {
-    const cab = withOutline(new BoxGeometry(1.8, 2.4, 1.2), mapped(cabinetDoorTexture(), 0xe03131), 0.05);
-    cab.position.set(x, 1.2, z);
-    const handle = withOutline(new BoxGeometry(0.15, 0.5, 0.08), comicFlat(ComicPalette.repairSpark), 0.02);
-    handle.position.set(x + 0.95, 1.3, z);
-    const vent = withOutline(new BoxGeometry(1.4, 0.12, 0.9), comicFlat(0x343a40), 0.02);
-    vent.position.set(x, 2.35, z);
-    g.add(cab, handle, vent);
-  }
-
-  const benchTop = withOutline(new BoxGeometry(4.2, 0.2, 1.4), mapped(woodBenchTexture(), 0xc48a4a), 0.04);
-  benchTop.position.set(8.5, 1.15, -7.5);
-  const benchLegL = withOutline(new BoxGeometry(0.25, 1.1, 1.2), comicFlat(0x6c7178), 0.03);
-  benchLegL.position.set(7, 0.55, -7.5);
-  const benchLegR = withOutline(new BoxGeometry(0.25, 1.1, 1.2), comicFlat(0x6c7178), 0.03);
-  benchLegR.position.set(10, 0.55, -7.5);
-  g.add(benchTop, benchLegL, benchLegR);
-  const benchTools = buildBenchLooseTools();
-  benchTools.position.set(8.5, 1.28, -7.5);
-  g.add(benchTools);
-
-  const shelf = withOutline(new BoxGeometry(4.5, 0.18, 1), comicFlat(0xb8bdc4), 0.03);
-  shelf.position.set(8.5, 2.6, -9.2);
-  const shelfBracketL = withOutline(new BoxGeometry(0.12, 0.6, 0.8), comicFlat(0x868e96), 0.02);
-  shelfBracketL.position.set(6.5, 2.35, -9.2);
-  const shelfBracketR = withOutline(new BoxGeometry(0.12, 0.6, 0.8), comicFlat(0x868e96), 0.02);
-  shelfBracketR.position.set(10.5, 2.35, -9.2);
-  g.add(shelf, shelfBracketL, shelfBracketR);
-
-  const crateColors = ["#E03131", "#339AF0", "#F08C00", "#37B24D"] as const;
-  for (let i = 0; i < 4; i++) {
-    const hex = crateColors[i]!;
-    const crate = withOutline(
-      new BoxGeometry(0.85, 0.7, 0.7),
-      mapped(crateFaceTexture(hex), Number.parseInt(hex.slice(1), 16)),
-      0.04,
-    );
-    crate.position.set(7 + i * 1.05, 3.05, -9.15);
-    g.add(crate);
-  }
-  // Floor crate stack
-  for (let i = 0; i < 2; i++) {
-    const crate = withOutline(
-      new BoxGeometry(1.1, 0.9, 0.95),
-      mapped(crateFaceTexture("#F08C00"), 0xf08c00),
-      0.04,
-    );
-    crate.position.set(-9.2, 0.45 + i * 0.95, 2.2);
-    g.add(crate);
-  }
-
-  for (const [x, z] of [
-    [9.5, 3.5],
-    [10.6, 4.2],
-    [-9, 5],
-    [-9.8, 5.8],
-  ] as const) {
-    const drum = withOutline(
-      new CylinderGeometry(0.55, 0.55, 1.4, 12),
-      mapped(drumLabelTexture(), 0xe8590c),
-      0.04,
-    );
-    drum.position.set(x, 0.7, z);
-    const band = new Mesh(new CylinderGeometry(0.57, 0.57, 0.12, 12), comicFlat(ComicPalette.outline));
-    band.position.set(x, 1.05, z);
-    const rim = new Mesh(new CylinderGeometry(0.58, 0.58, 0.08, 12), comicFlat(0xf8f9fa));
-    rim.position.set(x, 1.35, z);
-    g.add(drum, band, rim);
-  }
-
-  for (const [x, z, n] of [
-    [-7.2, 4.5, 4],
-    [7.8, 5.5, 3],
-    [-8.5, -0.5, 3],
-    [10.2, -2, 4],
-  ] as const) {
-    for (let i = 0; i < n; i++) {
-      const tire = withOutline(new TorusGeometry(0.55, 0.22, 8, 16), comicToon(ComicPalette.tire), 0.04);
-      tire.rotation.x = Math.PI / 2;
-      tire.position.set(x, 0.35 + i * 0.48, z);
-      g.add(tire);
-      if (i === n - 1) {
-        const stripe = new Mesh(
-          new TorusGeometry(0.55, 0.08, 6, 12),
-          comicToon(ComicPalette.tireAccent),
-        );
-        stripe.rotation.x = Math.PI / 2;
-        stripe.position.set(x, 0.35 + i * 0.48, z);
-        g.add(stripe);
-      }
-    }
-  }
-
-  for (const x of [-1.2, 4.2] as const) {
-    for (const z of [-2.5, 2.5] as const) {
-      const stand = withOutline(
-        new CylinderGeometry(0.12, 0.28, 0.55, 6),
-        comicFlat(0x8b9098),
-        0.03,
-      );
-      stand.position.set(x, 0.28, z);
-      const padTop = withOutline(new CylinderGeometry(0.32, 0.32, 0.08, 8), comicFlat(0xf8f9fa), 0.02);
-      padTop.position.set(x, 0.58, z);
-      g.add(stand, padTop);
-    }
-  }
 
   const posterAccents = ["#339AF0", "#F08C00", "#E03131", "#37B24D"] as const;
   for (let i = 0; i < 4; i++) {
@@ -242,10 +127,22 @@ export function buildGarageBay(): Group {
     g.add(cone, band);
   }
 
-  // Tool rack just above locker tops (arm height, camera-left)
-  const toolRack = buildGarageToolRack();
-  toolRack.position.set(-8.2, 2.75, -10.7);
-  g.add(toolRack);
-
+  g.add(placeWorkshopStock());
   return g;
+}
+
+/** Tripo cabinet / bench / tires / shelf / drums along walls — pad stays clear. */
+function placeWorkshopStock(): Group {
+  const stock = new Group();
+  stock.name = "garageStock";
+  for (const id of GARAGE_PROP_IDS) {
+    const spec = GARAGE_PROPS[id];
+    const inst = cloneGarageProp(id);
+    if (!inst) continue;
+    inst.position.set(spec.position.x, spec.position.y, spec.position.z);
+    inst.rotation.y = spec.yaw;
+    inst.scale.setScalar(spec.scale);
+    stock.add(inst);
+  }
+  return stock;
 }

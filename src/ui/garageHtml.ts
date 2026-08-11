@@ -173,12 +173,13 @@ export function renderGarageHtml(opts: {
           </section>`
         : `<section class="garage-equip" aria-label="Ausrüstung">
       <h2 class="garage-section garage-section--equip">Ausrüsten <span class="dim">(${car.name})</span></h2>
-      <div class="garage-parts">
-        ${equipRows || `<p class="dim">Noch keine Teile — unten im Laden kaufen.</p>`}
+      <p class="garage-stock-hint dim">Bestand — nur ${car.name}</p>
+      <div class="garage-parts garage-parts--grid">
+        ${equipRows || `<p class="dim garage-parts__empty">Noch keine Teile — unten im Laden kaufen.</p>`}
       </div>
       <h3 class="garage-sub">Laden</h3>
-      <div class="garage-parts garage-parts--shop">
-        ${shopRows || `<p class="dim">Alles gekauft. Zeit zum Rennen!</p>`}
+      <div class="garage-parts garage-parts--grid garage-parts--shop">
+        ${shopRows || `<p class="dim garage-parts__empty">Alles gekauft. Zeit zum Rennen!</p>`}
       </div>
     </section>
 

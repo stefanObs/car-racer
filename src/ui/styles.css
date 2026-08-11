@@ -390,10 +390,45 @@ button.garage-cta--primary {
   outline: 2px solid #ffe066;
 }
 
+.garage-stock-hint {
+  margin: -2px 0 8px;
+  font-size: 0.82rem;
+}
+
 .garage-parts {
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.garage-parts--grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.garage-parts__empty {
+  grid-column: 1 / -1;
+}
+
+.garage-part {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 2px solid var(--outline);
+  border-radius: 4px;
+  background: rgba(18, 20, 26, 0.55);
+  overflow: hidden;
+}
+
+.garage-part small {
+  padding: 0 8px 8px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.garage-part.is-on {
+  border-color: #37b24d;
 }
 
 .garage-part.is-on .garage-part__btn {
@@ -403,11 +438,15 @@ button.garage-cta--primary {
 
 .garage-part__btn {
   display: grid;
-  grid-template-columns: auto 1fr auto;
-  gap: 8px;
+  grid-template-columns: auto 1fr;
+  grid-template-rows: auto auto;
+  gap: 4px 8px;
   align-items: center;
   width: 100%;
   text-align: left;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .garage-part__state {
@@ -427,8 +466,14 @@ button.garage-cta--primary {
   color: #1b1b1f;
 }
 
+.garage-part__name {
+  min-width: 0;
+  font-weight: 700;
+}
+
 .garage-part__action {
-  font-size: 0.8rem;
+  grid-column: 1 / -1;
+  font-size: 0.78rem;
   color: #ffe066;
 }
 

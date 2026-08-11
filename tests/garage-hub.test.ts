@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { emptyKit } from "../src/meta/save";
-import { buildGarageBay } from "../src/render/garageBay";
+import { buildGarageBay, GARAGE_PAD_CENTER } from "../src/render/garageBay";
 import { CAR_PAINT_BLACK } from "../src/render/palette";
 import { renderGarageHtml } from "../src/ui/garageHtml";
 
@@ -17,6 +17,7 @@ describe("garage hub", () => {
     });
     expect(html).toContain("Garage");
     expect(html).toContain("Ausrüsten");
+    expect(html).toContain("Bestand — nur Blitz");
     expect(html).toContain("Ablegen");
     expect(html).toContain("Kaufen");
     expect(html).toContain('data-act="cup"');
@@ -44,6 +45,10 @@ describe("garage hub", () => {
     const bay = buildGarageBay();
     expect(bay.name).toBe("garageBay");
     expect(bay.children.length).toBeGreaterThan(20);
+    const pad = bay.getObjectByName("garagePad");
+    expect(pad).toBeTruthy();
+    expect(pad!.position.x).toBe(GARAGE_PAD_CENTER.x);
+    expect(pad!.position.z).toBe(GARAGE_PAD_CENTER.z);
   });
 
   it("renders five category cars in the garage roster", () => {
