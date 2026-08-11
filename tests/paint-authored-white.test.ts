@@ -60,22 +60,30 @@ describe("Käferkraft orange body → garage paint", () => {
 });
 
 describe("Blitz red body → garage paint", () => {
-  it("treats bright saturated red as body, not dark taillights or orange", () => {
+  it("treats bright and shaded red as body, not black trim or orange", () => {
     expect(isRedBodyPixel(224, 49, 49)).toBe(true);
-    expect(isRedBodyPixel(90, 20, 20)).toBe(false);
+    expect(isRedBodyPixel(90, 20, 20)).toBe(true);
+    expect(isRedBodyPixel(42, 24, 20)).toBe(true);
+    expect(isRedBodyPixel(19, 7, 7)).toBe(true);
     expect(isRedBodyPixel(220, 110, 40)).toBe(false);
     expect(isRedBodyPixel(20, 20, 22)).toBe(false);
   });
 
-  it("recolors red pixels and leaves dark lights alone", () => {
+  it("recolors shaded red into a darker paint, not leftover dark red", () => {
     const data = new Uint8ClampedArray([
       210, 48, 48, 255,
       80, 18, 18, 255,
+      19, 7, 7, 255,
+      20, 20, 22, 255,
     ]);
     const n = recolorRedBodyPixels(data, 0.07, 0.72, 0.53); // teal
-    expect(n).toBe(1);
+    expect(n).toBe(3);
     expect(data[1]!).toBeGreaterThan(data[0]!);
-    expect(data[4]).toBe(80);
+    expect(data[5]!).toBeGreaterThan(data[4]!);
+    expect(data[5]!).toBeLessThan(data[1]!);
+    expect(data[4]).not.toBe(80);
+    expect(data[9]!).toBeGreaterThan(data[8]!);
+    expect(data[12]).toBe(20);
   });
 });
 

@@ -29,9 +29,20 @@ export function isOrangeBodyPixel(r: number, g: number, b: number): boolean {
   return r >= 90 && r >= g + 12 && r >= b + 28 && g >= b - 8 && r + g + b >= 180;
 }
 
-/** Tripo Blitz body (bright saturated red, not dark taillights or orange trim). */
+/**
+ * Tripo Blitz body — any luminance of chromatic red, including comic shadows.
+ * Skips black trim/tires, grey, and orange.
+ */
 export function isRedBodyPixel(r: number, g: number, b: number): boolean {
-  return r >= 140 && r >= g + 50 && r >= b + 50 && Math.abs(g - b) <= 45 && g <= 110 && b <= 110;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const chroma = max - min;
+  if (max < 16 || r < max) return false;
+  if (chroma / max < 0.22) return false;
+  if (r < g + 8 || r < b + 8) return false;
+  if (g >= r * 0.38 && g > b + 20) return false;
+  if (b >= r * 0.38 && b > g + 20) return false;
+  return true;
 }
 
 function shadeMatchingPixels(
