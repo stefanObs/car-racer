@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-11 — v3.21 Blitz Tripo GT mesh
+
+- Trigger: user — generate a new Blitz car with Tripo3D
+- Decision: Authoring-time Tripo from Asphalt-Comic 3/4-front concept; runtime ships baked GLB (no Tripo at play). Nose +Z like the previous sport mesh. Garage paint recolors red body pixels; side stickers stay on. Cosmetics still no stats.
+- CONCEPT §§ touched: Dokumentstand v3.21 (class look in §2 / §5.1 unchanged)
+
 ### 2026-08-11 — v3.20 Garage car preview then buy
 
 - Trigger: user — clicking a car that must be bought should show a clearly marked preview, plus a Buy button

@@ -255,7 +255,7 @@ export function applyCarStickers(root: Object3D, carId: CarId, stickerRaw: strin
     return;
   }
 
-  if (carId === "donnerbuechse") {
+  if (carId === "donnerbuechse" || carId === "blitz") {
     patchAuthoredSideStickers(root, carId, sticker, slots);
     return;
   }
@@ -417,9 +417,14 @@ function patchAuthoredSideStickers(
   });
 }
 
+/** Cache must include the source map — paint-baked atlases are distinct textures. */
+export function authoredSideCacheKey(carId: CarId, sticker: string, source: Texture): string {
+  return `authored-side:${carId}:${sticker}:${source.uuid}`;
+}
+
 function stampAuthoredSide(base: Texture, carId: CarId, sticker: string): Texture {
   if (!textureImageReady(base)) return base;
-  const key = `authored-side:${carId}:${sticker}`;
+  const key = authoredSideCacheKey(carId, sticker, base);
   const hit = texCache.get(key);
   if (hit) return hit;
   const img = base.image as { width: number; height: number };

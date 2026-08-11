@@ -58,6 +58,18 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(isKaeferkraftRoofLampMesh(engineChrome)).toBe(false);
   });
 
+  it("blitz ships a Tripo BodyPaint GT coupe", () => {
+    const path = resolve("public/models/cars/blitz.glb");
+    const buf = readFileSync(path);
+    expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
+    const text = buf.toString("latin1");
+    expect(text).toContain("BodyPaint");
+    expect(statSync(path).size).toBeGreaterThan(20_000);
+    expect(statSync(path).size).toBeLessThan(8_000_000);
+    expect(CAR_MODELS.blitz.scale).toBe(1);
+    expect(CAR_MODELS.blitz.yaw).toBe(0);
+  });
+
   it("kaeferkraft ships a Tripo BodyPaint buggy (noses are separate props)", () => {
     const path = resolve("public/models/cars/kaeferkraft.glb");
     const buf = readFileSync(path);

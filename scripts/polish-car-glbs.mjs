@@ -5,6 +5,7 @@
  * - Donnerbüchse: Sketchfab Hotrod by car-go (CC-BY 4.0) — texture-split comic bake.
  * - Bunker: Sketchfab Hummer HX concept low poly by NoOb StUfFs (CC-BY 4.0).
  * - Käferkraft: Tripo arcade bake (`npm run cars:bake-kaeferkraft-tripo`)
+ * - Blitz: Tripo arcade bake (`npm run cars:bake-blitz-tripo`)
  *
  * Usage: node scripts/polish-car-glbs.mjs
  * Hotrod source: public/models/cars/donnerbuechse.source.glb (gitignored)

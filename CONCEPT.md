@@ -494,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.20 — Garage: ungekauftes Auto als markierte Vorschau, Kauf extra.*
+*Dokumentstand: Konzept v3.21 — Blitz Sportwagen: Tripo-Mesh, Aufkleber unverändert.*

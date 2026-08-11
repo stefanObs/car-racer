@@ -4,7 +4,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 
 | Car | File | Source | License |
 |-----|------|--------|---------|
-| **Blitz** (sport) | `blitz.glb` | Quaternius Sports Car via [GetGLB](https://www.getglb.com/vehicles/sports-car/) → `Sports-Car.glb` | Free redistrib (GetGLB mirror) |
+| **Blitz** (sport) | `blitz.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-blitz-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 | **Bison** (pickup) | `bison.glb` | [Mitsubishi L200](https://poly.pizza/m/4qjS9tFhsJg) by Muhammad Reyhan (CC-BY 3.0) via Poly Pizza — rematerialized by `npm run cars:polish`; modern crew-cab curves. Silhouette also informed by [TurboSquid 1675577](https://www.turbosquid.com/3d-models/car-pickup-model-1675577) (ref only — TS mesh not shipped) | CC-BY 3.0 |
 | **Käferkraft** (buggy) | `kaeferkraft.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-kaeferkraft-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 | **Käferkraft Totenkopf** (nose) | `props/buggy-skull.glb` | Tripo3D from Asphalt-Comic skull concept (horns in-mesh) | Generated mesh (shipped bake) |
@@ -23,7 +23,8 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 
 - Collision stays silhouette (`collisionRadius`); mesh is visual only.
 - Loader strips embedded lights/cameras, skips outline shells on tiny shards, mesh-only bounds before autoscale.
-- Non-Hotrod cars get runtime Asphalt-Comic albedo atlases (`comicCarAtlases.ts`) + box UVs when exports lack usable TEXCOORD_0. Donnerbüchse keeps its Sketchfab atlas. Käferkraft keeps its Tripo albedo (garage paint recolors orange body pixels).
+- Non-Hotrod cars get runtime Asphalt-Comic albedo atlases (`comicCarAtlases.ts`) + box UVs when exports lack usable TEXCOORD_0. Donnerbüchse keeps its Sketchfab atlas. Käferkraft keeps its Tripo albedo (garage paint recolors orange body pixels). Blitz keeps its Tripo albedo (garage paint recolors red body pixels).
 - Rebuild Bison/Donnerbüchse/Bunker: `npm run cars:polish`
 - Fetch Donnerbüchse source (needs `SKETCHFAB_API_TOKEN`): `npm run cars:fetch-donnerbuechse`
 - Rebuild Käferkraft from Tripo sources: `npm run cars:bake-kaeferkraft-tripo` (needs `assets/tripo-out/`, gitignored)
+- Rebuild Blitz from Tripo sources: `npm run cars:bake-blitz-tripo` (needs `assets/tripo-out/blitz/`, gitignored)

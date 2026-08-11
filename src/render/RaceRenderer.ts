@@ -156,7 +156,7 @@ export class RaceRenderer {
     this.idleCar = null;
 
     const paint = look?.paint ?? "#E03131";
-    const sticker = look?.sticker ?? "flames";
+    const sticker = look?.sticker ?? "none";
     const modelId = look?.modelId ?? "blitz";
     this.idleLookKey = `${modelId}|${paint}|${sticker}`;
 

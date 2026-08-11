@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import {
   isNearWhitePaintPixel,
   isOrangeBodyPixel,
+  isRedBodyPixel,
   recolorNearWhitePixels,
   recolorOrangeBodyPixels,
+  recolorRedBodyPixels,
 } from "../src/render/paintAuthoredWhite";
 
 describe("bunker authored white → garage paint", () => {
@@ -54,6 +56,26 @@ describe("Käferkraft orange body → garage paint", () => {
     expect(n).toBe(1);
     expect(data[1]!).toBeGreaterThan(data[0]!);
     expect(data[4]).toBe(18);
+  });
+});
+
+describe("Blitz red body → garage paint", () => {
+  it("treats bright saturated red as body, not dark taillights or orange", () => {
+    expect(isRedBodyPixel(224, 49, 49)).toBe(true);
+    expect(isRedBodyPixel(90, 20, 20)).toBe(false);
+    expect(isRedBodyPixel(220, 110, 40)).toBe(false);
+    expect(isRedBodyPixel(20, 20, 22)).toBe(false);
+  });
+
+  it("recolors red pixels and leaves dark lights alone", () => {
+    const data = new Uint8ClampedArray([
+      210, 48, 48, 255,
+      80, 18, 18, 255,
+    ]);
+    const n = recolorRedBodyPixels(data, 0.07, 0.72, 0.53); // teal
+    expect(n).toBe(1);
+    expect(data[1]!).toBeGreaterThan(data[0]!);
+    expect(data[4]).toBe(80);
   });
 });
 

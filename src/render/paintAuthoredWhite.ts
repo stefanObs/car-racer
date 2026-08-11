@@ -1,6 +1,6 @@
 /**
- * Recolor near-white albedo pixels to garage paint (Bunker authored maps).
- * Keeps yellow/black/chromatic detail from the Hummer atlas.
+ * Recolor authored albedo pixels to garage paint (Bunker white, Käferkraft orange, Blitz red).
+ * Keeps trim / lights / cage pixels that fail the body-pixel test.
  */
 import {
   CanvasTexture,
@@ -29,20 +29,24 @@ export function isOrangeBodyPixel(r: number, g: number, b: number): boolean {
   return r >= 90 && r >= g + 12 && r >= b + 28 && g >= b - 8 && r + g + b >= 180;
 }
 
-/** Mutates RGBA buffer in place. paint channels are 0..1. */
-export function recolorNearWhitePixels(
+/** Tripo Blitz body (bright saturated red, not dark taillights or orange trim). */
+export function isRedBodyPixel(r: number, g: number, b: number): boolean {
+  return r >= 140 && r >= g + 50 && r >= b + 50 && Math.abs(g - b) <= 45 && g <= 110 && b <= 110;
+}
+
+function shadeMatchingPixels(
   data: Uint8ClampedArray | Uint8Array,
   paintR: number,
   paintG: number,
   paintB: number,
+  match: (r: number, g: number, b: number) => boolean,
 ): number {
   let changed = 0;
   for (let i = 0; i < data.length; i += 4) {
     const r = data[i]!;
     const g = data[i + 1]!;
     const b = data[i + 2]!;
-    if (!isNearWhitePaintPixel(r, g, b)) continue;
-    // Keep authored shading: scale paint by original luminance
+    if (!match(r, g, b)) continue;
     const lum = (r + g + b) / (3 * 255);
     const shade = 0.35 + 0.65 * lum;
     data[i] = Math.round(paintR * 255 * shade);
@@ -53,17 +57,34 @@ export function recolorNearWhitePixels(
   return changed;
 }
 
-/**
- * Returns a canvas texture with near-white body panels tinted to `paint`.
- * Falls back to the original map when canvas/image is unavailable.
- */
-export function bakeAuthoredWhiteToPaint(base: Texture, paint: string): Texture {
-  const key = `bunker-white:${paint}:${textureKey(base)}`;
-  const hit = cache.get(key);
+/** Mutates RGBA buffer in place. paint channels are 0..1. */
+export function recolorNearWhitePixels(
+  data: Uint8ClampedArray | Uint8Array,
+  paintR: number,
+  paintG: number,
+  paintB: number,
+): number {
+  return shadeMatchingPixels(data, paintR, paintG, paintB, isNearWhitePaintPixel);
+}
+
+type RecolorPixels = (
+  data: Uint8ClampedArray | Uint8Array,
+  paintR: number,
+  paintG: number,
+  paintB: number,
+) => number;
+
+function bakeAuthoredMap(
+  base: Texture,
+  paint: string,
+  cacheKey: string,
+  recolor: RecolorPixels,
+): Texture {
+  const hit = cache.get(cacheKey);
   if (hit) return hit;
 
   if (typeof document === "undefined" || !base.image) {
-    cache.set(key, base);
+    cache.set(cacheKey, base);
     return base;
   }
 
@@ -71,12 +92,12 @@ export function bakeAuthoredWhiteToPaint(base: Texture, paint: string): Texture 
   const w = Number(img.width ?? img.naturalWidth ?? 0);
   const h = Number(img.height ?? 0);
   if (w < 8 || h < 8) {
-    cache.set(key, base);
+    cache.set(cacheKey, base);
     return base;
   }
   if (typeof HTMLImageElement !== "undefined" && base.image instanceof HTMLImageElement) {
     if (!base.image.complete || base.image.naturalWidth < 1) {
-      cache.set(key, base);
+      cache.set(cacheKey, base);
       return base;
     }
   }
@@ -86,19 +107,19 @@ export function bakeAuthoredWhiteToPaint(base: Texture, paint: string): Texture 
   c.height = h;
   const ctx = c.getContext("2d");
   if (!ctx) {
-    cache.set(key, base);
+    cache.set(cacheKey, base);
     return base;
   }
   try {
     ctx.drawImage(base.image as CanvasImageSource, 0, 0, w, h);
   } catch {
-    cache.set(key, base);
+    cache.set(cacheKey, base);
     return base;
   }
 
   const imageData = ctx.getImageData(0, 0, w, h);
   const paintColor = new Color(paint);
-  recolorNearWhitePixels(imageData.data, paintColor.r, paintColor.g, paintColor.b);
+  recolor(imageData.data, paintColor.r, paintColor.g, paintColor.b);
   ctx.putImageData(imageData, 0, 0);
 
   const tex = new CanvasTexture(c);
@@ -108,8 +129,13 @@ export function bakeAuthoredWhiteToPaint(base: Texture, paint: string): Texture 
   tex.generateMipmaps = false;
   tex.flipY = base.flipY;
   tex.needsUpdate = true;
-  cache.set(key, tex);
+  cache.set(cacheKey, tex);
   return tex;
+}
+
+/** Canvas texture with matching body pixels tinted to `paint`; falls back to the original map. */
+export function bakeAuthoredWhiteToPaint(base: Texture, paint: string): Texture {
+  return bakeAuthoredMap(base, paint, `bunker-white:${paint}:${textureKey(base)}`, recolorNearWhitePixels);
 }
 
 /** Mutates RGBA: orange body panels → garage paint, keep cage/tire/chrome. */
@@ -119,75 +145,25 @@ export function recolorOrangeBodyPixels(
   paintG: number,
   paintB: number,
 ): number {
-  let changed = 0;
-  for (let i = 0; i < data.length; i += 4) {
-    const r = data[i]!;
-    const g = data[i + 1]!;
-    const b = data[i + 2]!;
-    if (!isOrangeBodyPixel(r, g, b)) continue;
-    const lum = (r + g + b) / (3 * 255);
-    const shade = 0.35 + 0.65 * lum;
-    data[i] = Math.round(paintR * 255 * shade);
-    data[i + 1] = Math.round(paintG * 255 * shade);
-    data[i + 2] = Math.round(paintB * 255 * shade);
-    changed++;
-  }
-  return changed;
+  return shadeMatchingPixels(data, paintR, paintG, paintB, isOrangeBodyPixel);
 }
 
 export function bakeAuthoredOrangeToPaint(base: Texture, paint: string): Texture {
-  const key = `kaeferkraft-orange:${paint}:${textureKey(base)}`;
-  const hit = cache.get(key);
-  if (hit) return hit;
+  return bakeAuthoredMap(base, paint, `kaeferkraft-orange:${paint}:${textureKey(base)}`, recolorOrangeBodyPixels);
+}
 
-  if (typeof document === "undefined" || !base.image) {
-    cache.set(key, base);
-    return base;
-  }
+/** Mutates RGBA: red body panels → garage paint, keep dark lights/trim. */
+export function recolorRedBodyPixels(
+  data: Uint8ClampedArray | Uint8Array,
+  paintR: number,
+  paintG: number,
+  paintB: number,
+): number {
+  return shadeMatchingPixels(data, paintR, paintG, paintB, isRedBodyPixel);
+}
 
-  const img = base.image as { width?: number; height?: number; complete?: boolean; naturalWidth?: number };
-  const w = Number(img.width ?? img.naturalWidth ?? 0);
-  const h = Number(img.height ?? 0);
-  if (w < 8 || h < 8) {
-    cache.set(key, base);
-    return base;
-  }
-  if (typeof HTMLImageElement !== "undefined" && base.image instanceof HTMLImageElement) {
-    if (!base.image.complete || base.image.naturalWidth < 1) {
-      cache.set(key, base);
-      return base;
-    }
-  }
-
-  const c = document.createElement("canvas");
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d");
-  if (!ctx) {
-    cache.set(key, base);
-    return base;
-  }
-  try {
-    ctx.drawImage(base.image as CanvasImageSource, 0, 0, w, h);
-  } catch {
-    cache.set(key, base);
-    return base;
-  }
-
-  const imageData = ctx.getImageData(0, 0, w, h);
-  const paintColor = new Color(paint);
-  recolorOrangeBodyPixels(imageData.data, paintColor.r, paintColor.g, paintColor.b);
-  ctx.putImageData(imageData, 0, 0);
-
-  const tex = new CanvasTexture(c);
-  tex.colorSpace = SRGBColorSpace;
-  tex.minFilter = NearestFilter;
-  tex.magFilter = NearestFilter;
-  tex.generateMipmaps = false;
-  tex.flipY = base.flipY;
-  tex.needsUpdate = true;
-  cache.set(key, tex);
-  return tex;
+export function bakeAuthoredRedToPaint(base: Texture, paint: string): Texture {
+  return bakeAuthoredMap(base, paint, `blitz-red:${paint}:${textureKey(base)}`, recolorRedBodyPixels);
 }
 
 function textureKey(tex: Texture): string {

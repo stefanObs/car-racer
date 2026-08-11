@@ -1,7 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { buggyNoseFromSticker } from "../src/render/buggyNose";
+import { Texture } from "three";
 import {
   BUNKER_DOOR_STICKER_RECTS,
+  authoredSideCacheKey,
   buildCarOverlays,
   clearOverlayTextureCache,
   overlayTextureCacheSize,
@@ -42,6 +44,17 @@ describe("car sticker textures", () => {
       expect(r.x + r.w).toBeLessThanOrEqual(1024);
       expect(r.y + r.h).toBeLessThanOrEqual(1024);
     }
+  });
+
+  it("keeps paint-baked Blitz atlases out of the shared sticker cache", () => {
+    const red = new Texture();
+    const teal = new Texture();
+    expect(authoredSideCacheKey("blitz", "flames", red)).not.toBe(
+      authoredSideCacheKey("blitz", "flames", teal),
+    );
+    expect(authoredSideCacheKey("blitz", "flames", red)).toBe(
+      authoredSideCacheKey("blitz", "flames", red),
+    );
   });
 
   it("no longer builds floating plane overlay meshes", () => {

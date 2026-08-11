@@ -23,7 +23,11 @@ import {
   comicAtlasForRole,
 } from "./comicCarAtlases";
 import { ensureComicBoxUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
-import { bakeAuthoredOrangeToPaint, bakeAuthoredWhiteToPaint } from "./paintAuthoredWhite";
+import {
+  bakeAuthoredOrangeToPaint,
+  bakeAuthoredRedToPaint,
+  bakeAuthoredWhiteToPaint,
+} from "./paintAuthoredWhite";
 
 type Template = {
   root: Object3D;
@@ -68,7 +72,12 @@ export function cloneGltfCar(id: CarId, paint: string, sticker = "none"): Group 
   applyCosmetics(clone, id, sticker);
   // Busy free-asset edges: outline shells read as black debris under wheel arches.
   addOutlineShells(clone, {
-    skip: id === "kaeferkraft" || id === "bison" || id === "donnerbuechse" || id === "bunker",
+    skip:
+      id === "blitz" ||
+      id === "kaeferkraft" ||
+      id === "bison" ||
+      id === "donnerbuechse" ||
+      id === "bunker",
   });
   const wrap = new Group();
   wrap.name = `gltf-${id}`;
@@ -302,36 +311,22 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
       const toon = mat as MeshToonMaterial;
       if (!toon.color) continue;
 
-      // Käferkraft: Tripo atlas — recolor orange body panels to garage paint.
-      if (carId === "kaeferkraft" && toon.map && (name.includes("body") || name.includes("paint"))) {
-        const prev = toon.map;
-        const hit = replaced.get(prev);
-        if (hit) {
-          toon.map = hit;
-        } else {
-          const next = bakeAuthoredOrangeToPaint(prev, paint);
-          replaced.set(prev, next);
-          toon.map = next;
+      if (toon.map && (name.includes("body") || name.includes("paint"))) {
+        const baker = authoredBodyPaintBaker(carId);
+        if (baker) {
+          const prev = toon.map;
+          const hit = replaced.get(prev);
+          if (hit) {
+            toon.map = hit;
+          } else {
+            const next = baker(prev, paint);
+            replaced.set(prev, next);
+            toon.map = next;
+          }
+          toon.color.setRGB(1, 1, 1);
+          toon.needsUpdate = true;
+          continue;
         }
-        toon.color.setRGB(1, 1, 1);
-        toon.needsUpdate = true;
-        continue;
-      }
-
-      // Bunker: authored Hummer atlas — recolor near-white body panels to garage paint.
-      if (carId === "bunker" && toon.map && (name.includes("body") || name.includes("paint"))) {
-        const prev = toon.map;
-        const hit = replaced.get(prev);
-        if (hit) {
-          toon.map = hit;
-        } else {
-          const next = bakeAuthoredWhiteToPaint(prev, paint);
-          replaced.set(prev, next);
-          toon.map = next;
-        }
-        toon.color.setRGB(1, 1, 1);
-        toon.needsUpdate = true;
-        continue;
       }
 
       // Full-color authored atlases (Hotrod): keep white so map reads true.
@@ -347,6 +342,15 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
       toon.color.copy(paintColor);
     }
   });
+}
+
+function authoredBodyPaintBaker(
+  carId: CarId | undefined,
+): ((map: Texture, paint: string) => Texture) | null {
+  if (carId === "blitz") return bakeAuthoredRedToPaint;
+  if (carId === "kaeferkraft") return bakeAuthoredOrangeToPaint;
+  if (carId === "bunker") return bakeAuthoredWhiteToPaint;
+  return null;
 }
 
 /** Exported for unit tests — free GLBs rarely use BodyPaint. */
