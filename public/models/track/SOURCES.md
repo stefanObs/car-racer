@@ -8,7 +8,7 @@ All modules are Tripo3D image-to-mesh from Asphalt-Comic concepts in `assets/tri
 | Concrete wall | `track-concrete-wall.png` | same |
 | Fence | `track-fence.png` | same |
 | Crane | `track-crane.png` | same |
-| Container | `track-container.png` | optional — primitive fallback if GLB absent |
-| Tank | `track-tank.png` | optional — primitive fallback if GLB absent |
+| Container | `track-container.png` | `npm run track:bake-tripo` (container) |
+| Tank | `track-tank.png` | `npm run track:bake-tripo` (tank) |
 
 Style lock: `.cursor/skills/asphalt-comic-art/reference.png`.

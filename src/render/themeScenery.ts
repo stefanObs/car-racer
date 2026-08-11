@@ -4,7 +4,7 @@ import { CONTAINER_TINTS } from "../data/trackModels";
 import type { BuiltTrack } from "../track/types";
 import { nearestOnTrack, sampleCenterline } from "../track/buildTrack";
 import { comicToon, withOutline } from "./comicMaterials";
-import { hasTrackProp } from "./loadTrackGltf";
+import { hasTrackProp, propHeightFor } from "./loadTrackGltf";
 import { ComicPalette } from "./palette";
 import { instanceTrackProp } from "./trackKit";
 
@@ -221,9 +221,10 @@ function makeContainerStack(x: number, z: number, yaw: number): Group {
     g.position.set(x, 0, z);
     g.rotation.y = yaw;
     g.userData.trackProp = "container";
+    const stackH = propHeightFor("container");
     for (let i = 0; i < 3; i++) {
       const tint = CONTAINER_TINTS[i % CONTAINER_TINTS.length];
-      const c = instanceTrackProp("container", (i - 1) * 0.25, 0, 0, i * 2.35, tint);
+      const c = instanceTrackProp("container", (i - 1) * 0.25, 0, 0, i * stackH, tint);
       if (c) g.add(c);
     }
     return g;

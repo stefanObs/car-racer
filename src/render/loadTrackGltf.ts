@@ -49,16 +49,18 @@ export function preloadTrackModels(): Promise<void> {
         heightY: Math.max(0, box.max.y - box.min.y),
       });
     };
-    await Promise.all(REQUIRED_TRACK_PROP_IDS.map((id) => loadOne(id)));
-    await Promise.all(
-      OPTIONAL_TRACK_PROP_IDS.map(async (id) => {
-        try {
-          await loadOne(id);
-        } catch {
-          // Credits-limited extras stay as primitive scenery.
-        }
-      }),
-    );
+    await Promise.all([
+      Promise.all(REQUIRED_TRACK_PROP_IDS.map((id) => loadOne(id))),
+      Promise.all(
+        OPTIONAL_TRACK_PROP_IDS.map(async (id) => {
+          try {
+            await loadOne(id);
+          } catch {
+            // Harbor extras stay as primitive scenery if a GLB is absent.
+          }
+        }),
+      ),
+    ]);
   })();
   return preloadPromise;
 }

@@ -209,7 +209,7 @@ async function bakeProp(spec) {
   facePosZFromTripoX(doc);
   longestHorizontalTo(doc, spec.along);
   const sized = centerSitScale(doc, spec);
-  comicMaterial(doc, spec.id);
+  comicMaterial(doc, spec.id === "container" || spec.id === "tank" ? "BodyPaint" : spec.id);
   await simplifyDoc(doc, spec.simplify);
   mkdirSync(outDir, { recursive: true });
   const bytes = await io.writeBinary(doc);

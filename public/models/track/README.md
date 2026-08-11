@@ -8,8 +8,8 @@ Asphalt-Comic wall and harbor scenery modules. Collision stays on the spline rib
 | `concrete-wall.glb` | Straight outer walls + `concrete_barrier` obstacles |
 | `fence.glb` | Chain-link panel on top of concrete |
 | `crane.glb` | Harbor / city gantry |
-| `container.glb` | Optional harbor stacks (runtime tint); primitive fallback if absent |
-| `tank.glb` | Optional silo; primitive fallback if absent |
+| `container.glb` | Harbor stacks (runtime tint) |
+| `tank.glb` | Harbor silo |
 
 Rebuild: `npm run track:bake-tripo` (needs gitignored `assets/tripo-out/track/`).
 See [SOURCES.md](./SOURCES.md).

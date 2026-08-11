@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.14",
+  "version": "0.3.15",
   "private": true,
   "type": "module",
   "description": "Crash Circuit \u2014 arcade racer (free OSS stack)",

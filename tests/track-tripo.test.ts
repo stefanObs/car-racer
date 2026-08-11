@@ -4,7 +4,11 @@ import { describe, expect, it } from "vitest";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { getBounds } from "@gltf-transform/functions";
-import { REQUIRED_TRACK_PROP_IDS, TRACK_PROPS } from "../src/data/trackModels";
+import {
+  OPTIONAL_TRACK_PROP_IDS,
+  REQUIRED_TRACK_PROP_IDS,
+  TRACK_PROPS,
+} from "../src/data/trackModels";
 import { CUP_LEVELS } from "../src/data/levels";
 import { planSceneryAnchors, sceneryOverlapsTrack } from "../src/render/themeScenery";
 import { planWallPlacements } from "../src/render/trackKit";
@@ -70,5 +74,37 @@ describe("track kit + wall kinds", () => {
     const crane = await io.read(resolve("public/models/track/crane.glb"));
     const cb = getBounds(crane.getRoot().listScenes()[0]!);
     expect(cb.max[1]! - cb.min[1]!).toBeGreaterThan(12);
+  });
+
+  it("ships BodyPaint harbor container and tank GLBs that sit on y=0", async () => {
+    const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+    for (const id of OPTIONAL_TRACK_PROP_IDS) {
+      const path = resolve("public/models/track", `${id}.glb`);
+      expect(existsSync(path), path).toBe(true);
+      expect(TRACK_PROPS[id].url).toBe(`/models/track/${id}.glb`);
+      const buf = readFileSync(path);
+      expect(buf.byteLength, id).toBeGreaterThan(40_000);
+      expect(buf.subarray(0, 4).toString()).toBe("glTF");
+      expect(buf.toString("latin1")).toContain("BodyPaint");
+
+      const doc = await io.read(path);
+      const b = getBounds(doc.getRoot().listScenes()[0]!);
+      const sx = b.max[0]! - b.min[0]!;
+      const sy = b.max[1]! - b.min[1]!;
+      const sz = b.max[2]! - b.min[2]!;
+      expect(b.min[1], id).toBeCloseTo(0, 2);
+      if (id === "container") {
+        expect(sy).toBeGreaterThan(2.2);
+        expect(sy).toBeLessThan(2.9);
+        expect(Math.max(sx, sz)).toBeGreaterThan(4.5);
+        expect(Math.min(sx, sz)).toBeGreaterThan(2);
+        expect(Math.min(sx, sz)).toBeLessThan(3.2);
+      } else {
+        expect(sy).toBeGreaterThan(7);
+        expect(sy).toBeLessThan(8.6);
+        expect(sx).toBeGreaterThan(5);
+        expect(sz).toBeGreaterThan(5);
+      }
+    }
   });
 });
