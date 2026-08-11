@@ -1,14 +1,16 @@
 import { CylinderGeometry, Group, Mesh, SphereGeometry } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { CONTAINER_TINTS } from "../data/trackModels";
 import type { BuiltTrack } from "../track/types";
 import { nearestOnTrack, sampleCenterline } from "../track/buildTrack";
 import { comicToon, withOutline } from "./comicMaterials";
+import { hasTrackProp } from "./loadTrackGltf";
 import { ComicPalette } from "./palette";
+import { instanceTrackProp } from "./trackKit";
 
 const CRANE = 0xe85d04;
 const WATER = 0x2f6f9e;
 const SAND = 0xc2a66a;
-const CONTAINER = [0x339af0, 0xe03131, 0xf08c00, 0x37b24d] as const;
 
 /** Keep props off grass/asphalt, but close enough to read from chase cam. */
 export const SCENERY_CLEARANCE = 8;
@@ -198,6 +200,8 @@ function makeWaterPatch(x: number, z: number, size: number): Mesh {
 }
 
 function makeCrane(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("crane") ? instanceTrackProp("crane", x, z, yaw) : null;
+  if (kit) return kit;
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
@@ -212,13 +216,25 @@ function makeCrane(x: number, z: number, yaw: number): Group {
 }
 
 function makeContainerStack(x: number, z: number, yaw: number): Group {
+  if (hasTrackProp("container")) {
+    const g = new Group();
+    g.position.set(x, 0, z);
+    g.rotation.y = yaw;
+    g.userData.trackProp = "container";
+    for (let i = 0; i < 3; i++) {
+      const tint = CONTAINER_TINTS[i % CONTAINER_TINTS.length];
+      const c = instanceTrackProp("container", (i - 1) * 0.25, 0, 0, i * 2.35, tint);
+      if (c) g.add(c);
+    }
+    return g;
+  }
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
   for (let i = 0; i < 3; i++) {
     const c = withOutline(
       new RoundedBoxGeometry(2.5, 2.3, 6.2, 2, 0.12),
-      comicToon(CONTAINER[i % CONTAINER.length]!),
+      comicToon(CONTAINER_TINTS[i % CONTAINER_TINTS.length]!),
       0.05,
     );
     c.position.set((i - 1) * 0.25, 1.15 + i * 2.3, 0);
@@ -240,6 +256,8 @@ function makeShip(x: number, z: number, yaw: number): Group {
 }
 
 function makeSilo(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("tank") ? instanceTrackProp("tank", x, z, yaw) : null;
+  if (kit) return kit;
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;

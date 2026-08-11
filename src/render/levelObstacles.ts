@@ -2,7 +2,9 @@ import { Group, Mesh } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { LevelDefinition } from "../track/types";
 import { comicToon, withOutline } from "./comicMaterials";
+import { hasTrackProp } from "./loadTrackGltf";
 import { ComicPalette } from "./palette";
+import { instanceTrackProp } from "./trackKit";
 
 /**
  * On-track props.
@@ -34,6 +36,11 @@ export function buildLevelObstacles(level: LevelDefinition): Group {
 }
 
 function makeBarrier(x: number, z: number, radius: number): Group {
+  const kit = hasTrackProp("concrete-wall") ? instanceTrackProp("concrete-wall", x, z, 0) : null;
+  if (kit) {
+    kit.userData.obstacle = "concrete_barrier";
+    return kit;
+  }
   const g = new Group();
   g.position.set(x, 0, z);
   const w = Math.max(1.6, radius * 2);
@@ -47,6 +54,11 @@ function makeBarrier(x: number, z: number, radius: number): Group {
 }
 
 function makeTireObstacle(x: number, z: number): Group {
+  const kit = hasTrackProp("tire-wall") ? instanceTrackProp("tire-wall", x, z, 0) : null;
+  if (kit) {
+    kit.userData.obstacle = "tire_stack";
+    return kit;
+  }
   const g = new Group();
   g.position.set(x, 0, z);
   for (let i = 0; i < 3; i++) {

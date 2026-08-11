@@ -12,6 +12,8 @@ import type { BuiltTrack } from "../track/types";
 import { comicToon, withOutline } from "./comicMaterials";
 import { ComicPalette } from "./palette";
 import { buildFinishLine } from "./finishLine";
+import { hasTrackProp } from "./loadTrackGltf";
+import { instanceConcreteFenceBatch, instanceTrackPropBatch, planWallPlacements } from "./trackKit";
 
 function closedCurve(track: BuiltTrack, y = 0): CatmullRomCurve3 {
   const pts = track.centerline.map((p) => new Vector3(p.x, y, p.z));
@@ -91,44 +93,21 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
     }
   }
 
-  // Walls along centerline samples
-  const wallStep = Math.max(2, Math.floor(track.centerline.length / 60));
-  for (let i = 0; i < track.centerline.length - 1; i += wallStep) {
-    const a = track.centerline[i]!;
-    const b = track.centerline[Math.min(i + wallStep, track.centerline.length - 1)]!;
-    const mx = (a.x + b.x) / 2;
-    const mz = (a.z + b.z) / 2;
-    const len = Math.hypot(b.x - a.x, b.z - a.z) || 1;
-    const angle = Math.atan2(b.z - a.z, b.x - a.x);
-    const wallKind = track.wallKind[i] ?? "concrete";
-    const wallOff = track.asphaltHalfWidth + track.grassWidth + 0.65;
-
-    for (const side of [-1, 1] as const) {
-      const px = mx + Math.sin(angle) * wallOff * side;
-      const pz = mz - Math.cos(angle) * wallOff * side;
-      if (wallKind === "tire") {
-        root.add(makeTireStack(px, pz, -angle));
-      } else {
-        const wall = withOutline(
-          new RoundedBoxGeometry(Math.max(len, 1.2), 1.5, 0.55, 2, 0.08),
-          comicToon(i % 3 === 0 ? ComicPalette.concreteDark : ComicPalette.concrete),
-          0.05,
-        );
-        wall.position.set(px, 0.75, pz);
-        wall.rotation.y = -angle;
-        root.add(wall);
-
-        // Fence top
-        const fence = withOutline(new RoundedBoxGeometry(Math.max(len, 1.2), 0.55, 0.08, 1, 0.02), comicToon(ComicPalette.outline), 0.03);
-        fence.position.set(px + Math.sin(angle) * 0.2 * side, 1.55, pz - Math.cos(angle) * 0.2 * side);
-        fence.rotation.y = -angle;
-        root.add(fence);
-
-        if (i % (wallStep * 3) === 0) {
-          root.add(makeChevron(px, pz, -angle, side));
-        }
-      }
-    }
+  const places = planWallPlacements(track);
+  const tires = places.filter((p) => p.kind === "tire");
+  const cons = places.filter((p) => p.kind === "concrete");
+  const tireBatch = hasTrackProp("tire-wall") ? instanceTrackPropBatch("tire-wall", tires) : null;
+  if (tireBatch) {
+    tireBatch.userData.wallKind = "tire";
+    root.add(tireBatch);
+  } else {
+    for (const p of tires) root.add(makeTireStack(p.x, p.z, p.yaw));
+  }
+  const concreteBatch = hasTrackProp("concrete-wall") ? instanceConcreteFenceBatch(cons) : null;
+  if (concreteBatch) {
+    root.add(concreteBatch);
+  } else {
+    for (const p of cons) root.add(makeConcreteFallback(p.x, p.z, p.yaw, p.side));
   }
 
   root.add(buildFinishLine(track));
@@ -140,6 +119,8 @@ function makeTireStack(x: number, z: number, rotY: number): Group {
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = rotY;
+  g.userData.trackProp = "tire-wall";
+  g.userData.wallKind = "tire";
   for (let i = 0; i < 3; i++) {
     const tire = withOutline(
       new RoundedBoxGeometry(1.15, 0.38, 1.15, 3, 0.18),
@@ -152,6 +133,26 @@ function makeTireStack(x: number, z: number, rotY: number): Group {
   const stripe = new Mesh(new RoundedBoxGeometry(0.22, 0.22, 1.15, 1, 0.04), comicToon(ComicPalette.tireAccent));
   stripe.position.set(0, 0.85, 0);
   g.add(stripe);
+  return g;
+}
+
+function makeConcreteFallback(x: number, z: number, yaw: number, side: number): Group {
+  const g = new Group();
+  g.position.set(x, 0, z);
+  g.rotation.y = yaw;
+  g.userData.trackProp = "concrete-wall";
+  g.userData.wallKind = "concrete";
+  const wall = withOutline(
+    new RoundedBoxGeometry(1.8, 1.5, 0.55, 2, 0.08),
+    comicToon(ComicPalette.concrete),
+    0.05,
+  );
+  wall.position.y = 0.75;
+  g.add(wall);
+  const fence = withOutline(new RoundedBoxGeometry(1.8, 0.55, 0.08, 1, 0.02), comicToon(ComicPalette.outline), 0.03);
+  fence.position.set(0, 1.55, 0.12);
+  g.add(fence);
+  g.add(makeChevron(0, 0, 0, side));
   return g;
 }
 

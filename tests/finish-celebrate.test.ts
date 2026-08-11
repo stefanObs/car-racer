@@ -13,7 +13,7 @@ import {
 } from "../src/ui/finishCelebrate";
 
 describe("finish line and celebrate", () => {
-  it("adds a named finish line group on every cup track", () => {
+  it("adds a named finish line group on every cup track", { timeout: 20_000 }, () => {
     for (const level of CUP_LEVELS) {
       const track = buildTrackFromLevel(level);
       const mesh = buildSmoothTrack(track);

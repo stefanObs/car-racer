@@ -100,14 +100,16 @@ export function disposeObject(obj: Object3D): void {
   obj.traverse((child) => {
     const mesh = child as Mesh;
     if (!mesh.isMesh) return;
+    const sharedKit = Boolean(mesh.userData.sharedKit);
     if (mesh.geometry && !seenGeo.has(mesh.geometry)) {
       seenGeo.add(mesh.geometry);
-      mesh.geometry.dispose();
+      if (!sharedKit) mesh.geometry.dispose();
     }
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const m of mats) {
       if (!m || m === sharedOutlineMat || seenMat.has(m)) continue;
       seenMat.add(m);
+      if (sharedKit && !mesh.userData.kitMatCloned) continue;
       m.dispose();
     }
   });
