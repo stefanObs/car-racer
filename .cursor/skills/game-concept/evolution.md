@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.27 Blitz scoop place + original wing + sealed glass
+
+- Trigger: user — Big Engine wrong place; missing front window looks bad (opaque OK); replace Heckspoiler item with original car wing
+- Decision: Restock Blitz from wing-stripped pre-wing-free bake (opaque darkened glass + runtime cabin glass seal). Heckspoiler GLB is the extracted original rear wing. Großer Motor scoop yaw 180° and hood-forward placement so intakes face the nose, clear of the windshield.
+- CONCEPT §§ touched: Dokumentstand v3.27 (cosmetics/parts visuals only)
+
 ### 2026-08-12 — v3.26 Aufkleber redraw + flame-free Donner + garage ring
 
 - Trigger: finish Blitz-Teile plan leftovers (stickers, garage frustum, dead wheels)

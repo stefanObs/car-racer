@@ -4,7 +4,7 @@ Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching
 
 | File | Part |
 |------|------|
-| `blitz-rear_spoiler.glb` | Heckspoiler (stock body has no tall wing) |
+| `blitz-rear_spoiler.glb` | Heckspoiler — original wing extracted from the Blitz body (`npm run cars:extract-blitz-spoiler`) |
 | `blitz-big_engine.glb` | Großer Motor (tall hood scoop) |
 | `blitz-nitro_kit.glb` | Nitro-Kit |
 | `blitz-spike_bumper.glb` | Spike-Stoßstange |
@@ -14,4 +14,4 @@ Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching
 
 Große Räder is stance lift only (no fake shared wheel overlays).
 
-Rebuild: `npm run cars:bake-blitz-parts-tripo` (needs `assets/tripo-out/parts/blitz/`, gitignored).
+Rebuild parts (Tripo): `npm run cars:bake-blitz-parts-tripo`. Rebuild stock Blitz + original Heckspoiler: `npm run cars:extract-blitz-spoiler`.

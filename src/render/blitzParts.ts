@@ -2,13 +2,22 @@
  * Blitz equipped-Teile visuals (CONCEPT §6.3). Meshes visualize kit parts only —
  * stats stay in mergeStats. Paint/stickers remain cosmetic.
  */
-import { Group, Mesh, Object3D, type MeshToonMaterial } from "three";
+import {
+  DoubleSide,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
+  Object3D,
+  PlaneGeometry,
+  type MeshToonMaterial,
+} from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
 import { comicToon } from "./comicMaterials";
 
 export const BLITZ_PARTS_GROUP = "blitzParts";
+export const BLITZ_CABIN_GLASS = "blitzCabinGlass";
 /** Große Räder — stance lift only (no fake shared wheel overlays). */
 export const BLITZ_WHEEL_LIFT = 0.09;
 export const BLITZ_SUSPENSION_LIFT = 0.06;
@@ -39,10 +48,10 @@ export type BlitzPartAnchor = {
  * Length ~3.7m (z ±1.85), width ~1.77m, height ~1.04m.
  */
 export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, BlitzPartAnchor[]> = {
-  // Tall performance wing on clean rear deck (stock body has no baked GT wing).
-  rear_spoiler: [{ x: 0, y: 0.72, z: -1.52, yaw: 0, scale: 1.85 }],
-  // Twin-throat scoop sits ON the hood peak.
-  big_engine: [{ x: 0, y: 0.78, z: 0.55, yaw: 0, scale: 1.35 }],
+  // Original GT wing extracted from the pre-wing-free Blitz bake (deck mount).
+  rear_spoiler: [{ x: 0, y: 0.78, z: -1.55, yaw: 0, scale: 1.05 }],
+  // Tall hood scoop on the hood peak — intakes face +Z (nose); mesh is authored aft-tall.
+  big_engine: [{ x: 0, y: 0.52, z: 1.42, yaw: Math.PI, scale: 0.68 }],
   nitro_kit: [{ x: 0, y: 0.08, z: -1.7, yaw: 0, scale: 1 }],
   spike_bumper: [{ x: 0, y: 0.06, z: 1.7, yaw: 0, scale: 1.12 }],
   offroad_suspension: [
@@ -195,13 +204,49 @@ export function applyEquippedPartVisuals(
 ): void {
   if (carId !== "blitz") {
     root.getObjectByName(BLITZ_PARTS_GROUP)?.removeFromParent();
+    root.getObjectByName(BLITZ_CABIN_GLASS)?.removeFromParent();
     return;
   }
   applyBlitzParts(root, equippedParts);
 }
 
+/** Opaque comic cabin glass so the Tripo windshield hole does not read as open. */
+export function sealBlitzCabinGlass(root: Object3D): void {
+  root.getObjectByName(BLITZ_CABIN_GLASS)?.removeFromParent();
+  const g = new Group();
+  g.name = BLITZ_CABIN_GLASS;
+  g.userData.blitzCabinGlass = true;
+
+  const glassMat = () => {
+    const m = new MeshBasicMaterial({
+      color: 0x2c3642,
+      side: DoubleSide,
+    });
+    m.name = "Glass";
+    return m;
+  };
+
+  // Raked windshield plate — fills the open cabin without a thick outline “armor” look.
+  const windshield = new Mesh(new PlaneGeometry(1.15, 0.48), glassMat());
+  windshield.name = "blitzWindshield";
+  windshield.position.set(0, 0.88, 0.38);
+  windshield.rotation.x = -0.95;
+  g.add(windshield);
+
+  for (const side of [-1, 1] as const) {
+    const sideGlass = new Mesh(new PlaneGeometry(0.7, 0.36), glassMat());
+    sideGlass.name = side < 0 ? "blitzSideGlassL" : "blitzSideGlassR";
+    sideGlass.position.set(side * 0.79, 0.8, -0.08);
+    sideGlass.rotation.y = side * (Math.PI / 2);
+    g.add(sideGlass);
+  }
+
+  root.add(g);
+}
+
 export function applyBlitzParts(root: Object3D, equippedParts: readonly PartId[]): void {
   root.getObjectByName(BLITZ_PARTS_GROUP)?.removeFromParent();
+  sealBlitzCabinGlass(root);
 
   const equipped = new Set(equippedParts);
   applyRideLift(root, blitzStanceLift(equippedParts));

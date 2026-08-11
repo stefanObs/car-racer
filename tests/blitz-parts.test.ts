@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial } from "three";
 import { afterEach, describe, expect, it } from "vitest";
 import { CARS } from "../src/data/cars";
@@ -6,6 +6,7 @@ import { mergeStats } from "../src/data/parts";
 import {
   applyEquippedPartVisuals,
   applyBlitzParts,
+  BLITZ_PART_PLACEMENT,
   BLITZ_PARTS_GROUP,
   BLITZ_SUSPENSION_LIFT,
   BLITZ_WHEEL_LIFT,
@@ -29,16 +30,23 @@ describe("Blitz equipped-part visuals", () => {
     clearBlitzPartTemplates();
   });
 
-  it("equipping rear_spoiler adds a named mesh; unequip removes it", () => {
-    registerBlitzPartTemplate("rear_spoiler", fakePartTemplate());
-    const root = new Group();
-    applyBlitzParts(root, ["rear_spoiler"]);
-    expect(root.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeTruthy();
-    expect(root.getObjectByName(BLITZ_PARTS_GROUP)).toBeTruthy();
+  it("mounts Großer Motor on the hood facing the nose", () => {
+    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.z).toBeGreaterThan(1.25);
+    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.y).toBeLessThan(0.6);
+    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.yaw).toBeCloseTo(Math.PI);
+  });
 
+  it("seals Blitz cabin glass even with no parts equipped", () => {
+    const root = new Group();
     applyBlitzParts(root, []);
-    expect(root.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeUndefined();
-    expect(root.getObjectByName(BLITZ_PARTS_GROUP)).toBeUndefined();
+    expect(root.getObjectByName("blitzCabinGlass")).toBeTruthy();
+    expect(root.getObjectByName("blitzWindshield")).toBeTruthy();
+  });
+
+  it("mounts Heckspoiler on the rear deck from the original car wing", () => {
+    expect(BLITZ_PART_PLACEMENT.rear_spoiler[0]!.z).toBeLessThan(-1.4);
+    expect(existsSync("public/models/parts/blitz-rear_spoiler.glb")).toBe(true);
+    expect(existsSync("scripts/extract-blitz-stock-and-spoiler.mjs")).toBe(true);
   });
 
   it("leaves other cars unchanged", () => {

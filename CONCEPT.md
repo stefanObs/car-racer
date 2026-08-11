@@ -496,4 +496,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.26 — Aufkleber-Redraw + Donner stock ohne Flammen; Garage-Props im Kameraring.*
+*Dokumentstand: Konzept v3.27 — Blitz: Original-Heckspoiler als Teil, Motor-Scoop auf der Haube, opake Frontscheibe.*

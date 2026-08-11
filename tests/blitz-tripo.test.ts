@@ -40,7 +40,24 @@ describe("Blitz Tripo arcade bake", () => {
         }
       }
     }
-    // Cabin / rear wing sit on −Z; nose is the lower +Z half.
+    // Cabin sits on −Z; nose is the lower +Z half (stock body has no tall wing).
     expect(maxYNeg).toBeGreaterThan(maxYPos - 0.02);
+  });
+
+  it("keeps windshield glass geometry (opaque cabin, no open hole)", async () => {
+    const path = resolve("public/models/cars/blitz.glb");
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
+    let windshieldBand = 0;
+    for (const mesh of doc.getRoot().listMeshes()) {
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION");
+        if (!pos) continue;
+        for (let i = 0; i < pos.getCount(); i++) {
+          const v = pos.getElement(i, []);
+          if (v[2]! > -0.1 && v[2]! < 0.7 && v[1]! > 0.65 && Math.abs(v[0]!) < 0.75) windshieldBand++;
+        }
+      }
+    }
+    expect(windshieldBand).toBeGreaterThan(200);
   });
 });
