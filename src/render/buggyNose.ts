@@ -75,7 +75,7 @@ export function preloadBuggyNoses(): Promise<void> {
           });
           mesh.material = next.length === 1 ? next[0]! : next;
         });
-        // Bake already aims mascots at buggy forward (−X).
+        // Bake aims faces at buggy forward (−X); extra yaw is identity.
         root.rotation.y = id === "dog" ? DOG_HEAD_YAW : 0;
         noseTemplates.set(id, root);
       }),

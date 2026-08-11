@@ -78,23 +78,6 @@ function sceneSize(doc) {
   };
 }
 
-/** Rotate 90° around Y so +Z facing becomes −X (game forward). */
-function yawToNegX(doc) {
-  // (x, z) → (−z, x) maps +Z to −X
-  forEachPosition(doc, (v, n) => {
-    const x = v[0];
-    const z = v[2];
-    v[0] = -z;
-    v[2] = x;
-    if (n) {
-      const nx = n[0];
-      const nz = n[2];
-      n[0] = -nz;
-      n[2] = nx;
-    }
-  });
-}
-
 function rotateY180(doc) {
   forEachPosition(doc, (v, n) => {
     v[0] = -v[0];
@@ -194,7 +177,8 @@ async function bakeBody() {
 
 async function bakeProp(src, outName, { targetH, maxSpan, simplifyRatio }) {
   const doc = await loadPrepared(src);
-  yawToNegX(doc);
+  // Tripo textured heads face +X (camera). Käferkraft forward is −X.
+  rotateY180(doc);
   const sized = centerSitScale(doc, { targetH, maxSpan });
   comicMaterial(doc, outName.includes("skull") ? "Skull" : "Body");
   await simplifyDoc(doc, simplifyRatio);
