@@ -196,9 +196,14 @@ export class RaceRenderer {
     this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);
     if (import.meta.env.DEV) {
-      const w = window as unknown as { __idleCar?: Group; __idleWheels?: ComicCarParts["wheels"] };
+      const w = window as unknown as {
+        __idleCar?: Group;
+        __idleWheels?: ComicCarParts["wheels"];
+        __garageBay?: Group;
+      };
       w.__idleCar = visual.root;
       w.__idleWheels = visual.wheels;
+      w.__garageBay = this.idleGroup;
     }
 
     this.applyGarageEnvironment();
@@ -264,8 +269,8 @@ export class RaceRenderer {
       spinCarWheels(this.idleWheels ?? [], GARAGE_IDLE_WHEEL_SPEED, 1 / 60, 0);
     }
     // Front-biased camera — nose toward viewer
-    this.camera.position.set(3.2, 2.35, 7.6);
-    this.camera.lookAt(1.5, 0.85, 0.2);
+    this.camera.position.set(1.6, 2.85, 9.6);
+    this.camera.lookAt(1.5, 0.95, 0.2);
     this.renderer.render(this.scene, this.camera);
   }
 

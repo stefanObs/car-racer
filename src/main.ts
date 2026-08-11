@@ -1,9 +1,7 @@
 import { preloadCarModels } from "./render/loadCarGltf";
-import { preloadBlitzParts } from "./render/blitzParts";
 import { preloadBuggyNoses } from "./render/buggyNose";
 import { preloadBuggyNoseTextures } from "./render/buggyNoseTextures";
 import { preloadComicWheel } from "./render/carWheels";
-import { preloadFxModels } from "./render/loadFxGltf";
 import { preloadGarageProps } from "./render/loadGarageGltf";
 import { GameApp } from "./ui/GameApp";
 
@@ -31,14 +29,11 @@ async function boot(): Promise<void> {
   if (touchCapable) document.documentElement.dataset.touch = "1";
 
   await preloadBuggyNoseTextures();
-  // FX / wheels / Blitz parts are optional — sphere/box placeholders keep boot alive.
   await Promise.all([
     preloadCarModels(),
     preloadBuggyNoses(),
     preloadGarageProps(),
-    preloadComicWheel().catch((err) => console.warn("[boot] comic wheel skipped", err)),
-    preloadBlitzParts().catch((err) => console.warn("[boot] blitz parts skipped", err)),
-    preloadFxModels().catch((err) => console.warn("[boot] fx glbs skipped", err)),
+    preloadComicWheel(),
   ]);
 
   const app = new GameApp(gameCanvas, gameUi);
