@@ -2,7 +2,6 @@ import { preloadCarModels } from "./render/loadCarGltf";
 import { preloadBlitzParts } from "./render/blitzParts";
 import { preloadBuggyNoses } from "./render/buggyNose";
 import { preloadBuggyNoseTextures } from "./render/buggyNoseTextures";
-import { preloadComicWheel } from "./render/carWheels";
 import { preloadFxModels } from "./render/loadFxGltf";
 import { preloadGarageProps } from "./render/loadGarageGltf";
 import { GameApp } from "./ui/GameApp";
@@ -35,7 +34,6 @@ async function boot(): Promise<void> {
     preloadCarModels(),
     preloadBuggyNoses(),
     preloadGarageProps().catch((err) => console.warn("[boot] garage skipped", err)),
-    preloadComicWheel().catch((err) => console.warn("[boot] wheel skipped", err)),
     preloadBlitzParts().catch((err) => console.warn("[boot] blitz parts skipped", err)),
     preloadFxModels(),
   ]);

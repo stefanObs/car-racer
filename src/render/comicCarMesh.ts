@@ -5,8 +5,7 @@
 import { CircleGeometry, Group, Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import { CARS, type CarId, type GearClass } from "../data/cars";
 import type { CarState } from "../sim/vehicle";
-import { applyBlitzWheelScale, applyEquippedPartVisuals } from "./blitzParts";
-import { mountCarWheels, type WheelMount } from "./carWheels";
+import { applyEquippedPartVisuals } from "./blitzParts";
 import { comicToon } from "./comicMaterials";
 import { cloneGltfCar, hasGltfCar } from "./loadCarGltf";
 import { upgradeCarFx } from "./attachCarFx";
@@ -18,7 +17,6 @@ export type ComicCarParts = {
   smoke: Group;
   sparks: Group;
   nitro: Group;
-  wheels: WheelMount[];
   lastHeading: number;
 };
 
@@ -45,8 +43,6 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
   const gltf = cloneGltfCar(id, car.paint, car.sticker || "none")!;
   const hull = gltf.children[0] ?? gltf;
   applyEquippedPartVisuals(hull, id, parts);
-  const wheels = mountCarWheels(gltf, id);
-  applyBlitzWheelScale(gltf, id, parts);
   root.add(gltf);
 
   const body = new Mesh();
@@ -55,7 +51,7 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
 
   const fx = makeFxGroups(-1.7);
   root.add(groundBlob(1.4), fx.smoke, fx.sparks, fx.nitro);
-  const visual = { root, body, ...fx, wheels, lastHeading: car.heading };
+  const visual = { root, body, ...fx, lastHeading: car.heading };
   upgradeCarFx(visual);
   return visual;
 }

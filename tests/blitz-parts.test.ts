@@ -8,11 +8,11 @@ import {
   applyBlitzParts,
   BLITZ_PARTS_GROUP,
   BLITZ_SUSPENSION_LIFT,
-  BLITZ_WHEEL_SCALE,
+  BLITZ_WHEEL_LIFT,
   blitzPartObjectName,
+  blitzStanceLift,
   clearBlitzPartTemplates,
   garageLookCacheKey,
-  isBlitzWheelObject,
   registerBlitzPartTemplate,
 } from "../src/render/blitzParts";
 
@@ -63,24 +63,24 @@ describe("Blitz equipped-part visuals", () => {
     expect(mergeStats(CARS.blitz.stats, ["rear_spoiler"]).grip).toBe(withPart.grip);
   });
 
-  it("scales existing Wheel nodes for big_wheels and never deletes them", () => {
+  it("raises stance for big_wheels without mounting fake wheel hubs", () => {
+    expect(blitzStanceLift(["big_wheels"])).toBeCloseTo(BLITZ_WHEEL_LIFT);
     const root = new Group();
-    const hub = new Group();
-    hub.name = "WheelSpin_FL";
-    const tire = new Mesh(new BoxGeometry(0.4, 0.4, 0.2), new MeshBasicMaterial({ name: "Tire" }));
-    tire.name = "Tire";
-    hub.add(tire);
-    root.add(hub);
-    expect(isBlitzWheelObject(hub)).toBe(true);
-
+    root.position.y = 0;
     applyBlitzParts(root, ["big_wheels"]);
-    expect(root.getObjectByName("WheelSpin_FL")).toBe(hub);
-    expect(hub.scale.x).toBeCloseTo(BLITZ_WHEEL_SCALE);
-    expect(tire.scale.x).toBeCloseTo(1);
-
+    expect(root.position.y).toBeCloseTo(BLITZ_WHEEL_LIFT);
+    expect(root.getObjectByName("WheelSpin_FL")).toBeUndefined();
     applyBlitzParts(root, []);
-    expect(root.getObjectByName("WheelSpin_FL")).toBe(hub);
-    expect(hub.scale.x).toBeCloseTo(1);
+    expect(root.position.y).toBeCloseTo(0);
+  });
+
+  it("stacks big_wheels and offroad_suspension lifts", () => {
+    expect(blitzStanceLift(["big_wheels", "offroad_suspension"])).toBeCloseTo(
+      BLITZ_WHEEL_LIFT + BLITZ_SUSPENSION_LIFT,
+    );
+    const root = new Group();
+    applyBlitzParts(root, ["big_wheels", "offroad_suspension"]);
+    expect(root.position.y).toBeCloseTo(BLITZ_WHEEL_LIFT + BLITZ_SUSPENSION_LIFT);
   });
 
   it("raises ride height when offroad_suspension is equipped", () => {
@@ -92,17 +92,18 @@ describe("Blitz equipped-part visuals", () => {
     expect(root.position.y).toBeCloseTo(0);
   });
 
-  it("buildComicCar attaches Blitz parts after clone (visuals only)", () => {
+  it("buildComicCar attaches Blitz parts after clone (no shared wheel mounts)", () => {
     const src = readFileSync("src/render/comicCarMesh.ts", "utf8");
     expect(src).toContain("applyEquippedPartVisuals");
     expect(src).toContain("equippedParts");
-    expect(src).toContain("mountCarWheels");
-    expect(src).toContain("applyBlitzWheelScale");
+    expect(src).not.toContain("mountCarWheels");
+    expect(src).not.toContain("applyBlitzWheelScale");
   });
 
-  it("boot preloads Blitz part meshes", () => {
+  it("boot preloads Blitz part meshes and skips comic-wheel", () => {
     const src = readFileSync("src/main.ts", "utf8");
     expect(src).toContain("preloadBlitzParts");
+    expect(src).not.toContain("preloadComicWheel");
   });
 
   it("garage look passes equippedParts into the renderer", () => {
@@ -112,6 +113,7 @@ describe("Blitz equipped-part visuals", () => {
     expect(look).toContain("equippedParts");
     const race = readFileSync("src/render/RaceRenderer.ts", "utf8");
     expect(race).toContain("garageLookCacheKey");
+    expect(race).not.toContain("spinCarWheels");
   });
 
   it("garage look key changes when Teile are equipped", () => {

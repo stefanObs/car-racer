@@ -28,11 +28,11 @@ const outDir = join(rootDir, "public/models/parts");
 /** Nose +Z, cabin −Z — same as Blitz body. Rear parts extra yaw 180. */
 const JOBS = [
   { id: "rear_spoiler", material: "Spoiler", toward: "-z", targetSpan: 1.55, maxH: 0.42, simplify: 0.35 },
-  { id: "big_engine", material: "Carbon", toward: "+z", targetSpan: 0.72, maxH: 0.24, simplify: 0.4 },
+  { id: "big_engine", material: "Carbon", toward: "+z", targetSpan: 0.85, maxH: 0.38, simplify: 0.4 },
   { id: "nitro_kit", material: "NitroKit", toward: "-z", targetSpan: 0.9, maxH: 0.42, simplify: 0.4 },
   { id: "spike_bumper", material: "Spike", toward: "+z", targetSpan: 1.68, maxH: 0.32, simplify: 0.4 },
   { id: "offroad_suspension", material: "Spring", toward: "+z", targetSpan: 0.5, maxH: 0.34, simplify: 0.45 },
-  { id: "reinforced_frame", material: "Grey", toward: "-z", targetSpan: 1.35, maxH: 0.72, simplify: 0.35 },
+  { id: "reinforced_frame", material: "Grey", toward: "+z", targetSpan: 1.7, maxH: 0.85, simplify: 0.35 },
   { id: "lightweight_body", material: "Carbon", toward: "+z", targetSpan: 0.85, maxH: 0.24, simplify: 0.4 },
 ];
 

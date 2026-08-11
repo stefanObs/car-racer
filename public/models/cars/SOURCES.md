@@ -4,7 +4,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 
 | Car | File | Source | License |
 |-----|------|--------|---------|
-| **Blitz** (sport) | `blitz.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-blitz-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
+| **Blitz** (sport) | `blitz.glb` | Tripo3D from wing-free Asphalt-Comic concept (`blitz-concept-no-wing-3q.png` → `npm run cars:bake-blitz-tripo`). Heckspoiler is a separate Teile add-on. | Generated mesh (shipped bake) |
 | **Blitz Teile** | `../parts/blitz-*.glb` | Tripo3D add-on props for equipped Teile (`npm run cars:bake-blitz-parts-tripo`). Visuals only — no extra stats. | Generated mesh (shipped bake) |
 | **Bison** (pickup) | `bison.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-bison-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 | **Käferkraft** (buggy) | `kaeferkraft.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-kaeferkraft-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
@@ -28,6 +28,6 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 - Rebuild Bison from Tripo sources: `npm run cars:bake-bison-tripo` (needs `assets/tripo-out/bison/`, gitignored)
 - Rebuild Donnerbüchse from Tripo sources: `npm run cars:bake-donnerbuechse-tripo` (needs `assets/tripo-out/donnerbuechse/`, gitignored)
 - Rebuild Käferkraft from Tripo sources: `npm run cars:bake-kaeferkraft-tripo` (needs `assets/tripo-out/`, gitignored)
-- Rebuild Blitz from Tripo sources: `npm run cars:bake-blitz-tripo` (needs `assets/tripo-out/blitz/`, gitignored)
-- Rebuild Bunker from Tripo sources: `npm run cars:bake-bunker-tripo` (needs `assets/tripo-out/bunker/`, gitignored)
-- Shared spinning wheel: `public/models/props/comic-wheel.glb` from `assets/tripo-concepts/comic-wheel.png` (`npm run cars:bake-wheels-tripo`). Runtime covers painted-on tires; Donnerbüchse rears are scaled larger.
+- Rebuild Blitz from Tripo sources: `npm run cars:bake-blitz-tripo` (needs `assets/tripo-out/blitz/`, gitignored). Stock body has no tall wing; `rear_spoiler` add-on is the upgrade.
+- Authored tires stay painted into each car GLB (no shared spinning comic-wheel overlays).
+

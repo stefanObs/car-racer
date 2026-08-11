@@ -30,7 +30,6 @@ import { finishCelebrateProgress, isPodiumPlace } from "../ui/finishCelebrate";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
-import { GARAGE_IDLE_WHEEL_SPEED, spinCarWheels, steerFromHeadingDelta } from "./carWheels";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { buildGarageBay } from "./garageBay";
 import { buildLevelObstacles } from "./levelObstacles";
@@ -80,7 +79,6 @@ export class RaceRenderer {
   private celebrateSeed = -1;
   private idleGroup = new Group();
   private idleCar: Group | null = null;
-  private idleWheels: ComicCarParts["wheels"] = [];
   private idleLookKey = "";
   private garageYaw = GARAGE_YAW_DEFAULT;
   private garageDragging = false;
@@ -165,7 +163,6 @@ export class RaceRenderer {
     disposeObject(this.idleGroup);
     this.idleGroup = buildGarageBay();
     this.idleCar = null;
-    this.idleWheels = [];
 
     const paint = look?.paint ?? "#E03131";
     const sticker = look?.sticker ?? "none";
@@ -192,17 +189,14 @@ export class RaceRenderer {
     visual.root.rotation.y = this.garageYaw;
     visual.root.scale.setScalar(1.35);
     this.idleCar = visual.root;
-    this.idleWheels = visual.wheels ?? [];
     this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);
     if (import.meta.env.DEV) {
       const w = window as unknown as {
         __idleCar?: Group;
-        __idleWheels?: ComicCarParts["wheels"];
         __garageBay?: Group;
       };
       w.__idleCar = visual.root;
-      w.__idleWheels = visual.wheels;
       w.__garageBay = this.idleGroup;
     }
 
@@ -266,7 +260,6 @@ export class RaceRenderer {
     this.idleGroup.visible = true;
     if (this.idleCar) {
       this.idleCar.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
-      spinCarWheels(this.idleWheels ?? [], GARAGE_IDLE_WHEEL_SPEED, 1 / 60, 0);
     }
     // Slightly right of the pad so left heroes and right stock both read
     this.camera.position.set(3.4, 2.7, 9.2);
@@ -392,13 +385,7 @@ export class RaceRenderer {
       root.rotation.y = Math.PI / 2 - car.heading;
       root.rotation.z = lean * Math.sin(this.fxTime * 10);
 
-      const wheels = visual.wheels ?? [];
-      const steer = steerFromHeadingDelta(visual.lastHeading ?? car.heading, car.heading);
       visual.lastHeading = car.heading;
-      spinCarWheels(wheels, car.speed, 1 / 60, steer);
-      if (import.meta.env.DEV && car.isPlayer) {
-        (window as unknown as { __playerWheels?: ComicCarParts["wheels"] }).__playerWheels = wheels;
-      }
 
       const prevNitro = this.lastNitro.get(car.id) ?? car.nitro;
       const boosting = nitroBoosting(prevNitro, car.nitro);
