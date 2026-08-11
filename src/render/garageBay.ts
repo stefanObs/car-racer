@@ -1,6 +1,9 @@
 import {
   BoxGeometry,
+  CircleGeometry,
+  ConeGeometry,
   CylinderGeometry,
+  DoubleSide,
   Group,
   Mesh,
   MeshBasicMaterial,
@@ -8,29 +11,41 @@ import {
   PointLight,
   type Texture,
 } from "three";
-import { GARAGE_PROP_IDS, GARAGE_PROPS } from "../data/garageProps";
+import { GARAGE_HERO, GARAGE_STOCK, type GaragePropId } from "../data/garageProps";
 import { comicFlat, comicToon, withOutline } from "./comicMaterials";
 import {
-  asphaltPadTexture,
-  bannerTexture,
   floorTexture,
   hazardChevronTexture,
   posterTexture,
   skyPeekTexture,
+  sloganPosterTexture,
+  turntableTexture,
   wallPanelTexture,
 } from "./garageTextures";
+import {
+  buildGarageGasBottles,
+  buildGarageHoist,
+  buildGarageToolChest,
+} from "./garageHeroProps";
 import { cloneGarageProp } from "./loadGarageGltf";
 import { ComicPalette } from "./palette";
 
-/** Turntable pad center — car sits here; workshop props stay off this volume. */
+/** Turntable center — car sits here; workshop props stay off this disc. */
 export const GARAGE_PAD_CENTER = { x: 1.5, y: 0.04, z: 0 } as const;
+export const GARAGE_PAD_RADIUS = 4.5;
 
-/** Bright unlit atlas fill — garage env stays sunny (toon gradient would muddle maps). */
+/** Stock and heroes must sit outside this disc (plus a small clearance). */
+export function isOutsideGaragePad(x: number, z: number, margin = 0.35): boolean {
+  const dx = x - GARAGE_PAD_CENTER.x;
+  const dz = z - GARAGE_PAD_CENTER.z;
+  return Math.hypot(dx, dz) > GARAGE_PAD_RADIUS + margin;
+}
+
 function mapped(map: Texture, fallback = 0xffffff) {
   return comicFlat(fallback, { map });
 }
 
-/** Bright Asphalt-Comic tuner garage — architecture + Tripo workshop stock. */
+/** Bright Asphalt-Comic tuner garage — concept + car-targets workshop. */
 export function buildGarageBay(): Group {
   const g = new Group();
   g.name = "garageBay";
@@ -43,14 +58,12 @@ export function buildGarageBay(): Group {
   doorFill.position.set(10, 5, 8);
   g.add(keyFill, rimFill, doorFill);
 
-  const floor = new Mesh(new PlaneGeometry(28, 30), mapped(floorTexture(), 0xe4e7ec));
+  const floor = new Mesh(new PlaneGeometry(28, 30), mapped(floorTexture(), 0xc5c9ce));
   floor.rotation.x = -Math.PI / 2;
   g.add(floor);
 
-  const pad = withOutline(new BoxGeometry(11, 0.08, 16), mapped(asphaltPadTexture(), 0x8a9098), 0.04);
-  pad.name = "garagePad";
-  pad.position.set(GARAGE_PAD_CENTER.x, GARAGE_PAD_CENTER.y, GARAGE_PAD_CENTER.z);
-  g.add(pad);
+  g.add(buildTurntable());
+  g.add(buildParkingBox());
 
   for (let i = 0; i < 10; i++) {
     const tile = new Mesh(
@@ -62,13 +75,22 @@ export function buildGarageBay(): Group {
     g.add(tile);
   }
 
-  const back = withOutline(new BoxGeometry(26, 11, 0.4), mapped(wallPanelTexture(1), 0xeef1f4), 0.05);
+  const back = withOutline(new BoxGeometry(26, 11, 0.4), mapped(wallPanelTexture(1), 0xd8dce1), 0.05);
   back.position.set(1, 5.5, -11);
-  const left = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(2), 0xe4e8ed), 0.05);
+  const left = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(2), 0xced3d8), 0.05);
   left.position.set(-11.5, 5.5, 0);
-  const right = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(3), 0xe4e8ed), 0.05);
+  const right = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(3), 0xced3d8), 0.05);
   right.position.set(12.5, 5.5, 0);
-  g.add(back, left, right);
+  const ceiling = new Mesh(new BoxGeometry(28, 0.25, 26), comicFlat(0x5c636a));
+  ceiling.position.set(1, 10.15, 0);
+  g.add(back, left, right, ceiling);
+
+  const wallStripe = new Mesh(
+    new PlaneGeometry(24, 0.9),
+    mapped(hazardChevronTexture(), ComicPalette.repairSpark),
+  );
+  wallStripe.position.set(1, 3.55, -10.72);
+  g.add(wallStripe);
 
   const doorL = withOutline(new BoxGeometry(0.5, 8, 0.5), comicFlat(0x8b9098), 0.04);
   doorL.position.set(8.5, 4, 11.2);
@@ -83,39 +105,18 @@ export function buildGarageBay(): Group {
   skyPeek.position.set(10.25, 4, 11.1);
   g.add(doorL, doorR, doorTop, skyPeek);
 
-  const hazard = withOutline(new BoxGeometry(12.5, 0.85, 0.12), mapped(hazardChevronTexture(), ComicPalette.repairSpark), 0.03);
-  hazard.position.set(1.5, 1.15, -10.72);
-  g.add(hazard);
-
-  for (const z of [-5, 0, 5] as const) {
-    const housing = withOutline(new BoxGeometry(9, 0.35, 0.9), comicFlat(0x5c636a), 0.03);
-    housing.position.set(1.5, 9.6, z);
-    const lamp = new Mesh(
-      new PlaneGeometry(8.2, 0.55),
-      comicToon(0xfff3a8, { emissive: 0xffe066, emissiveIntensity: 1.15 }),
-    );
-    lamp.rotation.x = Math.PI / 2;
-    lamp.position.set(1.5, 9.4, z);
-    g.add(housing, lamp);
-  }
-
-  const banner = withOutline(new BoxGeometry(12, 1.6, 0.2), mapped(bannerTexture(), 0xe03131), 0.05);
-  banner.position.set(1.5, 7.6, -10.7);
-  const bannerBar = withOutline(new BoxGeometry(12.6, 0.25, 0.22), comicFlat(ComicPalette.outline), 0.03);
-  bannerBar.position.set(1.5, 8.5, -10.65);
-  const bannerBarBot = withOutline(new BoxGeometry(12.6, 0.18, 0.2), comicFlat(ComicPalette.repairSpark), 0.03);
-  bannerBarBot.position.set(1.5, 6.7, -10.65);
-  g.add(banner, bannerBar, bannerBarBot);
+  g.add(buildLamps());
+  g.add(buildSlogans());
 
   const posterAccents = ["#339AF0", "#F08C00", "#E03131", "#37B24D"] as const;
   for (let i = 0; i < 4; i++) {
     const accent = posterAccents[i]!;
     const poster = withOutline(
-      new BoxGeometry(1.7, 1.3, 0.08),
+      new BoxGeometry(1.5, 1.15, 0.08),
       mapped(posterTexture(accent), Number.parseInt(accent.slice(1), 16)),
       0.03,
     );
-    poster.position.set(-10.9, 4.2 + (i % 2) * 0.25, -5.5 + i * 2.8);
+    poster.position.set(-10.9, 6.4, -4.2 + i * 2.4);
     g.add(poster);
   }
 
@@ -128,21 +129,131 @@ export function buildGarageBay(): Group {
   }
 
   g.add(placeWorkshopStock());
+  g.add(placeHeroProps());
   return g;
 }
 
-/** Tripo cabinet / bench / tires / shelf / drums along walls — pad stays clear. */
+function buildTurntable(): Group {
+  const g = new Group();
+  g.name = "garagePad";
+  g.position.set(GARAGE_PAD_CENTER.x, GARAGE_PAD_CENTER.y, GARAGE_PAD_CENTER.z);
+  const disc = withOutline(
+    new CylinderGeometry(GARAGE_PAD_RADIUS, GARAGE_PAD_RADIUS, 0.08, 40),
+    mapped(turntableTexture(), 0x8a9098),
+    0.04,
+  );
+  disc.position.y = 0.04;
+  g.add(disc);
+  const top = new Mesh(
+    new CircleGeometry(GARAGE_PAD_RADIUS - 0.08, 40),
+    mapped(turntableTexture(), 0x8a9098),
+  );
+  top.rotation.x = -Math.PI / 2;
+  top.position.y = 0.085;
+  g.add(top);
+  return g;
+}
+
+function buildParkingBox(): Group {
+  const g = new Group();
+  g.name = "garageParkingBox";
+  const hw = 6.2;
+  const hd = 7.4;
+  const y = 0.09;
+  const cx = GARAGE_PAD_CENTER.x;
+  const cz = GARAGE_PAD_CENTER.z;
+  const segs: Array<[number, number, number, number]> = [
+    [cx, cz - hd, hw * 2, 0.12],
+    [cx, cz + hd, hw * 2, 0.12],
+    [cx - hw, cz, 0.12, hd * 2],
+    [cx + hw, cz, 0.12, hd * 2],
+  ];
+  for (const [x, z, w, d] of segs) {
+    const line = withOutline(new BoxGeometry(w, 0.04, d), comicFlat(ComicPalette.repairSpark), 0.02);
+    line.position.set(x, y, z);
+    g.add(line);
+  }
+  return g;
+}
+
+function buildLamps(): Group {
+  const g = new Group();
+  g.name = "garageLamps";
+  for (const z of [-5, 0, 5] as const) {
+    const housing = withOutline(new CylinderGeometry(0.45, 0.55, 0.55, 12), comicFlat(0x2a2c32), 0.03);
+    housing.position.set(1.5, 9.55, z);
+    const glow = new Mesh(
+      new CircleGeometry(0.42, 16),
+      comicToon(0xfff3a8, { emissive: 0xffe066, emissiveIntensity: 1.15 }),
+    );
+    glow.rotation.x = Math.PI / 2;
+    glow.position.set(1.5, 9.26, z);
+    const cone = new Mesh(
+      new ConeGeometry(2.4, 4.2, 16, 1, true),
+      new MeshBasicMaterial({
+        color: 0xffe8a0,
+        transparent: true,
+        opacity: 0.14,
+        depthWrite: false,
+        side: DoubleSide,
+      }),
+    );
+    cone.position.set(1.5, 7.1, z);
+    cone.rotation.x = Math.PI;
+    g.add(housing, glow, cone);
+  }
+  return g;
+}
+
+function buildSlogans(): Group {
+  const g = new Group();
+  const drive = withOutline(
+    new BoxGeometry(3.2, 1.7, 0.1),
+    mapped(sloganPosterTexture("DRIVE HARD", "#FFE066"), 0x1b1b1f),
+    0.04,
+  );
+  drive.position.set(-4.2, 6.6, -10.7);
+  const limits = withOutline(
+    new BoxGeometry(3.2, 1.7, 0.1),
+    mapped(sloganPosterTexture("NO LIMITS", "#E03131"), 0x1b1b1f),
+    0.04,
+  );
+  limits.position.set(7.2, 6.6, -10.7);
+  g.add(drive, limits);
+  return g;
+}
+
 function placeWorkshopStock(): Group {
   const stock = new Group();
   stock.name = "garageStock";
-  for (const id of GARAGE_PROP_IDS) {
-    const spec = GARAGE_PROPS[id];
-    const inst = cloneGarageProp(id);
+  for (const place of GARAGE_STOCK) {
+    const inst = cloneGarageProp(place.id, place.name);
     if (!inst) continue;
-    inst.position.set(spec.position.x, spec.position.y, spec.position.z);
-    inst.rotation.y = spec.yaw;
-    inst.scale.setScalar(spec.scale);
+    inst.position.set(place.position.x, place.position.y, place.position.z);
+    inst.rotation.y = place.yaw;
+    inst.scale.setScalar(place.scale);
     stock.add(inst);
   }
   return stock;
+}
+
+const HERO_FALLBACK: Partial<Record<GaragePropId, () => Group>> = {
+  toolchest: buildGarageToolChest,
+  gas: buildGarageGasBottles,
+  hoist: buildGarageHoist,
+};
+
+function placeHeroProps(): Group {
+  const hero = new Group();
+  hero.name = "garageHero";
+  for (const place of GARAGE_HERO) {
+    const inst = cloneGarageProp(place.id, place.name) ?? HERO_FALLBACK[place.id]?.();
+    if (!inst) continue;
+    inst.name = place.name;
+    inst.position.set(place.position.x, place.position.y, place.position.z);
+    inst.rotation.y = place.yaw;
+    inst.scale.setScalar(place.scale);
+    hero.add(inst);
+  }
+  return hero;
 }

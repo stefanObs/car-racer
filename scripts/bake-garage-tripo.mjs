@@ -27,6 +27,9 @@ const PROPS = [
   { id: "tire-stack", dir: "tire-stack", file: "tire-stack.glb", targetH: 1.2, maxSpan: 1.05, ratio: 0.35 },
   { id: "shelf", dir: "shelf", file: "shelf.glb", targetH: 1.85, maxSpan: 2.35, ratio: 0.28 },
   { id: "drums", dir: "drums", file: "drums.glb", targetH: 0.9, maxSpan: 1.55, ratio: 0.4 },
+  { id: "toolchest", dir: "toolchest", file: "toolchest.glb", targetH: 1.15, maxSpan: 1.2, ratio: 0.32 },
+  { id: "gas", dir: "gas", file: "gas.glb", targetH: 1.35, maxSpan: 0.85, ratio: 0.35 },
+  { id: "hoist", dir: "hoist", file: "hoist.glb", targetH: 2.4, maxSpan: 2.35, ratio: 0.38 },
 ];
 
 function bakeNodeTree(node) {

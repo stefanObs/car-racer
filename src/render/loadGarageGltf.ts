@@ -1,6 +1,6 @@
 import { Box3, Group, Mesh, Object3D, Vector3, type MeshStandardMaterial } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { GARAGE_PROP_IDS, GARAGE_PROPS, type GaragePropId } from "../data/garageProps";
+import { GARAGE_MESH, GARAGE_PROP_IDS, type GaragePropId } from "../data/garageProps";
 import { comicFlat } from "./comicMaterials";
 
 const templates = new Map<GaragePropId, Object3D>();
@@ -13,7 +13,7 @@ export function preloadGarageProps(): Promise<void> {
     const loader = new GLTFLoader();
     await Promise.all(
       GARAGE_PROP_IDS.map(async (id) => {
-        const spec = GARAGE_PROPS[id];
+        const spec = GARAGE_MESH[id];
         const gltf = await loader.loadAsync(spec.url);
         const root = gltf.scene;
         normalizeGarageProp(root);
@@ -29,13 +29,13 @@ export function hasGarageProp(id: GaragePropId): boolean {
 }
 
 /** Clone a preloaded workshop mesh. Returns null when preload has not run (unit tests). */
-export function cloneGarageProp(id: GaragePropId): Group | null {
+export function cloneGarageProp(id: GaragePropId, name?: string): Group | null {
   const hit = templates.get(id);
   if (!hit) return null;
   const clone = hit.clone(true);
   detachSharedResources(clone);
   const wrap = new Group();
-  wrap.name = GARAGE_PROPS[id].objectName;
+  wrap.name = name ?? id;
   wrap.add(clone);
   return wrap;
 }
@@ -109,7 +109,7 @@ function convertToComicFlat(mesh: Mesh): void {
   const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
   const next = mats.map((mat) => {
     const std = mat as MeshStandardMaterial;
-    const map = std.map ?? null;
+    const map = std.map ?? undefined;
     const hex = std.color ? std.color.getHex() : 0xffffff;
     const flat = comicFlat(map ? 0xffffff : hex, { map });
     flat.name = mat?.name || "BodyPaint";

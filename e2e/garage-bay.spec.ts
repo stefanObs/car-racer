@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test.describe("garage bay workshop stock", () => {
   test("opens the hub with inventory grid and a WebGL bay", async ({ page }) => {
     const glbOk = Promise.all(
-      ["cabinet", "workbench", "tire-stack", "shelf", "drums"].map((name) =>
+      ["cabinet", "workbench", "tire-stack", "shelf", "drums", "toolchest", "gas", "hoist"].map((name) =>
         page.waitForResponse((res) => res.url().includes(`/models/garage/${name}.glb`) && res.ok()),
       ),
     );
@@ -17,10 +17,20 @@ test.describe("garage bay workshop stock", () => {
     await expect(page.locator(".boot-error")).toHaveCount(0);
 
     await page.waitForFunction(() => {
-      const bay = (window as unknown as { __garageBay?: { getObjectByName: (n: string) => { children: unknown[] } | undefined } })
-        .__garageBay;
+      const bay = (window as unknown as {
+        __garageBay?: { getObjectByName: (n: string) => { children: unknown[] } | undefined };
+      }).__garageBay;
       const stock = bay?.getObjectByName("garageStock");
-      return Boolean(stock && stock.children.length === 5);
+      const hero = bay?.getObjectByName("garageHero");
+      return Boolean(
+        stock &&
+          stock.children.length === 7 &&
+          hero &&
+          hero.children.length === 3 &&
+          bay?.getObjectByName("garageToolChest") &&
+          bay?.getObjectByName("garageGasBottles") &&
+          bay?.getObjectByName("garageHoist"),
+      );
     });
 
     await page.screenshot({ path: "/tmp/garage-hub-ui.png", fullPage: true });

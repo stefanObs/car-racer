@@ -4,8 +4,8 @@ import { describe, expect, it } from "vitest";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { getBounds } from "@gltf-transform/functions";
-import { GARAGE_PROP_IDS, GARAGE_PROPS } from "../src/data/garageProps";
-import { GARAGE_PAD_CENTER } from "../src/render/garageBay";
+import { GARAGE_HERO, GARAGE_PROP_IDS, GARAGE_STOCK } from "../src/data/garageProps";
+import { GARAGE_PAD_RADIUS, isOutsideGaragePad } from "../src/render/garageBay";
 
 const FILES = [
   { id: "cabinet", file: "cabinet.glb", minH: 1.7, maxH: 2.25, minBytes: 20_000 },
@@ -13,10 +13,13 @@ const FILES = [
   { id: "tireStack", file: "tire-stack.glb", minH: 0.95, maxH: 1.45, minBytes: 15_000 },
   { id: "shelf", file: "shelf.glb", minH: 1.5, maxH: 2.15, minBytes: 20_000 },
   { id: "drums", file: "drums.glb", minH: 0.7, maxH: 1.15, minBytes: 12_000 },
+  { id: "toolchest", file: "toolchest.glb", minH: 0.95, maxH: 1.4, minBytes: 15_000 },
+  { id: "gas", file: "gas.glb", minH: 1.1, maxH: 1.6, minBytes: 12_000 },
+  { id: "hoist", file: "hoist.glb", minH: 2.0, maxH: 2.7, minBytes: 15_000 },
 ] as const;
 
 describe("garage Tripo workshop bake", () => {
-  it("ships five BodyPaint GLBs with a glTF header", async () => {
+  it("ships BodyPaint GLBs with a glTF header", async () => {
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
     for (const spec of FILES) {
       const path = resolve("public/models/garage", spec.file);
@@ -35,16 +38,12 @@ describe("garage Tripo workshop bake", () => {
     }
   });
 
-  it("places stock off the center pad", () => {
-    expect(GARAGE_PROP_IDS).toHaveLength(5);
-    const padHalfX = 11 / 2;
-    const padHalfZ = 16 / 2;
-    for (const id of GARAGE_PROP_IDS) {
-      const p = GARAGE_PROPS[id].position;
-      const dx = Math.abs(p.x - GARAGE_PAD_CENTER.x);
-      const dz = Math.abs(p.z - GARAGE_PAD_CENTER.z);
-      const outside = dx > padHalfX - 0.4 || dz > padHalfZ - 0.4;
-      expect(outside, id).toBe(true);
+  it("places stock and heroes outside the circular pad", () => {
+    expect(GARAGE_PAD_RADIUS).toBe(4.5);
+    expect(GARAGE_PROP_IDS).toHaveLength(8);
+    expect(GARAGE_STOCK).toHaveLength(7);
+    for (const place of [...GARAGE_STOCK, ...GARAGE_HERO]) {
+      expect(isOutsideGaragePad(place.position.x, place.position.z), place.name).toBe(true);
     }
   });
 });
