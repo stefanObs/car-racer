@@ -494,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.21 — Blitz Sportwagen: Tripo-Mesh, Aufkleber unverändert.*
+*Dokumentstand: Konzept v3.22 — Bunker Panzerwagen: Tripo-Mesh, IronClad-Aufkleber unverändert.*

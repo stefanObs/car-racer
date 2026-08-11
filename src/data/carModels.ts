@@ -62,8 +62,7 @@ export const CAR_MODELS: Record<CarId, CarModelSpec> = {
     id: "bunker",
     gearClass: "armor",
     url: "/models/cars/bunker.glb",
-    /** Sketchfab Hummer HX longest ~5.2m → peer arcade length. */
-    scale: 0.62,
+    scale: 1,
     yaw: 0,
     y: 0,
     collisionRadius: 1.25,

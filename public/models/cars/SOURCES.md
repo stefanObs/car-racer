@@ -11,7 +11,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 | **Käferkraft Vogel** (nose) | `props/buggy-bird.glb` | Tripo3D from Asphalt-Comic bird concept | Generated mesh (shipped bake) |
 | **Käferkraft Hund** (nose) | `props/buggy-dog.glb` | Tripo3D from Asphalt-Comic dog concept | Generated mesh (shipped bake) |
 | **Donnerbüchse** (hotrod) | `donnerbuechse.glb` | [Hotrod](https://sketchfab.com/3d-models/hotrod-944a5d1535cd45cb82cafef5a8d991f7) by [car-go](https://sketchfab.com/car-go) on Sketchfab — albedo atlas kept under cel shading (`npm run cars:fetch-donnerbuechse` + `npm run cars:polish`). Provided by Sketchfab. | [CC-BY 4.0](http://creativecommons.org/licenses/by/4.0/) |
-| **Bunker** (armor) | `bunker.glb` | [Hummer HX concept low poly free](https://sketchfab.com/3d-models/hummer-hx-concept-low-poly-free-056296664d2c4edba6f90644e22834a4) by [NoOb StUfFs](https://sketchfab.com/NoObStUfFs) on Sketchfab — rematerialized comic bake (`npm run cars:fetch-bunker` + `npm run cars:polish`). Provided by Sketchfab. | [CC-BY 4.0](http://creativecommons.org/licenses/by/4.0/) |
+| **Bunker** (armor) | `bunker.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-bunker-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 
 ## Also useful
 
@@ -23,8 +23,9 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 
 - Collision stays silhouette (`collisionRadius`); mesh is visual only.
 - Loader strips embedded lights/cameras, skips outline shells on tiny shards, mesh-only bounds before autoscale.
-- Non-Hotrod cars get runtime Asphalt-Comic albedo atlases (`comicCarAtlases.ts`) + box UVs when exports lack usable TEXCOORD_0. Donnerbüchse keeps its Sketchfab atlas. Käferkraft keeps its Tripo albedo (garage paint recolors orange body pixels). Blitz keeps its Tripo albedo (garage paint recolors red body pixels).
-- Rebuild Bison/Donnerbüchse/Bunker: `npm run cars:polish`
+- Non-Hotrod cars get runtime Asphalt-Comic albedo atlases (`comicCarAtlases.ts`) + box UVs when exports lack usable TEXCOORD_0. Donnerbüchse keeps its Sketchfab atlas. Käferkraft keeps its Tripo albedo (garage paint recolors orange body pixels). Blitz keeps its Tripo albedo (garage paint recolors red body pixels). Bunker keeps its Tripo albedo (garage paint recolors pale armor pixels).
+- Rebuild Bison/Donnerbüchse: `npm run cars:polish`
 - Fetch Donnerbüchse source (needs `SKETCHFAB_API_TOKEN`): `npm run cars:fetch-donnerbuechse`
 - Rebuild Käferkraft from Tripo sources: `npm run cars:bake-kaeferkraft-tripo` (needs `assets/tripo-out/`, gitignored)
 - Rebuild Blitz from Tripo sources: `npm run cars:bake-blitz-tripo` (needs `assets/tripo-out/blitz/`, gitignored)
+- Rebuild Bunker from Tripo sources: `npm run cars:bake-bunker-tripo` (needs `assets/tripo-out/bunker/`, gitignored)

@@ -3,15 +3,13 @@
  * Polish shipped car GLBs (free assets only).
  * - Bison: Mitsubishi L200 (Poly Pizza / Muhammad Reyhan, CC-BY 3.0) rematerialized.
  * - Donnerbüchse: Sketchfab Hotrod by car-go (CC-BY 4.0) — texture-split comic bake.
- * - Bunker: Sketchfab Hummer HX concept low poly by NoOb StUfFs (CC-BY 4.0).
+ * - Bunker: Tripo arcade bake (`npm run cars:bake-bunker-tripo`)
  * - Käferkraft: Tripo arcade bake (`npm run cars:bake-kaeferkraft-tripo`)
  * - Blitz: Tripo arcade bake (`npm run cars:bake-blitz-tripo`)
  *
  * Usage: node scripts/polish-car-glbs.mjs
  * Hotrod source: public/models/cars/donnerbuechse.source.glb (gitignored)
  *   SKETCHFAB_API_TOKEN=… npm run cars:fetch-donnerbuechse
- * Hummer HX source: public/models/cars/bunker.source.glb (gitignored)
- *   SKETCHFAB_API_TOKEN=… npm run cars:fetch-bunker
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -21,7 +19,6 @@ import { Group, Mesh, MeshStandardMaterial } from "three";
 import { GLTFExporter } from "three/examples/jsm/exporters/GLTFExporter.js";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { bakeDonnerbuechseFromSketchfab } from "./bake-donnerbuechse.mjs";
-import { bakeBunkerFromHummerHx } from "./bake-bunker.mjs";
 
 globalThis.Blob = Blob;
 globalThis.self = globalThis;
@@ -136,5 +133,4 @@ async function bakeBisonPickup() {
 
 await bakeBisonPickup();
 await bakeDonnerbuechseFromSketchfab();
-await bakeBunkerFromHummerHx();
 console.log("ok");

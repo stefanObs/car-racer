@@ -11,15 +11,17 @@ import {
 import { CAR_PAINT_BLACK } from "../src/render/palette";
 
 describe("bunker authored white → garage paint", () => {
-  it("treats bright low-chroma pixels as body white", () => {
+  it("treats pale armor including cel shadows as body, not stripe or trim", () => {
     expect(isNearWhitePaintPixel(245, 245, 248)).toBe(true);
     expect(isNearWhitePaintPixel(230, 230, 230)).toBe(true);
-    // Yellow accent on Hummer atlas
+    expect(isNearWhitePaintPixel(140, 142, 148)).toBe(true);
+    expect(isNearWhitePaintPixel(81, 80, 78)).toBe(true);
+    // Yellow / tan hazard stripe
     expect(isNearWhitePaintPixel(240, 200, 40)).toBe(false);
-    // Black / dark trim
+    expect(isNearWhitePaintPixel(188, 165, 123)).toBe(false);
+    // Charcoal tires / grille
     expect(isNearWhitePaintPixel(30, 30, 32)).toBe(false);
-    // Mid grey panel (not white body)
-    expect(isNearWhitePaintPixel(120, 120, 125)).toBe(false);
+    expect(isNearWhitePaintPixel(58, 58, 58)).toBe(false);
   });
 
   it("recolors white pixels toward chosen paint and leaves yellow alone", () => {
@@ -39,6 +41,18 @@ describe("bunker authored white → garage paint", () => {
     expect(data[6]).toBe(35);
     // black unchanged
     expect(data[8]).toBe(20);
+  });
+
+  it("recolors pale armor shadows toward garage paint", () => {
+    const data = new Uint8ClampedArray([
+      140, 142, 148, 255,
+      188, 165, 123, 255,
+    ]);
+    const n = recolorNearWhitePixels(data, 0.53, 0.56, 0.59);
+    expect(n).toBe(1);
+    expect(data[0]).not.toBe(140);
+    expect(data[4]).toBe(188);
+    expect(data[5]).toBe(165);
   });
 });
 

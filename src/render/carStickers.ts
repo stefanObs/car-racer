@@ -1,6 +1,6 @@
 /**
  * Garage stickers as albedo textures (no floating plane overlays).
- * Per-car art + placement: side / hood / door (Bunker ironClad slots).
+ * Per-car art + placement: side / hood. Bunker IronClad is the default kit sticker.
  */
 import {
   CanvasTexture,
@@ -32,7 +32,7 @@ export function stickerSlotsForCar(id: CarId): StickerSlot[] {
     case "donnerbuechse":
       return ["side"];
     case "bunker":
-      return ["door"];
+      return ["side"];
     case "kaeferkraft":
       return [];
   }
@@ -41,12 +41,6 @@ export function stickerSlotsForCar(id: CarId): StickerSlot[] {
 export function carUsesNoseVariants(id: CarId): boolean {
   return id === "kaeferkraft";
 }
-
-/** ironClad door logos in bunker BodyPaint atlas (1024², tex0). */
-export const BUNKER_DOOR_STICKER_RECTS = [
-  { x: 318, y: 316, w: 158, h: 42 },
-  { x: 330, y: 580, w: 158, h: 42 },
-] as const;
 
 function ink(): string {
   return ComicPaletteCss.outline;
@@ -249,9 +243,9 @@ export function applyCarStickers(root: Object3D, carId: CarId, stickerRaw: strin
   if (slots.length === 0) return;
 
   if (carId === "bunker") {
-    // Stock door badge stays on the authored atlas until the player replaces it
+    // Tripo atlas has no authored IronClad badge; skip default to avoid UV-miss stamps.
     if (sticker === "ironClad") return;
-    patchBunkerDoorStickers(root, sticker);
+    patchAuthoredSideStickers(root, carId, sticker, slots);
     return;
   }
 
@@ -358,32 +352,6 @@ function firstToon(mesh: Mesh): MeshToonMaterial | null {
   return m;
 }
 
-function patchBunkerDoorStickers(root: Object3D, sticker: string): void {
-  const replaced = new Map<Texture, Texture>();
-  root.traverse((obj) => {
-    const mesh = obj as Mesh;
-    if (!mesh.isMesh) return;
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    for (const raw of mats) {
-      const mat = raw as MeshToonMaterial;
-      if (!mat?.map) continue;
-      const name = (mat.name ?? "").toLowerCase();
-      if (name && !name.includes("body") && !name.includes("paint")) continue;
-      const prev = mat.map;
-      const hit = replaced.get(prev);
-      if (hit) {
-        mat.map = hit;
-        mat.needsUpdate = true;
-        continue;
-      }
-      const next = patchDoorMap(prev, "bunker", sticker);
-      replaced.set(prev, next);
-      mat.map = next;
-      mat.needsUpdate = true;
-    }
-  });
-}
-
 function patchAuthoredSideStickers(
   root: Object3D,
   carId: CarId,
@@ -464,62 +432,6 @@ function stampAuthoredSide(base: Texture, carId: CarId, sticker: string): Textur
   return tex;
 }
 
-function patchDoorMap(base: Texture, carId: CarId, sticker: string): Texture {
-  if (!textureImageReady(base)) return base;
-  const key = `door:${carId}:${sticker}`;
-  const hit = texCache.get(key);
-  if (hit) return hit;
-  const img = base.image as { width: number; height: number };
-  const w = img.width;
-  const h = img.height;
-  // Only patch the big body atlas (door logos live on ~1024 albedo)
-  if (w < 512 || h < 512) return base;
-
-  const c = typeof document !== "undefined" ? document.createElement("canvas") : null;
-  if (!c) return base;
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d");
-  if (!ctx) return base;
-  try {
-    ctx.drawImage(base.image as CanvasImageSource, 0, 0, w, h);
-  } catch {
-    return base;
-  }
-
-  const sx = w / 1024;
-  const sy = h / 1024;
-  for (const r of BUNKER_DOOR_STICKER_RECTS) {
-    const x = r.x * sx;
-    const y = r.y * sy;
-    const rw = r.w * sx;
-    const rh = r.h * sy;
-    const sampleX = Math.min(w - 1, Math.floor(x + rw + 8));
-    const sampleY = Math.min(h - 1, Math.floor(y + rh * 0.5));
-    const fill = samplePixel(ctx, sampleX, sampleY) ?? "#E8B800";
-    ctx.fillStyle = fill;
-    ctx.fillRect(x - 2, y - 2, rw + 4, rh + 4);
-
-    if (sticker !== "none") {
-      const stamp = document.createElement("canvas");
-      stamp.width = 256;
-      stamp.height = 128;
-      drawStickerArt(stamp.getContext("2d")!, sticker, carId, 256, 128);
-      ctx.drawImage(stamp, x, y, rw, rh);
-    }
-  }
-
-  const tex = new CanvasTexture(c);
-  tex.colorSpace = SRGBColorSpace;
-  tex.minFilter = NearestFilter;
-  tex.magFilter = NearestFilter;
-  tex.generateMipmaps = false;
-  tex.needsUpdate = true;
-  tex.flipY = base.flipY;
-  texCache.set(key, tex);
-  return tex;
-}
-
 function textureImageReady(tex: Texture): boolean {
   const img = tex.image as
     | HTMLImageElement
@@ -535,15 +447,6 @@ function textureImageReady(tex: Texture): boolean {
   const w = "width" in img ? Number(img.width) : 0;
   const h = "height" in img ? Number(img.height) : 0;
   return w > 0 && h > 0;
-}
-
-function samplePixel(ctx: CanvasRenderingContext2D, x: number, y: number): string | null {
-  try {
-    const d = ctx.getImageData(x, y, 1, 1).data;
-    return `rgb(${d[0]},${d[1]},${d[2]})`;
-  } catch {
-    return null;
-  }
 }
 
 export function overlayTextureCacheSize(): number {

@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-11 — v3.22 Bunker Tripo APC mesh
+
+- Trigger: user — redo the Bunker
+- Decision: Authoring-time Tripo from Asphalt-Comic 3/4-front APC concept; runtime ships baked GLB (no Tripo at play). Nose +Z. Garage paint recolors pale armor pixels; yellow stripe and charcoal trim stay. IronClad remains a side/door sticker (no stats).
+- CONCEPT §§ touched: Dokumentstand v3.22 (class look in §5.1 / Tür-Badge in §6.2 unchanged)
+
 ### 2026-08-11 — v3.21 Blitz Tripo GT mesh
 
 - Trigger: user — generate a new Blitz car with Tripo3D

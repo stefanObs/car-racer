@@ -14,4 +14,4 @@ Tune `scale` / `yaw` / `y` / `collisionRadius` in `src/data/carModels.ts`.
 
 Optional Blender material names for nicer paint mapping: `BodyPaint`, `Glass`, `Tire`, `Chrome`. The loader also tints common free-asset names (`White`, `Truck`, `Atlas`, `mat*`, …).
 
-See [SOURCES.md](./SOURCES.md) for provenance. Rebuild: `npm run cars:polish`. Hotrod source fetch: `npm run cars:fetch-donnerbuechse` (needs Sketchfab API token).
+See [SOURCES.md](./SOURCES.md) for provenance. Rebuild Bison/Hotrod: `npm run cars:polish`. Hotrod source fetch: `npm run cars:fetch-donnerbuechse` (needs Sketchfab API token). Bunker: `npm run cars:bake-bunker-tripo`.

@@ -2,7 +2,6 @@ import { beforeEach, describe, expect, it } from "vitest";
 import { buggyNoseFromSticker } from "../src/render/buggyNose";
 import { Texture } from "three";
 import {
-  BUNKER_DOOR_STICKER_RECTS,
   authoredSideCacheKey,
   buildCarOverlays,
   clearOverlayTextureCache,
@@ -25,7 +24,7 @@ describe("car sticker textures", () => {
     expect(stickerSlotsForCar("blitz")).toEqual(["side"]);
     expect(stickerSlotsForCar("bison")).toEqual(["side", "hood"]);
     expect(stickerSlotsForCar("donnerbuechse")).toEqual(["side"]);
-    expect(stickerSlotsForCar("bunker")).toEqual(["door"]);
+    expect(stickerSlotsForCar("bunker")).toEqual(["side"]);
     expect(stickerSlotsForCar("kaeferkraft")).toEqual([]);
   });
 
@@ -36,14 +35,23 @@ describe("car sticker textures", () => {
     expect(buggyNoseFromSticker("star")).toBe("dog");
   });
 
-  it("defines bunker door UV slots for ironClad replacement", () => {
-    expect(BUNKER_DOOR_STICKER_RECTS).toHaveLength(2);
-    for (const r of BUNKER_DOOR_STICKER_RECTS) {
-      expect(r.w).toBeGreaterThan(100);
-      expect(r.h).toBeGreaterThan(20);
-      expect(r.x + r.w).toBeLessThanOrEqual(1024);
-      expect(r.y + r.h).toBeLessThanOrEqual(1024);
-    }
+  it("stamps bunker IronClad through the authored-side cache", () => {
+    const map = new Texture();
+    expect(authoredSideCacheKey("bunker", "ironClad", map)).toContain("bunker");
+    expect(authoredSideCacheKey("bunker", "ironClad", map)).toBe(
+      authoredSideCacheKey("bunker", "ironClad", map),
+    );
+  });
+
+  it("keeps paint-baked Bison atlases out of the shared sticker cache", () => {
+    const green = new Texture();
+    const red = new Texture();
+    expect(authoredSideCacheKey("bison", "bolt", green)).not.toBe(
+      authoredSideCacheKey("bison", "bolt", red),
+    );
+    expect(authoredSideCacheKey("bison", "bolt", green)).toBe(
+      authoredSideCacheKey("bison", "bolt", green),
+    );
   });
 
   it("keeps paint-baked Blitz atlases out of the shared sticker cache", () => {

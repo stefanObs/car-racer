@@ -73,7 +73,7 @@ tests/
 - Tunables: `src/data/carModels.ts` (`scale`, `yaw`, `collisionRadius`).
 - Boot calls `preloadCarModels()`; all five GLBs are required (no procedural fallback).
 - Donnerbüchse mesh: Sketchfab Hotrod (CC-BY 4.0, credit car-go + Sketchfab); fetch with `SKETCHFAB_API_TOKEN`.
-- Bunker mesh: Sketchfab Hummer HX concept low poly (CC-BY 4.0, credit NoOb StUfFs + Sketchfab); fetch with `SKETCHFAB_API_TOKEN` (`cars:fetch-bunker`).
+- Bunker mesh: Tripo3D authoring bake (`cars:bake-bunker-tripo`); runtime is the shipped GLB (no Tripo at play time).
 - Käferkraft mesh + nose props: Tripo3D authoring bake (`cars:bake-kaeferkraft-tripo`); runtime is the shipped GLBs (no Tripo at play time).
 - Blitz mesh: Tripo3D authoring bake (`cars:bake-blitz-tripo`); runtime is the shipped GLB (no Tripo at play time).
 - Loader strips lights/cameras and uses mesh-only bounds (embedded Spotlights otherwise break autoscale).

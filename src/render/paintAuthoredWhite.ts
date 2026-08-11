@@ -16,11 +16,19 @@ export function clearAuthoredWhitePaintCache(): void {
   cache.clear();
 }
 
-/** Bright + low chroma → body white (not yellow badges / black trim). */
+/**
+ * Tripo Bunker armor — pale / off-white at any luminance, including comic shadows.
+ * Skips charcoal tires/grille, yellow-tan hazard stripe, and warm headlights.
+ */
 export function isNearWhitePaintPixel(r: number, g: number, b: number): boolean {
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
-  return max >= 175 && max - min <= 48;
+  const chroma = max - min;
+  if (max < 72) return false;
+  if (r > 140 && g > b + 30 && r > g - 20) return false;
+  if (max >= 220 && r > b + 16 && g > b + 8) return false;
+  if (chroma > 48 && chroma / max > 0.18) return false;
+  return true;
 }
 
 /**

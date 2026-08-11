@@ -114,21 +114,16 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(CAR_MODELS.donnerbuechse.scale).toBeGreaterThanOrEqual(3.0);
   });
 
-  it("bunker ships Sketchfab Hummer HX comic bake", () => {
+  it("bunker ships a Tripo BodyPaint APC", () => {
     const path = resolve("public/models/cars/bunker.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
     const text = buf.toString("latin1");
     expect(text).toContain("BodyPaint");
-    expect(text).toContain("Glass");
-    expect(text).toContain("Tire");
-    expect(statSync(path).size).toBeGreaterThan(500_000);
-    expect(CAR_MODELS.bunker.scale).toBeGreaterThanOrEqual(0.55);
-    expect(CAR_MODELS.bunker.scale).toBeLessThanOrEqual(0.75);
-  });
-
-  it("bunker arcade scale fits Hummer HX export toward peer car length", () => {
-    expect(CAR_MODELS.bunker.scale).toBeLessThan(0.7);
+    expect(statSync(path).size).toBeGreaterThan(40_000);
+    expect(statSync(path).size).toBeLessThan(8_000_000);
+    expect(CAR_MODELS.bunker.scale).toBe(1);
+    expect(CAR_MODELS.bunker.yaw).toBe(0);
     expect(CAR_MODELS.bunker.collisionRadius).toBeLessThanOrEqual(1.3);
   });
 
