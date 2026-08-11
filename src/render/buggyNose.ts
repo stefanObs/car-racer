@@ -5,6 +5,7 @@
 import {
   Box3,
   Group,
+  Matrix4,
   Mesh,
   Vector3,
   type MeshToonMaterial,
@@ -134,6 +135,20 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
   root.userData.buggyNoseApplied = propId;
 }
 
+const _rootLocalMtx = new Matrix4();
+const _rootInv = new Matrix4();
+
+/** Geometry AABB in `root` local axes — independent of root yaw (race/garage). */
+function meshBoxInRootLocal(root: Object3D, mesh: Mesh): Box3 | null {
+  if (!mesh.geometry) return null;
+  if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+  const geo = mesh.geometry.boundingBox;
+  if (!geo) return null;
+  _rootInv.copy(root.matrixWorld).invert();
+  _rootLocalMtx.copy(mesh.matrixWorld).premultiply(_rootInv);
+  return geo.clone().applyMatrix4(_rootLocalMtx);
+}
+
 /**
  * Feet on the thin bumper tube that runs between left/right headlights.
  * Käferkraft has several BodyPaint Z-tubes on the nose — pick the one whose
@@ -152,13 +167,10 @@ export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
       return n.includes("headlight") || n.includes("eyered");
     });
     if (!isLamp) return;
-    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
-    const b = mesh.geometry.boundingBox;
-    if (!b) return;
-    const world = b.clone().applyMatrix4(mesh.matrixWorld);
+    const local = meshBoxInRootLocal(root, mesh);
+    if (!local) return;
     const c = new Vector3();
-    world.getCenter(c);
-    root.worldToLocal(c);
+    local.getCenter(c);
     if (c.y > 0.55 || c.x > 0) return;
     lampCenters.push(c);
   });
@@ -177,27 +189,17 @@ export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
   root.traverse((obj) => {
     const mesh = obj as Mesh;
     if (!mesh.isMesh || !mesh.geometry) return;
-    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
-    const b = mesh.geometry.boundingBox;
-    if (!b) return;
-    const world = b.clone().applyMatrix4(mesh.matrixWorld);
+    const local = meshBoxInRootLocal(root, mesh);
+    if (!local) return;
     const size = new Vector3();
-    world.getSize(size);
-    const centerWorld = new Vector3();
-    world.getCenter(centerWorld);
-    const topWorld = new Vector3(centerWorld.x, world.max.y, centerWorld.z);
-    root.worldToLocal(centerWorld);
-    root.worldToLocal(topWorld);
-    // Thin Z-tube on the nose (exclude thick Dark cage).
-    if (
-      centerWorld.x < 0 &&
-      size.z > 0.35 &&
-      size.y < 0.18 &&
-      size.x < 0.18
-    ) {
+    local.getSize(size);
+    const center = new Vector3();
+    local.getCenter(center);
+    // Thin Z-tube on the nose (exclude thick Dark cage). Root-local so yaw π/2 is safe.
+    if (center.x < 0 && size.z > 0.35 && size.y < 0.18 && size.x < 0.18) {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       const paint = mats.some((m) => ((m as MeshToonMaterial)?.name ?? "").toLowerCase().includes("body"));
-      bars.push({ x: centerWorld.x, yTop: topWorld.y, paint });
+      bars.push({ x: center.x, yTop: local.max.y, paint });
     }
   });
 

@@ -8,7 +8,11 @@ export type CarModelSpec = {
   url: string;
   /** Uniform scale after load (tune per Blender export). */
   scale: number;
-  /** Extra yaw so nose faces +Z in-game. */
+  /**
+   * Extra yaw after load so the visual nose is +Z.
+   * Race applies `π/2 − heading` on the car root; garage 3/4 faces +Z.
+   * Käferkraft’s bake is nose −X — yaw π/2 maps that onto +Z without rebaking.
+   */
   yaw: number;
   /** Y lift so wheels sit on the ground plane. */
   y: number;
@@ -33,8 +37,7 @@ export const CAR_MODELS: Record<CarId, CarModelSpec> = {
     id: "bison",
     gearClass: "pickup",
     url: "/models/cars/bison.glb",
-    /** L200 export is ~2.1m long; peers land ~3.2–3.9m after normalize. */
-    scale: 1.8,
+    scale: 1,
     yaw: 0,
     y: 0,
     collisionRadius: 1.25,
@@ -44,7 +47,7 @@ export const CAR_MODELS: Record<CarId, CarModelSpec> = {
     gearClass: "buggy",
     url: "/models/cars/kaeferkraft.glb",
     scale: 1,
-    yaw: 0,
+    yaw: Math.PI / 2,
     y: 0,
     collisionRadius: 1.1,
   },
@@ -52,8 +55,7 @@ export const CAR_MODELS: Record<CarId, CarModelSpec> = {
     id: "donnerbuechse",
     gearClass: "hotrod",
     url: "/models/cars/donnerbuechse.glb",
-    /** Sketchfab Hotrod raw longest ~1.09m → peer arcade length. */
-    scale: 3.5,
+    scale: 1,
     yaw: 0,
     y: 0,
     collisionRadius: 1.15,

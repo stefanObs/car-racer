@@ -87,6 +87,7 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(existsSync(resolve("public/models/props/buggy-skull.glb"))).toBe(true);
     expect(existsSync(resolve("public/models/props/buggy-dog.glb"))).toBe(true);
     expect(existsSync(resolve("public/models/props/buggy-bird.glb"))).toBe(true);
+    expect(CAR_MODELS.kaeferkraft.yaw).toBeCloseTo(Math.PI / 2, 5);
   });
 
   it("bison ships a Tripo BodyPaint pickup", () => {

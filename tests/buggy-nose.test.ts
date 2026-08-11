@@ -34,27 +34,43 @@ describe("buggy nose helpers", () => {
     expect(isBuggySkullCosmeticName("Headlight")).toBe(false);
   });
 
-  it("perches Vogel on the BodyPaint bar nearest headlight height", () => {
+  function bumperFixture(): Group {
     const root = new Group();
     const left = new Mesh(new SphereGeometry(0.08, 6, 6), new MeshBasicMaterial({ name: "Headlight" }));
     left.position.set(-1.3, 0.0, -0.21);
     const right = new Mesh(new SphereGeometry(0.08, 6, 6), new MeshBasicMaterial({ name: "Headlight" }));
     right.position.set(-1.3, 0.0, 0.21);
-    // Between headlights (near lamp Y).
     const between = new Mesh(new BoxGeometry(0.05, 0.06, 0.7), new MeshBasicMaterial({ name: "BodyPaint" }));
     between.position.set(-1.305, -0.09, 0);
-    // Lower skid lip — must not win.
     const lip = new Mesh(new BoxGeometry(0.07, 0.06, 0.7), new MeshBasicMaterial({ name: "BodyPaint" }));
     lip.position.set(-1.335, -0.22, 0);
     const cage = new Mesh(new BoxGeometry(0.2, 0.32, 0.8), new MeshBasicMaterial({ name: "Dark" }));
     cage.position.set(-1.18, 0.15, 0);
     root.add(left, right, between, lip, cage);
+    return root;
+  }
+
+  it("perches Vogel on the BodyPaint bar nearest headlight height", () => {
+    const root = bumperFixture();
     root.updateMatrixWorld(true);
     const perch = bumperHeadlightPerchLocal(root);
     expect(perch.x).toBeCloseTo(-1.305, 1);
     expect(perch.z).toBeCloseTo(0, 1);
     expect(perch.y).toBeCloseTo(-0.06, 1);
     expect(perch.y).toBeGreaterThan(-0.12);
+  });
+
+  it("keeps the bumper perch in root-local −X when the car root is yawed to +Z", () => {
+    const plain = bumperFixture();
+    plain.updateMatrixWorld(true);
+    const expected = bumperHeadlightPerchLocal(plain);
+    const yawed = bumperFixture();
+    yawed.rotation.y = Math.PI / 2;
+    yawed.updateMatrixWorld(true);
+    const perch = bumperHeadlightPerchLocal(yawed);
+    expect(perch.x).toBeCloseTo(expected.x, 2);
+    expect(perch.y).toBeCloseTo(expected.y, 2);
+    expect(perch.z).toBeCloseTo(expected.z, 2);
   });
 
   it("uses the same headlight bar perch for Hund as for Vogel", () => {
