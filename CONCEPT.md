@@ -494,4 +494,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.18 — Käferkraft-Nase „Vogel“ (Sketchfab-Taube).*
+*Dokumentstand: Konzept v3.19 — Käferkraft-Mesh + Nasen (Totenkopf/Vogel/Hund) aus Tripo-Konzepten, Asphalt-Comic.*

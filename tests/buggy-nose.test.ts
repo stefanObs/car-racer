@@ -72,21 +72,16 @@ describe("buggy nose helpers", () => {
     expect(perch.x).toBeLessThan(-1.2);
   });
 
-  it("keeps the dog head small enough that bumper lamps stay visible", () => {
-    // Unscaled head span ≈ 0.47m; lamps sit ≈ ±0.21m — scale must leave a gap.
-    expect(DOG_HEAD_SCALE).toBeLessThan(0.7);
-    expect(DOG_HEAD_SCALE * 0.47).toBeLessThan(0.35);
+  it("keeps the dog head at baked bumper-ornament size", () => {
+    expect(DOG_HEAD_SCALE).toBe(1);
   });
 
-  it("aims the authored snout at buggy forward (−X) with yaw only (upright)", () => {
-    // Snout is not +Z — compensate azimuth; no pitch/roll (that made the head lean).
-    expect(DOG_HEAD_YAW).toBeCloseTo(-Math.PI / 2 - Math.atan2(-0.3733, 0.715), 5);
-    expect(DOG_HEAD_YAW).not.toBeCloseTo(-Math.PI / 2, 2);
+  it("uses bake yaw so the snout already aims at buggy forward (−X)", () => {
+    expect(DOG_HEAD_YAW).toBe(0);
   });
 
   it("seats the dog neck on the headlight bar without floating", () => {
-    // Contact is rear of origin after yaw → negative X shift; Y embeds slightly.
-    expect(DOG_HEAD_CONTACT_X).toBeLessThan(0);
+    expect(DOG_HEAD_CONTACT_X).toBeLessThanOrEqual(0);
     expect(DOG_HEAD_CONTACT_Y).toBeLessThanOrEqual(0);
     expect(Math.abs(DOG_HEAD_CONTACT_Y * DOG_HEAD_SCALE)).toBeLessThan(0.02);
   });

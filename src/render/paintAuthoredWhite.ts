@@ -24,6 +24,11 @@ export function isNearWhitePaintPixel(r: number, g: number, b: number): boolean 
   return max >= 175 && max - min <= 48;
 }
 
+/** Tripo Käferkraft body panels (orange hood/sides, not black cage/tires). */
+export function isOrangeBodyPixel(r: number, g: number, b: number): boolean {
+  return r >= 90 && r >= g + 12 && r >= b + 28 && g >= b - 8 && r + g + b >= 180;
+}
+
 /** Mutates RGBA buffer in place. paint channels are 0..1. */
 export function recolorNearWhitePixels(
   data: Uint8ClampedArray | Uint8Array,
@@ -94,6 +99,84 @@ export function bakeAuthoredWhiteToPaint(base: Texture, paint: string): Texture 
   const imageData = ctx.getImageData(0, 0, w, h);
   const paintColor = new Color(paint);
   recolorNearWhitePixels(imageData.data, paintColor.r, paintColor.g, paintColor.b);
+  ctx.putImageData(imageData, 0, 0);
+
+  const tex = new CanvasTexture(c);
+  tex.colorSpace = SRGBColorSpace;
+  tex.minFilter = NearestFilter;
+  tex.magFilter = NearestFilter;
+  tex.generateMipmaps = false;
+  tex.flipY = base.flipY;
+  tex.needsUpdate = true;
+  cache.set(key, tex);
+  return tex;
+}
+
+/** Mutates RGBA: orange body panels → garage paint, keep cage/tire/chrome. */
+export function recolorOrangeBodyPixels(
+  data: Uint8ClampedArray | Uint8Array,
+  paintR: number,
+  paintG: number,
+  paintB: number,
+): number {
+  let changed = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i]!;
+    const g = data[i + 1]!;
+    const b = data[i + 2]!;
+    if (!isOrangeBodyPixel(r, g, b)) continue;
+    const lum = (r + g + b) / (3 * 255);
+    const shade = 0.35 + 0.65 * lum;
+    data[i] = Math.round(paintR * 255 * shade);
+    data[i + 1] = Math.round(paintG * 255 * shade);
+    data[i + 2] = Math.round(paintB * 255 * shade);
+    changed++;
+  }
+  return changed;
+}
+
+export function bakeAuthoredOrangeToPaint(base: Texture, paint: string): Texture {
+  const key = `kaeferkraft-orange:${paint}:${textureKey(base)}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+
+  if (typeof document === "undefined" || !base.image) {
+    cache.set(key, base);
+    return base;
+  }
+
+  const img = base.image as { width?: number; height?: number; complete?: boolean; naturalWidth?: number };
+  const w = Number(img.width ?? img.naturalWidth ?? 0);
+  const h = Number(img.height ?? 0);
+  if (w < 8 || h < 8) {
+    cache.set(key, base);
+    return base;
+  }
+  if (typeof HTMLImageElement !== "undefined" && base.image instanceof HTMLImageElement) {
+    if (!base.image.complete || base.image.naturalWidth < 1) {
+      cache.set(key, base);
+      return base;
+    }
+  }
+
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext("2d");
+  if (!ctx) {
+    cache.set(key, base);
+    return base;
+  }
+  try {
+    ctx.drawImage(base.image as CanvasImageSource, 0, 0, w, h);
+  } catch {
+    cache.set(key, base);
+    return base;
+  }
+
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const paintColor = new Color(paint);
+  recolorOrangeBodyPixels(imageData.data, paintColor.r, paintColor.g, paintColor.b);
   ctx.putImageData(imageData, 0, 0);
 
   const tex = new CanvasTexture(c);

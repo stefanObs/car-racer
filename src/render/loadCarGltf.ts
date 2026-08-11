@@ -23,7 +23,7 @@ import {
   comicAtlasForRole,
 } from "./comicCarAtlases";
 import { ensureComicBoxUvs, ensureNoseOrnamentUvs } from "./comicCarUvs";
-import { bakeAuthoredWhiteToPaint } from "./paintAuthoredWhite";
+import { bakeAuthoredOrangeToPaint, bakeAuthoredWhiteToPaint } from "./paintAuthoredWhite";
 
 type Template = {
   root: Object3D;
@@ -301,6 +301,22 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
       if (!shouldApplyGaragePaint(name)) continue;
       const toon = mat as MeshToonMaterial;
       if (!toon.color) continue;
+
+      // Käferkraft: Tripo atlas — recolor orange body panels to garage paint.
+      if (carId === "kaeferkraft" && toon.map && (name.includes("body") || name.includes("paint"))) {
+        const prev = toon.map;
+        const hit = replaced.get(prev);
+        if (hit) {
+          toon.map = hit;
+        } else {
+          const next = bakeAuthoredOrangeToPaint(prev, paint);
+          replaced.set(prev, next);
+          toon.map = next;
+        }
+        toon.color.setRGB(1, 1, 1);
+        toon.needsUpdate = true;
+        continue;
+      }
 
       // Bunker: authored Hummer atlas — recolor near-white body panels to garage paint.
       if (carId === "bunker" && toon.map && (name.includes("body") || name.includes("paint"))) {

@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-11 — v3.19 Käferkraft Tripo mesh + noses
+
+- Trigger: user — better-looking buggy than GetGLB; alternative fronts (skull, dog, bird) via Tripo3D
+- Decision: Authoring-time Tripo from Asphalt-Comic concepts; runtime ships baked GLBs (no Tripo at play). Bare bumper + three bumper-ornament props. Garage paint recolors orange body pixels. Cosmetics still no stats.
+- CONCEPT §§ touched: Dokumentstand v3.19 (rules in §6.2 unchanged)
+
 ### 2026-07-26 — v3.18 Käferkraft nose label Vogel + stylized pigeon
 
 - Trigger: user — “Bidr” misspelled → Vogel; replace bird with Sketchfab stylized pigeon; face forward, feet on frame

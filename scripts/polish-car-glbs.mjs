@@ -4,7 +4,7 @@
  * - Bison: Mitsubishi L200 (Poly Pizza / Muhammad Reyhan, CC-BY 3.0) rematerialized.
  * - Donnerbüchse: Sketchfab Hotrod by car-go (CC-BY 4.0) — texture-split comic bake.
  * - Bunker: Sketchfab Hummer HX concept low poly by NoOb StUfFs (CC-BY 4.0).
- * - Käferkraft: keep GetGLB buggy (`npm run cars:tune-kaeferkraft`)
+ * - Käferkraft: Tripo arcade bake (`npm run cars:bake-kaeferkraft-tripo`)
  *
  * Usage: node scripts/polish-car-glbs.mjs
  * Hotrod source: public/models/cars/donnerbuechse.source.glb (gitignored)

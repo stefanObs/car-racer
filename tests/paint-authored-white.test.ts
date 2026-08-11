@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
   isNearWhitePaintPixel,
+  isOrangeBodyPixel,
   recolorNearWhitePixels,
+  recolorOrangeBodyPixels,
 } from "../src/render/paintAuthoredWhite";
 
 describe("bunker authored white → garage paint", () => {
@@ -35,3 +37,23 @@ describe("bunker authored white → garage paint", () => {
     expect(data[8]).toBe(20);
   });
 });
+
+describe("Käferkraft orange body → garage paint", () => {
+  it("treats saturated orange panels as body, not black cage", () => {
+    expect(isOrangeBodyPixel(220, 110, 40)).toBe(true);
+    expect(isOrangeBodyPixel(20, 20, 22)).toBe(false);
+    expect(isOrangeBodyPixel(90, 90, 95)).toBe(false);
+  });
+
+  it("recolors orange pixels and leaves dark cage alone", () => {
+    const data = new Uint8ClampedArray([
+      210, 95, 35, 255,
+      18, 18, 20, 255,
+    ]);
+    const n = recolorOrangeBodyPixels(data, 0.07, 0.72, 0.53); // teal
+    expect(n).toBe(1);
+    expect(data[1]!).toBeGreaterThan(data[0]!);
+    expect(data[4]).toBe(18);
+  });
+});
+

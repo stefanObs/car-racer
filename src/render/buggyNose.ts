@@ -15,30 +15,19 @@ import { comicToon } from "./comicMaterials";
 
 export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
 
-/**
- * Smaller than the Totenkopf so left/right bumper headlights stay readable
- * (lamp centers ≈ ±0.21 m; unscaled head span ≈ 0.47 m).
- */
-export const DOG_HEAD_SCALE = 0.58;
-/**
- * Authored snout is ~28° off +Z in the bake. Yaw-only (no roll/pitch) keeps the
- * head upright and aims the snout at buggy forward (−X) in plan view.
- */
-export const DOG_HEAD_YAW = -Math.PI / 2 - Math.atan2(-0.3733, 0.715);
-/**
- * After yaw, the neck contact sits ~+0.10 m in local X (rear of origin).
- * Shift by −contact×scale so the cut rests on the headlight crossbar; Y stays 0
- * because the bake bottom is already at y=0.
- */
-export const DOG_HEAD_CONTACT_X = -0.104;
+/** Tripo bake already faces −X and sits on y=0 at bumper-ornament size. */
+export const DOG_HEAD_SCALE = 1;
+export const DOG_HEAD_YAW = 0;
+export const DOG_HEAD_CONTACT_X = -0.02;
 export const DOG_HEAD_CONTACT_Y = -0.01;
 
-const noseTemplates = new Map<"bird" | "dog", Group>();
+const noseTemplates = new Map<"bird" | "dog" | "skull", Group>();
 let preloadPromise: Promise<void> | null = null;
 
 const NOSE_URLS = {
   bird: "/models/props/buggy-bird.glb",
   dog: "/models/props/buggy-dog.glb",
+  skull: "/models/props/buggy-skull.glb",
 } as const;
 
 export function buggyNoseFromSticker(sticker: string): BuggyNoseId {
@@ -48,7 +37,7 @@ export function buggyNoseFromSticker(sticker: string): BuggyNoseId {
   return "none";
 }
 
-/** Load bird/dog nose GLBs once (call with car preload). */
+/** Load skull/bird/dog nose GLBs once (call with car preload). */
 export function preloadBuggyNoses(): Promise<void> {
   if (preloadPromise) return preloadPromise;
   preloadPromise = (async () => {
@@ -64,30 +53,30 @@ export function preloadBuggyNoses(): Promise<void> {
           const next = mats.map((m) => {
             const name = ((m as MeshToonMaterial)?.name ?? "").toLowerCase();
             const std = m as MeshToonMaterial & { map?: unknown };
-            const hex = name.includes("eye")
-              ? 0xf2261e
-              : name.includes("beak")
-                ? 0xeb7a1e
-                : name.includes("dark")
-                  ? 0x262628
-                  : name.includes("light")
-                    ? 0xecebe8
-                    : 0xffffff;
+            const hex = name.includes("skull")
+              ? 0xf2ead8
+              : name.includes("eye")
+                ? 0xf2261e
+                : name.includes("beak")
+                  ? 0xeb7a1e
+                  : name.includes("dark")
+                    ? 0x262628
+                    : name.includes("light")
+                      ? 0xecebe8
+                      : 0xffffff;
             const toon = comicToon(hex);
-            toon.name = (m as MeshToonMaterial)?.name ?? "Body";
-            // Keep authored albedo + UVs (bird beak/eyes; dog head after crop).
-            // Do not overwrite with planar face atlases — that stretches the mesh look.
+            toon.name = (m as MeshToonMaterial)?.name ?? (id === "skull" ? "Skull" : "Body");
+            // Keep Tripo albedo + UVs — do not planar-atlas (stretches the mesh look).
             if (std.map) {
               toon.map = std.map as never;
-              if (id === "dog") toon.color.setHex(0xe8e0d4); // light stone grade
               toon.needsUpdate = true;
             }
             return toon;
           });
           mesh.material = next.length === 1 ? next[0]! : next;
         });
-        // Bird authored along −Z → +90°. Dog: yaw-only snout aim → buggy −X (upright).
-        root.rotation.y = id === "dog" ? DOG_HEAD_YAW : Math.PI / 2;
+        // Bake already aims mascots at buggy forward (−X).
+        root.rotation.y = id === "dog" ? DOG_HEAD_YAW : 0;
         noseTemplates.set(id, root);
       }),
     );
@@ -95,23 +84,22 @@ export function preloadBuggyNoses(): Promise<void> {
   return preloadPromise;
 }
 
-export function hasBuggyNose(id: "bird" | "dog"): boolean {
+export function hasBuggyNose(id: "bird" | "dog" | "skull"): boolean {
   return noseTemplates.has(id);
 }
 
-/** Swap front head: skull+horns together; bird/dog GLB props; none = bare bumper. */
+/** Swap front head: skull / bird / dog GLB props; none = bare bumper. */
 export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
   const variant = buggyNoseFromSticker(sticker);
   const prev = root.getObjectByName("buggyNoseVariant");
   if (prev) prev.removeFromParent();
 
-  const skullParts = findSkullParts(root);
-  const showStockSkull = variant === "skull";
-  for (const m of skullParts) m.visible = showStockSkull;
+  // Hide leftover GetGLB skull if a source mesh still has one.
+  for (const m of findSkullParts(root)) m.visible = false;
 
-  if (variant === "skull" || variant === "none") return;
+  if (variant === "none") return;
 
-  const propId = variant === "bird" ? "bird" : "dog";
+  const propId = variant;
   const template = noseTemplates.get(propId);
   if (!template) {
     console.warn(`Buggy nose GLB not loaded: ${propId}. Call preloadBuggyNoses().`);
@@ -128,16 +116,14 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
     else if (mesh.material) mesh.material = mesh.material.clone();
   });
   nose.name = "buggyNoseVariant";
-  // Neck/feet on the bumper crossbar between headlights.
   const perch = bumperHeadlightPerchLocal(root);
   nose.position.copy(perch);
   if (propId === "dog") {
     nose.scale.setScalar(DOG_HEAD_SCALE);
-    // Neck cut onto the bar (X) with a slight embed (Y) so it does not float.
     nose.position.x += DOG_HEAD_CONTACT_X * DOG_HEAD_SCALE;
     nose.position.y += DOG_HEAD_CONTACT_Y * DOG_HEAD_SCALE;
   } else {
-    nose.scale.setScalar(1.05);
+    nose.scale.setScalar(propId === "skull" ? 1.12 : 1.05);
   }
   root.add(nose);
   root.userData.buggyNoseApplied = propId;
@@ -168,7 +154,7 @@ export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
     const c = new Vector3();
     world.getCenter(c);
     root.worldToLocal(c);
-    if (c.y > 0.35 || c.x > -1.0) return;
+    if (c.y > 0.55 || c.x > 0) return;
     lampCenters.push(c);
   });
 
@@ -199,11 +185,10 @@ export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
     root.worldToLocal(topWorld);
     // Thin Z-tube on the nose (exclude thick Dark cage).
     if (
-      centerWorld.x > -1.45 &&
-      centerWorld.x < -1.15 &&
+      centerWorld.x < 0 &&
       size.z > 0.35 &&
-      size.y < 0.12 &&
-      size.x < 0.12
+      size.y < 0.18 &&
+      size.x < 0.18
     ) {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       const paint = mats.some((m) => ((m as MeshToonMaterial)?.name ?? "").toLowerCase().includes("body"));
@@ -227,7 +212,31 @@ export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
     return new Vector3(lampX, lampY - 0.05, 0);
   }
 
-  return new Vector3(-1.305, -0.058, 0);
+  const hull = new Box3();
+  let found = false;
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const b = mesh.geometry.boundingBox;
+    if (!b) return;
+    const world = b.clone().applyMatrix4(mesh.matrixWorld);
+    if (!found) {
+      hull.copy(world);
+      found = true;
+    } else hull.union(world);
+  });
+  if (found) {
+    const localMin = hull.min.clone();
+    const localMax = hull.max.clone();
+    root.worldToLocal(localMin);
+    root.worldToLocal(localMax);
+    const minX = Math.min(localMin.x, localMax.x);
+    const minY = Math.min(localMin.y, localMax.y);
+    const maxY = Math.max(localMin.y, localMax.y);
+    return new Vector3(minX + 0.08, minY + (maxY - minY) * 0.28, 0);
+  }
+  return new Vector3(-1.55, 0.22, 0);
 }
 
 function findSkullParts(root: Object3D): Mesh[] {

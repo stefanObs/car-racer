@@ -58,18 +58,17 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(isKaeferkraftRoofLampMesh(engineChrome)).toBe(false);
   });
 
-  it("kaeferkraft ships tuned materials (paint cage/tray, chrome engine, black controls)", () => {
+  it("kaeferkraft ships a Tripo BodyPaint buggy (noses are separate props)", () => {
     const path = resolve("public/models/cars/kaeferkraft.glb");
     const buf = readFileSync(path);
     expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
     const text = buf.toString("latin1");
     expect(text).toContain("BodyPaint");
-    expect(text).toContain("Chrome");
-    expect(text).toContain("EyeRed");
-    expect(text).toContain("Skull");
-    expect(text).toContain("Seat");
-    expect(text).toContain("Dark");
-    expect(text).not.toContain("CageOrange");
+    expect(statSync(path).size).toBeGreaterThan(20_000);
+    expect(statSync(path).size).toBeLessThan(8_000_000);
+    expect(existsSync(resolve("public/models/props/buggy-skull.glb"))).toBe(true);
+    expect(existsSync(resolve("public/models/props/buggy-dog.glb"))).toBe(true);
+    expect(existsSync(resolve("public/models/props/buggy-bird.glb"))).toBe(true);
   });
 
   it("bison ships modern L200 pickup with BodyPaint + blue Glass + Tire", async () => {
