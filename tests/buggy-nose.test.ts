@@ -8,6 +8,7 @@ import {
   DOG_HEAD_CONTACT_Y,
   DOG_HEAD_SCALE,
   DOG_HEAD_YAW,
+  SKULL_FORWARD_X,
   isBuggySkullCosmeticName,
   noseAnchorLocal,
 } from "../src/render/buggyNose";
@@ -84,6 +85,25 @@ describe("buggy nose helpers", () => {
     expect(DOG_HEAD_CONTACT_X).toBeLessThanOrEqual(0);
     expect(DOG_HEAD_CONTACT_Y).toBeLessThanOrEqual(0);
     expect(Math.abs(DOG_HEAD_CONTACT_Y * DOG_HEAD_SCALE)).toBeLessThan(0.02);
+  });
+
+  it("pushes skull and dog forward of the centered bake so faces clear the nose", () => {
+    // Hull perch is minX+0.08; props are X-centered (~0.19 behind origin).
+    const hullMinX = -1.675;
+    const perchX = hullMinX + 0.08;
+    const skullScale = 1.12;
+    const skullHalf = 0.194 * skullScale;
+    const skullOrigin = perchX + SKULL_FORWARD_X;
+    const skullRear = skullOrigin + skullHalf;
+    const skullFront = skullOrigin - skullHalf;
+    expect(SKULL_FORWARD_X).toBeLessThanOrEqual(-0.22);
+    expect(DOG_HEAD_CONTACT_X).toBeLessThanOrEqual(-0.18);
+    expect(skullRear).toBeLessThan(perchX + 0.06);
+    expect(skullFront).toBeLessThan(hullMinX - 0.12);
+    const dogHalf = 0.174;
+    const dogOrigin = perchX + DOG_HEAD_CONTACT_X * DOG_HEAD_SCALE;
+    expect(dogOrigin + dogHalf).toBeLessThan(perchX + 0.06);
+    expect(dogOrigin - dogHalf).toBeLessThan(hullMinX - 0.1);
   });
 
   it("keeps dog authored UVs + GLB albedo (no planar face atlas)", () => {

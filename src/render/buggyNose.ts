@@ -18,8 +18,10 @@ export type BuggyNoseId = "none" | "skull" | "bird" | "dog";
 /** Tripo bake already faces −X and sits on y=0 at bumper-ornament size. */
 export const DOG_HEAD_SCALE = 1;
 export const DOG_HEAD_YAW = 0;
-export const DOG_HEAD_CONTACT_X = -0.02;
+export const DOG_HEAD_CONTACT_X = -0.24;
 export const DOG_HEAD_CONTACT_Y = -0.01;
+/** Extra −X so a centered skull isn't buried in the hood (hull perch is minX+0.08). */
+export const SKULL_FORWARD_X = -0.28;
 
 const noseTemplates = new Map<"bird" | "dog" | "skull", Group>();
 let preloadPromise: Promise<void> | null = null;
@@ -122,8 +124,11 @@ export function applyBuggyNoseVariant(root: Object3D, sticker: string): void {
     nose.scale.setScalar(DOG_HEAD_SCALE);
     nose.position.x += DOG_HEAD_CONTACT_X * DOG_HEAD_SCALE;
     nose.position.y += DOG_HEAD_CONTACT_Y * DOG_HEAD_SCALE;
+  } else if (propId === "skull") {
+    nose.scale.setScalar(1.12);
+    nose.position.x += SKULL_FORWARD_X;
   } else {
-    nose.scale.setScalar(propId === "skull" ? 1.12 : 1.05);
+    nose.scale.setScalar(1.05);
   }
   root.add(nose);
   root.userData.buggyNoseApplied = propId;
