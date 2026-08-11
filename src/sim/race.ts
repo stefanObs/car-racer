@@ -71,6 +71,7 @@ export class RaceSession {
         paint: this.config.playerPaint,
         sticker: this.config.playerSticker,
         modelId: this.config.playerCarId,
+        equippedParts: this.config.playerParts,
         stats: playerStats,
         distanceAlong: 8,
         progress: 8,
@@ -80,7 +81,8 @@ export class RaceSession {
     aiSpecs.forEach((ai, index) => {
       const along = 2 + index * 7;
       const s = sampleCenterline(this.track, along);
-      const stats = mergeStats(CARS[ai.carId].stats, index % 2 === 0 ? ["big_wheels"] : ["reinforced_frame"]);
+      const aiParts: PartId[] = index % 2 === 0 ? ["big_wheels"] : ["reinforced_frame"];
+      const stats = mergeStats(CARS[ai.carId].stats, aiParts);
       stats.accel *= ai.skill;
       stats.topSpeed *= 0.92 + ai.skill * 0.08;
       const side = index % 2 === 0 ? -1.5 : 1.5;
@@ -94,6 +96,7 @@ export class RaceSession {
           paint: ai.paint,
           sticker: (["flames", "bolt", "star", "none", "flames"] as const)[index % 5]!,
           modelId: ai.carId,
+          equippedParts: aiParts,
           stats,
           distanceAlong: along,
           progress: along,

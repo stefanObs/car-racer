@@ -1,4 +1,5 @@
 import type { CarId } from "../data/cars";
+import type { PartId } from "../data/parts";
 import type { RaceSession } from "../sim/race";
 import type { FinishCelebrate } from "../ui/finishCelebrate";
 import { RaceRenderer } from "./RaceRenderer";
@@ -7,6 +8,7 @@ export type GarageLook = {
   paint: string;
   sticker: string;
   modelId: CarId;
+  equippedParts?: readonly PartId[];
 };
 
 export type GameRenderer = {

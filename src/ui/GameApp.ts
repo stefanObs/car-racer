@@ -385,6 +385,7 @@ export class GameApp {
       paint: kit.paint,
       sticker: kit.sticker,
       modelId: showcaseCarId(this.save.activeCar, this.previewCar),
+      equippedParts: kit.equippedParts,
     });
   }
 

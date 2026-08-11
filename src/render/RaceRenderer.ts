@@ -268,8 +268,8 @@ export class RaceRenderer {
       this.idleCar.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
       spinCarWheels(this.idleWheels ?? [], GARAGE_IDLE_WHEEL_SPEED, 1 / 60, 0);
     }
-    // Front-biased camera — nose toward viewer
-    this.camera.position.set(1.6, 2.85, 9.6);
+    // Slightly right of the pad so left heroes and right stock both read
+    this.camera.position.set(3.4, 2.7, 9.2);
     this.camera.lookAt(1.5, 0.95, 0.2);
     this.renderer.render(this.scene, this.camera);
   }

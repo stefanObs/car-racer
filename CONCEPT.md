@@ -277,6 +277,8 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 **Design-Regel für jedes Teil:**  
 Kind muss in **einem Satz** Vor- und Nachteil verstehen. UI zeigt immer beides + kurze Empfehlung („Gut mit großen Rädern“).
 
+**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (zuerst Blitz). Ablegen blendet sie aus. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
+
 ### 6.4 Synergie-System („gute Kombinationen“)
 
 Nicht nur additive Stats — **Synergie-Tags**:
@@ -494,4 +496,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.23 — Bison Pick-up und Donnerbüchse Hot Rod: Tripo-Meshes, Lack/Aufkleber unverändert (keine Stats).*
+*Dokumentstand: Konzept v3.24 — Blitz zeigt eingebaute Teile als kleine Add-on-Meshes (keine Extra-Stats).*

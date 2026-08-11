@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-11 — v3.24 Blitz equipped-Teile meshes
+
+- Trigger: user — Blitz should show small Asphalt-Comic add-on meshes for equipped tuning parts
+- Decision: Visualize `kit.equippedParts` with small Tripo props (spoiler, scoop, nitro, spikes, springs, hoop, vents). `big_wheels` scales existing wheel hubs; `better_brakes` skipped until calipers exist. Meshes grant **no stats** — only `mergeStats`. Paint/stickers stay cosmetic. Unequip hides the mesh.
+- CONCEPT §§ touched: §6.3 Sichtbarkeit → v3.24
+
 ### 2026-08-11 — v3.23 Bison + Donnerbüchse Tripo meshes
 
 - Trigger: user — redo Bison (pickup) and Donnerbüchse (hot rod) via the Blitz Tripo pipeline

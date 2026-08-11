@@ -1,4 +1,5 @@
 import { preloadCarModels } from "./render/loadCarGltf";
+import { preloadBlitzParts } from "./render/blitzParts";
 import { preloadBuggyNoses } from "./render/buggyNose";
 import { preloadBuggyNoseTextures } from "./render/buggyNoseTextures";
 import { preloadComicWheel } from "./render/carWheels";
@@ -33,8 +34,9 @@ async function boot(): Promise<void> {
   await Promise.all([
     preloadCarModels(),
     preloadBuggyNoses(),
-    preloadGarageProps(),
-    preloadComicWheel(),
+    preloadGarageProps().catch((err) => console.warn("[boot] garage skipped", err)),
+    preloadComicWheel().catch((err) => console.warn("[boot] wheel skipped", err)),
+    preloadBlitzParts().catch((err) => console.warn("[boot] blitz parts skipped", err)),
     preloadFxModels(),
   ]);
 
