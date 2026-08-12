@@ -1,5 +1,5 @@
 import type { LevelDefinition, TrackSegment } from "../track/types";
-import { buildTrackFromLevel } from "../track/buildTrack";
+import { buildTrackFromLevel, nearestOnTrack } from "../track/buildTrack";
 import { pointOnTrack } from "../track/validateTrack";
 
 /**
@@ -22,64 +22,71 @@ function harborSegments(): TrackSegment[] {
   ];
 }
 
-/** Parabolbogen — long S/F straight, huge high-speed arc, hairpin, short choke. */
+/** Parabolbogen — long S/F straight, huge high-speed arc, technical return (S + hairpin). */
 function parabolbogenSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 88, width: 12 },
-    { type: "curve_r", radius: 48, angleDeg: 200, width: 11 },
-    { type: "straight", length: 16, width: 12 },
-    { type: "curve_r", radius: 11, angleDeg: 160, width: 9 },
-    { type: "straight", length: 22, width: 11 },
-    { type: "choke", length: 14, width: 8 },
+    { type: "straight", length: 92, width: 12 },
+    { type: "curve_r", radius: 50, angleDeg: 205, width: 11 },
+    { type: "straight", length: 14, width: 11 },
+    { type: "s_curve", width: 10 },
+    { type: "curve_l", radius: 12, angleDeg: 95, width: 9 },
+    { type: "curve_r", radius: 11, angleDeg: 85, width: 9 },
+    { type: "straight", length: 18, width: 11 },
+    { type: "choke", length: 12, width: 8 },
   ];
 }
 
 /**
  * Schikanenring — compact technical ring with dual-line Schikane (risk/reward via
- * verge blockers + inner oil/uneven on a wide ribbon; see makeCup hazards).
+ * inner oil/uneven hot line on a wide ribbon; solids stay in grass — see makeCup).
  */
 function schikanenringSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 34, width: 13 },
-    { type: "curve_r", radius: 13, angleDeg: 90, width: 11 },
-    { type: "straight", length: 20, width: 12 },
-    { type: "choke", length: 16, width: 8 },
-    { type: "curve_r", radius: 12, angleDeg: 90, width: 10 },
+    { type: "straight", length: 42, width: 14 },
+    { type: "s_curve", width: 11 },
+    { type: "straight", length: 30, width: 13 },
+    { type: "curve_r", radius: 18, angleDeg: 90, width: 11 },
+    { type: "straight", length: 36, width: 13 },
+    { type: "s_curve", width: 10 },
+    { type: "straight", length: 24, width: 12 },
+    { type: "curve_r", radius: 18, angleDeg: 90, width: 11 },
     { type: "straight", length: 28, width: 13 },
-    { type: "curve_r", radius: 11, angleDeg: 90, width: 10 },
-    { type: "choke", length: 18, width: 7.5 },
-    { type: "uneven_field", length: 14, width: 12, intensity: 0.45 },
-    { type: "curve_r", radius: 13, angleDeg: 90, width: 11 },
+    { type: "curve_r", radius: 16, angleDeg: 90, width: 11 },
+    { type: "straight", length: 20, width: 12 },
+    { type: "curve_r", radius: 16, angleDeg: 90, width: 11 },
   ];
 }
 
-/** Omegatal — closed non-crossing loop: tight hairpin, wide omega lobe, waterfall uneven. */
+/** Omegatal — hairpin, omega lobe (L+R), waterfall uneven; closed non-crossing. */
 function omegatalSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 42, width: 12 },
-    { type: "curve_r", radius: 14, angleDeg: 90, width: 9 },
+    { type: "straight", length: 55, width: 12 },
+    { type: "curve_r", radius: 13, angleDeg: 160, width: 9 },
+    { type: "straight", length: 36, width: 11 },
+    { type: "uneven_field", length: 16, width: 11, intensity: 0.55 },
+    { type: "curve_l", radius: 38, angleDeg: 95, width: 11 },
     { type: "straight", length: 22, width: 11 },
-    { type: "curve_r", radius: 32, angleDeg: 90, width: 11 },
-    { type: "straight", length: 18, width: 11 },
-    { type: "curve_r", radius: 14, angleDeg: 90, width: 10 },
-    { type: "uneven_field", length: 36, width: 11, intensity: 0.7 },
-    { type: "curve_r", radius: 16, angleDeg: 90, width: 10 },
+    { type: "curve_r", radius: 20, angleDeg: 85, width: 10 },
+    { type: "uneven_field", length: 28, width: 11, intensity: 0.75 },
+    { type: "curve_r", radius: 16, angleDeg: 100, width: 10 },
   ];
 }
 
-/** Kuppenfinale — boss: long legs, many Kuppen, choke, mixed uneven (triangle-ish). */
+/** Kuppenfinale — boss: many Kuppen, choke, varied radii (non-crossing). */
 function kuppenfinaleSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 72, width: 12 },
-    { type: "uneven_field", length: 28, width: 12, intensity: 0.7 },
-    { type: "curve_r", radius: 12, angleDeg: 120, width: 9 },
-    { type: "straight", length: 40, width: 12 },
-    { type: "uneven_field", length: 24, width: 11, intensity: 0.75 },
-    { type: "choke", length: 16, width: 8 },
-    { type: "curve_r", radius: 12, angleDeg: 120, width: 9 },
     { type: "straight", length: 55, width: 12 },
-    { type: "uneven_field", length: 20, width: 12, intensity: 0.65 },
-    { type: "curve_r", radius: 13, angleDeg: 120, width: 10 },
+    { type: "uneven_field", length: 24, width: 12, intensity: 0.7 },
+    { type: "curve_r", radius: 14, angleDeg: 100, width: 9 },
+    { type: "straight", length: 30, width: 12 },
+    { type: "uneven_field", length: 20, width: 11, intensity: 0.75 },
+    { type: "choke", length: 16, width: 8 },
+    { type: "curve_r", radius: 13, angleDeg: 110, width: 9 },
+    { type: "straight", length: 40, width: 12 },
+    { type: "uneven_field", length: 18, width: 12, intensity: 0.65 },
+    { type: "curve_r", radius: 14, angleDeg: 100, width: 10 },
+    { type: "straight", length: 28, width: 12 },
+    { type: "curve_r", radius: 12, angleDeg: 50, width: 10 },
   ];
 }
 
@@ -147,11 +154,10 @@ function makeCup(
   };
 
   const track = buildTrackFromLevel(level);
-  const edge = track.asphaltHalfWidth - 1.35;
 
   if (opts.vergeBlockers?.length) {
     for (const b of opts.vergeBlockers) {
-      const p = pointOnTrack(track, b.along, b.side * edge);
+      const p = placeSolidInGrass(track, b.along, b.side);
       level.obstacles.push({
         type: b.type,
         position: [p.x, p.z],
@@ -162,7 +168,8 @@ function makeCup(
 
   if (opts.ribbonHazards?.length) {
     for (const h of opts.ribbonHazards) {
-      const lateral = (h.side ?? 0) * (track.asphaltHalfWidth * 0.25);
+      // Passable hazards may sit on asphalt; bias toward the named side (hot line).
+      const lateral = (h.side ?? 0) * (track.asphaltHalfWidth * 0.35);
       const p = pointOnTrack(track, h.along, lateral);
       level.obstacles.push({
         type: h.type,
@@ -174,6 +181,24 @@ function makeCup(
   }
 
   return level;
+}
+
+/** Push solids into grass until nearest-track lateral clears asphalt (tight loops). */
+function placeSolidInGrass(
+  track: ReturnType<typeof buildTrackFromLevel>,
+  along: number,
+  side: 1 | -1,
+): { x: number; z: number } {
+  const minClear = track.asphaltHalfWidth + 0.55;
+  let dist = track.asphaltHalfWidth + Math.min(1.4, Math.max(0.9, track.grassWidth * 0.5));
+  let p = pointOnTrack(track, along, side * dist);
+  for (let i = 0; i < 48; i++) {
+    const near = nearestOnTrack(track, p);
+    if (Math.abs(near.lateral) >= minClear) return p;
+    dist += 2.2;
+    p = pointOnTrack(track, along, side * dist);
+  }
+  return p;
 }
 
 export const CUP_LEVELS: LevelDefinition[] = [
@@ -203,21 +228,21 @@ export const CUP_LEVELS: LevelDefinition[] = [
     "city",
     {
       grass: 2.5,
-      asphaltWidth: 13,
+      asphaltWidth: 14,
       laps: 3,
+      // Grass-side markers only — asphalt stays clear for the safe line.
       vergeBlockers: [
-        { type: "concrete_barrier", along: 48, side: 1 },
-        { type: "concrete_barrier", along: 52, side: -1 },
-        { type: "tire_stack", along: 56, side: 1 },
-        { type: "concrete_barrier", along: 120, side: 1 },
-        { type: "concrete_barrier", along: 126, side: -1 },
-        { type: "tire_stack", along: 132, side: -1 },
+        { type: "tire_stack", along: 42, side: 1 },
+        { type: "tire_stack", along: 48, side: -1 },
+        { type: "concrete_barrier", along: 110, side: 1 },
+        { type: "tire_stack", along: 118, side: -1 },
       ],
+      // Hot line: passable oil/uneven biased inward (side -1).
       ribbonHazards: [
-        { type: "oil", along: 54, side: -1, radius: 2.2 },
-        { type: "uneven", along: 58, side: -1, intensity: 0.55, radius: 4 },
-        { type: "oil", along: 128, side: -1, radius: 2.1 },
-        { type: "uneven", along: 134, side: -1, intensity: 0.5, radius: 4 },
+        { type: "oil", along: 44, side: -1, radius: 2.2 },
+        { type: "uneven", along: 50, side: -1, intensity: 0.55, radius: 4 },
+        { type: "oil", along: 112, side: -1, radius: 2.1 },
+        { type: "uneven", along: 120, side: -1, intensity: 0.5, radius: 4 },
       ],
     },
   ),
@@ -228,14 +253,15 @@ export const CUP_LEVELS: LevelDefinition[] = [
     "Omega-Doppelkurve, blinde Kuppe, Wasserfall-Abfahrt — Federung zählt.",
     "canyon",
     {
-      grass: 3,
+      grass: 3.5,
       asphaltWidth: 12,
       purse: [480, 340, 260, 200, 150, 120],
       vergeBlockers: [
-        { type: "tire_stack", along: 30, side: 1 },
-        { type: "tire_stack", along: 95, side: -1 },
+        { type: "tire_stack", along: 28, side: 1 },
+        { type: "tire_stack", along: 100, side: -1 },
       ],
       ribbonHazards: [
+        { type: "uneven", along: 70, intensity: 0.55, radius: 5 },
         { type: "uneven", along: 150, intensity: 0.75, radius: 6 },
         { type: "ramp", along: 165, intensity: 0.95, radius: 5 },
         { type: "uneven", along: 180, intensity: 0.65, radius: 5 },
@@ -256,6 +282,7 @@ export const CUP_LEVELS: LevelDefinition[] = [
       vergeBlockers: [
         { type: "tire_stack", along: 40, side: 1 },
         { type: "concrete_barrier", along: 160, side: -1 },
+        { type: "tire_stack", along: 220, side: 1 },
       ],
       ribbonHazards: [
         { type: "ramp", along: 55, intensity: 1, radius: 5.5 },

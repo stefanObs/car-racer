@@ -54,8 +54,10 @@ Inspiration: [racepool99.de/rennstrecken](https://www.racepool99.de/rennstrecken
 
 - [x] Cups 2–5 Layouts + Displaynamen in `src/data/levels.ts` (Hafenstart unverändert)
 - [x] Sky-Dome + Horizon-Panorama-Zylinder + Infield-Disc (`src/render/panoramaSurround.ts`)
-- [x] Havenstadt-Props (Crane/Container/Silo) in beach/city/factory wiederverwendet
-- [ ] Optional: Tripo-bake für theme-spezifische Fern-Meshes (aktuell Canvas-Panorama)
+- [x] Theme-Tripo-Kulisse Cups 2–5 (Havenstadt-Kit unverändert)
+- [x] Asphalt frei von Solid-Wänden; Outer-Walls pushen bei engen Loops nach außen
+- [x] Schikanenring: Hot Line = Öl/Uneben (passierbar); Solids nur im Gras
+- [x] Tests: `tests/cup-track-wiring.test.ts`
 
 ## Implementierungs-Notizen (Detail)
 

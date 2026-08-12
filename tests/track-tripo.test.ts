@@ -35,7 +35,8 @@ describe("track kit + wall kinds", () => {
       const s = sampleCenterline(track, p.along);
       expect(s.wall).toBe(p.kind);
       const dist = Math.hypot(p.x - s.position.x, p.z - s.position.z);
-      expect(dist).toBeCloseTo(wallOff, 5);
+      // May push farther than wallOff on tight loops so modules stay off asphalt.
+      expect(dist).toBeGreaterThanOrEqual(wallOff - 0.01);
     }
   });
 

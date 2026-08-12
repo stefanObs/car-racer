@@ -1,6 +1,6 @@
 import { Group, InstancedMesh, Mesh, Object3D } from "three";
 import { TRACK_PROPS, type TrackPropId } from "../data/trackModels";
-import { sampleCenterline } from "../track/buildTrack";
+import { nearestOnTrack, sampleCenterline } from "../track/buildTrack";
 import type { BuiltTrack } from "../track/types";
 import { cloneTrackProp, hasTrackProp, propHeightFor, tileAlongFor, trackPropTemplate } from "./loadTrackGltf";
 
@@ -15,12 +15,14 @@ export type WallPlacement = {
 
 /**
  * Tile tire modules on corners and concrete (+fence) on straights.
- * Uniform module width — never stretch a GLB along the segment.
+ * Push outward until nearest-track lateral is clear of asphalt (tight loops
+ * can otherwise land a wall module inside another ribbon segment).
  */
 export function planWallPlacements(track: BuiltTrack): WallPlacement[] {
   const tireAlong = tileAlongFor("tire-wall");
   const concreteAlong = tileAlongFor("concrete-wall");
-  const wallOff = track.asphaltHalfWidth + track.grassWidth + 0.65;
+  const minClear = track.asphaltHalfWidth + track.grassWidth + 0.45;
+  const startOff = track.asphaltHalfWidth + track.grassWidth + 0.65;
   const out: WallPlacement[] = [];
 
   for (const side of [-1, 1] as const) {
@@ -31,12 +33,24 @@ export function planWallPlacements(track: BuiltTrack): WallPlacement[] {
       const spacing = s.wall === "tire" ? tireAlong : concreteAlong;
       if (d - lastD < spacing * 0.92) continue;
       const angle = Math.atan2(s.tangent.z, s.tangent.x);
-      // Face +Z toward the racing surface (inward).
       const yaw = -angle + (side > 0 ? Math.PI : 0);
+      let dist = startOff;
+      let x = 0;
+      let z = 0;
+      for (let push = 0; push < 48; push++) {
+        x = s.position.x + -s.tangent.z * dist * side;
+        z = s.position.z + s.tangent.x * dist * side;
+        const near = nearestOnTrack(track, { x, z });
+        if (Math.abs(near.lateral) >= minClear) break;
+        dist += 2.5;
+      }
+      // Drop modules that still sit on asphalt after push (pathological pinch).
+      const near = nearestOnTrack(track, { x, z });
+      if (Math.abs(near.lateral) < track.asphaltHalfWidth + 0.5) continue;
       out.push({
         kind: s.wall,
-        x: s.position.x + -s.tangent.z * wallOff * side,
-        z: s.position.z + s.tangent.x * wallOff * side,
+        x,
+        z,
         yaw,
         side,
         along: d,

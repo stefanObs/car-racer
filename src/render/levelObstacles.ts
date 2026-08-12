@@ -2,9 +2,7 @@ import { Group, Mesh } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import type { LevelDefinition } from "../track/types";
 import { comicToon, withOutline } from "./comicMaterials";
-import { hasTrackProp } from "./loadTrackGltf";
 import { ComicPalette } from "./palette";
-import { instanceTrackProp } from "./trackKit";
 
 /**
  * On-track props.
@@ -39,15 +37,11 @@ export function buildLevelObstacles(level: LevelDefinition): Group {
 }
 
 function makeBarrier(x: number, z: number, radius: number): Group {
-  const kit = hasTrackProp("concrete-wall") ? instanceTrackProp("concrete-wall", x, z, 0) : null;
-  if (kit) {
-    kit.userData.obstacle = "concrete_barrier";
-    return kit;
-  }
+  // Small comic barrier — never the long outer-wall GLB (that read as a wall on the asphalt).
   const g = new Group();
   g.position.set(x, 0, z);
+  g.userData.obstacle = "concrete_barrier";
   const w = Math.max(1.6, radius * 2);
-  // Tall enough that cars cannot drive over (~1.1m) — clearly a blocker.
   const bar = withOutline(new RoundedBoxGeometry(w, 1.15, 0.55, 2, 0.08), comicToon(ComicPalette.concrete), 0.05);
   bar.position.y = 0.58;
   const stripe = new Mesh(new RoundedBoxGeometry(w * 0.9, 0.2, 0.58, 1, 0.02), comicToon(0xffe066));
@@ -57,13 +51,10 @@ function makeBarrier(x: number, z: number, radius: number): Group {
 }
 
 function makeTireObstacle(x: number, z: number): Group {
-  const kit = hasTrackProp("tire-wall") ? instanceTrackProp("tire-wall", x, z, 0) : null;
-  if (kit) {
-    kit.userData.obstacle = "tire_stack";
-    return kit;
-  }
+  // Compact tire stack prop — not the tiled corner tire-wall module.
   const g = new Group();
   g.position.set(x, 0, z);
+  g.userData.obstacle = "tire_stack";
   for (let i = 0; i < 3; i++) {
     const tire = withOutline(
       new RoundedBoxGeometry(1.2, 0.38, 1.2, 3, 0.18),
