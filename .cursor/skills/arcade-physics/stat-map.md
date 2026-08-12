@@ -7,21 +7,22 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 | Eigenschaft | Stat field | Primary code effect |
 |-------------|------------|---------------------|
 | Beschleunigung | `accel` | Throttle force: `BASE_ACCEL * accel` |
-| Tempo | `topSpeed` | Cap: `BASE_TOP * topSpeed` (× surface, damage, catch-up) |
-| Grip | `grip` | `gripPullRate` — higher = less slip; landing slip mitigation |
+| Tempo | `topSpeed` | Cap: `BASE_TOP * topSpeed` (× surface, damage, catch-up); nitro headroom overrides |
+| Grip | `grip` | `gripPullRate` + `driftIntent` ease (low Grip = easier powerslide); landing slip |
 | Handling | `handling` | `yawRateFor` turn authority; part of `brakeForceFor` |
 | Federung | `suspension` | `zones` bump/grass; softer launch/land in `stepJump` |
 | Panzerung | `armor` | Hit severity via `applyHit` (not locomotion) |
-| Gewicht | `mass` | `resolveContact` impulse share; obstacle rebound; wider turn / slightly weaker brakes |
+| Gewicht | `mass` | `resolveContact` impulse; obstacle rebound; wider turn / slightly weaker brakes |
 
-## Bonuses (not full bars)
+## Bonuses / arcade extras
 
 | Bonus | Source | Effect |
 |-------|--------|--------|
-| Nitro | class `nitroBonus` + `nitro_kit` | `nitroForceFor`; speed headroom while boosting; faster drain |
+| Nitro | class `nitroBonus` + `nitro_kit` | Rising-edge `nitroKickFor` + strong `nitroForceFor` + ~32%+ headroom; reduced drag while boosting |
 | Bremsen | `better_brakes` → `brakeBonus` | Multiplies `brakeForceFor` |
 | Ram | `spike_bumper` → `ramBonus` | Stronger contact impulse + damage share |
 | Gras | class / synergy `grassMitigation` | `surfaceAt` grass speed/grip soften (never full remove) |
+| Arcade-Drift | hard steer + tempo + gas/light brake | `driftIntent` → `car.drift`; yaw opens, grip pull drops, lateral feed; mini-turbo on exit after ~0.55s |
 
 ## Surfaces & air
 
@@ -32,7 +33,7 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 | Öl | `passableObstacleMods` gripMul crash |
 | Uneben / rumble | bump wobble; Federung damps |
 | Schanze (`ramp`) | `rampLaunch` → `stepJump` airtime |
-| Airborne | Weak steer/throttle/brake; tiny grip pull; skip wall/obstacle solid until land |
+| Airborne | Weak steer/throttle/brake; tiny grip pull; no drift; skip wall/obstacle solid until land |
 
 ## Contact
 
@@ -48,8 +49,9 @@ Prefer asserting **relative** class/part diffs over absolute magic numbers:
 
 - Blitz accel ≫ Bunker
 - `better_brakes` stops shorter mid-brake window
-- Low Grip slips more than high Grip at matched Handling/Masse
+- Low Grip → higher `car.drift` than high Grip
 - Blitz yawRate > Bunker at same speed
 - Light car displaces more than heavy on head-on contact
-- Nitro > throttle-only; Hot Rod nitro force > stock 0 bonus
+- Nitro kick in one frame; sustained nitro ≫ throttle and above stock top
+- Hard steer at speed → `drift > 0.45` and readable slip
 - Ramp / `stepJump` sets `y`/`vy` then lands

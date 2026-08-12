@@ -358,12 +358,21 @@ export class RaceRenderer {
           ? 0
           : bump * 0.25 * Math.sin(this.fxTime * 22 + car.progress * 3) +
             (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.05 : 0);
-      const lean = (stage >= 2 ? 0.1 : 0) + (car.y > 0.05 ? 0 : bump * 0.14);
+      const lean =
+        (stage >= 2 ? 0.1 : 0) +
+        (car.y > 0.05 ? 0 : bump * 0.14) +
+        car.drift * 0.28;
       const pitch = car.y > 0.05 ? Math.min(0.35, car.vy * 0.03) : 0;
       root.position.set(car.x, car.y + (car.healFx > 0.2 ? 0.05 : 0) + hop, car.z);
       root.rotation.y = Math.PI / 2 - car.heading;
       root.rotation.x = pitch;
-      root.rotation.z = lean * Math.sin(this.fxTime * 10);
+      // Drift leans into the slide; damage wobble still reads when not sliding hard
+      root.rotation.z =
+        car.drift > 0.2
+          ? -Math.sign(Math.sin(car.heading - Math.atan2(car.vz, car.vx) || 0.001) || 1) *
+              car.drift *
+              0.22
+          : lean * Math.sin(this.fxTime * 10);
 
       visual.lastHeading = car.heading;
 

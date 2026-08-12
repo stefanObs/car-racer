@@ -80,7 +80,7 @@ describe("arcade racing feel", () => {
     let slip = Math.abs(moveAng - car.heading);
     while (slip > Math.PI) slip -= Math.PI * 2;
     slip = Math.abs(slip);
-    expect(slip).toBeGreaterThan(0.04);
-    expect(slip).toBeLessThan(1.2);
+    expect(slip).toBeGreaterThan(0.25);
+    expect(slip).toBeLessThan(1.6);
   });
 });

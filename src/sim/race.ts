@@ -39,6 +39,8 @@ export class RaceSession {
   private readonly config: RaceConfig;
   private elapsed = 0;
   private wrongWayHold = 0;
+  private prevPlayerDrift = 0;
+  private driftStyleCooldown = 0;
 
   constructor(config: RaceConfig) {
     this.config = config;
@@ -198,6 +200,20 @@ export class RaceSession {
       this.addStyle(25, "Überholt!");
     }
     this.prevPlace.set(player.id, player.place);
+
+    // Drift-Style lightly dosed (CONCEPT §4.8) — reward exiting a held powerslide
+    if (this.driftStyleCooldown > 0) this.driftStyleCooldown -= dt;
+    if (
+      !player.finished &&
+      player.koTimer <= 0 &&
+      this.prevPlayerDrift > 0.45 &&
+      player.drift < 0.25 &&
+      this.driftStyleCooldown <= 0
+    ) {
+      this.addStyle(12, "Drift!");
+      this.driftStyleCooldown = 2.2;
+    }
+    this.prevPlayerDrift = player.drift;
 
     if (this.elapsed > 1.5) {
       for (let i = 0; i < this.cars.length; i++) {

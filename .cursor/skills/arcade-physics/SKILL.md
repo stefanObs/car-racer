@@ -24,13 +24,14 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 1. **Arcade, not sim** — Gewicht + Grip + Impuls; no realistic tire/drift model
 2. **Eigenschaften drive forces** — Beschleunigung, Tempo, Grip, Handling, Masse, Federung, Panzerung, Nitro (+ `brakeBonus` from Teile) scale behavior; cosmetics grant **no** stats
 3. **Coast on lift** — releasing throttle rolls out; no abrupt dump
-4. **Slide when grip is short** — yaw from Handling; lateral pull from Grip (low Grip = more slip)
+4. **Slide when grip is short** — yaw from Handling; lateral pull from Grip; **arcade powerslide** on hard steer at speed (Kart-style, not tire sim)
 5. **Mass decides shove** — light cars get pushed / rebound more; heavy hold the line
 6. **Schanzen = real airtime** — `y`/`vy`; landing needs Grip + Federung
 7. **Grass penalty never removed** — Federung / grassMitigation only mitigate (`zones.ts`)
 8. **Walls bounce + cooldown damage** — no grind-KO spam (`IMPACT_DAMAGE_COOLDOWN`)
 9. **Ramming is spice** — contact impulse + light damage; no ram-primary scoring
-10. **Delivery** — version → commit `master` → push
+10. **Nitro punches** — rising-edge kick + strong continuous shove + clear speed headroom
+11. **Delivery** — version → commit `master` → push
 
 ## Module map
 
@@ -40,7 +41,9 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 | Turn circle | `yawRateFor` (Handling, Masse, surface mush) |
 | Brake force | `brakeForceFor` (Handling, Masse, `brakeBonus`) |
 | Nitro force | `nitroForceFor` (`nitroBonus`, damage mult) |
-| Lateral grip | `gripPullRate` → slide |
+| Lateral grip | `gripPullRate` → slide (cut by `drift`) |
+| Arcade drift | `driftIntent` → `car.drift`; mini-turbo on exit |
+| Nitro | `nitroKickFor` (edge) + `nitroForceFor` + headroom |
 | Jump / land | `stepJump`, `isAirborne`, ramp via `passableObstacleMods` |
 | Car–car | `resolveContact` (mass impulse + ramBonus) |
 | Obstacles | `resolveObstacles` (infinite-mass bounce × mass) |
