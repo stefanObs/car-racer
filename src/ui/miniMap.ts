@@ -1,5 +1,6 @@
 import type { RaceSession } from "../sim/race";
 import { ComicPaletteCss } from "../render/palette";
+import { themeLook } from "../render/themeLook";
 
 /** Bounds of track centerline in world XZ. */
 export function trackBounds(session: RaceSession): {
@@ -22,7 +23,15 @@ export function trackBounds(session: RaceSession): {
   return { minX: minX - pad, maxX: maxX + pad, minZ: minZ - pad, maxZ: maxZ + pad };
 }
 
-/** SVG mini-map for race HUD (CONCEPT §9) — asphalt/grass comic colors, player triangle. */
+function miniMapFill(theme: string): string {
+  const t = theme.toLowerCase();
+  if (t === "harbor") return "#2f6f9e"; // basin water
+  if (t === "beach") return "#6ec6f0";
+  const look = themeLook(theme);
+  return `#${look.ground.toString(16).padStart(6, "0")}`;
+}
+
+/** SVG mini-map for race HUD (CONCEPT §9) — asphalt + theme infield, player triangle. */
 export function renderMiniMapSvg(session: RaceSession, size = 128): string {
   const b = trackBounds(session);
   const w = Math.max(1, b.maxX - b.minX);
@@ -38,6 +47,7 @@ export function renderMiniMapSvg(session: RaceSession, size = 128): string {
   const pts = session.track.centerline.map((p) => to(p.x, p.z));
   const path = pts.map((p, i) => `${i === 0 ? "M" : "L"}${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" ");
   const strokeW = Math.max(4, session.track.asphaltHalfWidth * scale * 1.6);
+  const fill = miniMapFill(session.level.theme);
 
   const cars = session.cars
     .filter((c) => !(c.koTimer > 0 && c.hp <= 0))
@@ -59,7 +69,7 @@ export function renderMiniMapSvg(session: RaceSession, size = 128): string {
     .join("");
 
   return `<svg class="mini-map-svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}" aria-label="Mini-Map" data-dev-name="hud.minimap">
-  <rect width="${size}" height="${size}" fill="${ComicPaletteCss.grass}" stroke="${ComicPaletteCss.outline}" stroke-width="3"/>
+  <rect width="${size}" height="${size}" fill="${fill}" stroke="${ComicPaletteCss.outline}" stroke-width="3"/>
   <path d="${path}" fill="none" stroke="${ComicPaletteCss.asphalt}" stroke-width="${strokeW.toFixed(1)}" stroke-linejoin="round" stroke-linecap="round"/>
   <path d="${path}" fill="none" stroke="${ComicPaletteCss.asphaltLine}" stroke-width="1.5" stroke-dasharray="4 6" opacity="0.85"/>
   ${cars}

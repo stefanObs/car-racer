@@ -39,7 +39,7 @@ describe("cup track variance", () => {
     expect(new Set(themes).size).toBe(CUP_LEVELS.length);
 
     const expectedKinds: Record<string, string[]> = {
-      harbor: ["crane", "container", "water", "ship"],
+      harbor: ["crane", "container", "water", "ship", "warehouse", "quay", "bollard"],
       beach: ["palm", "water", "dune", "hut"],
       city: ["building", "tower", "lamp"],
       factory: ["warehouse", "stack", "pipe"],
@@ -61,5 +61,16 @@ describe("cup track variance", () => {
     const grounds = new Set(looks.map((l) => l.ground));
     expect(skies.size).toBe(knownThemes().length);
     expect(grounds.size).toBe(knownThemes().length);
+  });
+
+  it("keeps harbor ground pier-gray (not grass-green infield wall)", () => {
+    const g = themeLook("harbor").ground;
+    const r = (g >> 16) & 0xff;
+    const green = (g >> 8) & 0xff;
+    const b = g & 0xff;
+    // Pier concrete: green channel must not dominate (old 0x4a5c52 read as a green wall).
+    expect(green).toBeLessThanOrEqual(r + 8);
+    expect(green).toBeLessThanOrEqual(b + 12);
+    expect(r).toBeGreaterThan(90);
   });
 });

@@ -1,7 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { CUP_LEVELS } from "../src/data/levels";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
-import { planSceneryAnchors, sceneryOverlapsTrack } from "../src/render/themeScenery";
+import {
+  infieldClearRadius,
+  planSceneryAnchors,
+  sceneryOverlapsTrack,
+  trackCentroid,
+} from "../src/render/themeScenery";
 
 describe("theme scenery clearance", () => {
   it("keeps harbor props (incl. blue ship/containers) off the racing surface", () => {
@@ -19,5 +24,18 @@ describe("theme scenery clearance", () => {
     const broken = { x: 0, z: 0, radius: 4 };
     // Center of typical cup track is near origin — overlaps.
     expect(sceneryOverlapsTrack(track, broken.x, broken.z, broken.radius)).toBe(true);
+  });
+
+  it("sizes Hafenstart infield basin inside the asphalt ribbon", () => {
+    const track = buildTrackFromLevel(CUP_LEVELS[0]!);
+    const c = trackCentroid(track);
+    const r = infieldClearRadius(track);
+    expect(r).toBeGreaterThan(8);
+    // Basin edge stays inward of asphalt (centroid → centerline gap minus half-width).
+    let minDist = Infinity;
+    for (const p of track.centerline) {
+      minDist = Math.min(minDist, Math.hypot(p.x - c.x, p.z - c.z));
+    }
+    expect(r + track.asphaltHalfWidth).toBeLessThan(minDist + 0.01);
   });
 });

@@ -13,11 +13,12 @@ const LOOKS: Record<string, ThemeLook> = {
   harbor: {
     sky: 0x5ba3d9,
     skyLow: 0x3d7eae,
-    ground: 0x4a5c52,
+    // Pier / dock concrete — never grass-green (that read as a “green wall” in the oval infield).
+    ground: 0x6e7580,
     fogNear: 90,
     fogFar: 280,
     hemiSky: 0xc8e4ff,
-    hemiGround: 0x4a6a58,
+    hemiGround: 0x5a6a78,
   },
   beach: {
     sky: 0x6ec6f0,

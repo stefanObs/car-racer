@@ -352,7 +352,7 @@ Pro Fahrzeugklasse eine **eigene Cup-Serie** mit ~10 Rennen:
 
 ### 8.2 Strecken-Themes (Beispiele)
 
-- Hafen-Asphalt mit Containern  
+- Hafen-Asphalt mit Containern, Kranen und Wasserbecken im Oval (Kai-Grau, kein Gras-Grün als Horizont)  
 - Canyon mit Leitplanken-Lücken  
 - Stadtring mit Baustellen / Buckelpflaster  
 - Schrottplatz-Ring  
@@ -496,4 +496,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.30 — Teile-Meshes Tripo auf allen Klassen, surface-snap.*
+*Dokumentstand: Konzept v3.31 — Hafenstart Kai/Wasser-Umgebung, kein Grünwand-Horizont.*

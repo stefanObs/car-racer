@@ -1,10 +1,8 @@
 import {
-  CatmullRomCurve3,
-  ExtrudeGeometry,
+  BufferAttribute,
+  BufferGeometry,
   Group,
   Mesh,
-  Shape,
-  Vector3,
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { sampleCenterline } from "../track/buildTrack";
@@ -15,50 +13,78 @@ import { buildFinishLine } from "./finishLine";
 import { hasTrackProp } from "./loadTrackGltf";
 import { instanceConcreteFenceBatch, instanceTrackPropBatch, planWallPlacements } from "./trackKit";
 
-function closedCurve(track: BuiltTrack, y = 0): CatmullRomCurve3 {
-  const pts = track.centerline.map((p) => new Vector3(p.x, y, p.z));
-  return new CatmullRomCurve3(pts, true, "catmullrom", 0.18);
-}
-
-function ribbonShape(halfWidth: number, height: number, y0 = 0): Shape {
-  const s = new Shape();
-  s.moveTo(-halfWidth, y0);
-  s.lineTo(halfWidth, y0);
-  s.lineTo(halfWidth, y0 + height);
-  s.lineTo(-halfWidth, y0 + height);
-  s.closePath();
-  return s;
-}
-
-function extrudeAlong(shape: Shape, curve: CatmullRomCurve3, steps: number): ExtrudeGeometry {
-  return new ExtrudeGeometry(shape, {
-    steps,
-    bevelEnabled: false,
-    extrudePath: curve,
-    curveSegments: 8,
-  });
+/**
+ * Closed asphalt/grass ribbon with **world up** (never Frenet-twist).
+ * ExtrudeGeometry along closed CatmullRom curves flips frames → ~20 m tall
+ * “green/gray walls” through the chase camera (Hafenstart RCA).
+ */
+export function flatRibbonGeometry(
+  track: BuiltTrack,
+  halfWidth: number,
+  yBottom: number,
+  yTop: number,
+  steps: number,
+): BufferGeometry {
+  const n = Math.max(24, steps);
+  const positions: number[] = [];
+  const normals: number[] = [];
+  // 4 verts per ring: L-bottom, R-bottom, L-top, R-top
+  for (let i = 0; i < n; i++) {
+    const s = sampleCenterline(track, (i / n) * track.totalLength);
+    const lx = -s.tangent.z;
+    const lz = s.tangent.x;
+    const px = s.position.x;
+    const pz = s.position.z;
+    positions.push(
+      px + lx * halfWidth, yBottom, pz + lz * halfWidth,
+      px - lx * halfWidth, yBottom, pz - lz * halfWidth,
+      px + lx * halfWidth, yTop, pz + lz * halfWidth,
+      px - lx * halfWidth, yTop, pz - lz * halfWidth,
+    );
+    for (let k = 0; k < 4; k++) normals.push(0, 1, 0);
+  }
+  const indices: number[] = [];
+  for (let i = 0; i < n; i++) {
+    const a = i * 4;
+    const b = ((i + 1) % n) * 4;
+    // top face
+    indices.push(a + 2, b + 2, a + 3, a + 3, b + 2, b + 3);
+    // bottom face
+    indices.push(a, a + 1, b, a + 1, b + 1, b);
+    // left wall
+    indices.push(a, b, a + 2, a + 2, b, b + 2);
+    // right wall
+    indices.push(a + 1, a + 3, b + 1, a + 3, b + 3, b + 1);
+  }
+  const geo = new BufferGeometry();
+  geo.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
+  geo.setAttribute("normal", new BufferAttribute(new Float32Array(normals), 3));
+  geo.setIndex(indices);
+  geo.computeVertexNormals();
+  return geo;
 }
 
 /** Continuous comic track ribbons (asphalt / grass / curbs) + readable walls. */
 export function buildSmoothTrack(track: BuiltTrack): Group {
   const root = new Group();
   const steps = Math.max(120, track.centerline.length * 4);
-  const curve = closedCurve(track, 0);
 
   const grassHalf = track.asphaltHalfWidth + track.grassWidth;
   const grass = withOutline(
-    extrudeAlong(ribbonShape(grassHalf, 0.1, -0.02), curve, steps),
+    flatRibbonGeometry(track, grassHalf, -0.02, 0.08, steps),
     comicToon(ComicPalette.grass),
     0.04,
   );
+  grass.name = "trackGrass";
   grass.receiveShadow = true;
   root.add(grass);
 
   const asphalt = withOutline(
-    extrudeAlong(ribbonShape(track.asphaltHalfWidth, 0.14, 0.02), curve, steps),
+    flatRibbonGeometry(track, track.asphaltHalfWidth, 0.02, 0.16, steps),
     comicToon(ComicPalette.asphalt),
     0.035,
   );
+  asphalt.name = "trackAsphalt";
   asphalt.receiveShadow = true;
   root.add(asphalt);
 

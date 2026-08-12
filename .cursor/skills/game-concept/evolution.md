@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.31 Hafenstart harbor surroundings (no green wall)
+- Trigger: Hafenstart infield/horizon read as a solid green wall; surroundings too empty for a harbor
+- Decision: **RCA verified:** `ExtrudeGeometry` along closed CatmullRom Frenet-flipped the grass/asphalt ribbons into ~19 m vertical walls. Fix: world-up `flatRibbonGeometry`. Harbor theme ground is pier-gray (not grass). Oval infield gets a blue water basin + pier/ship; denser quay/crane/container/warehouse/bollard scenery. Concept art: `assets/art-style/harbor-surroundings.png`. Track asphalt→grass→wall language unchanged.
+- CONCEPT §§ touched: §8 Hafen theme feel (backgrounds) → dokumentstand v3.31
+
 ### 2026-08-12 — v3.30 Tripo Teile on all cars + surface snap
 - Trigger: replace procedural Teil meshes with Tripo3D kits; place smoothly on each body
 - Decision: Prefers `/models/parts/blitz-*.glb` on every class (per-car anchors/scale/yaw). Hood/deck parts sit via body-surface Y sample; bumpers/frames/springs stay fixed. Heckspoiler stays extracted original wing (bake no longer overwrites it). Procedural builders = fallback + brakes/wheels only.
