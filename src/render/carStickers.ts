@@ -30,6 +30,33 @@ export const CAR_STICKERS_GROUP = "carStickers";
 
 const texCache = new Map<string, Texture>();
 
+/** Concept-matched Flammen sprite (`public/stickers/flames-donner.png`). */
+let flameSprite: HTMLImageElement | null = null;
+let flameSpritePromise: Promise<void> | null = null;
+
+export function preloadFlameSticker(): Promise<void> {
+  if (typeof Image === "undefined") return Promise.resolve();
+  if (flameSpritePromise) return flameSpritePromise;
+  flameSpritePromise = new Promise((resolve) => {
+    const img = new Image();
+    img.decoding = "async";
+    img.onload = () => {
+      flameSprite = img;
+      // Drop cached flame textures so the next paint uses the sprite.
+      for (const key of [...texCache.keys()]) {
+        if (key.includes(":flames")) texCache.delete(key);
+      }
+      resolve();
+    };
+    img.onerror = () => {
+      console.warn("[stickers] flames-donner.png missing — vector fallback");
+      resolve();
+    };
+    img.src = "/stickers/flames-donner.png";
+  });
+  return flameSpritePromise;
+}
+
 type DecalAnchor = {
   slot: StickerSlot;
   x: number;
@@ -58,8 +85,9 @@ export const STICKER_DECALS: Record<Exclude<CarId, "kaeferkraft">, DecalAnchor[]
     { slot: "hood", x: 0, y: 1.08, z: 0.65, yaw: 0, pitch: -Math.PI / 2, width: 0.75, height: 0.34, depth: 0.35 },
   ],
   donnerbuechse: [
-    { slot: "side", x: 1.05, y: 0.72, z: 0.45, yaw: Math.PI / 2, width: 1.4, height: 0.55, depth: 0.48, mirrorU: true },
-    { slot: "side", x: -1.05, y: 0.72, z: 0.45, yaw: -Math.PI / 2, width: 1.4, height: 0.55, depth: 0.48 },
+    // Door panel — concept flames span most of the cabin side.
+    { slot: "side", x: 1.0, y: 0.82, z: 0.0, yaw: Math.PI / 2, width: 1.9, height: 0.85, depth: 0.75, mirrorU: true },
+    { slot: "side", x: -1.0, y: 0.82, z: 0.0, yaw: -Math.PI / 2, width: 1.9, height: 0.85, depth: 0.75 },
   ],
   bunker: [
     { slot: "door", x: 0.95, y: 1.05, z: 0.45, yaw: Math.PI / 2, width: 1.15, height: 0.48, depth: 0.42, mirrorU: true },
@@ -131,26 +159,43 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
 /** Racepool99 brand red — track outlines / logo accent on racepool99.de. */
 const RACEPOOL_RED = "#E63212";
 
+/** Donnerbüchse concept flame orange (sampled from donnerbuechse-concept-3q). */
+const DONNER_FLAME_ORANGE = "#CB4C01";
+
 /**
- * Classic Donnerbüchse hotrod door flames: one solid orange silhouette,
- * three tongues licking rearward (left), rounded front (right). No yellow core.
+ * Hotrod door flames matching `donnerbuechse-concept-3q.png`.
+ * Prefers the baked concept sprite; falls back to a vector silhouette.
  */
 function drawHotRodFlames(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
-  ctx.fillStyle = "#FF5A00";
+  if (flameSprite && flameSprite.complete && flameSprite.naturalWidth > 0) {
+    ctx.drawImage(flameSprite, 0, 0, w, h);
+    return;
+  }
+
+  ctx.fillStyle = DONNER_FLAME_ORANGE;
   ctx.strokeStyle = ink();
-  ctx.lineWidth = Math.max(3, Math.min(w, h) * 0.035);
+  ctx.lineWidth = Math.max(3.5, Math.min(w, h) * 0.045);
   ctx.beginPath();
-  // Front bulb (right) → top tongue → mid tongue → bottom tongue → close.
-  ctx.moveTo(w * 0.9, h * 0.22);
-  ctx.bezierCurveTo(w * 0.98, h * 0.28, w * 0.99, h * 0.72, w * 0.9, h * 0.82);
-  ctx.bezierCurveTo(w * 0.72, h * 0.9, w * 0.48, h * 0.88, w * 0.22, h * 0.78);
-  ctx.quadraticCurveTo(w * 0.1, h * 0.74, w * 0.05, h * 0.7);
-  ctx.quadraticCurveTo(w * 0.16, h * 0.66, w * 0.28, h * 0.64);
-  ctx.quadraticCurveTo(w * 0.14, h * 0.58, w * 0.04, h * 0.52);
-  ctx.quadraticCurveTo(w * 0.18, h * 0.48, w * 0.32, h * 0.46);
-  ctx.quadraticCurveTo(w * 0.16, h * 0.36, w * 0.08, h * 0.28);
-  ctx.quadraticCurveTo(w * 0.2, h * 0.3, w * 0.42, h * 0.28);
-  ctx.bezierCurveTo(w * 0.62, h * 0.24, w * 0.78, h * 0.18, w * 0.9, h * 0.22);
+  // Nose scallop (left) → aft tongues (right).
+  ctx.moveTo(w * 0.14, h * 0.2);
+  ctx.quadraticCurveTo(w * 0.06, h * 0.22, w * 0.04, h * 0.34);
+  ctx.quadraticCurveTo(w * 0.1, h * 0.42, w * 0.18, h * 0.44);
+  ctx.quadraticCurveTo(w * 0.1, h * 0.5, w * 0.05, h * 0.58);
+  ctx.quadraticCurveTo(w * 0.08, h * 0.72, w * 0.16, h * 0.78);
+  ctx.quadraticCurveTo(w * 0.22, h * 0.82, w * 0.28, h * 0.8);
+  ctx.bezierCurveTo(w * 0.42, h * 0.82, w * 0.55, h * 0.88, w * 0.68, h * 0.86);
+  ctx.quadraticCurveTo(w * 0.74, h * 0.85, w * 0.72, h * 0.78);
+  ctx.quadraticCurveTo(w * 0.62, h * 0.76, w * 0.52, h * 0.72);
+  ctx.bezierCurveTo(w * 0.62, h * 0.7, w * 0.78, h * 0.72, w * 0.9, h * 0.68);
+  ctx.quadraticCurveTo(w * 0.96, h * 0.66, w * 0.94, h * 0.58);
+  ctx.quadraticCurveTo(w * 0.82, h * 0.58, w * 0.7, h * 0.56);
+  ctx.bezierCurveTo(w * 0.82, h * 0.52, w * 0.94, h * 0.48, w * 0.98, h * 0.4);
+  ctx.quadraticCurveTo(w * 0.99, h * 0.34, w * 0.92, h * 0.32);
+  ctx.quadraticCurveTo(w * 0.8, h * 0.34, w * 0.66, h * 0.36);
+  ctx.bezierCurveTo(w * 0.78, h * 0.28, w * 0.88, h * 0.18, w * 0.86, h * 0.12);
+  ctx.quadraticCurveTo(w * 0.84, h * 0.08, w * 0.76, h * 0.1);
+  ctx.bezierCurveTo(w * 0.6, h * 0.14, w * 0.42, h * 0.18, w * 0.3, h * 0.2);
+  ctx.quadraticCurveTo(w * 0.22, h * 0.2, w * 0.14, h * 0.2);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
@@ -380,8 +425,7 @@ export function drawStickerArt(
 /** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none") return null;
-  return canvasTex(`sticker-v7:${carId}:${sticker}`, 512, 256, (ctx) => {
-    // Transparent field — art draws its own plate when needed.
+  return canvasTex(`sticker-v9:${carId}:${sticker}`, 512, 256, (ctx) => {
     ctx.clearRect(0, 0, 512, 256);
     drawStickerArt(ctx, sticker, carId, 512, 256);
   });

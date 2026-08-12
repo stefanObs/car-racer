@@ -41,10 +41,10 @@ test.describe("Aufkleber DecalGeometry", () => {
           ownedCars: ["blitz", "bison", "kaeferkraft", "donnerbuechse", "bunker"],
           activeCar: "blitz",
           kits: {
-            blitz: { ownedParts: [], equippedParts: [], paint: "#e03131", sticker: "bolt" },
+            blitz: { ownedParts: [], equippedParts: [], paint: "#e03131", sticker: "flames" },
             bison: { ownedParts: [], equippedParts: [], paint: "#2f9e44", sticker: "bolt" },
             kaeferkraft: { ownedParts: [], equippedParts: [], paint: "#12b886", sticker: "flames" },
-            donnerbuechse: { ownedParts: [], equippedParts: [], paint: "#228be6", sticker: "star" },
+            donnerbuechse: { ownedParts: [], equippedParts: [], paint: "#228be6", sticker: "flames" },
             bunker: { ownedParts: [], equippedParts: [], paint: "#f8f9fa", sticker: "ironClad" },
           },
           unlockedLevels: ["blitz_cup_01_hafenstart"],

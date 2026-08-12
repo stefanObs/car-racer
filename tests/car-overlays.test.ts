@@ -40,20 +40,19 @@ describe("car sticker decals", () => {
     expect(emptyKit("blitz").sticker).toBe("none");
   });
 
-  it("ships sticker-v7 shooting-star Blitz + Racepool Stern + hotrod Flammen", () => {
+  it("ships sticker-v9 Donner concept Flammen sprite + shooting-star Blitz + Racepool Stern", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain("sticker-v7:");
+    expect(src).toContain("sticker-v9:");
+    expect(src).toContain("DONNER_FLAME_ORANGE");
+    expect(src).toContain("preloadFlameSticker");
+    expect(src).toContain("/stickers/flames-donner.png");
+    expect(src).toContain("donnerbuechse-concept-3q");
     expect(src).toContain("RACEPOOL_RED");
-    expect(src).toContain("fill(\"evenodd\")");
-    expect(src).toContain("drawHotRodFlames");
     expect(src).toContain("shooting-star");
-    expect(src).not.toContain('for (const ch of "RAC")');
-    expect(src).toContain("DecalGeometry");
-    expect(src).toContain("findBodyMeshForStickers");
-    expect(existsSync("assets/tripo-concepts/sticker-proposal-flames.png")).toBe(true);
-    expect(existsSync("assets/tripo-concepts/sticker-proposal-bolt.png")).toBe(true);
-    expect(existsSync("assets/tripo-concepts/sticker-proposal-star.png")).toBe(true);
-    expect(existsSync("assets/tripo-concepts/sticker-proposal-ironclad.png")).toBe(true);
+    expect(existsSync("public/stickers/flames-donner.png")).toBe(true);
+    expect(existsSync("assets/tripo-concepts/donnerbuechse-concept-3q.png")).toBe(true);
+    const main = readFileSync("src/main.ts", "utf8");
+    expect(main).toContain("preloadFlameSticker");
   });
 
   it("places stickers per car (no buggy stickers)", () => {
