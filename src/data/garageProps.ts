@@ -28,14 +28,26 @@ export const GARAGE_MESH: Record<GaragePropId, GarageMeshSpec> = {
   hoist: { id: "hoist", url: "/models/garage/hoist.glb" },
 };
 
+export type GarageWall = "back" | "left" | "right";
+
 export type GarageStockPlacement = {
   id: GaragePropId;
   name: string;
   position: { x: number; y: number; z: number };
   yaw: number;
   scale: number;
-  /** Against the back wall (z ≈ −11), in the camera-visible band. */
-  wall?: "back";
+  /** Which wall the prop sits against (layout sheet). */
+  wall: GarageWall;
+};
+
+/**
+ * Tripo bake keeps prop front on local +X (`scripts/bake-garage-tripo.mjs`).
+ * Yaw maps that front toward the pad / camera.
+ */
+export const GARAGE_WALL_YAW: Record<GarageWall, number> = {
+  back: -Math.PI / 2, // +X → +Z (face camera / into bay)
+  left: 0, // +X → +X (face pad)
+  right: Math.PI, // +X → −X (face pad)
 };
 
 /**
@@ -46,53 +58,100 @@ export const GARAGE_BACK_WALL_VISIBLE_X = { min: 0.5, max: 6.0 } as const;
 /** In front of wall at z = −11 (stripe at −10.72). */
 export const GARAGE_BACK_WALL_Z = { min: -10.3, max: -8.6 } as const;
 
+/** Minimum center-to-center spacing so workshop props do not pile up. */
+export const GARAGE_PROP_MIN_SEPARATION = 2.2;
+
 /**
- * Workshop props: back-wall row (layout sheet) + side dressing outside the pad.
- * Layout: assets/tripo-concepts/garage-bay-layout-proposal.png
+ * Workshop props around the pad — layout sheet:
+ * assets/tripo-concepts/garage-bay-layout-proposal.png
+ *
+ * Back: cabinet · workbench · shelf
+ * Left: tires · drums · toolchest · gas
+ * Right: hoist · tires (+ spare drums)
  */
 export const GARAGE_STOCK: GarageStockPlacement[] = [
-  // Back wall — facing camera (+Z), X clears left UI / right clip
   {
     id: "cabinet",
     name: "garageCabinet",
-    position: { x: 0.7, y: 0, z: -9.5 },
-    yaw: 0.06,
+    position: { x: 0.7, y: 0, z: -9.55 },
+    yaw: GARAGE_WALL_YAW.back,
     scale: 1.15,
     wall: "back",
   },
   {
     id: "workbench",
     name: "garageWorkbench",
-    position: { x: 2.85, y: 0, z: -9.7 },
-    yaw: 0,
+    position: { x: 3.0, y: 0, z: -9.65 },
+    yaw: GARAGE_WALL_YAW.back,
     scale: 1.45,
     wall: "back",
   },
   {
     id: "shelf",
     name: "garageShelf",
-    position: { x: 5.05, y: 0, z: -9.4 },
-    yaw: -0.04,
+    position: { x: 5.3, y: 0, z: -9.45 },
+    yaw: GARAGE_WALL_YAW.back,
     scale: 1.05,
     wall: "back",
   },
-  // Side / front dressing (not behind the menu strip)
-  { id: "tireStack", name: "garageTiresL", position: { x: -2.2, y: 0, z: 3.2 }, yaw: 0.55, scale: 1.2 },
-  { id: "tireStack", name: "garageTiresR", position: { x: 6.2, y: 0, z: 2.8 }, yaw: -0.45, scale: 1.08 },
-  { id: "drums", name: "garageDrumsR", position: { x: 6.0, y: 0, z: 4.4 }, yaw: -0.35, scale: 1.1 },
-  { id: "drums", name: "garageDrumsL", position: { x: -3.2, y: 0, z: 2.4 }, yaw: 0.85, scale: 1.0 },
+  {
+    id: "tireStack",
+    name: "garageTiresL",
+    position: { x: -3.5, y: 0, z: -3.6 },
+    yaw: GARAGE_WALL_YAW.left + 0.08,
+    scale: 1.2,
+    wall: "left",
+  },
+  {
+    id: "drums",
+    name: "garageDrumsL",
+    position: { x: -3.55, y: 0, z: -0.4 },
+    yaw: GARAGE_WALL_YAW.left - 0.06,
+    scale: 1.0,
+    wall: "left",
+  },
+  {
+    id: "tireStack",
+    name: "garageTiresR",
+    position: { x: 6.85, y: 0, z: 3.5 },
+    yaw: GARAGE_WALL_YAW.right - 0.1,
+    scale: 1.08,
+    wall: "right",
+  },
+  {
+    id: "drums",
+    name: "garageDrumsR",
+    position: { x: 7.05, y: 0, z: 1.2 },
+    yaw: GARAGE_WALL_YAW.right + 0.08,
+    scale: 1.1,
+    wall: "right",
+  },
 ];
 
 /** Hero props — Tripo GLB at runtime, comic primitives when preload has not run. */
 export const GARAGE_HERO: GarageStockPlacement[] = [
-  { id: "toolchest", name: "garageToolChest", position: { x: -2.0, y: 0, z: 4.6 }, yaw: 0.4, scale: 0.95 },
-  { id: "gas", name: "garageGasBottles", position: { x: 6.4, y: 0, z: 1.4 }, yaw: -Math.PI / 2, scale: 0.95 },
+  {
+    id: "toolchest",
+    name: "garageToolChest",
+    position: { x: -3.45, y: 0, z: 2.7 },
+    yaw: GARAGE_WALL_YAW.left + 0.05,
+    scale: 0.95,
+    wall: "left",
+  },
+  {
+    id: "gas",
+    name: "garageGasBottles",
+    position: { x: -3.25, y: 0, z: 5.1 },
+    yaw: GARAGE_WALL_YAW.left - 0.12,
+    scale: 0.95,
+    wall: "left",
+  },
   {
     id: "hoist",
     name: "garageHoist",
-    position: { x: 5.85, y: 0, z: -8.9 },
-    yaw: -0.15,
+    position: { x: 7.35, y: 0, z: -1.9 },
+    yaw: GARAGE_WALL_YAW.right,
     scale: 0.95,
-    wall: "back",
+    wall: "right",
   },
 ];

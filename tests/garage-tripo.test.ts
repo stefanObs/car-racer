@@ -9,7 +9,9 @@ import {
   GARAGE_BACK_WALL_Z,
   GARAGE_HERO,
   GARAGE_PROP_IDS,
+  GARAGE_PROP_MIN_SEPARATION,
   GARAGE_STOCK,
+  GARAGE_WALL_YAW,
 } from "../src/data/garageProps";
 import { GARAGE_PAD_CENTER, GARAGE_PAD_RADIUS, isOutsideGaragePad } from "../src/render/garageBay";
 
@@ -23,6 +25,14 @@ const FILES = [
   { id: "gas", file: "gas.glb", minH: 1.1, maxH: 1.6, minBytes: 12_000 },
   { id: "hoist", file: "hoist.glb", minH: 2.0, maxH: 2.7, minBytes: 15_000 },
 ] as const;
+
+const ALL_PLACES = [...GARAGE_STOCK, ...GARAGE_HERO];
+
+function angleDelta(a: number, b: number): number {
+  let d = ((a - b + Math.PI) % (2 * Math.PI)) - Math.PI;
+  if (d < -Math.PI) d += 2 * Math.PI;
+  return Math.abs(d);
+}
 
 describe("garage Tripo workshop bake", () => {
   it("ships BodyPaint GLBs with a glTF header", async () => {
@@ -48,13 +58,13 @@ describe("garage Tripo workshop bake", () => {
     expect(GARAGE_PAD_RADIUS).toBe(4.5);
     expect(GARAGE_PROP_IDS).toHaveLength(8);
     expect(GARAGE_STOCK).toHaveLength(7);
-    for (const place of [...GARAGE_STOCK, ...GARAGE_HERO]) {
+    for (const place of ALL_PLACES) {
       expect(isOutsideGaragePad(place.position.x, place.position.z), place.name).toBe(true);
     }
   });
 
   it("keeps side props near the pad and back-wall props against the rear wall", () => {
-    for (const place of [...GARAGE_STOCK, ...GARAGE_HERO]) {
+    for (const place of ALL_PLACES) {
       const r = Math.hypot(
         place.position.x - GARAGE_PAD_CENTER.x,
         place.position.z - GARAGE_PAD_CENTER.z,
@@ -72,8 +82,31 @@ describe("garage Tripo workshop bake", () => {
     }
   });
 
-  it("puts cabinet, workbench, shelf, and hoist on the back wall", () => {
-    const back = [...GARAGE_STOCK, ...GARAGE_HERO].filter((p) => p.wall === "back");
-    expect(back.map((p) => p.id).sort()).toEqual(["cabinet", "hoist", "shelf", "workbench"]);
+  it("follows the layout sheet walls (back / left / right)", () => {
+    const byWall = (wall: "back" | "left" | "right") =>
+      ALL_PLACES.filter((p) => p.wall === wall)
+        .map((p) => p.id)
+        .sort();
+    expect(byWall("back")).toEqual(["cabinet", "shelf", "workbench"]);
+    expect(byWall("left")).toEqual(["drums", "gas", "tireStack", "toolchest"]);
+    expect(byWall("right")).toEqual(["drums", "hoist", "tireStack"]);
+  });
+
+  it("faces props toward the bay (Tripo front = local +X)", () => {
+    for (const place of ALL_PLACES) {
+      const expected = GARAGE_WALL_YAW[place.wall];
+      expect(angleDelta(place.yaw, expected), place.name).toBeLessThan(0.2);
+    }
+  });
+
+  it("keeps workshop props spaced so they do not cluster", () => {
+    for (let i = 0; i < ALL_PLACES.length; i++) {
+      for (let j = i + 1; j < ALL_PLACES.length; j++) {
+        const a = ALL_PLACES[i]!;
+        const b = ALL_PLACES[j]!;
+        const d = Math.hypot(a.position.x - b.position.x, a.position.z - b.position.z);
+        expect(d, `${a.name}↔${b.name}`).toBeGreaterThanOrEqual(GARAGE_PROP_MIN_SEPARATION);
+      }
+    }
   });
 });

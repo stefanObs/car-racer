@@ -26,12 +26,13 @@ export function buildGarageToolChest(): Group {
   g.name = "garageToolChest";
   const body = addOutlined(g, new BoxGeometry(0.95, 1.05, 0.52), RED, 0.04);
   body.position.y = 0.62;
+  // Drawers on +X — matches Tripo bake front (local +X).
   for (let i = 0; i < 6; i++) {
-    const drawer = new Mesh(new BoxGeometry(0.82, 0.11, 0.08), comicFlat(RED_DARK));
-    drawer.position.set(0, 0.28 + i * 0.15, 0.24);
+    const drawer = new Mesh(new BoxGeometry(0.08, 0.11, 0.42), comicFlat(RED_DARK));
+    drawer.position.set(0.24, 0.28 + i * 0.15, 0);
     g.add(drawer);
-    const handle = new Mesh(new BoxGeometry(0.22, 0.035, 0.04), comicFlat(INK));
-    handle.position.set(0, 0.28 + i * 0.15, 0.29);
+    const handle = new Mesh(new BoxGeometry(0.04, 0.035, 0.22), comicFlat(INK));
+    handle.position.set(0.29, 0.28 + i * 0.15, 0);
     g.add(handle);
   }
   const top = addOutlined(g, new BoxGeometry(0.98, 0.08, 0.55), RED_DARK, 0.03);
