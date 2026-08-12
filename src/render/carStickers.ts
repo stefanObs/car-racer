@@ -47,22 +47,23 @@ type DecalAnchor = {
 
 /** Local anchors on the car clone (nose +Z). Projector yaw faces into the body. */
 export const STICKER_DECALS: Record<Exclude<CarId, "kaeferkraft">, DecalAnchor[]> = {
+  // Side trail needs horizontal room (nose → door cluster).
   blitz: [
-    { slot: "side", x: 0.78, y: 0.48, z: -0.05, yaw: Math.PI / 2, width: 1.0, height: 0.4, depth: 0.35, mirrorU: true },
-    { slot: "side", x: -0.78, y: 0.48, z: -0.05, yaw: -Math.PI / 2, width: 1.0, height: 0.4, depth: 0.35 },
+    { slot: "side", x: 0.78, y: 0.5, z: 0.15, yaw: Math.PI / 2, width: 1.35, height: 0.48, depth: 0.4, mirrorU: true },
+    { slot: "side", x: -0.78, y: 0.5, z: 0.15, yaw: -Math.PI / 2, width: 1.35, height: 0.48, depth: 0.4 },
   ],
   bison: [
-    { slot: "side", x: 0.74, y: 0.78, z: 0.15, yaw: Math.PI / 2, width: 1.0, height: 0.42, depth: 0.4, mirrorU: true },
-    { slot: "side", x: -0.74, y: 0.78, z: 0.15, yaw: -Math.PI / 2, width: 1.0, height: 0.42, depth: 0.4 },
+    { slot: "side", x: 0.74, y: 0.78, z: 0.25, yaw: Math.PI / 2, width: 1.25, height: 0.48, depth: 0.42, mirrorU: true },
+    { slot: "side", x: -0.74, y: 0.78, z: 0.25, yaw: -Math.PI / 2, width: 1.25, height: 0.48, depth: 0.42 },
     { slot: "hood", x: 0, y: 1.08, z: 0.65, yaw: 0, pitch: -Math.PI / 2, width: 0.75, height: 0.34, depth: 0.35 },
   ],
   donnerbuechse: [
-    { slot: "side", x: 1.05, y: 0.7, z: 0.35, yaw: Math.PI / 2, width: 1.15, height: 0.5, depth: 0.45, mirrorU: true },
-    { slot: "side", x: -1.05, y: 0.7, z: 0.35, yaw: -Math.PI / 2, width: 1.15, height: 0.5, depth: 0.45 },
+    { slot: "side", x: 1.05, y: 0.72, z: 0.45, yaw: Math.PI / 2, width: 1.4, height: 0.55, depth: 0.48, mirrorU: true },
+    { slot: "side", x: -1.05, y: 0.72, z: 0.45, yaw: -Math.PI / 2, width: 1.4, height: 0.55, depth: 0.48 },
   ],
   bunker: [
-    { slot: "door", x: 0.95, y: 1.05, z: 0.35, yaw: Math.PI / 2, width: 0.85, height: 0.42, depth: 0.4, mirrorU: true },
-    { slot: "door", x: -0.95, y: 1.05, z: 0.35, yaw: -Math.PI / 2, width: 0.85, height: 0.42, depth: 0.4 },
+    { slot: "door", x: 0.95, y: 1.05, z: 0.45, yaw: Math.PI / 2, width: 1.15, height: 0.48, depth: 0.42, mirrorU: true },
+    { slot: "door", x: -0.95, y: 1.05, z: 0.45, yaw: -Math.PI / 2, width: 1.15, height: 0.48, depth: 0.42 },
   ],
 };
 
@@ -155,58 +156,119 @@ function drawHotRodFlames(ctx: CanvasRenderingContext2D, _carId: CarId, w: numbe
   ctx.stroke();
 }
 
-/** Racepool99 wordmark style without the trailing "99" (garage chip: Blitz). */
+/**
+ * Garage “Blitz” decal: shooting-star trail like classic side vinyl
+ * (small stars toward the nose → large cutout-star cluster aft).
+ * White fill + comic ink outline for Asphalt-Comic readability.
+ */
 function drawPowerBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
-  const padX = w * 0.04;
-  const padY = h * 0.18;
-  ctx.fillStyle = "#1E1E1C";
+  const inkCol = ink();
+  const fillCol = "#F8F9FA";
+
+  const paintStar = (cx: number, cy: number, r: number, line = Math.max(2, r * 0.18)): void => {
+    ctx.fillStyle = fillCol;
+    ctx.strokeStyle = inkCol;
+    ctx.lineWidth = line;
+    ctx.beginPath();
+    for (let i = 0; i < 5; i++) {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+      const b = a + Math.PI / 5;
+      if (i === 0) ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      else ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
+      ctx.lineTo(cx + Math.cos(b) * r * 0.42, cy + Math.sin(b) * r * 0.42);
+    }
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+  };
+
+  // Sparse trail — nose / left (matches vinyl: tiny stars leading into the cluster).
+  const trail: Array<[number, number, number]> = [
+    [0.06, 0.42, 0.028],
+    [0.1, 0.58, 0.022],
+    [0.12, 0.28, 0.02],
+    [0.16, 0.48, 0.036],
+    [0.18, 0.68, 0.018],
+    [0.22, 0.34, 0.03],
+    [0.24, 0.55, 0.042],
+    [0.28, 0.72, 0.024],
+    [0.3, 0.4, 0.034],
+    [0.34, 0.58, 0.05],
+    [0.36, 0.26, 0.028],
+    [0.4, 0.48, 0.055],
+    [0.42, 0.7, 0.032],
+    [0.46, 0.36, 0.04],
+    [0.48, 0.6, 0.062],
+    [0.52, 0.44, 0.048],
+    [0.54, 0.72, 0.036],
+    [0.58, 0.32, 0.055],
+    [0.6, 0.55, 0.07],
+    [0.64, 0.68, 0.045],
+  ];
+  for (const [nx, ny, nr] of trail) {
+    paintStar(w * nx, h * ny, Math.min(w, h) * nr, Math.max(1.5, Math.min(w, h) * nr * 0.2));
+  }
+
+  // Aft cluster — overlapping medium stars around the hero cutout star.
+  const cluster: Array<[number, number, number]> = [
+    [0.7, 0.28, 0.09],
+    [0.68, 0.72, 0.08],
+    [0.78, 0.78, 0.1],
+    [0.88, 0.62, 0.085],
+    [0.86, 0.3, 0.075],
+    [0.74, 0.5, 0.095],
+  ];
+  for (const [nx, ny, nr] of cluster) {
+    paintStar(w * nx, h * ny, Math.min(w, h) * nr, Math.max(2.5, Math.min(w, h) * nr * 0.16));
+  }
+
+  // Hero star with smaller star cut-out (vinyl look).
+  const hx = w * 0.8;
+  const hy = h * 0.48;
+  const outer = Math.min(w, h) * 0.22;
+  const inner = outer * 0.42;
+  ctx.fillStyle = fillCol;
+  ctx.strokeStyle = inkCol;
+  ctx.lineWidth = Math.max(3, outer * 0.12);
   ctx.beginPath();
-  const r = Math.min(w, h) * 0.08;
-  ctx.moveTo(padX + r, padY);
-  ctx.lineTo(w - padX - r, padY);
-  ctx.quadraticCurveTo(w - padX, padY, w - padX, padY + r);
-  ctx.lineTo(w - padX, h - padY - r);
-  ctx.quadraticCurveTo(w - padX, h - padY, w - padX - r, h - padY);
-  ctx.lineTo(padX + r, h - padY);
-  ctx.quadraticCurveTo(padX, h - padY, padX, h - padY - r);
-  ctx.lineTo(padX, padY + r);
-  ctx.quadraticCurveTo(padX, padY, padX + r, padY);
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+    const b = a + Math.PI / 5;
+    if (i === 0) ctx.moveTo(hx + Math.cos(a) * outer, hy + Math.sin(a) * outer);
+    else ctx.lineTo(hx + Math.cos(a) * outer, hy + Math.sin(a) * outer);
+    ctx.lineTo(hx + Math.cos(b) * outer * 0.42, hy + Math.sin(b) * outer * 0.42);
+  }
   ctx.closePath();
-  ctx.fill();
-
-  const fontPx = Math.floor(h * 0.38);
-  ctx.font = `italic 900 ${fontPx}px "Arial Black", Impact, Haettenschweiler, sans-serif`;
-  ctx.textBaseline = "middle";
-  ctx.textAlign = "left";
-  const y = h * 0.48;
-  let x = w * 0.08;
-  const tracking = 0.92;
-
-  ctx.fillStyle = "#FFFFFF";
-  for (const ch of "RAC") {
-    ctx.fillText(ch, x, y);
-    x += ctx.measureText(ch).width * tracking;
+  // Inner hole (same orientation, slightly smaller).
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+    const b = a + Math.PI / 5;
+    if (i === 0) ctx.moveTo(hx + Math.cos(a) * inner, hy + Math.sin(a) * inner);
+    else ctx.lineTo(hx + Math.cos(a) * inner, hy + Math.sin(a) * inner);
+    ctx.lineTo(hx + Math.cos(b) * inner * 0.42, hy + Math.sin(b) * inner * 0.42);
   }
-
-  const barW = fontPx * 0.52;
-  const barH = Math.max(3, fontPx * 0.11);
-  const gap = fontPx * 0.12;
-  const barTop = y - fontPx * 0.34;
-  ctx.fillStyle = RACEPOOL_RED;
-  for (let i = 0; i < 3; i++) {
-    ctx.fillRect(x, barTop + i * (barH + gap), barW, barH);
+  ctx.closePath();
+  ctx.fill("evenodd");
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+    const b = a + Math.PI / 5;
+    if (i === 0) ctx.moveTo(hx + Math.cos(a) * outer, hy + Math.sin(a) * outer);
+    else ctx.lineTo(hx + Math.cos(a) * outer, hy + Math.sin(a) * outer);
+    ctx.lineTo(hx + Math.cos(b) * outer * 0.42, hy + Math.sin(b) * outer * 0.42);
   }
-  x += barW * 1.12;
-
-  ctx.fillStyle = "#FFFFFF";
-  for (const ch of "POOL") {
-    ctx.fillText(ch, x, y);
-    x += ctx.measureText(ch).width * tracking;
+  ctx.closePath();
+  ctx.stroke();
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
+    const b = a + Math.PI / 5;
+    if (i === 0) ctx.moveTo(hx + Math.cos(a) * inner, hy + Math.sin(a) * inner);
+    else ctx.lineTo(hx + Math.cos(a) * inner, hy + Math.sin(a) * inner);
+    ctx.lineTo(hx + Math.cos(b) * inner * 0.42, hy + Math.sin(b) * inner * 0.42);
   }
-
-  const underlineY = y + fontPx * 0.4;
-  ctx.fillStyle = RACEPOOL_RED;
-  ctx.fillRect(w * 0.08, underlineY, x - w * 0.08, Math.max(3, h * 0.032));
+  ctx.closePath();
+  ctx.stroke();
 }
 
 function starMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
@@ -318,8 +380,8 @@ export function drawStickerArt(
 /** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none") return null;
-  return canvasTex(`sticker-v6:${carId}:${sticker}`, 512, 256, (ctx) => {
-    // Transparent field — art draws its own plate when needed (Blitz wordmark).
+  return canvasTex(`sticker-v7:${carId}:${sticker}`, 512, 256, (ctx) => {
+    // Transparent field — art draws its own plate when needed.
     ctx.clearRect(0, 0, 512, 256);
     drawStickerArt(ctx, sticker, carId, 512, 256);
   });

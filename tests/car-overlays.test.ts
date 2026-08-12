@@ -40,13 +40,14 @@ describe("car sticker decals", () => {
     expect(emptyKit("blitz").sticker).toBe("none");
   });
 
-  it("ships sticker-v6 Racepool/hotrod art, DecalGeometry path, and proposal targets", () => {
+  it("ships sticker-v7 shooting-star Blitz + Racepool Stern + hotrod Flammen", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain("sticker-v6:");
+    expect(src).toContain("sticker-v7:");
     expect(src).toContain("RACEPOOL_RED");
-    expect(src).toContain('for (const ch of "RAC")');
-    expect(src).toContain('for (const ch of "POOL")');
+    expect(src).toContain("fill(\"evenodd\")");
     expect(src).toContain("drawHotRodFlames");
+    expect(src).toContain("shooting-star");
+    expect(src).not.toContain('for (const ch of "RAC")');
     expect(src).toContain("DecalGeometry");
     expect(src).toContain("findBodyMeshForStickers");
     expect(existsSync("assets/tripo-concepts/sticker-proposal-flames.png")).toBe(true);
