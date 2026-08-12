@@ -21,6 +21,7 @@ Sibling skills must stay aligned when concept changes:
 | Area | Skill |
 |------|--------|
 | Art | `.cursor/skills/asphalt-comic-art/` |
+| 3D / Tripo | `.cursor/skills/tripo-3d-assets/` |
 | Levels | `.cursor/skills/level-editor/` |
 | Code quality | `.cursor/skills/clean-programming/` |
 | QA / UX / regression | `.cursor/skills/review-testing/` |
