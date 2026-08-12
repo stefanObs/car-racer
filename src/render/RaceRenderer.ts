@@ -143,7 +143,13 @@ export class RaceRenderer {
         sticker,
         modelId,
         equippedParts: [...equippedParts],
-        stats: { ...CARS[modelId].stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
+        stats: {
+          ...CARS[modelId].stats,
+          nitroBonus: 0,
+          ramBonus: 0,
+          grassMitigation: 0,
+          brakeBonus: 0,
+        },
       }),
     );
     upgradeCarFx(visual);
@@ -348,11 +354,15 @@ export class RaceRenderer {
 
       const bump = surfaceAt(session.track, car.x, car.z, car.stats.grassMitigation, car.stats.suspension).bump;
       const hop =
-        bump * 0.25 * Math.sin(this.fxTime * 22 + car.progress * 3) +
-        (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.05 : 0);
-      const lean = (stage >= 2 ? 0.1 : 0) + bump * 0.14;
-      root.position.set(car.x, (car.healFx > 0.2 ? 0.05 : 0) + hop, car.z);
+        car.y > 0.05
+          ? 0
+          : bump * 0.25 * Math.sin(this.fxTime * 22 + car.progress * 3) +
+            (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.05 : 0);
+      const lean = (stage >= 2 ? 0.1 : 0) + (car.y > 0.05 ? 0 : bump * 0.14);
+      const pitch = car.y > 0.05 ? Math.min(0.35, car.vy * 0.03) : 0;
+      root.position.set(car.x, car.y + (car.healFx > 0.2 ? 0.05 : 0) + hop, car.z);
       root.rotation.y = Math.PI / 2 - car.heading;
+      root.rotation.x = pitch;
       root.rotation.z = lean * Math.sin(this.fxTime * 10);
 
       visual.lastHeading = car.heading;
@@ -412,11 +422,11 @@ export class RaceRenderer {
     } else {
       if (this.celebrateSeed !== -1) this.clearCelebrate();
       const back = 7.2;
-      const height = 3.35;
+      const height = 3.35 + Math.min(2.2, player.y * 0.55);
       const camX = player.x - Math.cos(player.heading) * back;
       const camZ = player.z - Math.sin(player.heading) * back;
       this.camera.position.set(camX, height, camZ);
-      this.camera.lookAt(player.x, 0.9, player.z);
+      this.camera.lookAt(player.x, 0.9 + player.y * 0.65, player.z);
     }
     this.renderer.render(this.scene, this.camera);
   }

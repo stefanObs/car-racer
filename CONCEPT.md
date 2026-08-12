@@ -75,19 +75,24 @@ Gleiche Aktionen auf allen Eingabegeräten; kein Feature nur auf einer Plattform
 - **Tablet:** Touch-Steuerung im Rennen + alle Menüs/Garage bedienbar; große Hit-Targets; HUD und kritische Infos ohne Hover; Landscape-first, nutzbar in typischen Tablet-Auflösungen; kein „nur mit Tastatur“-Schritt.
 - Eingabe jederzeit wechselbar (z. B. Controller anschließen mid-session), wo die Plattform das erlaubt.
 
-Kein realistisches Drift-Physik-Sim — eher **Gewicht + Grip + Impuls** mit Arcade-Fahrgefühl: Lenkung wird bei Tempo ruhiger, Grip lässt das Auto in Kurven leicht rutschen statt panzerartig zu drehen, Gas baut Tempo knackig auf, Loslassen lässt es **ausrollen** (nicht abrupt stoppen).
+Kein realistisches Drift-Physik-Sim — eher **Gewicht + Grip + Impuls** mit Arcade-Fahrgefühl: Lenkung wird bei Tempo ruhiger, Grip lässt das Auto in Kurven leicht rutschen statt panzerartig zu drehen, Gas baut Tempo knackig auf, Loslassen lässt es **ausrollen** (nicht abrupt stoppen). **Schanzen** geben echte Luftzeit; die Landung braucht Grip/Federung. Kontakt schiebt nach **Masse** (leichte Autos fliegen weiter).
 
 ### 4.3 Physik-Säulen (fürs Balancing)
 
-Jedes Auto hat (Basis + Teile):
+Jedes Auto hat (Basis + Teile) — die **Eigenschaften** skalieren die Arcade-Physik direkt:
 
 1. **Beschleunigung** — wie schnell Tempo aufgebaut wird  
-2. **Höchstgeschwindigkeit** — Cap  
-3. **Grip / Schleuderresistenz** — wie stark das Auto bei Kurven/Treffern ausbricht  
-4. **Masse / Schubkraft** — wer wen bei Kontakt verschiebt  
+2. **Höchstgeschwindigkeit** — Cap (Nitro darf kurz darüber)  
+3. **Grip / Schleuderresistenz** — wie stark das Auto bei Kurven/Treffern/Landungen ausbricht  
+4. **Masse / Schubkraft** — wer wen bei Kontakt verschiebt; leichte Autos prallen stärker von Hindernissen  
 5. **Panzerung** — wie viel Schaden ein Treffer / Aufprall macht  
-6. **Handling-Präzision** — Lenkansprechen bei niedrigem Schaden  
-7. **Federung** — dämpft Unebenheiten, mildert Gras-Malus, stabilisiert Landungen  
+6. **Handling-Präzision** — Lenkansprechen (Wendekreis) und Basis-Bremsgefühl bei niedrigem Schaden  
+7. **Federung** — dämpft Unebenheiten, mildert Gras-Malus, stabilisiert Landungen / mildert Schanzen-Hop  
+
+Zusätzlich (Teile / Klassen-Bonus, sichtbar in der Garage als Nitro-Balken bzw. Bremsen-Teil):
+
+- **Nitro** — Extra-Schub + kurzer Speed-Headroom; stärkerer Bonus = knackigerer Boost  
+- **Bremsen** (Teil *Bessere Bremsen*) — schärferes Verzögern ohne eigenen Level-Balken  
 
 **Design-Regel:** Es gibt kein reines „bestes Auto“. Starke Stats erzeugen immer Gegenkosten — außer durch **gute Teile-Kombos** (siehe Kap. 6.4).
 
@@ -165,7 +170,7 @@ Hindernisse ergänzen Tempo-Fahren; sie sind lesbar und build-relevant:
 | **Reifenstapel** | Bounce + leichter Schaden — **nicht** passierbar | Orange/schwarz, hoch | Leicht |
 | **Betonsperren** | Harter Bounce — **nicht** passierbar | Grau + gelber Streifen, hoch | Kaum |
 | Rollende Fässer | Bewegliche Gefahr | Metallglanz | — |
-| Sprungschanzen | Luftzeit; Landung braucht Grip | Rampe | Federung stabilisiert Landung |
+| Sprungschanzen | Echte Luftzeit (Y); Landung braucht Grip/Federung | Rampe | Federung stabilisiert Landung |
 
 KI nutzt Layout: bremst vor Buckeln, drängt dich bei Fehlern Richtung Gras/Mauer.
 
@@ -495,4 +500,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.36 — Cup-Strecken Parabolbogen/Schikanenring/Omegatal/Kuppenfinale + Sky-Dome/Panorama.*
+*Dokumentstand: Konzept v3.38 — Theme-Tripo-Kulisse Cups 2–5 (frei von der Rennfläche).*

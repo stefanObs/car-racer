@@ -4,7 +4,13 @@ import { CUP_LEVELS } from "../src/data/levels";
 import { createCarState, stepCar, yawRateFor } from "../src/sim/vehicle";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
 
-const blitzStats = { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 };
+const blitzStats = {
+  ...CARS.blitz.stats,
+  nitroBonus: 0,
+  ramBonus: 0,
+  grassMitigation: 0,
+  brakeBonus: 0,
+};
 const catchUp = { accel: 1, topSpeed: 1 };
 
 function onTrackCar(speed: number, steer = 0) {
@@ -32,7 +38,7 @@ describe("arcade racing feel", () => {
       steer: 1,
       speed: 6,
       handling: blitzStats.handling,
-      grip: blitzStats.grip,
+      mass: blitzStats.mass,
       gripFactor: 1,
       handlingMult: 1,
     });
@@ -40,7 +46,7 @@ describe("arcade racing feel", () => {
       steer: 1,
       speed: 28,
       handling: blitzStats.handling,
-      grip: blitzStats.grip,
+      mass: blitzStats.mass,
       gripFactor: 1,
       handlingMult: 1,
     });
@@ -59,7 +65,7 @@ describe("arcade racing feel", () => {
 
   it("builds pace quickly toward top speed under full throttle", () => {
     const { track, car } = onTrackCar(0);
-    for (let i = 0; i < 180; i++) {
+    for (let i = 0; i < 60; i++) {
       stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, catchUp);
     }
     expect(car.speed).toBeGreaterThan(22);

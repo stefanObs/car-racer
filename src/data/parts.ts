@@ -19,7 +19,7 @@ export interface PartDef {
   con: string;
   tags: string[];
   /** Additive deltas applied to base stats */
-  delta: Partial<VehicleStats> & { nitroBonus?: number; ramBonus?: number };
+  delta: Partial<VehicleStats> & { nitroBonus?: number; ramBonus?: number; brakeBonus?: number };
 }
 
 export const PARTS: Record<PartId, PartDef> = {
@@ -57,7 +57,7 @@ export const PARTS: Record<PartId, PartDef> = {
     pro: "Schärferes Abbremsen, engere Linien.",
     con: "Etwas träger aus der Kurve heraus.",
     tags: ["brakes"],
-    delta: { handling: 0.1, accel: -0.05 },
+    delta: { handling: 0.1, accel: -0.05, brakeBonus: 0.45 },
   },
   reinforced_frame: {
     id: "reinforced_frame",
@@ -155,11 +155,17 @@ export function activeSynergies(partIds: PartId[]): SynergyDef[] {
 export function mergeStats(
   base: VehicleStats,
   partIds: PartId[],
-): VehicleStats & { nitroBonus: number; ramBonus: number; grassMitigation: number } {
+): VehicleStats & {
+  nitroBonus: number;
+  ramBonus: number;
+  grassMitigation: number;
+  brakeBonus: number;
+} {
   const { nitroBonus: baseNitro = 0, grassMitigation: baseGrass = 0, ...core } = base;
   const stats: VehicleStats = { ...core };
   let nitroBonus = baseNitro;
   let ramBonus = 0;
+  let brakeBonus = 0;
   let grassMitigation = baseGrass;
 
   for (const id of partIds) {
@@ -167,6 +173,7 @@ export function mergeStats(
     for (const key of Object.keys(d) as Array<keyof typeof d>) {
       if (key === "nitroBonus") nitroBonus += d.nitroBonus ?? 0;
       else if (key === "ramBonus") ramBonus += d.ramBonus ?? 0;
+      else if (key === "brakeBonus") brakeBonus += d.brakeBonus ?? 0;
       else {
         const k = key as keyof VehicleStats;
         if (k === "nitroBonus" || k === "grassMitigation") continue;
@@ -194,6 +201,7 @@ export function mergeStats(
     ...stats,
     nitroBonus,
     ramBonus,
+    brakeBonus: Math.min(1.2, Math.max(0, brakeBonus)),
     grassMitigation: Math.min(0.55, grassMitigation),
   };
 }

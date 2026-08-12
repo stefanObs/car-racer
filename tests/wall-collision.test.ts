@@ -37,7 +37,7 @@ describe("wall collision", () => {
       isPlayer: true,
       paint: "#e03131",
       sticker: "none",
-      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
+      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
       speed: 0,
     });
 
@@ -69,7 +69,7 @@ describe("wall collision", () => {
       isPlayer: true,
       paint: "#e03131",
       sticker: "none",
-      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
+      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
       speed: 30,
     });
 

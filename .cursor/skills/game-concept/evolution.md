@@ -14,6 +14,16 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.38 Theme Tripo scenery for cups 2–5
+- Trigger: user — Tripo assets for all tracks except Havenstadt matching proposals; nothing on the racing surface; sky/surround textures same treatment
+- Decision: 10 theme props (grandstand/palm/hut/tower/building/cliff/spire/tree/warehouse/scrub) via concept→Tripo→bake; outer-side placement + `SCENERY_CLEARANCE=12`; panorama/sky refreshed per proposal; Hafenstart kit unchanged
+- CONCEPT §§ touched: §8.2 → v3.38
+
+### 2026-08-12 — v3.37 Arcade driving physics from Eigenschaften
+- Trigger: user — proper arcade physics (accel, brake, slide, jump, turning, mass push, nitro) scaled by car Eigenschaften
+- Decision: `vehicle.ts` maps Beschleunigung/Tempo/Grip/Handling/Gewicht/Federung/Nitro (+ brakeBonus from Bessere Bremsen) into arcade forces; Schanzen launch real Y airtime; car–car impulse by mass; render uses `car.y`
+- CONCEPT §§ touched: §4.2, §4.3, §4.6 → v3.37
+
 ### 2026-08-12 — v3.36 Cup routes 2–5 + sky/panorama surround
 - Trigger: implement track proposals (all cups except Hafenstart); sky dome + panoramic far/infield meshes; reuse Havenstadt props
 - Decision: Parabolbogen / Schikanenring (risk-reward) / Omegatal / Kuppenfinale in `levels.ts`; `panoramaSurround.ts` for dome + horizon cylinder + infield disc; city/beach/factory reuse crane/container/silo kits

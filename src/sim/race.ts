@@ -163,6 +163,8 @@ export class RaceSession {
         car.speed = 0;
         car.vx = 0;
         car.vz = 0;
+        car.vy = 0;
+        car.y = 0;
       }
       // KO respawn snap to track
       if (car.koTimer > 0 && car.hp <= 0) {

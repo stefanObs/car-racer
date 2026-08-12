@@ -36,7 +36,7 @@ describe("wall bounce + fair impact damage", () => {
       isPlayer: true,
       paint: "#e03131",
       sticker: "none",
-      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
+      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
       speed: 28,
     });
 
@@ -62,7 +62,7 @@ describe("wall bounce + fair impact damage", () => {
       isPlayer: true,
       paint: "#e03131",
       sticker: "none",
-      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
+      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
       speed: 22,
     });
 
@@ -100,7 +100,7 @@ describe("on-track obstacle bounce", () => {
       paint: "#e03131",
       sticker: "none",
       modelId: "blitz",
-      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0 },
+      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
       speed: 18,
     });
 
