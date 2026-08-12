@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.29 Aufkleber as projected body decals
+
+- Trigger: user — stickers don’t work as defined; Tripo OK if needed
+- Decision: Tripo albedo UV stamps miss doors (chaotic atlases). Project sticker-v5 comic plates with `DecalGeometry` onto BodyPaint (Seite/Haube/Tür). Käferkraft stays nose GLBs. No Tripo bake required for flat decals.
+- CONCEPT §§ touched: §6.2 Aufkleber-Details → v3.29
+
 ### 2026-08-12 — v3.28 Equipped Teile visuals on every car
 
 - Trigger: user — implement car parts as proposed in the parts-look sheets

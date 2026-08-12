@@ -1,18 +1,24 @@
 /**
- * Garage stickers as albedo textures (no floating plane overlays).
- * Per-car art + placement: side / hood. Bunker IronClad is the default kit sticker.
+ * Garage stickers as Asphalt-Comic decals projected onto the body (CONCEPT §6.2).
+ * Tripo atlases pack chaotically — UV stamps miss doors. DecalGeometry lands on
+ * Seite / Motorhaube / Tür. Käferkraft uses nose variants instead.
  */
 import {
   CanvasTexture,
   DataTexture,
+  DoubleSide,
+  Euler,
+  Group,
+  Mesh,
+  MeshBasicMaterial,
   NearestFilter,
   RGBAFormat,
   SRGBColorSpace,
-  type Mesh,
-  type MeshToonMaterial,
+  Vector3,
   type Object3D,
   type Texture,
 } from "three";
+import { DecalGeometry } from "three/addons/geometries/DecalGeometry.js";
 import type { CarId } from "../data/cars";
 import { ComicPaletteCss } from "./palette";
 
@@ -20,7 +26,45 @@ export type StickerId = "none" | "flames" | "bolt" | "star" | "ironClad";
 
 export type StickerSlot = "side" | "hood" | "door";
 
+export const CAR_STICKERS_GROUP = "carStickers";
+
 const texCache = new Map<string, Texture>();
+
+type DecalAnchor = {
+  slot: StickerSlot;
+  x: number;
+  y: number;
+  z: number;
+  /** Projector Euler (looks into the panel). */
+  yaw: number;
+  pitch?: number;
+  width: number;
+  height: number;
+  /** Projection thickness through the panel. */
+  depth?: number;
+  mirrorU?: boolean;
+};
+
+/** Local anchors on the car clone (nose +Z). Projector yaw faces into the body. */
+export const STICKER_DECALS: Record<Exclude<CarId, "kaeferkraft">, DecalAnchor[]> = {
+  blitz: [
+    { slot: "side", x: 0.78, y: 0.48, z: -0.05, yaw: Math.PI / 2, width: 1.0, height: 0.4, depth: 0.35, mirrorU: true },
+    { slot: "side", x: -0.78, y: 0.48, z: -0.05, yaw: -Math.PI / 2, width: 1.0, height: 0.4, depth: 0.35 },
+  ],
+  bison: [
+    { slot: "side", x: 0.74, y: 0.78, z: 0.15, yaw: Math.PI / 2, width: 1.0, height: 0.42, depth: 0.4, mirrorU: true },
+    { slot: "side", x: -0.74, y: 0.78, z: 0.15, yaw: -Math.PI / 2, width: 1.0, height: 0.42, depth: 0.4 },
+    { slot: "hood", x: 0, y: 1.08, z: 0.65, yaw: 0, pitch: -Math.PI / 2, width: 0.75, height: 0.34, depth: 0.35 },
+  ],
+  donnerbuechse: [
+    { slot: "side", x: 1.05, y: 0.7, z: 0.35, yaw: Math.PI / 2, width: 1.15, height: 0.5, depth: 0.45, mirrorU: true },
+    { slot: "side", x: -1.05, y: 0.7, z: 0.35, yaw: -Math.PI / 2, width: 1.15, height: 0.5, depth: 0.45 },
+  ],
+  bunker: [
+    { slot: "door", x: 0.95, y: 1.05, z: 0.35, yaw: Math.PI / 2, width: 0.85, height: 0.42, depth: 0.4, mirrorU: true },
+    { slot: "door", x: -0.95, y: 1.05, z: 0.35, yaw: -Math.PI / 2, width: 0.85, height: 0.42, depth: 0.4 },
+  ],
+};
 
 /** Where stickers land per car (Käferkraft uses nose variants instead). */
 export function stickerSlotsForCar(id: CarId): StickerSlot[] {
@@ -83,7 +127,6 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
   return tex;
 }
 
-/** Hot-Rod door flames — thick tongues leaning rearward (sticker-proposal-flames). */
 function flameTongue(
   ctx: CanvasRenderingContext2D,
   tipX: number,
@@ -107,7 +150,6 @@ function drawHotRodFlames(ctx: CanvasRenderingContext2D, carId: CarId, w: number
   const outer =
     carId === "bunker" ? "#FF6B1A" : carId === "bison" ? "#FF8A1F" : carId === "donnerbuechse" ? "#FF5A00" : "#FF7A18";
   const core = "#FFE066";
-  // Rearward lean: tips toward -X (left), bases toward door trailing edge
   ctx.fillStyle = outer;
   ctx.lineWidth = Math.max(4, Math.min(w, h) * 0.055);
   flameTongue(ctx, w * 0.08, h * 0.42, w * 0.78, h * 0.28, h * 0.16);
@@ -119,7 +161,6 @@ function drawHotRodFlames(ctx: CanvasRenderingContext2D, carId: CarId, w: number
   flameTongue(ctx, w * 0.14, h * 0.62, w * 0.66, h * 0.56, h * 0.09);
 }
 
-/** Bold comic bolt with white core flash (sticker-proposal-bolt). */
 function boltMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number): void {
   ctx.beginPath();
   ctx.moveTo(cx - s * 0.08, cy - s * 0.58);
@@ -144,7 +185,6 @@ function drawPowerBolt(ctx: CanvasRenderingContext2D, carId: CarId, w: number, h
   ctx.fillStyle = "#FFF8D6";
   ctx.lineWidth = Math.max(2.5, ctx.lineWidth * 0.45);
   boltMark(ctx, cx - s * 0.02, cy, s * 0.48);
-  // Spark ticks
   ctx.strokeStyle = ink();
   ctx.lineWidth = Math.max(2, h * 0.035);
   for (const [x0, y0, x1, y1] of [
@@ -184,7 +224,6 @@ function drawRacingStar(ctx: CanvasRenderingContext2D, carId: CarId, w: number, 
   ctx.fillStyle = "#F8F9FA";
   ctx.lineWidth = Math.max(2.5, ctx.lineWidth * 0.5);
   starMark(ctx, cx - r * 0.06, cy - r * 0.08, r * 0.38);
-  // Secondary burst
   ctx.fillStyle = fill;
   ctx.lineWidth = Math.max(3, Math.min(w, h) * 0.04);
   starMark(ctx, w * 0.82, h * 0.28, Math.min(w, h) * 0.14);
@@ -194,7 +233,6 @@ function ironCladLogo(ctx: CanvasRenderingContext2D, w: number, h: number): void
   ctx.clearRect(0, 0, w, h);
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
-  // Steel plate
   ctx.fillStyle = "#C5CAD0";
   ctx.strokeStyle = ink();
   ctx.lineWidth = Math.max(4, h * 0.075);
@@ -206,13 +244,11 @@ function ironCladLogo(ctx: CanvasRenderingContext2D, w: number, h: number): void
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-  // Yellow accent stripe
   ctx.fillStyle = ComicPaletteCss.repairSpark;
   ctx.fillRect(h * 0.14, h * 0.2, w * 0.72, h * 0.12);
   ctx.strokeStyle = ink();
   ctx.lineWidth = Math.max(2.5, h * 0.04);
   ctx.strokeRect(h * 0.14, h * 0.2, w * 0.72, h * 0.12);
-  // Shield + IC
   ctx.fillStyle = "#8B9098";
   ctx.beginPath();
   const sx = h * 0.22;
@@ -274,11 +310,17 @@ export function drawStickerArt(
   drawRacingStar(ctx, carId, w, h);
 }
 
-/** Standalone sticker texture (tests / previews). */
+/** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none") return null;
-  return canvasTex(`sticker-v4:${carId}:${sticker}`, 256, 128, (ctx) => {
-    drawStickerArt(ctx, sticker, carId, 256, 128);
+  return canvasTex(`sticker-v5-plate:${carId}:${sticker}`, 512, 256, (ctx) => {
+    // Opaque comic plate so DecalGeometry UVs always read on the body.
+    ctx.fillStyle = "#FFF3D6";
+    ctx.fillRect(0, 0, 512, 256);
+    ctx.strokeStyle = ink();
+    ctx.lineWidth = 10;
+    ctx.strokeRect(6, 6, 500, 244);
+    drawStickerArt(ctx, sticker, carId, 512, 256);
   });
 }
 
@@ -287,219 +329,128 @@ function normalizeSticker(sticker: string): string {
   return sticker || "none";
 }
 
+function clearStickerDecals(root: Object3D): void {
+  root.getObjectByName(CAR_STICKERS_GROUP)?.removeFromParent();
+}
+
+/** Largest tintable body mesh — Tripo cars are usually a single BodyPaint shell. */
+export function findBodyMeshForStickers(root: Object3D): Mesh | null {
+  let best: Mesh | null = null;
+  let bestScore = 0;
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (mesh.name.startsWith("stickerDecal") || mesh.userData.outlineShell) return;
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    const name = ((mats[0] as { name?: string })?.name ?? mesh.name ?? "").toLowerCase();
+    if (
+      name.includes("tire") ||
+      name.includes("wheel") ||
+      name.includes("glass") ||
+      name.includes("chrome") ||
+      name.includes("skull")
+    ) {
+      return;
+    }
+    if (!mesh.geometry.boundingSphere) mesh.geometry.computeBoundingSphere();
+    const r = mesh.geometry.boundingSphere?.radius ?? 0;
+    const paintBoost = name.includes("paint") || name.includes("body") || name.includes("atlas") ? 2 : 1;
+    const score = r * paintBoost;
+    if (score > bestScore) {
+      bestScore = score;
+      best = mesh;
+    }
+  });
+  return best;
+}
+
+function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">, sticker: string): void {
+  clearStickerDecals(root);
+  if (sticker === "none") return;
+
+  const tex = stickerTexture(sticker, carId);
+  if (!tex) return;
+
+  root.updateMatrixWorld(true);
+  const body = findBodyMeshForStickers(root);
+  if (!body) {
+    console.warn(`[stickers] no body mesh for ${carId}`);
+    return;
+  }
+  body.updateMatrixWorld(true);
+
+  const group = new Group();
+  group.name = CAR_STICKERS_GROUP;
+  group.userData.carStickers = sticker;
+
+  const anchors = STICKER_DECALS[carId];
+  const invRoot = root.matrixWorld.clone().invert();
+
+  anchors.forEach((anchor, i) => {
+    const worldPos = new Vector3(anchor.x, anchor.y, anchor.z).applyMatrix4(root.matrixWorld);
+    const orientation = new Euler(anchor.pitch ?? 0, anchor.yaw, 0, "YXZ");
+    const size = new Vector3(anchor.width, anchor.height, anchor.depth ?? 0.5);
+    let geo: DecalGeometry;
+    try {
+      geo = new DecalGeometry(body, worldPos, orientation, size);
+    } catch (err) {
+      console.warn(`[stickers] DecalGeometry failed ${carId} ${anchor.slot}`, err);
+      return;
+    }
+    if (!geo.getAttribute("position") || geo.getAttribute("position")!.count < 3) {
+      geo.dispose();
+      return;
+    }
+    geo.applyMatrix4(invRoot);
+
+    const map = tex.clone();
+    map.needsUpdate = true;
+    if (anchor.mirrorU) {
+      map.wrapS = tex.wrapS;
+      map.repeat.x = -1;
+      map.offset.x = 1;
+    }
+
+    const mat = new MeshBasicMaterial({
+      map,
+      transparent: true,
+      alphaTest: 0.08,
+      depthWrite: false,
+      depthTest: true,
+      side: DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -4,
+      polygonOffsetUnits: -4,
+      toneMapped: false,
+    });
+    mat.name = `StickerDecal-${sticker}`;
+    const mesh = new Mesh(geo, mat);
+    mesh.name = `stickerDecal-${anchor.slot}-${i}`;
+    mesh.userData.stickerDecal = sticker;
+    mesh.userData.stickerSlot = anchor.slot;
+    mesh.renderOrder = 10;
+    group.add(mesh);
+  });
+
+  if (group.children.length > 0) root.add(group);
+}
+
 /**
- * Bake garage stickers into body/door albedo maps on a cloned car root.
+ * Attach / clear garage sticker decals on a cloned car root.
  * Call after paint. No-op for Käferkraft (nose variants elsewhere).
  */
 export function applyCarStickers(root: Object3D, carId: CarId, stickerRaw: string): void {
   const sticker = normalizeSticker(stickerRaw);
-  const slots = stickerSlotsForCar(carId);
-  if (slots.length === 0) return;
-
-  if (carId === "bunker") {
-    // Default IronClad + swappable Tür-Aufkleber stamp into side albedo.
-    patchAuthoredSideStickers(root, carId, sticker, slots);
+  if (carId === "kaeferkraft") {
+    clearStickerDecals(root);
     return;
   }
-
-  if (carId === "donnerbuechse" || carId === "blitz") {
-    patchAuthoredSideStickers(root, carId, sticker, slots);
-    return;
-  }
-
-  // Comic-atlas cars: stamp stickers into a per-instance body map (no floating planes).
-  if (sticker === "none") return;
-  root.traverse((obj) => {
-    const mesh = obj as Mesh;
-    if (!mesh.isMesh || !mesh.geometry) return;
-    const mat = firstToon(mesh);
-    if (!mat?.userData?.comicTintable || !mat.map) return;
-    const paintHex = mat.color?.getHexString?.() ? `#${mat.color.getHexString()}` : "#ffffff";
-    mat.map = stampComicBodyMap(mat.map, carId, sticker, slots, paintHex);
-    // Paint is baked into the map so sticker colors stay true
-    mat.color.setRGB(1, 1, 1);
-    mat.needsUpdate = true;
-  });
+  mountStickerDecals(root, carId, sticker);
 }
 
-function stampComicBodyMap(
-  baseMap: Texture,
-  carId: CarId,
-  sticker: string,
-  slots: StickerSlot[],
-  paintHex: string,
-): Texture {
-  const key = `comic-stamp-v4:${carId}:${sticker}:${slots.join(",")}:${paintHex}`;
-  const hit = texCache.get(key);
-  if (hit) return hit;
-
-  const size = 512;
-  const c = typeof document !== "undefined" ? document.createElement("canvas") : null;
-  if (!c) {
-    const tex = fallbackTex();
-    texCache.set(key, tex);
-    return tex;
-  }
-  c.width = size;
-  c.height = size;
-  const ctx = c.getContext("2d")!;
-  ctx.fillStyle = "#F6F7F9";
-  ctx.fillRect(0, 0, size, size);
-  try {
-    if (baseMap.image) ctx.drawImage(baseMap.image as CanvasImageSource, 0, 0, size, size);
-  } catch {
-    /* headless */
-  }
-
-  // Bake garage paint into atlas (was previously a shader multiply)
-  ctx.globalCompositeOperation = "multiply";
-  ctx.fillStyle = paintHex;
-  ctx.fillRect(0, 0, size, size);
-  ctx.globalCompositeOperation = "source-over";
-
-  const stamp = makeStickerStamp(sticker, carId);
-
-  if (slots.includes("side")) {
-    // Box-UV sides: V is low (~0..0.25). CanvasTexture flipY → stamp near canvas bottom.
-    const y = size * 0.78;
-    const h = size * 0.18;
-    ctx.drawImage(stamp, size * 0.06, y, size * 0.4, h);
-    ctx.drawImage(stamp, size * 0.52, y, size * 0.4, h);
-  }
-  if (slots.includes("hood")) {
-    // Hood (bison): V ~0.66 → canvas y ≈ 0.34 with flipY
-    ctx.drawImage(stamp, size * 0.08, size * 0.28, size * 0.4, size * 0.16);
-  }
-
-  const tex = new CanvasTexture(c);
-  tex.colorSpace = SRGBColorSpace;
-  tex.minFilter = NearestFilter;
-  tex.magFilter = NearestFilter;
-  tex.generateMipmaps = false;
-  tex.needsUpdate = true;
-  tex.userData = { comicTintable: false }; // paint already baked
-  tex.flipY = baseMap.flipY;
-  texCache.set(key, tex);
-  return tex;
-}
-
-/** Cream plate + art so paint multiply still reads as a sticker. */
-function makeStickerStamp(sticker: string, carId: CarId): HTMLCanvasElement {
-  const stamp = document.createElement("canvas");
-  stamp.width = 256;
-  stamp.height = 128;
-  const sctx = stamp.getContext("2d")!;
-  sctx.fillStyle = "rgba(255,248,230,0.95)";
-  sctx.fillRect(6, 10, 244, 108);
-  sctx.strokeStyle = ink();
-  sctx.lineWidth = 6;
-  sctx.strokeRect(6, 10, 244, 108);
-  drawStickerArt(sctx, sticker, carId, 256, 128);
-  return stamp;
-}
-
-function firstToon(mesh: Mesh): MeshToonMaterial | null {
-  const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-  const m = mats[0] as MeshToonMaterial | undefined;
-  if (!m || !("color" in m)) return null;
-  return m;
-}
-
-function patchAuthoredSideStickers(
-  root: Object3D,
-  carId: CarId,
-  sticker: string,
-  slots: StickerSlot[],
-): void {
-  if (sticker === "none" || !slots.includes("side")) return;
-  const replaced = new Map<Texture, Texture>();
-  root.traverse((obj) => {
-    const mesh = obj as Mesh;
-    if (!mesh.isMesh || !mesh.geometry) return;
-    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-    for (const raw of mats) {
-      const mat = raw as MeshToonMaterial;
-      if (!mat?.map) continue;
-      const name = (mat.name ?? mesh.name ?? "").toLowerCase();
-      if (name.includes("tire") || name.includes("wheel") || name.includes("glass")) continue;
-      const prev = mat.map;
-      const hit = replaced.get(prev);
-      if (hit) {
-        mat.map = hit;
-        mat.needsUpdate = true;
-        continue;
-      }
-      const next = stampAuthoredSide(prev, carId, sticker);
-      replaced.set(prev, next);
-      mat.map = next;
-      mat.needsUpdate = true;
-      if (mat.color) mat.color.setRGB(1, 1, 1);
-    }
-  });
-}
-
-/** Cache must include the source map — paint-baked atlases are distinct textures. */
+/** @deprecated UV-stamp cache key — kept for older tests. */
 export function authoredSideCacheKey(carId: CarId, sticker: string, source: Texture): string {
   return `authored-side:${carId}:${sticker}:${source.uuid}`;
-}
-
-function stampAuthoredSide(base: Texture, carId: CarId, sticker: string): Texture {
-  if (!textureImageReady(base)) return base;
-  const key = authoredSideCacheKey(carId, sticker, base);
-  const hit = texCache.get(key);
-  if (hit) return hit;
-  const img = base.image as { width: number; height: number };
-  const w = img.width;
-  const h = img.height;
-  if (w < 256 || h < 256) return base;
-  const c = typeof document !== "undefined" ? document.createElement("canvas") : null;
-  if (!c) return base;
-  c.width = w;
-  c.height = h;
-  const ctx = c.getContext("2d");
-  if (!ctx) return base;
-  try {
-    ctx.drawImage(base.image as CanvasImageSource, 0, 0, w, h);
-  } catch {
-    return base;
-  }
-  // Placement matches former overlay: mid-door band on both body islands
-  const stamps = [
-    { x: w * 0.12, y: h * 0.38, bw: w * 0.28, bh: h * 0.12 },
-    { x: w * 0.55, y: h * 0.4, bw: w * 0.28, bh: h * 0.12 },
-  ];
-  const stamp = document.createElement("canvas");
-  stamp.width = 256;
-  stamp.height = 128;
-  drawStickerArt(stamp.getContext("2d")!, sticker, carId, 256, 128);
-  for (const s of stamps) ctx.drawImage(stamp, s.x, s.y, s.bw, s.bh);
-
-  const tex = new CanvasTexture(c);
-  tex.colorSpace = SRGBColorSpace;
-  tex.minFilter = NearestFilter;
-  tex.magFilter = NearestFilter;
-  tex.generateMipmaps = false;
-  tex.needsUpdate = true;
-  tex.flipY = base.flipY;
-  texCache.set(key, tex);
-  return tex;
-}
-
-function textureImageReady(tex: Texture): boolean {
-  const img = tex.image as
-    | HTMLImageElement
-    | HTMLCanvasElement
-    | ImageBitmap
-    | { width?: number; height?: number }
-    | undefined
-    | null;
-  if (!img) return false;
-  if (typeof HTMLImageElement !== "undefined" && img instanceof HTMLImageElement) {
-    return img.complete && img.naturalWidth > 0;
-  }
-  const w = "width" in img ? Number(img.width) : 0;
-  const h = "height" in img ? Number(img.height) : 0;
-  return w > 0 && h > 0;
 }
 
 export function overlayTextureCacheSize(): number {
@@ -512,6 +463,9 @@ export function clearOverlayTextureCache(): void {
 }
 
 /** @deprecated Use applyCarStickers — kept for test migration. */
-export function buildCarOverlays(_opts: { sticker: string; gearClass?: string }): { name: string; children: unknown[] } {
+export function buildCarOverlays(_opts: { sticker: string; gearClass?: string }): {
+  name: string;
+  children: unknown[];
+} {
   return { name: "carOverlays", children: [] };
 }

@@ -1,18 +1,29 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { existsSync, readFileSync } from "node:fs";
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial } from "three";
 import { buggyNoseFromSticker } from "../src/render/buggyNose";
 import { emptyKit } from "../src/meta/save";
-import { Texture } from "three";
 import {
-  authoredSideCacheKey,
-  buildCarOverlays,
+  applyCarStickers,
+  CAR_STICKERS_GROUP,
   clearOverlayTextureCache,
+  findBodyMeshForStickers,
   overlayTextureCacheSize,
+  STICKER_DECALS,
   stickerSlotsForCar,
   stickerTexture,
 } from "../src/render/carStickers";
 
-describe("car sticker textures", () => {
+function fakeCarRoot(): Group {
+  const root = new Group();
+  const body = new Mesh(new BoxGeometry(1.7, 0.9, 3.5), new MeshBasicMaterial({ name: "BodyPaint" }));
+  body.name = "Body";
+  body.position.y = 0.45;
+  root.add(body);
+  return root;
+}
+
+describe("car sticker decals", () => {
   beforeEach(() => clearOverlayTextureCache());
 
   it("builds car-specific sticker textures", () => {
@@ -20,27 +31,25 @@ describe("car sticker textures", () => {
     expect(stickerTexture("bolt", "bison")).toBeTruthy();
     expect(stickerTexture("ironClad", "bunker")).toBeTruthy();
     expect(stickerTexture("none")).toBeNull();
+    expect(overlayTextureCacheSize()).toBeGreaterThan(0);
   });
 
-  it("defaults bunker IronClad and donner none (no baked flames required)", () => {
+  it("defaults bunker IronClad and donner none", () => {
     expect(emptyKit("bunker").sticker).toBe("ironClad");
     expect(emptyKit("donnerbuechse").sticker).toBe("none");
     expect(emptyKit("blitz").sticker).toBe("none");
   });
 
-  it("ships sticker-v4 Hot-Rod flame / bolt / star / IronClad art helpers", () => {
+  it("ships sticker-v4 art helpers, DecalGeometry path, and proposal targets", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain("sticker-v4:");
-    expect(src).toContain("comic-stamp-v4:");
+    expect(src).toContain("sticker-v5-plate:");
     expect(src).toContain("drawHotRodFlames");
-    expect(src).toContain("drawPowerBolt");
-    expect(src).toContain("drawRacingStar");
-    expect(src).toContain('strokeText("IC"');
+    expect(src).toContain("DecalGeometry");
+    expect(src).toContain("findBodyMeshForStickers");
     expect(existsSync("assets/tripo-concepts/sticker-proposal-flames.png")).toBe(true);
     expect(existsSync("assets/tripo-concepts/sticker-proposal-bolt.png")).toBe(true);
     expect(existsSync("assets/tripo-concepts/sticker-proposal-star.png")).toBe(true);
     expect(existsSync("assets/tripo-concepts/sticker-proposal-ironclad.png")).toBe(true);
-    expect(existsSync("assets/tripo-concepts/garage-bay-layout-proposal.png")).toBe(true);
   });
 
   it("places stickers per car (no buggy stickers)", () => {
@@ -58,44 +67,37 @@ describe("car sticker textures", () => {
     expect(buggyNoseFromSticker("star")).toBe("dog");
   });
 
-  it("stamps bunker IronClad through the authored-side cache", () => {
-    const map = new Texture();
-    expect(authoredSideCacheKey("bunker", "ironClad", map)).toContain("bunker");
-    expect(authoredSideCacheKey("bunker", "ironClad", map)).toBe(
-      authoredSideCacheKey("bunker", "ironClad", map),
-    );
+  it("picks BodyPaint mesh for projection", () => {
+    const root = fakeCarRoot();
+    expect(findBodyMeshForStickers(root)?.name).toBe("Body");
   });
 
-  it("keeps paint-baked Bison atlases out of the shared sticker cache", () => {
-    const green = new Texture();
-    const red = new Texture();
-    expect(authoredSideCacheKey("bison", "bolt", green)).not.toBe(
-      authoredSideCacheKey("bison", "bolt", red),
-    );
-    expect(authoredSideCacheKey("bison", "bolt", green)).toBe(
-      authoredSideCacheKey("bison", "bolt", green),
-    );
+  it("projects Blitz Flammen onto the body mesh", () => {
+    const root = fakeCarRoot();
+    applyCarStickers(root, "blitz", "flames");
+    const g = root.getObjectByName(CAR_STICKERS_GROUP);
+    expect(g).toBeTruthy();
+    expect(g!.children.length).toBeGreaterThan(0);
+    expect(g!.children.length).toBeLessThanOrEqual(STICKER_DECALS.blitz.length);
   });
 
-  it("keeps paint-baked Blitz atlases out of the shared sticker cache", () => {
-    const red = new Texture();
-    const teal = new Texture();
-    expect(authoredSideCacheKey("blitz", "flames", red)).not.toBe(
-      authoredSideCacheKey("blitz", "flames", teal),
-    );
-    expect(authoredSideCacheKey("blitz", "flames", red)).toBe(
-      authoredSideCacheKey("blitz", "flames", red),
-    );
+  it("projects Bison bolt when geometry hits", () => {
+    const root = fakeCarRoot();
+    applyCarStickers(root, "bison", "bolt");
+    expect(root.getObjectByName(CAR_STICKERS_GROUP)?.children.length).toBeGreaterThan(0);
   });
 
-  it("no longer builds floating plane overlay meshes", () => {
-    const flames = buildCarOverlays({
-      sticker: "flames",
-      gearClass: "pickup",
-    });
-    expect(flames.children.length).toBe(0);
-    expect(flames.name).toBe("carOverlays");
-    expect(stickerTexture("flames")).toBeTruthy();
-    expect(overlayTextureCacheSize()).toBeGreaterThan(0);
+  it("clears decals when sticker is none", () => {
+    const root = fakeCarRoot();
+    applyCarStickers(root, "donnerbuechse", "star");
+    expect(root.getObjectByName(CAR_STICKERS_GROUP)).toBeTruthy();
+    applyCarStickers(root, "donnerbuechse", "none");
+    expect(root.getObjectByName(CAR_STICKERS_GROUP)).toBeUndefined();
+  });
+
+  it("does not attach flat stickers on Käferkraft", () => {
+    const root = fakeCarRoot();
+    applyCarStickers(root, "kaeferkraft", "flames");
+    expect(root.getObjectByName(CAR_STICKERS_GROUP)).toBeUndefined();
   });
 });

@@ -257,7 +257,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 2. **Neues Auto kaufen** — andere Klasse oder Variante innerhalb der Klasse. Antippen zeigt eine **klar markierte Vorschau** (3D-Bay + Eigenschaften, ohne Tuning). **Kaufen** bucht CHF und macht das Auto aktiv. Rennen starten weiter mit dem bereits besessenen Auto, bis der Kauf durch ist.
 3. **Teile tunen** — echte Stats, immer mit Trade-off.
 
-**Aufkleber-Details:** Texturen auf Lack (Seite / Motorhaube / Tür je nach Auto); Sets freischaltbar über Cups oder CHF.
+**Aufkleber-Details:** Lesbare Decals auf Lack (Seite / Motorhaube / Tür je nach Auto; Tripo-UV-Stempel greifen bei chaotischen Atlanten nicht). Sets freischaltbar über Cups oder CHF.
 
 ### 6.3 Teile (Beispiele, alle mit Vor- & Nachteil)
 
@@ -496,4 +496,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.28 — Teile-Look auf allen Autos (parts-look Add-ons inkl. Bremsen).*
+*Dokumentstand: Konzept v3.29 — Aufkleber als lesbare Decals (nicht Tripo-UV-Stempel).*
