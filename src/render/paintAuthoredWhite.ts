@@ -472,7 +472,7 @@ export function recolorHotRodFlamePixels(
   return shadeMatchingPixels(data, paintR, paintG, paintB, isHotRodFlamePixel, skipTexels);
 }
 
-/** Blue body + any residual door flames → paint; chrome/tires stay. */
+/** Blue body + residual door flames → paint; chrome/tires stay. */
 export function recolorDonnerBodyPixels(
   data: Uint8ClampedArray | Uint8Array,
   paintR: number,
@@ -480,10 +480,24 @@ export function recolorDonnerBodyPixels(
   paintB: number,
   skipTexels?: Uint8Array,
 ): number {
-  return (
-    recolorHotRodFlamePixels(data, paintR, paintG, paintB, skipTexels) +
-    recolorBlueBodyPixels(data, paintR, paintG, paintB, skipTexels)
-  );
+  let changed = recolorHotRodFlamePixels(data, paintR, paintG, paintB, skipTexels);
+  for (let i = 0; i < data.length; i += 4) {
+    if (skipTexels && skipTexels[i / 4]) continue;
+    const r = data[i]!;
+    const g = data[i + 1]!;
+    const b = data[i + 2]!;
+    if (!isBlueBodyPixel(r, g, b)) continue;
+    let lum = (r + g + b) / (3 * 255);
+    // Scrubbed flame tongues are abnormally bright cyan on door panels — flatten so
+    // "Kein Aufkleber" does not leave a painted-over silhouette.
+    if (lum > 0.6) lum = 0.46 + (lum - 0.6) * 0.2;
+    const shade = shadeScale(lum, paintR, paintG, paintB);
+    data[i] = Math.round(paintR * 255 * shade);
+    data[i + 1] = Math.round(paintG * 255 * shade);
+    data[i + 2] = Math.round(paintB * 255 * shade);
+    changed++;
+  }
+  return changed;
 }
 
 export function bakeAuthoredBlueToPaint(
@@ -494,7 +508,7 @@ export function bakeAuthoredBlueToPaint(
   return bakeAuthoredMap(
     base,
     paint,
-    mapCacheKey("donnerbuechse-blue-v2", paint, base, wheelUvTris),
+    mapCacheKey("donnerbuechse-blue-v3", paint, base, wheelUvTris),
     recolorDonnerBodyPixels,
     wheelUvTris,
   );

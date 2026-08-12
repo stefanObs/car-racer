@@ -14,11 +14,11 @@ import {
   stickerTexture,
 } from "../src/render/carStickers";
 
-function fakeCarRoot(): Group {
+function fakeCarRoot(width = 1.7, height = 0.9, length = 3.5): Group {
   const root = new Group();
-  const body = new Mesh(new BoxGeometry(1.7, 0.9, 3.5), new MeshBasicMaterial({ name: "BodyPaint" }));
+  const body = new Mesh(new BoxGeometry(width, height, length), new MeshBasicMaterial({ name: "BodyPaint" }));
   body.name = "Body";
-  body.position.y = 0.45;
+  body.position.y = height / 2;
   root.add(body);
   return root;
 }
@@ -40,19 +40,58 @@ describe("car sticker decals", () => {
     expect(emptyKit("blitz").sticker).toBe("none");
   });
 
-  it("ships sticker-v9 Donner concept Flammen sprite + shooting-star Blitz + Racepool Stern", () => {
+  it("ships sticker-v10 Donner concept Flammen sprite + shooting-star Blitz + Racepool Stern", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain("sticker-v9:");
+    expect(src).toContain("sticker-v11:");
     expect(src).toContain("DONNER_FLAME_ORANGE");
+    expect(src).toContain("drawHotRodFlames");
     expect(src).toContain("preloadFlameSticker");
     expect(src).toContain("/stickers/flames-donner.png");
     expect(src).toContain("donnerbuechse-concept-3q");
     expect(src).toContain("RACEPOOL_RED");
     expect(src).toContain("shooting-star");
+    expect(src).toContain("mountDonnerDoorPlanes");
     expect(existsSync("public/stickers/flames-donner.png")).toBe(true);
     expect(existsSync("assets/tripo-concepts/donnerbuechse-concept-3q.png")).toBe(true);
     const main = readFileSync("src/main.ts", "utf8");
     expect(main).toContain("preloadFlameSticker");
+  });
+
+  it("Flammen sticker PNG is orange on transparent (not opaque white)", async () => {
+    const sharp = (await import("sharp")).default;
+    const { data, info } = await sharp("public/stickers/flames-donner.png")
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    let white = 0;
+    let orange = 0;
+    let opaque = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      if (data[i + 3]! < 200) continue;
+      opaque++;
+      const r = data[i]!;
+      const g = data[i + 1]!;
+      const b = data[i + 2]!;
+      if (r > 240 && g > 240 && b > 240) white++;
+      if (r > 150 && r > g + 30 && r > b + 40) orange++;
+    }
+    expect(opaque).toBeGreaterThan(10_000);
+    expect(white / opaque).toBeLessThan(0.02);
+    expect(orange / opaque).toBeGreaterThan(0.7);
+    expect(info.width).toBe(512);
+  });
+
+  it("anchors Donner stickers on the coupe door (between engine and rear wheel)", () => {
+    const anchors = STICKER_DECALS.donnerbuechse;
+    expect(anchors.length).toBe(2);
+    for (const a of anchors) {
+      expect(a.z).toBeGreaterThan(-0.25);
+      expect(a.z).toBeLessThan(0.2);
+      expect(Math.abs(a.x)).toBeGreaterThan(1.0);
+      expect(a.y).toBeGreaterThan(0.7);
+      expect(a.width).toBeLessThan(1.7);
+      expect(a.height).toBeLessThan(0.7);
+    }
   });
 
   it("places stickers per car (no buggy stickers)", () => {
@@ -90,8 +129,20 @@ describe("car sticker decals", () => {
     expect(root.getObjectByName(CAR_STICKERS_GROUP)?.children.length).toBeGreaterThan(0);
   });
 
+  it("mounts two door-plane stickers on Donnerbüchse", () => {
+    const root = fakeCarRoot(2.4, 1.0, 3.8);
+    applyCarStickers(root, "donnerbuechse", "flames");
+    const g = root.getObjectByName(CAR_STICKERS_GROUP);
+    expect(g?.children.length).toBe(2);
+    for (const child of g!.children) {
+      expect(child.name.startsWith("stickerDecal-side")).toBe(true);
+      expect((child as Mesh).geometry.type).toBe("PlaneGeometry");
+    }
+  });
+
   it("clears decals when sticker is none", () => {
-    const root = fakeCarRoot();
+    // Wide shell so Donner door anchors (±1.1) intersect the body.
+    const root = fakeCarRoot(2.4, 1.0, 3.8);
     applyCarStickers(root, "donnerbuechse", "star");
     expect(root.getObjectByName(CAR_STICKERS_GROUP)).toBeTruthy();
     applyCarStickers(root, "donnerbuechse", "none");

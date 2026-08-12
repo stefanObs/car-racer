@@ -182,6 +182,21 @@ describe("Donnerbüchse blue body → garage paint", () => {
     expect(data[8]).toBe(200);
     expect(data[13]!).toBeGreaterThan(data[12]!); // flame → paint green channel
   });
+
+  it("flattens abnormally bright blue flame-ghost pixels toward mid body shade", () => {
+    // Typical body blue + over-bright door tongue (painted-over flame remnant).
+    const data = new Uint8ClampedArray([
+      51, 154, 240, 255,
+      80, 160, 250, 255,
+      200, 200, 210, 255,
+    ]);
+    recolorDonnerBodyPixels(data, 0.13, 0.55, 0.9); // #228be6-ish
+    // Ghost should not stay brighter than the regular body pixel after bake.
+    const bodyLum = (data[0]! + data[1]! + data[2]!) / 3;
+    const ghostLum = (data[4]! + data[5]! + data[6]!) / 3;
+    expect(ghostLum).toBeLessThanOrEqual(bodyLum + 12);
+    expect(data[8]).toBe(200); // chrome untouched
+  });
 });
 
 describe("wheels stay off the garage paint path", () => {

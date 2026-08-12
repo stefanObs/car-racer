@@ -15,7 +15,8 @@ const path = join(root, "public/models/cars/donnerbuechse.glb");
 
 const BODY = { r: 51, g: 154, b: 240 };
 
-function isFlame(r, g, b, a) {
+/** Classic orange flame tongues. */
+function isOrangeFlame(r, g, b, a) {
   if (a < 8) return false;
   if (r < 150) return false;
   if (r <= g + 12) return false;
@@ -24,6 +25,30 @@ function isFlame(r, g, b, a) {
   if (r - b < 55) return false;
   if (g < 35) return false;
   return true;
+}
+
+/**
+ * Pale cyan / light-blue tongues left after orange flames were scrubbed into “body”.
+ * These read as a painted-over sticker shadow when Aufkleber is Kein.
+ */
+function isPaintedOverFlameGhost(r, g, b, a) {
+  if (a < 8) return false;
+  if (b < 150 || g < 120) return false;
+  if (r >= g - 2) return false;
+  if (b < g - 30) return false;
+  const lum = (r + g + b) / 3;
+  if (lum < 150 || lum > 230) return false;
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const chroma = max - min;
+  // Mild cool chroma — not strong body blue and not chrome.
+  if (chroma < 14 || chroma > 70) return false;
+  if (chroma / max >= 0.35 && b === max && b > r + 50 && g < b * 0.72) return false;
+  return true;
+}
+
+function isFlame(r, g, b, a) {
+  return isOrangeFlame(r, g, b, a) || isPaintedOverFlameGhost(r, g, b, a);
 }
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);

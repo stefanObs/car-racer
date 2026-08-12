@@ -12,6 +12,7 @@ import {
   Mesh,
   MeshBasicMaterial,
   NearestFilter,
+  PlaneGeometry,
   RGBAFormat,
   SRGBColorSpace,
   Vector3,
@@ -85,9 +86,9 @@ export const STICKER_DECALS: Record<Exclude<CarId, "kaeferkraft">, DecalAnchor[]
     { slot: "hood", x: 0, y: 1.08, z: 0.65, yaw: 0, pitch: -Math.PI / 2, width: 0.75, height: 0.34, depth: 0.35 },
   ],
   donnerbuechse: [
-    // Door panel — concept flames span most of the cabin side.
-    { slot: "side", x: 1.0, y: 0.82, z: 0.0, yaw: Math.PI / 2, width: 1.9, height: 0.85, depth: 0.75, mirrorU: true },
-    { slot: "side", x: -1.0, y: 0.82, z: 0.0, yaw: -Math.PI / 2, width: 1.9, height: 0.85, depth: 0.75 },
+    // 3-window coupe door — between engine (+Z) and rear wheel (−Z), above side pipes.
+    { slot: "side", x: 1.14, y: 0.8, z: -0.05, yaw: Math.PI / 2, width: 1.35, height: 0.48, depth: 0.35, mirrorU: true },
+    { slot: "side", x: -1.14, y: 0.8, z: -0.05, yaw: -Math.PI / 2, width: 1.35, height: 0.48, depth: 0.35 },
   ],
   bunker: [
     { slot: "door", x: 0.95, y: 1.05, z: 0.45, yaw: Math.PI / 2, width: 1.15, height: 0.48, depth: 0.42, mirrorU: true },
@@ -164,14 +165,10 @@ const DONNER_FLAME_ORANGE = "#CB4C01";
 
 /**
  * Hotrod door flames matching `donnerbuechse-concept-3q.png`.
- * Prefers the baked concept sprite; falls back to a vector silhouette.
+ * Vector silhouette only — the shipped sprite had an opaque white/orange card
+ * behind the tongues which read as a floating rectangle on the coupe door.
  */
 function drawHotRodFlames(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
-  if (flameSprite && flameSprite.complete && flameSprite.naturalWidth > 0) {
-    ctx.drawImage(flameSprite, 0, 0, w, h);
-    return;
-  }
-
   ctx.fillStyle = DONNER_FLAME_ORANGE;
   ctx.strokeStyle = ink();
   ctx.lineWidth = Math.max(3.5, Math.min(w, h) * 0.045);
@@ -425,7 +422,7 @@ export function drawStickerArt(
 /** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none") return null;
-  return canvasTex(`sticker-v9:${carId}:${sticker}`, 512, 256, (ctx) => {
+  return canvasTex(`sticker-v11:${carId}:${sticker}`, 512, 256, (ctx) => {
     ctx.clearRect(0, 0, 512, 256);
     drawStickerArt(ctx, sticker, carId, 512, 256);
   });
@@ -479,6 +476,14 @@ function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">
   if (!tex) return;
 
   root.updateMatrixWorld(true);
+
+  // Hot-rod coupe doors are too curved/chaotic for DecalGeometry — flat door
+  // planes sit flush on the panel and keep Asphalt-Comic stickers readable.
+  if (carId === "donnerbuechse") {
+    mountDonnerDoorPlanes(root, sticker, tex);
+    return;
+  }
+
   const body = findBodyMeshForStickers(root);
   if (!body) {
     console.warn(`[stickers] no body mesh for ${carId}`);
@@ -521,7 +526,7 @@ function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">
     const mat = new MeshBasicMaterial({
       map,
       transparent: true,
-      alphaTest: 0.08,
+      alphaTest: 0.15,
       depthWrite: false,
       depthTest: true,
       side: DoubleSide,
@@ -529,17 +534,65 @@ function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">
       polygonOffsetFactor: -4,
       polygonOffsetUnits: -4,
       toneMapped: false,
+      fog: false,
     });
     mat.name = `StickerDecal-${sticker}`;
     const mesh = new Mesh(geo, mat);
     mesh.name = `stickerDecal-${anchor.slot}-${i}`;
     mesh.userData.stickerDecal = sticker;
     mesh.userData.stickerSlot = anchor.slot;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
     mesh.renderOrder = 10;
     group.add(mesh);
   });
 
   if (group.children.length > 0) root.add(group);
+}
+
+/** Flush comic door stickers for Donnerbüchse (local space, nose +Z). */
+function mountDonnerDoorPlanes(root: Object3D, sticker: string, tex: Texture): void {
+  const group = new Group();
+  group.name = CAR_STICKERS_GROUP;
+  group.userData.carStickers = sticker;
+
+  STICKER_DECALS.donnerbuechse.forEach((anchor, i) => {
+    const map = tex.clone();
+    map.needsUpdate = true;
+    if (anchor.mirrorU) {
+      map.wrapS = tex.wrapS;
+      map.repeat.x = -1;
+      map.offset.x = 1;
+    }
+    const mat = new MeshBasicMaterial({
+      map,
+      transparent: true,
+      alphaTest: 0.12,
+      depthWrite: false,
+      depthTest: true,
+      side: DoubleSide,
+      polygonOffset: true,
+      polygonOffsetFactor: -6,
+      polygonOffsetUnits: -6,
+      toneMapped: false,
+      fog: false,
+    });
+    mat.name = `StickerDecal-${sticker}`;
+    const mesh = new Mesh(new PlaneGeometry(anchor.width, anchor.height), mat);
+    mesh.position.set(anchor.x, anchor.y, anchor.z);
+    mesh.rotation.y = anchor.yaw;
+    // Sit just outside the door skin so the plane is not buried in BodyPaint.
+    mesh.position.x += Math.sign(anchor.x) * 0.02;
+    mesh.name = `stickerDecal-${anchor.slot}-${i}`;
+    mesh.userData.stickerDecal = sticker;
+    mesh.userData.stickerSlot = anchor.slot;
+    mesh.castShadow = false;
+    mesh.receiveShadow = false;
+    mesh.renderOrder = 12;
+    group.add(mesh);
+  });
+
+  root.add(group);
 }
 
 /**
