@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { getBounds } from "@gltf-transform/functions";
-import { BLITZ_PART_MESH_IDS, BLITZ_PART_PLACEMENT } from "../src/render/blitzParts";
+import { BLITZ_PART_MESH_IDS, BLITZ_PART_PLACEMENT } from "../src/render/carParts";
 
 const MATERIALS: Record<(typeof BLITZ_PART_MESH_IDS)[number], string> = {
   rear_spoiler: "Spoiler",

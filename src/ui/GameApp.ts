@@ -1,4 +1,5 @@
 import { type CarId } from "../data/cars";
+import { APP_VERSION } from "../core/version";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
 import { PARTS, type PartId } from "../data/parts";
 import { DevTools } from "../dev/DevTools";

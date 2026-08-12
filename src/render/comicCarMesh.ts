@@ -5,7 +5,7 @@
 import { CircleGeometry, Group, Mesh, MeshBasicMaterial, SphereGeometry } from "three";
 import { CARS, type CarId, type GearClass } from "../data/cars";
 import type { CarState } from "../sim/vehicle";
-import { applyEquippedPartVisuals } from "./blitzParts";
+import { applyEquippedPartVisuals } from "./carParts";
 import { comicToon } from "./comicMaterials";
 import { cloneGltfCar, hasGltfCar } from "./loadCarGltf";
 import { upgradeCarFx } from "./attachCarFx";

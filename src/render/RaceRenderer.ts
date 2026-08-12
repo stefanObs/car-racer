@@ -24,7 +24,7 @@ import { surfaceAt } from "../sim/zones";
 import { sampleCenterline } from "../track/buildTrack";
 import { CARS, type CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
-import { garageLookCacheKey } from "./blitzParts";
+import { garageLookCacheKey } from "./carParts";
 import type { FinishCelebrate } from "../ui/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../ui/finishCelebrate";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";

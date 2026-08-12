@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.28 Equipped Teile visuals on every car
+
+- Trigger: user — implement car parts as proposed in the parts-look sheets
+- Decision: Every class shows equipped Teile as Asphalt-Comic add-ons (procedural builders + Blitz Tripo GLBs where present). Per-car mounts match `assets/tripo-concepts/parts-look/` (e.g. Käferkraft rear engine, Bison bed nitro, Bunker roof wing). `better_brakes` = visible calipers; `big_wheels` = stance + tire bulk hints (no fake WheelSpin hubs). Meshes still grant **no stats**.
+- CONCEPT §§ touched: §6.3 Sichtbarkeit → v3.28
+
 ### 2026-08-12 — v3.27 Blitz scoop place + original wing + sealed glass
 
 - Trigger: user — Big Engine wrong place; missing front window looks bad (opaque OK); replace Heckspoiler item with original car wing

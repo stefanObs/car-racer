@@ -277,7 +277,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 **Design-Regel für jedes Teil:**  
 Kind muss in **einem Satz** Vor- und Nachteil verstehen. UI zeigt immer beides + kurze Empfehlung („Gut mit großen Rädern“).
 
-**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (zuerst Blitz). Ablegen blendet sie aus. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
+**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Ablegen blendet sie aus. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
 
 ### 6.4 Synergie-System („gute Kombinationen“)
 
@@ -496,4 +496,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.27 — Blitz: Original-Heckspoiler als Teil, Motor-Scoop auf der Haube, opake Frontscheibe.*
+*Dokumentstand: Konzept v3.28 — Teile-Look auf allen Autos (parts-look Add-ons inkl. Bremsen).*
