@@ -14,11 +14,12 @@ Before nontrivial work, select and **read** every matching project skill below. 
 | Review, QA, playtest, UX check, regression, “does it work for players” | `.cursor/skills/review-testing/SKILL.md` |
 | Images, UI art, VFX, mockups, visuals, CSS look, GenerateImage | `.cursor/skills/asphalt-comic-art/SKILL.md` |
 | Tracks, levels, cups, free/ad-hoc, obstacles, level JSON | `.cursor/skills/level-editor/SKILL.md` |
+| Tripo, GLB bake, 3D cars/parts/FX/garage/track kit meshes | `.cursor/skills/tripo-3d-assets/SKILL.md` (+ asphalt-comic-art) |
 
 After each implementation step: version → commit on `master` → push (see `.cursor/rules/delivery-workflow.mdc`). No feature branches.
 
 **Start scripts** (`start.sh`, `start.bat`, `start.ps1`) must always keep working — see `.cursor/rules/start-scripts.mdc`.
 
-**Multi-match is normal** (e.g. new race feature → game-concept + clean-programming + review-testing; track mockup → level-editor + asphalt-comic-art).
+**Multi-match is normal** (e.g. new race feature → game-concept + clean-programming + review-testing; new Tripo part → tripo-3d-assets + asphalt-comic-art + clean-programming).
 
 **Default baseline for implementation tasks:** `game-concept` + `clean-programming`. Add others as the table requires. Finish player-facing work with `review-testing` (**start server + browser**).

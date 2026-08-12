@@ -1,6 +1,6 @@
 # Tuning-part add-ons (Tripo kits)
 
-Small Asphalt-Comic GLBs attached on **every car** when `kit.equippedParts` includes the matching `PartId`. Kits are authored for Blitz and re-mounted with per-car scale/yaw + surface snap. Visualization only — stats stay in `mergeStats`.
+Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching `PartId`. **Blitz** ships Tripo/extracted kits; other cars use class procedural builders until per-car Tripo kits exist (see `.cursor/skills/tripo-3d-assets/`). Visualization only — stats stay in `mergeStats`.
 
 | File | Part |
 |------|------|
@@ -13,5 +13,7 @@ Small Asphalt-Comic GLBs attached on **every car** when `kit.equippedParts` incl
 | `blitz-lightweight_body.glb` | Leichtbau |
 
 Große Räder / Bessere Bremsen stay procedural (stance / calipers).
+
+**Authoring (Blitz):** concept PNG → `tripo make` → `assets/tripo-out/parts/blitz/{id}/` → `npm run cars:bake-blitz-parts-tripo`. Full agent workflow: `.cursor/skills/tripo-3d-assets/`.
 
 Rebuild Tripo parts: `npm run cars:bake-blitz-parts-tripo`. Rebuild stock Blitz + original Heckspoiler: `npm run cars:extract-blitz-spoiler`.

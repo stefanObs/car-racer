@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.35 Tripo 3D assets agent skill
+- Trigger: user — analyze original Blitz Teile pipeline; teach agents to generate 3D assets
+- Decision: New skill `.cursor/skills/tripo-3d-assets/` (SKILL + pipeline cookbook) documents concept → `tripo make` → bake → mount. Wired into skills-router, AGENTS.md, parts README, TECH.md. Policy: per-class kits / no Blitz remount on other cars.
+- CONCEPT §§: tooling only
+
 ### 2026-08-12 — v3.34 Class-shaped Teile (no shared Blitz kits)
 - Trigger: user — parts placement must match parts-look concepts; generate parts where needed
 - Decision: Tripo/extracted GLBs only on **Blitz**. Other cars use improved procedural builders (hotrod perforated rails, pickup bed cage, armor exo, roof/tri cutouts, tall/roof spoilers, bed+bullbar nitro). Anchors retuned to mesh bounds / look sheets. Surface snap kept for hood/deck.

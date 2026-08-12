@@ -77,7 +77,7 @@ tests/
 - Bunker mesh: Tripo3D authoring bake (`cars:bake-bunker-tripo`); runtime is the shipped GLB (no Tripo at play time).
 - Käferkraft mesh + nose props: Tripo3D authoring bake (`cars:bake-kaeferkraft-tripo`); runtime is the shipped GLBs (no Tripo at play time).
 - Blitz mesh: Tripo3D authoring bake (`cars:bake-blitz-tripo`); runtime is the shipped GLB (no Tripo at play time).
-- Blitz equipped Teile: small add-on GLBs (`public/models/parts/blitz-*.glb`) — visuals only; stats stay in `mergeStats`. Bake: `cars:bake-blitz-parts-tripo`.
+- Blitz equipped Teile: small add-on GLBs (`public/models/parts/blitz-*.glb`) — visuals only; stats stay in `mergeStats`. Bake: `cars:bake-blitz-parts-tripo`. **Agent skill:** `.cursor/skills/tripo-3d-assets/` (concept → Tripo → bake). Other cars use class procedural parts until per-car kits ship — do not remount Blitz kits on them.
 - Loader strips lights/cameras and uses mesh-only bounds (embedded Spotlights otherwise break autoscale).
 - **Collision** is a circle (`collisionRadius`) — visual mesh may overhang.
 - Provenance: `public/models/cars/SOURCES.md`

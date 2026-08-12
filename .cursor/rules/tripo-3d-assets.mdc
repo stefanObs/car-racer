@@ -1,0 +1,17 @@
+---
+description: Route Tripo / 3D mesh authoring tasks to the tripo-3d-assets skill.
+globs:
+  - public/models/**/*
+  - scripts/bake-*-tripo.mjs
+  - scripts/extract-blitz-stock-and-spoiler.mjs
+  - assets/tripo-concepts/**/*
+alwaysApply: false
+---
+
+# Tripo 3D assets
+
+When creating, rebuilding, or debugging **Tripo / GLB** meshes (cars, Teile, FX, track kit, garage props, nose ornaments):
+
+1. Read `.cursor/skills/tripo-3d-assets/SKILL.md` (and `pipeline.md` when baking)
+2. Also read `.cursor/skills/asphalt-comic-art/` for concept images
+3. Do not remount Blitz part kits on other car classes

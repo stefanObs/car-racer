@@ -78,4 +78,6 @@ Uneven track = visible chassis bounce/wobble. Suspension-heavy cars look calmer.
 
 ## In-engine / CSS assets
 
+HUD/menus and CSS that define the game look still follow this bible. For **3D mesh authoring** (Tripo image-to-mesh → bake GLB), also follow `.cursor/skills/tripo-3d-assets/`.
+
 Match the same language: flat fills, 2–3 shade steps, dark stroke on sprites/meshes, high-contrast track materials. Prefer decals over complex texturing.
