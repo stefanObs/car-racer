@@ -41,7 +41,7 @@ const OWNED_BLITZ = [
 
 test.describe("Equipped part meshes (all cars)", () => {
   test("garage Ausrüsten shows add-ons on Blitz and Bison", async ({ page }) => {
-    test.setTimeout(120_000);
+    test.setTimeout(180_000);
     await page.addInitScript((ownedBlitz) => {
       localStorage.setItem(
         "crash-circuit-save-v1",
@@ -138,7 +138,7 @@ test.describe("Equipped part meshes (all cars)", () => {
     await page.locator('[data-part="rear_spoiler"]').click();
     await page.locator('[data-part="nitro_kit"]').click();
     await page.locator('[data-part="spike_bumper"]').click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
     expect(await idlePartNames(page)).toEqual(
       expect.arrayContaining([
         "carPart-rear_spoiler",
@@ -148,31 +148,31 @@ test.describe("Equipped part meshes (all cars)", () => {
     );
     await page.screenshot({ path: "test-results/car-parts-bison.png", fullPage: true });
 
-    await page.getByRole("button", { name: /Käferkraft/ }).click();
+    await page.locator('button[data-car="kaeferkraft"]').click();
     await expect(page.locator(".garage-car.is-active .garage-car__name")).toHaveText("Käferkraft");
     await page.locator('[data-part="big_engine"]').click();
     await page.locator('[data-part="rear_spoiler"]').click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
     expect(await idlePartNames(page)).toEqual(
       expect.arrayContaining(["carPart-big_engine", "carPart-rear_spoiler"]),
     );
     await page.screenshot({ path: "test-results/car-parts-kaeferkraft.png", fullPage: true });
 
-    await page.getByRole("button", { name: /Donnerbüchse/ }).click();
+    await page.locator('button[data-car="donnerbuechse"]').click();
     await expect(page.locator(".garage-car.is-active .garage-car__name")).toHaveText("Donnerbüchse");
     await page.locator('[data-part="rear_spoiler"]').click();
     await page.locator('[data-part="spike_bumper"]').click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
     expect(await idlePartNames(page)).toEqual(
       expect.arrayContaining(["carPart-rear_spoiler", "carPart-spike_bumper"]),
     );
     await page.screenshot({ path: "test-results/car-parts-donner.png", fullPage: true });
 
-    await page.getByRole("button", { name: /^Bunker/ }).click();
+    await page.locator('button[data-car="bunker"]').click();
     await expect(page.locator(".garage-car.is-active .garage-car__name")).toHaveText("Bunker");
     await page.locator('[data-part="rear_spoiler"]').click();
     await page.locator('[data-part="nitro_kit"]').click();
-    await page.waitForTimeout(800);
+    await page.waitForTimeout(1200);
     expect(await idlePartNames(page)).toEqual(
       expect.arrayContaining(["carPart-rear_spoiler", "carPart-nitro_kit"]),
     );

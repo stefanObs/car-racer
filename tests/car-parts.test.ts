@@ -17,7 +17,9 @@ import {
   carStanceLift,
   clearBlitzPartTemplates,
   garageLookCacheKey,
+  partGlbUrl,
   registerBlitzPartTemplate,
+  registerCarPartTemplate,
 } from "../src/render/carParts";
 
 function fakePartTemplate(): Group {
@@ -82,7 +84,7 @@ describe("Equipped-part visuals (all cars)", () => {
     const anchors = CAR_PART_LAYOUTS.kaeferkraft.big_engine.anchors;
     expect(anchors[0]!.x).toBeGreaterThan(0.5);
     expect(anchors[0]!.yaw).toBeCloseTo(0);
-    expect(CAR_PART_LAYOUTS.kaeferkraft.big_engine.preferGlb).toBe(false);
+    expect(CAR_PART_LAYOUTS.kaeferkraft.big_engine.preferGlb).toBe(true);
   });
 
   it("clears parts when unequipped", () => {
@@ -155,22 +157,46 @@ describe("Equipped-part visuals (all cars)", () => {
     }
   });
 
-  it("uses Tripo GLB only on Blitz; other cars stay procedural", () => {
-    registerBlitzPartTemplate("rear_spoiler", fakePartTemplate());
+  it("uses per-car Tripo templates when registered (no Blitz remount on others)", () => {
+    registerBlitzPartTemplate("rear_spoiler", fakePartTemplate(), "blitz");
+    registerCarPartTemplate("bison", "rear_spoiler", fakePartTemplate());
+
     const blitz = new Group();
     applyEquippedPartVisuals(blitz, "blitz", ["rear_spoiler"]);
     expect(blitz.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeTruthy();
 
+    const bison = new Group();
+    applyEquippedPartVisuals(bison, "bison", ["rear_spoiler"]);
+    expect(bison.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeTruthy();
+
+    // Donner has no template → still mounts procedural spoiler
+    const donner = new Group();
+    applyEquippedPartVisuals(donner, "donnerbuechse", ["rear_spoiler"]);
+    expect(donner.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeTruthy();
+  });
+
+  it("maps part GLB URLs per car (never Blitz path for other classes)", () => {
+    expect(partGlbUrl("blitz", "nitro_kit")).toBe("/models/parts/blitz-nitro_kit.glb");
+    expect(partGlbUrl("bison", "nitro_kit")).toBe("/models/parts/bison-nitro_kit.glb");
+    expect(partGlbUrl("kaeferkraft", "rear_spoiler")).toBe("/models/parts/kaeferkraft-rear_spoiler.glb");
     for (const id of ["bison", "kaeferkraft", "donnerbuechse", "bunker"] as CarId[]) {
-      expect(CAR_PART_LAYOUTS[id].rear_spoiler.preferGlb).toBe(false);
-      expect(CAR_PART_LAYOUTS[id].big_engine.preferGlb).toBe(false);
-      expect(CAR_PART_LAYOUTS[id].nitro_kit.preferGlb).toBe(false);
-      const root = new Group();
-      applyEquippedPartVisuals(root, id, ["rear_spoiler"]);
-      const part = root.getObjectByName(blitzPartObjectName("rear_spoiler"));
-      expect(part, id).toBeTruthy();
-      expect(part!.name).toBe("carPart-rear_spoiler");
+      expect(CAR_PART_LAYOUTS[id].big_engine.preferGlb).toBe(true);
+      expect(CAR_PART_LAYOUTS[id].spike_bumper.preferGlb).toBe(true);
+      expect(CAR_PART_LAYOUTS[id].nitro_kit.preferGlb).toBe(true);
+      expect(CAR_PART_LAYOUTS[id].rear_spoiler.preferGlb).toBe(true);
+      expect(CAR_PART_LAYOUTS[id].reinforced_frame.preferGlb).toBe(true);
+      expect(CAR_PART_LAYOUTS[id].lightweight_body.preferGlb).toBe(false);
     }
+  });
+
+  it("lazy-loads per-car kits via ensureCarPartTemplates", () => {
+    const partsSrc = readFileSync("src/render/carParts.ts", "utf8");
+    expect(partsSrc).toContain("export function ensureCarPartTemplates");
+    expect(partsSrc).toContain('ensureCarPartTemplates("blitz")');
+    const rendererSrc = readFileSync("src/render/RaceRenderer.ts", "utf8");
+    expect(rendererSrc).toContain("ensureCarPartTemplates");
+    const appSrc = readFileSync("src/ui/GameApp.ts", "utf8");
+    expect(appSrc).toContain("ensureCarPartTemplates");
   });
 
   it("places Bison scoop near windshield and nitro on the bed", () => {
@@ -184,7 +210,7 @@ describe("Equipped-part visuals (all cars)", () => {
 
   it("places Donner nitro on the driver side (−X)", () => {
     expect(CAR_PART_LAYOUTS.donnerbuechse.nitro_kit.anchors[0]!.x).toBeLessThan(-0.8);
-    expect(CAR_PART_LAYOUTS.donnerbuechse.reinforced_frame.preferGlb).toBe(false);
+    expect(CAR_PART_LAYOUTS.donnerbuechse.reinforced_frame.preferGlb).toBe(true);
   });
 
   it("snaps hood scoop onto body surface Y near preferY (not roof)", () => {
@@ -205,5 +231,14 @@ describe("Equipped-part visuals (all cars)", () => {
     // Prefer hood (~0.7) over cab roof (~1.4)
     expect(scoop!.position.y).toBeGreaterThan(0.55);
     expect(scoop!.position.y).toBeLessThan(1.15);
+  });
+
+  it("ships per-car Tripo kits for look-sheet deltas", () => {
+    const kits = ["big_engine", "spike_bumper", "nitro_kit", "rear_spoiler", "reinforced_frame"] as const;
+    for (const car of ["bison", "kaeferkraft", "donnerbuechse", "bunker"] as CarId[]) {
+      for (const part of kits) {
+        expect(existsSync(`public/models/parts/${car}-${part}.glb`), `${car}-${part}`).toBe(true);
+      }
+    }
   });
 });

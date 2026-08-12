@@ -1,6 +1,8 @@
 # Tuning-part add-ons (Tripo kits)
 
-Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching `PartId`. **Blitz** ships Tripo/extracted kits; other cars use class procedural builders until per-car Tripo kits exist (see `.cursor/skills/tripo-3d-assets/`). Visualization only — stats stay in `mergeStats`.
+Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching `PartId`. Each car class ships **its own** kits (`{carId}-*.glb`) — do not remount Blitz meshes on other cars. Missing GLB → procedural fallback. Visualization only — stats stay in `mergeStats`.
+
+## Blitz
 
 | File | Part |
 |------|------|
@@ -12,8 +14,20 @@ Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching
 | `blitz-reinforced_frame.glb` | Verstärkter Rahmen (sill armor + half-cage) |
 | `blitz-lightweight_body.glb` | Leichtbau |
 
-Große Räder / Bessere Bremsen stay procedural (stance / calipers).
+## Other cars (Bison, Käferkraft, Donnerbüchse, Bunker)
 
-**Authoring (Blitz):** concept PNG → `tripo make` → `assets/tripo-out/parts/blitz/{id}/` → `npm run cars:bake-blitz-parts-tripo`. Full agent workflow: `.cursor/skills/tripo-3d-assets/`.
+Per-class kits for the five look-sheet deltas:
 
-Rebuild Tripo parts: `npm run cars:bake-blitz-parts-tripo`. Rebuild stock Blitz + original Heckspoiler: `npm run cars:extract-blitz-spoiler`.
+| Suffix | Part |
+|--------|------|
+| `{car}-big_engine.glb` | Großer Motor |
+| `{car}-spike_bumper.glb` | Spike-Stoßstange |
+| `{car}-nitro_kit.glb` | Nitro-Kit |
+| `{car}-rear_spoiler.glb` | Heckspoiler |
+| `{car}-reinforced_frame.glb` | Verstärkter Rahmen |
+
+Concepts: `assets/tripo-concepts/{car}-part-{part}.png`. Look sheets: `assets/tripo-concepts/parts-look/`.
+
+Große Räder / Bessere Bremsen stay procedural (stance / calipers). Leichtbau / Gelände stay procedural until Tripo kits land.
+
+**Authoring:** concept PNG → `./scripts/tripo-make-car-parts.sh [carId]` → `assets/tripo-out/parts/{car}/{id}/` → `npm run cars:bake-car-parts-tripo` (Blitz: `cars:bake-blitz-parts-tripo`). Full agent workflow: `.cursor/skills/tripo-3d-assets/`.

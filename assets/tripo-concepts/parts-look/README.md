@@ -2,14 +2,14 @@
 
 How each garage **Teil** should read **on each car**. Use these when placing meshes.
 
-## Runtime policy (v0.3.27+)
+## Runtime policy (v0.3.29+)
 
 | Car | Mesh source |
 |-----|-------------|
 | **Blitz** | Tripo / extracted GLBs under `public/models/parts/blitz-*.glb` |
-| **Bison, Käferkraft, Donnerbüchse, Bunker** | Class-shaped **procedural** builders in `carPartBuilders.ts` (look-sheet silhouettes) |
+| **Bison, Käferkraft, Donnerbüchse, Bunker** | Per-car Tripo kits `public/models/parts/{carId}-*.glb` for look-sheet deltas (engine, spike, nitro, spoiler, frame); procedural fallback if a GLB is missing |
 
-Do **not** remount Blitz kits on other classes — proportions and mounts diverge from the sheets below.
+Do **not** remount Blitz kits on other classes — each car ships its own meshes and mounts.
 
 ## Full sheets (all 9 parts per car)
 

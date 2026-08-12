@@ -207,17 +207,17 @@ function layoutBison(): CarVisualLayout {
         },
       ],
       build: () => buildHoodScoop("block"),
-      preferGlb: false,
+      preferGlb: true,
     },
     spike_bumper: {
       anchors: [{ x: 0, y: 0.32, z: 1.88, yaw: 0, scale: 1.15, snap: false }],
       build: () => buildSpikeBumper(5, 1.4),
-      preferGlb: false,
+      preferGlb: true,
     },
     reinforced_frame: {
       anchors: [{ x: 0, y: 0.45, z: -0.35, yaw: 0, scale: 1.05, snap: false }],
       build: () => buildReinforcedFrame("pickup"),
-      preferGlb: false,
+      preferGlb: true,
     },
     lightweight_body: {
       anchors: [
@@ -239,7 +239,7 @@ function layoutBison(): CarVisualLayout {
       // Fixed bed-floor Y — surface snap often misses the thin bed deck.
       anchors: [{ x: 0, y: 0.62, z: -0.85, yaw: 0, scale: 1, snap: false }],
       build: () => buildNitroKit("bed"),
-      preferGlb: false,
+      preferGlb: true,
     },
     rear_spoiler: {
       anchors: [
@@ -255,7 +255,7 @@ function layoutBison(): CarVisualLayout {
         },
       ],
       build: () => buildRearSpoiler("tall"),
-      preferGlb: false,
+      preferGlb: true,
     },
   };
 }
@@ -287,18 +287,18 @@ function layoutKaeferkraft(): CarVisualLayout {
       // Exhaust tips face local +X = buggy rear (nose is −X).
       anchors: [{ x: 1.15, y: 0.72, z: 0, yaw: 0, scale: 1.05, snap: false }],
       build: () => buildRearEngineBlock(),
-      preferGlb: false,
+      preferGlb: true,
     },
     spike_bumper: {
       // Spikes local +Z → yaw +π/2 points toward nose (−X).
       anchors: [{ x: -1.62, y: 0.35, z: 0, yaw: Math.PI / 2, scale: 1.05, snap: false }],
       build: () => buildSpikeBumper(4, 1.2),
-      preferGlb: false,
+      preferGlb: true,
     },
     reinforced_frame: {
       anchors: [{ x: 0.1, y: 0.25, z: 0, yaw: Math.PI / 2, scale: 1, snap: false }],
       build: () => buildReinforcedFrame("buggy"),
-      preferGlb: false,
+      preferGlb: true,
     },
     lightweight_body: {
       anchors: [{ x: 0.05, y: 0.55, z: 0, yaw: Math.PI / 2, scale: 1.15, snap: false }],
@@ -308,13 +308,13 @@ function layoutKaeferkraft(): CarVisualLayout {
     nitro_kit: {
       anchors: [{ x: 1.25, y: 0.9, z: 0, yaw: 0, scale: 1, snap: false }],
       build: () => buildNitroKit("rear_rack"),
-      preferGlb: false,
+      preferGlb: true,
     },
     rear_spoiler: {
       // Blade spans ±Z (width) after yaw −π/2; sit on rear cage.
       anchors: [{ x: 1.05, y: 1.28, z: 0, yaw: -Math.PI / 2, scale: 0.9, snap: false }],
       build: () => buildRearSpoiler("tall"),
-      preferGlb: false,
+      preferGlb: true,
     },
   };
 }
@@ -356,17 +356,17 @@ function layoutDonner(): CarVisualLayout {
         },
       ],
       build: () => buildHoodScoop("blower"),
-      preferGlb: false,
+      preferGlb: true,
     },
     spike_bumper: {
       anchors: [{ x: 0, y: 0.35, z: 1.88, yaw: 0, scale: 1.2, snap: false }],
       build: () => buildSpikeBumper(5, 1.45),
-      preferGlb: false,
+      preferGlb: true,
     },
     reinforced_frame: {
       anchors: [{ x: 0, y: 0.2, z: -0.1, yaw: 0, scale: 1, snap: false }],
       build: () => buildReinforcedFrame("hotrod"),
-      preferGlb: false,
+      preferGlb: true,
     },
     lightweight_body: {
       anchors: [
@@ -388,7 +388,7 @@ function layoutDonner(): CarVisualLayout {
       // Driver side (DE LHD = −X), behind door / above rear arch.
       anchors: [{ x: -1.05, y: 0.7, z: -0.45, yaw: -Math.PI / 2, scale: 1.05, snap: false }],
       build: () => buildNitroKit("side"),
-      preferGlb: false,
+      preferGlb: true,
     },
     rear_spoiler: {
       anchors: [
@@ -404,7 +404,7 @@ function layoutDonner(): CarVisualLayout {
         },
       ],
       build: () => buildRearSpoiler("tall"),
-      preferGlb: false,
+      preferGlb: true,
     },
   };
 }
@@ -446,17 +446,17 @@ function layoutBunker(): CarVisualLayout {
         },
       ],
       build: () => buildHoodScoop("block"),
-      preferGlb: false,
+      preferGlb: true,
     },
     spike_bumper: {
       anchors: [{ x: 0, y: 0.38, z: 1.92, yaw: 0, scale: 1.25, snap: false }],
       build: () => buildSpikeBumper(5, 1.55),
-      preferGlb: false,
+      preferGlb: true,
     },
     reinforced_frame: {
       anchors: [{ x: 0, y: 0.35, z: -0.05, yaw: 0, scale: 1.05, snap: false }],
       build: () => buildReinforcedFrame("armor"),
-      preferGlb: false,
+      preferGlb: true,
     },
     lightweight_body: {
       anchors: [{ x: 0, y: 0.95, z: -0.15, yaw: 0, scale: 1.2, snap: false }],
@@ -466,7 +466,7 @@ function layoutBunker(): CarVisualLayout {
     nitro_kit: {
       anchors: [{ x: -0.98, y: 1.05, z: -1.15, yaw: -Math.PI / 2, scale: 1.15, snap: false }],
       build: () => buildNitroKit("side_strapped"),
-      preferGlb: false,
+      preferGlb: true,
     },
     rear_spoiler: {
       anchors: [
@@ -482,7 +482,7 @@ function layoutBunker(): CarVisualLayout {
         },
       ],
       build: () => buildRearSpoiler("roof"),
-      preferGlb: false,
+      preferGlb: true,
     },
   };
 }
@@ -495,6 +495,9 @@ export const CAR_PART_LAYOUTS: Record<CarId, CarVisualLayout> = {
   bunker: layoutBunker(),
 };
 
+/** Cars that may ship Tripo/extracted part GLBs under /models/parts/{carId}-*.glb */
+export const PART_GLB_CARS = ["blitz", "bison", "kaeferkraft", "donnerbuechse", "bunker"] as const satisfies readonly CarId[];
+
 const PART_URLS: Record<BlitzPartMeshId, string> = {
   rear_spoiler: "/models/parts/blitz-rear_spoiler.glb",
   big_engine: "/models/parts/blitz-big_engine.glb",
@@ -505,7 +508,19 @@ const PART_URLS: Record<BlitzPartMeshId, string> = {
   lightweight_body: "/models/parts/blitz-lightweight_body.glb",
 };
 
-const templates = new Map<BlitzPartMeshId, Group>();
+/** Template key: car-specific kits preferred over remounting Blitz. */
+export function partTemplateKey(carId: CarId, partId: BlitzPartMeshId): string {
+  return `${carId}:${partId}`;
+}
+
+export function partGlbUrl(carId: CarId, partId: BlitzPartMeshId): string {
+  if (carId === "blitz") return PART_URLS[partId];
+  return `/models/parts/${carId}-${partId}.glb`;
+}
+
+const templates = new Map<string, Group>();
+const carLoadPromises = new Map<CarId, Promise<void>>();
+const carsLoaded = new Set<CarId>();
 let preloadPromise: Promise<void> | null = null;
 
 export function blitzPartObjectName(id: string, copy = 0): string {
@@ -536,36 +551,63 @@ export function isCarWheelObject(obj: Object3D): boolean {
 /** @deprecated */
 export const isBlitzWheelObject = isCarWheelObject;
 
-export function registerBlitzPartTemplate(id: BlitzPartMeshId, root: Group): void {
-  templates.set(id, root);
+export function registerBlitzPartTemplate(id: BlitzPartMeshId, root: Group, carId: CarId = "blitz"): void {
+  templates.set(partTemplateKey(carId, id), root);
+}
+
+export function registerCarPartTemplate(carId: CarId, id: BlitzPartMeshId, root: Group): void {
+  templates.set(partTemplateKey(carId, id), root);
 }
 
 export function hasBlitzPartMesh(id: BlitzPartMeshId): boolean {
-  return templates.has(id);
+  return templates.has(partTemplateKey("blitz", id));
+}
+
+export function hasCarPartMesh(carId: CarId, id: BlitzPartMeshId): boolean {
+  return templates.has(partTemplateKey(carId, id));
 }
 
 export function clearBlitzPartTemplates(): void {
   templates.clear();
+  carLoadPromises.clear();
+  carsLoaded.clear();
   preloadPromise = null;
 }
 
-export function preloadCarParts(): Promise<void> {
-  if (preloadPromise) return preloadPromise;
-  preloadPromise = (async () => {
+/** Load Tripo/extracted kits for one car (missing files → procedural). */
+export function ensureCarPartTemplates(carId: CarId): Promise<void> {
+  const existing = carLoadPromises.get(carId);
+  if (existing) return existing;
+  const job = (async () => {
     const loader = new GLTFLoader();
     await Promise.all(
       BLITZ_PART_MESH_IDS.map(async (id) => {
+        const key = partTemplateKey(carId, id);
+        if (templates.has(key)) return;
         try {
-          const gltf = await loader.loadAsync(PART_URLS[id]);
+          const gltf = await loader.loadAsync(partGlbUrl(carId, id));
           const root = gltf.scene;
           toonifyPart(root, materialNameForPart(id));
-          templates.set(id, root);
-        } catch (err) {
-          console.warn(`Part GLB not loaded: ${id}`, err);
+          templates.set(key, root);
+        } catch {
+          // Optional per-car kits — missing GLB → procedural fallback.
         }
       }),
     );
+    carsLoaded.add(carId);
   })();
+  carLoadPromises.set(carId, job);
+  return job;
+}
+
+export function carPartTemplatesReady(carId: CarId): boolean {
+  return carsLoaded.has(carId);
+}
+
+/** Boot: load Blitz kits; other classes load on garage/race demand. */
+export function preloadCarParts(): Promise<void> {
+  if (preloadPromise) return preloadPromise;
+  preloadPromise = ensureCarPartTemplates("blitz");
   return preloadPromise;
 }
 
@@ -761,17 +803,18 @@ function placeAnchored(
   });
 }
 
-/** Prefer Tripo/extracted GLB when preloaded; else procedural. Hood/deck parts snap to body. */
+/** Prefer Tripo/extracted GLB when preloaded for this car; else procedural. */
 function mountGlbOrProc(
   group: Group,
   bodyRoot: Object3D,
+  carId: CarId,
   id: BlitzPartMeshId,
   anchors: PartAnchor[],
   procedural: () => Group,
   defaultSnap: boolean,
   preferGlb = true,
 ): void {
-  const template = preferGlb ? templates.get(id) : undefined;
+  const template = preferGlb ? templates.get(partTemplateKey(carId, id)) : undefined;
   if (template) {
     placeAnchored(group, bodyRoot, id, anchors, () => clonePartTemplate(template), defaultSnap);
     return;
@@ -797,7 +840,6 @@ export function applyEquippedPartVisuals(
 
   const layout = CAR_PART_LAYOUTS[carId];
   const equipped = new Set(equippedParts);
-  const allowGlb = carId === "blitz";
   applyRideLift(root, carStanceLift(carId, equippedParts));
 
   const group = new Group();
@@ -808,66 +850,72 @@ export function applyEquippedPartVisuals(
     mountGlbOrProc(
       group,
       root,
+      carId,
       "big_engine",
       layout.big_engine.anchors,
       layout.big_engine.build,
       true,
-      allowGlb && layout.big_engine.preferGlb !== false,
+      layout.big_engine.preferGlb !== false,
     );
   }
   if (equipped.has("spike_bumper")) {
     mountGlbOrProc(
       group,
       root,
+      carId,
       "spike_bumper",
       layout.spike_bumper.anchors,
       layout.spike_bumper.build,
       false,
-      allowGlb && layout.spike_bumper.preferGlb !== false,
+      layout.spike_bumper.preferGlb !== false,
     );
   }
   if (equipped.has("reinforced_frame")) {
     mountGlbOrProc(
       group,
       root,
+      carId,
       "reinforced_frame",
       layout.reinforced_frame.anchors,
       layout.reinforced_frame.build,
       false,
-      allowGlb && layout.reinforced_frame.preferGlb !== false,
+      layout.reinforced_frame.preferGlb !== false,
     );
   }
   if (equipped.has("lightweight_body")) {
     mountGlbOrProc(
       group,
       root,
+      carId,
       "lightweight_body",
       layout.lightweight_body.anchors,
       layout.lightweight_body.build,
       true,
-      allowGlb && layout.lightweight_body.preferGlb !== false,
+      layout.lightweight_body.preferGlb !== false,
     );
   }
   if (equipped.has("nitro_kit")) {
     mountGlbOrProc(
       group,
       root,
+      carId,
       "nitro_kit",
       layout.nitro_kit.anchors,
       layout.nitro_kit.build,
       true,
-      allowGlb && layout.nitro_kit.preferGlb !== false,
+      layout.nitro_kit.preferGlb !== false,
     );
   }
   if (equipped.has("rear_spoiler")) {
     mountGlbOrProc(
       group,
       root,
+      carId,
       "rear_spoiler",
       layout.rear_spoiler.anchors,
       layout.rear_spoiler.build,
       true,
-      allowGlb && layout.rear_spoiler.preferGlb !== false,
+      layout.rear_spoiler.preferGlb !== false,
     );
   }
   if (equipped.has("offroad_suspension")) {
@@ -875,11 +923,12 @@ export function applyEquippedPartVisuals(
     mountGlbOrProc(
       group,
       root,
+      carId,
       "offroad_suspension",
       layout.springs,
       () => buildCoilSpring(springCol),
       false,
-      allowGlb,
+      true,
     );
   }
   if (equipped.has("better_brakes")) {

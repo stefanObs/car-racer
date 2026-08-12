@@ -22,7 +22,7 @@ import { surfaceAt } from "../sim/zones";
 import { sampleCenterline } from "../track/buildTrack";
 import { CARS, type CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
-import { garageLookCacheKey } from "./carParts";
+import { carPartTemplatesReady, ensureCarPartTemplates, garageLookCacheKey } from "./carParts";
 import type { FinishCelebrate } from "../ui/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../ui/finishCelebrate";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
@@ -62,6 +62,8 @@ export class RaceRenderer {
   private idleGroup = new Group();
   private idleCar: Group | null = null;
   private idleLookKey = "";
+  /** Look key waiting on per-car Tripo kit load (rebuild when ready). */
+  private pendingGarageLookKey: string | null = null;
   private garageYaw = GARAGE_YAW_DEFAULT;
   private garageDragging = false;
   private fxTime = 0;
@@ -205,8 +207,23 @@ export class RaceRenderer {
     equippedParts?: readonly PartId[];
   }): void {
     const key = garageLookCacheKey(look);
-    if (key === this.idleLookKey && this.idleCar) return;
+    if (key === this.idleLookKey && this.idleCar && this.pendingGarageLookKey == null) return;
+
+    const kitsReady = carPartTemplatesReady(look.modelId);
     this.buildIdleShowcase(look);
+
+    if (kitsReady) {
+      this.pendingGarageLookKey = null;
+      return;
+    }
+
+    this.pendingGarageLookKey = key;
+    void ensureCarPartTemplates(look.modelId).then(() => {
+      if (this.pendingGarageLookKey !== key) return;
+      this.pendingGarageLookKey = null;
+      this.idleLookKey = "";
+      this.buildIdleShowcase(look);
+    });
   }
 
   setGarageDragging(dragging: boolean): void {

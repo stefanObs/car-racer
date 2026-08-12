@@ -7,6 +7,7 @@ import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
 import { buyCar, selectCarInGarage, showcaseCarId, showcaseKit } from "../meta/carShop";
 import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
+import { ensureCarPartTemplates } from "../render/carParts";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
 import { DAMAGE_LABELS } from "../sim/damage";
 import { RaceSession } from "../sim/race";
@@ -305,6 +306,8 @@ export class GameApp {
       playerPaint: kit.paint,
       playerSticker: kit.sticker,
     });
+    const modelIds = [...new Set(this.race.cars.map((c) => c.modelId))];
+    for (const id of modelIds) void ensureCarPartTemplates(id);
     this.renderer.buildTrack(this.race);
     this.screen = "race";
     this.renderUi();
