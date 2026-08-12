@@ -1,4 +1,5 @@
 import {
+  Box3,
   BoxGeometry,
   CircleGeometry,
   ConeGeometry,
@@ -27,7 +28,7 @@ import {
   buildGarageHoist,
   buildGarageToolChest,
 } from "./garageHeroProps";
-import { cloneGarageProp } from "./loadGarageGltf";
+import { cloneGarageProp, cloneGarageShell } from "./loadGarageGltf";
 import { ComicPalette } from "./palette";
 
 /** Turntable center — car sits here; workshop props stay off this disc. */
@@ -141,6 +142,25 @@ function buildTurntable(): Group {
   const g = new Group();
   g.name = "garagePad";
   g.position.set(GARAGE_PAD_CENTER.x, GARAGE_PAD_CENTER.y, GARAGE_PAD_CENTER.z);
+
+  const tripo = cloneGarageShell("turntable", "garageTurntableMesh");
+  if (tripo) {
+    const box = new Box3().setFromObject(tripo);
+    const span = Math.max(box.max.x - box.min.x, box.max.z - box.min.z, 0.01);
+    const scale = (GARAGE_PAD_RADIUS * 2) / span;
+    tripo.scale.setScalar(scale);
+    g.add(tripo);
+    // Flat comic albedo disc on top so the hazard ring reads from the chase cam
+    const top = new Mesh(
+      new CircleGeometry(GARAGE_PAD_RADIUS - 0.05, 48),
+      mapped(turntableTexture(), 0x8a9098),
+    );
+    top.rotation.x = -Math.PI / 2;
+    top.position.y = 0.12;
+    g.add(top);
+    return g;
+  }
+
   const disc = withOutline(
     new CylinderGeometry(GARAGE_PAD_RADIUS, GARAGE_PAD_RADIUS, 0.08, 40),
     mapped(turntableTexture(), 0x8a9098),

@@ -1,6 +1,7 @@
 /**
- * Bright Asphalt-Comic garage textures — flat base + bold ink detail (reference daylight look).
- * Floor/wall match `assets/art-style/car-category-targets.png` workshop shell.
+ * Bright Asphalt-Comic garage textures.
+ * Prefer Tripo-pipeline albedo sheets under `public/models/garage/*-albedo.png`
+ * (authored with Tripo shell meshes); canvas fallbacks keep unit tests / offline boot green.
  */
 import {
   CanvasTexture,
@@ -9,11 +10,20 @@ import {
   RepeatWrapping,
   RGBAFormat,
   SRGBColorSpace,
+  TextureLoader,
   type Texture,
 } from "three";
 import { ComicPaletteCss } from "./palette";
 
 const texCache = new Map<string, Texture>();
+const shippedMaps = new Map<string, Texture>();
+let shellPreload: Promise<void> | null = null;
+
+export const GARAGE_SHELL_ALBEDO = {
+  floor: "/models/garage/floor-albedo.png",
+  wall: "/models/garage/wall-albedo.png",
+  turntable: "/models/garage/turntable-albedo.png",
+} as const;
 
 export function clearGarageTextureCache(): void {
   for (const t of texCache.values()) t.dispose();
@@ -21,7 +31,62 @@ export function clearGarageTextureCache(): void {
 }
 
 export function garageTextureCacheSize(): number {
-  return texCache.size;
+  return texCache.size + shippedMaps.size;
+}
+
+export function hasShippedGarageShellTexture(kind: keyof typeof GARAGE_SHELL_ALBEDO): boolean {
+  return shippedMaps.has(kind);
+}
+
+/** Load Tripo-pipeline albedo sheets before building the bay (see main boot). */
+export function preloadGarageShellTextures(): Promise<void> {
+  if (shellPreload) return shellPreload;
+  shellPreload = (async () => {
+    if (typeof document === "undefined") return;
+    const loader = new TextureLoader();
+    await Promise.all(
+      (Object.entries(GARAGE_SHELL_ALBEDO) as Array<[keyof typeof GARAGE_SHELL_ALBEDO, string]>).map(
+        async ([kind, url]) => {
+          try {
+            const tex = await loader.loadAsync(url);
+            tex.colorSpace = SRGBColorSpace;
+            tex.minFilter = NearestFilter;
+            tex.magFilter = NearestFilter;
+            tex.generateMipmaps = false;
+            if (kind === "floor") {
+              tex.wrapS = RepeatWrapping;
+              tex.wrapT = RepeatWrapping;
+              tex.repeat.set(2.4, 2.4);
+            } else if (kind === "wall") {
+              tex.wrapS = RepeatWrapping;
+              tex.wrapT = RepeatWrapping;
+              tex.repeat.set(1.8, 1.2);
+            } else {
+              tex.wrapS = RepeatWrapping;
+              tex.wrapT = RepeatWrapping;
+              tex.repeat.set(1, 1);
+            }
+            tex.needsUpdate = true;
+            shippedMaps.set(kind, tex);
+          } catch (err) {
+            console.warn(`[garage] shell albedo skipped (${kind})`, err);
+          }
+        },
+      ),
+    );
+    clearGarageTextureCache();
+  })();
+  return shellPreload;
+}
+
+function shippedOrCanvas(kind: keyof typeof GARAGE_SHELL_ALBEDO, canvasKey: string, build: () => Texture): Texture {
+  const shipped = shippedMaps.get(kind);
+  if (shipped) return shipped;
+  const hit = texCache.get(canvasKey);
+  if (hit) return hit;
+  const tex = build();
+  texCache.set(canvasKey, tex);
+  return tex;
 }
 
 function ink(): string {
@@ -99,12 +164,13 @@ function roundRect(
 }
 
 /**
- * Workshop concrete floor (car-targets garage): dark cel slabs, thick joints,
- * yellow bay paint, oil blobs, tire scuffs — readable when tiled on the bay plane.
+ * Workshop concrete floor: Tripo-pipeline albedo sheet when preloaded;
+ * otherwise canvas cel slabs (readable when tiled on the bay plane).
  */
 export function floorTexture(): Texture {
-  return canvasTex(
-    "garage-floor-v7",
+  return shippedOrCanvas("floor", "garage-floor-v8", () =>
+    canvasTex(
+    "garage-floor-v8",
     1024,
     1024,
     (ctx) => {
@@ -193,12 +259,14 @@ export function floorTexture(): Texture {
       ctx.strokeRect(4, 4, w - 8, h - 8);
     },
     { repeatX: 3, repeatY: 3, fallbackRgb: [110, 116, 124] },
+  ),
   );
 }
 
 /** Circular asphalt turntable with hazard ring. */
 export function turntableTexture(): Texture {
-  return canvasTex("garage-turntable-v1", 512, 512, (ctx) => {
+  return shippedOrCanvas("turntable", "garage-turntable-v8", () =>
+    canvasTex("garage-turntable-v8", 512, 512, (ctx) => {
     const w = 512;
     const h = 512;
     const cx = 256;
@@ -226,7 +294,8 @@ export function turntableTexture(): Texture {
     ctx.beginPath();
     ctx.arc(cx, cy, 90, 0, Math.PI * 2);
     ctx.fill();
-  });
+  }),
+  );
 }
 
 /** Sunny race-pad asphalt with curb + dashes + ink grain. */
@@ -266,12 +335,16 @@ export function asphaltPadTexture(): Texture {
 }
 
 /**
- * Concrete wall panels (car-targets garage): mid-grey slabs, solid yellow shop stripe,
- * pillar seams with bolts, cel cracks/smudges — not photoreal plaster.
+ * Concrete wall panels: Tripo-pipeline albedo sheet when preloaded;
+ * otherwise canvas mid-grey slabs + yellow shop stripe.
  */
 export function wallPanelTexture(seed: number): Texture {
+  if (seed === 1 || seed === 2 || seed === 3) {
+    const shipped = shippedMaps.get("wall");
+    if (shipped) return shipped;
+  }
   return canvasTex(
-    `garage-wall-v7-${seed}`,
+    `garage-wall-v8-${seed}`,
     768,
     512,
     (ctx) => {

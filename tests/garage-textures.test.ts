@@ -32,6 +32,7 @@ describe("garage bay comic textures", () => {
     const wallA = wallPanelTexture(1);
     const wallB = wallPanelTexture(2);
     expect(floor).not.toBe(wallA);
+    // Without shipped maps, seed 1/2 stay distinct canvas keys
     expect(wallA).not.toBe(wallB);
     expect(floorTexture()).toBe(floor);
     expect(wallPanelTexture(1)).toBe(wallA);

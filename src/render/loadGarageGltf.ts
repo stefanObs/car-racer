@@ -4,7 +4,18 @@ import { GARAGE_MESH, GARAGE_PROP_IDS, type GaragePropId } from "../data/garageP
 import { comicFlat } from "./comicMaterials";
 
 const templates = new Map<GaragePropId, Object3D>();
+const shellTemplates = new Map<string, Object3D>();
 let preloadPromise: Promise<void> | null = null;
+let shellPreloadPromise: Promise<void> | null = null;
+
+export const GARAGE_SHELL_IDS = ["floor", "wall", "turntable"] as const;
+export type GarageShellId = (typeof GARAGE_SHELL_IDS)[number];
+
+const GARAGE_SHELL_URL: Record<GarageShellId, string> = {
+  floor: "/models/garage/floor.glb",
+  wall: "/models/garage/wall.glb",
+  turntable: "/models/garage/turntable.glb",
+};
 
 /** Load garage workshop GLBs once. Missing files fail boot (no box fallback). */
 export function preloadGarageProps(): Promise<void> {
@@ -24,8 +35,34 @@ export function preloadGarageProps(): Promise<void> {
   return preloadPromise;
 }
 
+/** Optional Tripo shell meshes (floor/wall/turntable) — soft-fail if absent. */
+export function preloadGarageShellMeshes(): Promise<void> {
+  if (shellPreloadPromise) return shellPreloadPromise;
+  shellPreloadPromise = (async () => {
+    if (typeof document === "undefined") return;
+    const loader = new GLTFLoader();
+    await Promise.all(
+      GARAGE_SHELL_IDS.map(async (id) => {
+        try {
+          const gltf = await loader.loadAsync(GARAGE_SHELL_URL[id]);
+          const root = gltf.scene;
+          normalizeGarageProp(root);
+          shellTemplates.set(id, root);
+        } catch (err) {
+          console.warn(`[garage] shell mesh skipped (${id})`, err);
+        }
+      }),
+    );
+  })();
+  return shellPreloadPromise;
+}
+
 export function hasGarageProp(id: GaragePropId): boolean {
   return templates.has(id);
+}
+
+export function hasGarageShell(id: GarageShellId): boolean {
+  return shellTemplates.has(id);
 }
 
 /** Clone a preloaded workshop mesh. Returns null when preload has not run (unit tests). */
@@ -36,6 +73,18 @@ export function cloneGarageProp(id: GaragePropId, name?: string): Group | null {
   detachSharedResources(clone);
   const wrap = new Group();
   wrap.name = name ?? id;
+  wrap.add(clone);
+  return wrap;
+}
+
+export function cloneGarageShell(id: GarageShellId, name?: string): Group | null {
+  const hit = shellTemplates.get(id);
+  if (!hit) return null;
+  const clone = hit.clone(true);
+  detachSharedResources(clone);
+  const wrap = new Group();
+  wrap.name = name ?? `garageShell-${id}`;
+  wrap.userData.garageShell = id;
   wrap.add(clone);
   return wrap;
 }

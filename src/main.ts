@@ -3,7 +3,8 @@ import { preloadCarParts } from "./render/carParts";
 import { preloadBuggyNoses } from "./render/buggyNose";
 import { preloadBuggyNoseTextures } from "./render/buggyNoseTextures";
 import { preloadFxModels } from "./render/loadFxGltf";
-import { preloadGarageProps } from "./render/loadGarageGltf";
+import { preloadGarageProps, preloadGarageShellMeshes } from "./render/loadGarageGltf";
+import { preloadGarageShellTextures } from "./render/garageTextures";
 import { GameApp } from "./ui/GameApp";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
@@ -33,6 +34,8 @@ async function boot(): Promise<void> {
   await Promise.all([
     preloadCarModels(),
     preloadBuggyNoses(),
+    preloadGarageShellTextures().catch((err) => console.warn("[boot] garage shell textures skipped", err)),
+    preloadGarageShellMeshes().catch((err) => console.warn("[boot] garage shell meshes skipped", err)),
     preloadGarageProps().catch((err) => console.warn("[boot] garage skipped", err)),
     preloadCarParts().catch((err) => console.warn("[boot] car parts skipped", err)),
     preloadFxModels(),
