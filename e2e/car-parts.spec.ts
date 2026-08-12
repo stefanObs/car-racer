@@ -157,5 +157,25 @@ test.describe("Equipped part meshes (all cars)", () => {
       expect.arrayContaining(["carPart-big_engine", "carPart-rear_spoiler"]),
     );
     await page.screenshot({ path: "test-results/car-parts-kaeferkraft.png", fullPage: true });
+
+    await page.getByRole("button", { name: /Donnerbüchse/ }).click();
+    await expect(page.locator(".garage-car.is-active .garage-car__name")).toHaveText("Donnerbüchse");
+    await page.locator('[data-part="rear_spoiler"]').click();
+    await page.locator('[data-part="spike_bumper"]').click();
+    await page.waitForTimeout(800);
+    expect(await idlePartNames(page)).toEqual(
+      expect.arrayContaining(["carPart-rear_spoiler", "carPart-spike_bumper"]),
+    );
+    await page.screenshot({ path: "test-results/car-parts-donner.png", fullPage: true });
+
+    await page.getByRole("button", { name: /^Bunker/ }).click();
+    await expect(page.locator(".garage-car.is-active .garage-car__name")).toHaveText("Bunker");
+    await page.locator('[data-part="rear_spoiler"]').click();
+    await page.locator('[data-part="nitro_kit"]').click();
+    await page.waitForTimeout(800);
+    expect(await idlePartNames(page)).toEqual(
+      expect.arrayContaining(["carPart-rear_spoiler", "carPart-nitro_kit"]),
+    );
+    await page.screenshot({ path: "test-results/car-parts-bunker.png", fullPage: true });
   });
 });

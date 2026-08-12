@@ -1,7 +1,8 @@
 /**
  * Equipped-Teile visuals for every car (CONCEPT §6.3 + parts-look sheets).
- * Tripo add-on GLBs (Blitz kits) mount on all classes with surface snap;
- * procedural builders are fallback only. Meshes are cosmetic — stats stay in mergeStats.
+ * Blitz keeps Tripo/extracted GLBs; other classes use class-shaped procedural
+ * meshes so they match `assets/tripo-concepts/parts-look/`. Hood/deck parts
+ * surface-snap. Meshes are cosmetic — stats stay in mergeStats.
  */
 import {
   Box3,
@@ -77,6 +78,11 @@ export type PartAnchor = {
   sitGap?: number;
   /** XZ sample radius for surface Y (default 0.4). */
   snapRadius?: number;
+  /**
+   * When snapping, pick the surface sample nearest this Y (avoids cab/roof
+   * when mounting a hood scoop near the windshield).
+   */
+  preferY?: number;
 };
 
 export type BlitzPartAnchor = PartAnchor;
@@ -164,201 +170,319 @@ function layoutBlitz(): CarVisualLayout {
 }
 
 function layoutBison(): CarVisualLayout {
+  // Mesh bounds ~ x±0.85 y≤1.45 z±1.9 — use class procs (not Blitz Tripo kits).
   return {
     wheelLift: 0.1,
     suspensionLift: 0.1,
     brakes: [
-      { x: 0.7, y: 0.38, z: 1.25, yaw: 0, scale: 0.95, snap: false },
-      { x: -0.7, y: 0.38, z: 1.25, yaw: Math.PI, scale: 0.95, snap: false },
-      { x: 0.7, y: 0.38, z: -1.15, yaw: 0, scale: 0.95, snap: false },
-      { x: -0.7, y: 0.38, z: -1.15, yaw: Math.PI, scale: 0.95, snap: false },
+      { x: 0.72, y: 0.4, z: 1.2, yaw: 0, scale: 1, snap: false },
+      { x: -0.72, y: 0.4, z: 1.2, yaw: Math.PI, scale: 1, snap: false },
+      { x: 0.72, y: 0.4, z: -1.2, yaw: 0, scale: 1, snap: false },
+      { x: -0.72, y: 0.4, z: -1.2, yaw: Math.PI, scale: 1, snap: false },
     ],
     springs: [
-      { x: 0.65, y: 0.12, z: 1.2, yaw: 0, scale: 0.85, snap: false },
-      { x: -0.65, y: 0.12, z: 1.2, yaw: 0, scale: 0.85, snap: false },
-      { x: 0.65, y: 0.12, z: -1.1, yaw: 0, scale: 0.85, snap: false },
-      { x: -0.65, y: 0.12, z: -1.1, yaw: 0, scale: 0.85, snap: false },
+      { x: 0.68, y: 0.14, z: 1.15, yaw: 0, scale: 0.9, snap: false },
+      { x: -0.68, y: 0.14, z: 1.15, yaw: 0, scale: 0.9, snap: false },
+      { x: 0.68, y: 0.14, z: -1.15, yaw: 0, scale: 0.9, snap: false },
+      { x: -0.68, y: 0.14, z: -1.15, yaw: 0, scale: 0.9, snap: false },
     ],
     wheelHints: [
-      { x: 0.78, y: 0.42, z: 1.25, yaw: 0, scale: 1.15, snap: false },
-      { x: -0.78, y: 0.42, z: 1.25, yaw: 0, scale: 1.15, snap: false },
-      { x: 0.78, y: 0.42, z: -1.15, yaw: 0, scale: 1.15, snap: false },
-      { x: -0.78, y: 0.42, z: -1.15, yaw: 0, scale: 1.15, snap: false },
+      { x: 0.8, y: 0.44, z: 1.2, yaw: 0, scale: 1.2, snap: false },
+      { x: -0.8, y: 0.44, z: 1.2, yaw: 0, scale: 1.2, snap: false },
+      { x: 0.8, y: 0.44, z: -1.2, yaw: 0, scale: 1.2, snap: false },
+      { x: -0.8, y: 0.44, z: -1.2, yaw: 0, scale: 1.2, snap: false },
     ],
     big_engine: {
-      anchors: [{ x: 0, y: 0.95, z: 0.85, yaw: Math.PI, scale: 0.95, sitGap: 0.02 }],
+      // Scoop near windshield (look sheet), not nose tip / not cab roof.
+      anchors: [
+        {
+          x: 0,
+          y: 1.0,
+          z: 0.55,
+          yaw: Math.PI,
+          scale: 1.05,
+          sitGap: 0.02,
+          snapRadius: 0.32,
+          preferY: 1.0,
+        },
+      ],
       build: () => buildHoodScoop("block"),
+      preferGlb: false,
     },
     spike_bumper: {
-      anchors: [{ x: 0, y: 0.22, z: 1.85, yaw: 0, scale: 1.2, snap: false }],
-      build: () => buildSpikeBumper(4, 1.35),
+      anchors: [{ x: 0, y: 0.32, z: 1.88, yaw: 0, scale: 1.15, snap: false }],
+      build: () => buildSpikeBumper(5, 1.4),
+      preferGlb: false,
     },
     reinforced_frame: {
-      anchors: [{ x: 0, y: 0.35, z: -0.55, yaw: 0, scale: 1.15, snap: false }],
+      anchors: [{ x: 0, y: 0.45, z: -0.35, yaw: 0, scale: 1.05, snap: false }],
       build: () => buildReinforcedFrame("pickup"),
+      preferGlb: false,
     },
     lightweight_body: {
-      anchors: [{ x: 0, y: 0.95, z: 0.5, yaw: 0, scale: 1.35, sitGap: 0.02 }],
+      anchors: [
+        {
+          x: 0,
+          y: 1.0,
+          z: 0.35,
+          yaw: 0,
+          scale: 1.15,
+          sitGap: 0.02,
+          snapRadius: 0.4,
+          preferY: 1.0,
+        },
+      ],
       build: () => buildLightweightBody("hood_bed"),
+      preferGlb: false,
     },
     nitro_kit: {
-      // Bed floor (not cab roof) — narrow snap so sample hits the bed deck.
-      anchors: [{ x: 0, y: 0.55, z: -1.35, yaw: 0, scale: 1.05, sitGap: 0.02, snapRadius: 0.28 }],
+      // Fixed bed-floor Y — surface snap often misses the thin bed deck.
+      anchors: [{ x: 0, y: 0.62, z: -0.85, yaw: 0, scale: 1, snap: false }],
       build: () => buildNitroKit("bed"),
+      preferGlb: false,
     },
     rear_spoiler: {
-      anchors: [{ x: 0, y: 1.35, z: -1.75, yaw: 0, scale: 1.15, sitGap: 0.02 }],
-      build: () => buildRearSpoiler(),
+      anchors: [
+        {
+          x: 0,
+          y: 1.05,
+          z: -1.72,
+          yaw: 0,
+          scale: 1.05,
+          sitGap: 0.02,
+          snapRadius: 0.3,
+          preferY: 0.95,
+        },
+      ],
+      build: () => buildRearSpoiler("tall"),
+      preferGlb: false,
     },
   };
 }
 
-/** Child local: nose −X, width ±Z (parent yaw π/2 → world +Z). */
+/** Child local: nose −X, width ±Z (parent yaw π/2 → world +Z). Mesh ~ x±1.68 y≤1.72. */
 function layoutKaeferkraft(): CarVisualLayout {
   return {
     wheelLift: 0.08,
     suspensionLift: 0.1,
     brakes: [
-      { x: -1.05, y: 0.42, z: 0.7, yaw: Math.PI / 2, scale: 0.9, snap: false },
-      { x: -1.05, y: 0.42, z: -0.7, yaw: -Math.PI / 2, scale: 0.9, snap: false },
-      { x: 1.0, y: 0.42, z: 0.7, yaw: Math.PI / 2, scale: 0.9, snap: false },
-      { x: 1.0, y: 0.42, z: -0.7, yaw: -Math.PI / 2, scale: 0.9, snap: false },
+      { x: -1.15, y: 0.4, z: 0.72, yaw: Math.PI / 2, scale: 0.95, snap: false },
+      { x: -1.15, y: 0.4, z: -0.72, yaw: -Math.PI / 2, scale: 0.95, snap: false },
+      { x: 1.1, y: 0.4, z: 0.72, yaw: Math.PI / 2, scale: 0.95, snap: false },
+      { x: 1.1, y: 0.4, z: -0.72, yaw: -Math.PI / 2, scale: 0.95, snap: false },
     ],
     springs: [
-      { x: -1.0, y: 0.15, z: 0.65, yaw: 0, scale: 0.9, snap: false },
-      { x: -1.0, y: 0.15, z: -0.65, yaw: 0, scale: 0.9, snap: false },
-      { x: 0.95, y: 0.15, z: 0.65, yaw: 0, scale: 0.9, snap: false },
-      { x: 0.95, y: 0.15, z: -0.65, yaw: 0, scale: 0.9, snap: false },
+      { x: -1.1, y: 0.18, z: 0.68, yaw: 0, scale: 1, snap: false },
+      { x: -1.1, y: 0.18, z: -0.68, yaw: 0, scale: 1, snap: false },
+      { x: 1.05, y: 0.18, z: 0.68, yaw: 0, scale: 1, snap: false },
+      { x: 1.05, y: 0.18, z: -0.68, yaw: 0, scale: 1, snap: false },
     ],
     wheelHints: [
-      { x: -1.1, y: 0.45, z: 0.78, yaw: Math.PI / 2, scale: 1.2, snap: false },
-      { x: -1.1, y: 0.45, z: -0.78, yaw: Math.PI / 2, scale: 1.2, snap: false },
-      { x: 1.05, y: 0.45, z: 0.78, yaw: Math.PI / 2, scale: 1.2, snap: false },
-      { x: 1.05, y: 0.45, z: -0.78, yaw: Math.PI / 2, scale: 1.2, snap: false },
+      { x: -1.2, y: 0.45, z: 0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
+      { x: -1.2, y: 0.45, z: -0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
+      { x: 1.15, y: 0.45, z: 0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
+      { x: 1.15, y: 0.45, z: -0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
     ],
     big_engine: {
-      // Look sheet: rear engine block behind seats — Tripo scoop does not fit.
-      anchors: [{ x: 0.95, y: 0.55, z: 0, yaw: -Math.PI / 2, scale: 0.95, snap: false }],
+      // Exhaust tips face local +X = buggy rear (nose is −X).
+      anchors: [{ x: 1.15, y: 0.72, z: 0, yaw: 0, scale: 1.05, snap: false }],
       build: () => buildRearEngineBlock(),
       preferGlb: false,
     },
     spike_bumper: {
-      anchors: [{ x: -1.55, y: 0.28, z: 0, yaw: -Math.PI / 2, scale: 1, snap: false }],
-      build: () => buildSpikeBumper(4, 1.15),
+      // Spikes local +Z → yaw +π/2 points toward nose (−X).
+      anchors: [{ x: -1.62, y: 0.35, z: 0, yaw: Math.PI / 2, scale: 1.05, snap: false }],
+      build: () => buildSpikeBumper(4, 1.2),
+      preferGlb: false,
     },
     reinforced_frame: {
-      anchors: [{ x: 0.15, y: 0.2, z: 0, yaw: Math.PI / 2, scale: 0.95, snap: false }],
+      anchors: [{ x: 0.1, y: 0.25, z: 0, yaw: Math.PI / 2, scale: 1, snap: false }],
       build: () => buildReinforcedFrame("buggy"),
+      preferGlb: false,
     },
     lightweight_body: {
-      anchors: [{ x: 0, y: 0.5, z: 0, yaw: Math.PI / 2, scale: 1.1, sitGap: 0.02 }],
+      anchors: [{ x: 0.05, y: 0.55, z: 0, yaw: Math.PI / 2, scale: 1.15, snap: false }],
       build: () => buildLightweightBody("holes"),
+      preferGlb: false,
     },
     nitro_kit: {
-      anchors: [{ x: 1.15, y: 0.7, z: 0, yaw: -Math.PI / 2, scale: 0.95, sitGap: 0.02 }],
+      anchors: [{ x: 1.25, y: 0.9, z: 0, yaw: 0, scale: 1, snap: false }],
       build: () => buildNitroKit("rear_rack"),
+      preferGlb: false,
     },
     rear_spoiler: {
-      anchors: [{ x: 1.25, y: 1.35, z: 0, yaw: -Math.PI / 2, scale: 0.95, sitGap: 0.02 }],
-      build: () => buildRearSpoiler(),
+      // Blade spans ±Z (width) after yaw −π/2; sit on rear cage.
+      anchors: [{ x: 1.05, y: 1.28, z: 0, yaw: -Math.PI / 2, scale: 0.9, snap: false }],
+      build: () => buildRearSpoiler("tall"),
+      preferGlb: false,
     },
   };
 }
 
 function layoutDonner(): CarVisualLayout {
+  // Mesh bounds ~ x±1.19 y≤1.55 z±1.9
   return {
     wheelLift: 0.08,
     suspensionLift: 0.09,
     brakes: [
-      { x: 0.85, y: 0.4, z: 1.35, yaw: 0, scale: 0.9, snap: false },
-      { x: -0.85, y: 0.4, z: 1.35, yaw: Math.PI, scale: 0.9, snap: false },
-      { x: 0.95, y: 0.45, z: -1.15, yaw: 0, scale: 1, snap: false },
-      { x: -0.95, y: 0.45, z: -1.15, yaw: Math.PI, scale: 1, snap: false },
+      { x: 0.9, y: 0.38, z: 1.25, yaw: 0, scale: 0.95, snap: false },
+      { x: -0.9, y: 0.38, z: 1.25, yaw: Math.PI, scale: 0.95, snap: false },
+      { x: 1.0, y: 0.48, z: -1.1, yaw: 0, scale: 1.1, snap: false },
+      { x: -1.0, y: 0.48, z: -1.1, yaw: Math.PI, scale: 1.1, snap: false },
     ],
     springs: [
-      { x: 0.8, y: 0.15, z: 1.3, yaw: 0, scale: 0.85, snap: false },
-      { x: -0.8, y: 0.15, z: 1.3, yaw: 0, scale: 0.85, snap: false },
-      { x: 0.9, y: 0.18, z: -1.1, yaw: 0, scale: 0.95, snap: false },
-      { x: -0.9, y: 0.18, z: -1.1, yaw: 0, scale: 0.95, snap: false },
+      { x: 0.85, y: 0.16, z: 1.2, yaw: 0, scale: 0.9, snap: false },
+      { x: -0.85, y: 0.16, z: 1.2, yaw: 0, scale: 0.9, snap: false },
+      { x: 0.95, y: 0.2, z: -1.05, yaw: 0, scale: 1, snap: false },
+      { x: -0.95, y: 0.2, z: -1.05, yaw: 0, scale: 1, snap: false },
     ],
     wheelHints: [
-      { x: 0.95, y: 0.42, z: 1.35, yaw: 0, scale: 1.05, snap: false },
-      { x: -0.95, y: 0.42, z: 1.35, yaw: 0, scale: 1.05, snap: false },
-      { x: 1.05, y: 0.5, z: -1.15, yaw: 0, scale: 1.25, snap: false },
-      { x: -1.05, y: 0.5, z: -1.15, yaw: 0, scale: 1.25, snap: false },
+      { x: 1.0, y: 0.42, z: 1.25, yaw: 0, scale: 1.1, snap: false },
+      { x: -1.0, y: 0.42, z: 1.25, yaw: 0, scale: 1.1, snap: false },
+      { x: 1.1, y: 0.52, z: -1.1, yaw: 0, scale: 1.35, snap: false },
+      { x: -1.1, y: 0.52, z: -1.1, yaw: 0, scale: 1.35, snap: false },
     ],
     big_engine: {
-      anchors: [{ x: 0, y: 0.85, z: 0.95, yaw: Math.PI, scale: 0.95, sitGap: 0.02 }],
+      anchors: [
+        {
+          x: 0,
+          y: 0.85,
+          z: 0.7,
+          yaw: Math.PI,
+          scale: 1.05,
+          sitGap: 0.015,
+          snapRadius: 0.35,
+          preferY: 0.85,
+        },
+      ],
       build: () => buildHoodScoop("blower"),
+      preferGlb: false,
     },
     spike_bumper: {
-      anchors: [{ x: 0, y: 0.25, z: 1.85, yaw: 0, scale: 1.15, snap: false }],
-      build: () => buildSpikeBumper(5, 1.4),
+      anchors: [{ x: 0, y: 0.35, z: 1.88, yaw: 0, scale: 1.2, snap: false }],
+      build: () => buildSpikeBumper(5, 1.45),
+      preferGlb: false,
     },
     reinforced_frame: {
-      anchors: [{ x: 0, y: 0.25, z: -0.2, yaw: 0, scale: 1.1, snap: false }],
+      anchors: [{ x: 0, y: 0.2, z: -0.1, yaw: 0, scale: 1, snap: false }],
       build: () => buildReinforcedFrame("hotrod"),
+      preferGlb: false,
     },
     lightweight_body: {
-      anchors: [{ x: 0, y: 0.7, z: -0.1, yaw: 0, scale: 1.2, sitGap: 0.02 }],
-      build: () => buildLightweightBody("holes"),
+      anchors: [
+        {
+          x: 0,
+          y: 1.15,
+          z: -0.35,
+          yaw: 0,
+          scale: 1.05,
+          sitGap: 0.02,
+          snapRadius: 0.4,
+          preferY: 1.15,
+        },
+      ],
+      build: () => buildLightweightBody("roof_holes"),
+      preferGlb: false,
     },
     nitro_kit: {
-      anchors: [{ x: 0.95, y: 0.55, z: -0.35, yaw: Math.PI / 2, scale: 1, sitGap: 0.02 }],
+      // Driver side (DE LHD = −X), behind door / above rear arch.
+      anchors: [{ x: -1.05, y: 0.7, z: -0.45, yaw: -Math.PI / 2, scale: 1.05, snap: false }],
       build: () => buildNitroKit("side"),
+      preferGlb: false,
     },
     rear_spoiler: {
-      anchors: [{ x: 0, y: 1.15, z: -1.65, yaw: 0, scale: 1.1, sitGap: 0.02 }],
-      build: () => buildRearSpoiler(),
+      anchors: [
+        {
+          x: 0,
+          y: 1.05,
+          z: -1.7,
+          yaw: 0,
+          scale: 1.1,
+          sitGap: 0.02,
+          snapRadius: 0.3,
+          preferY: 1.0,
+        },
+      ],
+      build: () => buildRearSpoiler("tall"),
+      preferGlb: false,
     },
   };
 }
 
 function layoutBunker(): CarVisualLayout {
+  // Mesh bounds ~ x±0.98 y≤2.12 z±1.93 — roof spoiler, side nitro, armor cage.
   return {
     wheelLift: 0.1,
     suspensionLift: 0.12,
     brakes: [
-      { x: 0.85, y: 0.48, z: 1.25, yaw: 0, scale: 1, snap: false },
-      { x: -0.85, y: 0.48, z: 1.25, yaw: Math.PI, scale: 1, snap: false },
-      { x: 0.85, y: 0.48, z: -1.2, yaw: 0, scale: 1, snap: false },
-      { x: -0.85, y: 0.48, z: -1.2, yaw: Math.PI, scale: 1, snap: false },
+      { x: 0.88, y: 0.5, z: 1.2, yaw: 0, scale: 1.05, snap: false },
+      { x: -0.88, y: 0.5, z: 1.2, yaw: Math.PI, scale: 1.05, snap: false },
+      { x: 0.88, y: 0.5, z: -1.15, yaw: 0, scale: 1.05, snap: false },
+      { x: -0.88, y: 0.5, z: -1.15, yaw: Math.PI, scale: 1.05, snap: false },
     ],
     springs: [
-      { x: 0.8, y: 0.2, z: 1.2, yaw: 0, scale: 1, snap: false },
-      { x: -0.8, y: 0.2, z: 1.2, yaw: 0, scale: 1, snap: false },
-      { x: 0.8, y: 0.2, z: -1.15, yaw: 0, scale: 1, snap: false },
-      { x: -0.8, y: 0.2, z: -1.15, yaw: 0, scale: 1, snap: false },
+      { x: 0.82, y: 0.22, z: 1.15, yaw: 0, scale: 1.05, snap: false },
+      { x: -0.82, y: 0.22, z: 1.15, yaw: 0, scale: 1.05, snap: false },
+      { x: 0.82, y: 0.22, z: -1.1, yaw: 0, scale: 1.05, snap: false },
+      { x: -0.82, y: 0.22, z: -1.1, yaw: 0, scale: 1.05, snap: false },
     ],
     wheelHints: [
-      { x: 0.95, y: 0.55, z: 1.25, yaw: 0, scale: 1.25, snap: false },
-      { x: -0.95, y: 0.55, z: 1.25, yaw: 0, scale: 1.25, snap: false },
-      { x: 0.95, y: 0.55, z: -1.2, yaw: 0, scale: 1.25, snap: false },
-      { x: -0.95, y: 0.55, z: -1.2, yaw: 0, scale: 1.25, snap: false },
+      { x: 0.98, y: 0.58, z: 1.2, yaw: 0, scale: 1.3, snap: false },
+      { x: -0.98, y: 0.58, z: 1.2, yaw: 0, scale: 1.3, snap: false },
+      { x: 0.98, y: 0.58, z: -1.15, yaw: 0, scale: 1.3, snap: false },
+      { x: -0.98, y: 0.58, z: -1.15, yaw: 0, scale: 1.3, snap: false },
     ],
     big_engine: {
-      anchors: [{ x: 0, y: 1.35, z: 0.55, yaw: Math.PI, scale: 1.05, sitGap: 0.025 }],
+      anchors: [
+        {
+          x: 0,
+          y: 1.15,
+          z: 0.75,
+          yaw: Math.PI,
+          scale: 1.1,
+          sitGap: 0.02,
+          snapRadius: 0.35,
+          preferY: 1.15,
+        },
+      ],
       build: () => buildHoodScoop("block"),
+      preferGlb: false,
     },
     spike_bumper: {
-      anchors: [{ x: 0, y: 0.4, z: 1.9, yaw: 0, scale: 1.3, snap: false }],
+      anchors: [{ x: 0, y: 0.38, z: 1.92, yaw: 0, scale: 1.25, snap: false }],
       build: () => buildSpikeBumper(5, 1.55),
+      preferGlb: false,
     },
     reinforced_frame: {
-      anchors: [{ x: 0, y: 0.4, z: -0.1, yaw: 0, scale: 1.2, snap: false }],
+      anchors: [{ x: 0, y: 0.35, z: -0.05, yaw: 0, scale: 1.05, snap: false }],
       build: () => buildReinforcedFrame("armor"),
+      preferGlb: false,
     },
     lightweight_body: {
-      anchors: [{ x: 0, y: 0.9, z: -0.4, yaw: 0, scale: 1.35, sitGap: 0.025 }],
-      build: () => buildLightweightBody("holes"),
+      anchors: [{ x: 0, y: 0.95, z: -0.15, yaw: 0, scale: 1.2, snap: false }],
+      build: () => buildLightweightBody("tri_cutouts"),
+      preferGlb: false,
     },
     nitro_kit: {
-      anchors: [{ x: -0.85, y: 0.85, z: -1.35, yaw: -Math.PI / 2, scale: 1.1, sitGap: 0.02 }],
-      build: () => buildNitroKit("side"),
+      anchors: [{ x: -0.98, y: 1.05, z: -1.15, yaw: -Math.PI / 2, scale: 1.15, snap: false }],
+      build: () => buildNitroKit("side_strapped"),
+      preferGlb: false,
     },
     rear_spoiler: {
-      anchors: [{ x: 0, y: 1.95, z: -1.55, yaw: 0, scale: 1.2, sitGap: 0.025 }],
-      build: () => buildRearSpoiler(),
+      anchors: [
+        {
+          x: 0,
+          y: 1.85,
+          z: -1.7,
+          yaw: 0,
+          scale: 1.1,
+          sitGap: 0.02,
+          snapRadius: 0.35,
+          preferY: 1.85,
+        },
+      ],
+      build: () => buildRearSpoiler("roof"),
+      preferGlb: false,
     },
   };
 }
@@ -532,13 +656,16 @@ function skipForSurfaceSample(obj: Object3D): boolean {
 }
 
 /**
- * Max body Y near (x,z) in `root` local space — sits scoops/wings on hood/deck.
+ * Body surface Y near (x,z) in `root` local space.
+ * Default: highest hit (deck/hood). With `preferY`, closest hit to that height
+ * (stops windshield scoops from snapping onto the cabin roof).
  */
 export function sampleBodySurfaceY(
   root: Object3D,
   x: number,
   z: number,
   radius = 0.4,
+  preferY?: number,
 ): number | null {
   root.updateMatrixWorld(true);
   const invRoot = new Matrix4().copy(root.matrixWorld).invert();
@@ -547,6 +674,7 @@ export function sampleBodySurfaceY(
   const c = new Vector3();
   const r2 = radius * radius;
   let best: number | null = null;
+  let bestScore = Infinity;
 
   root.traverse((obj) => {
     if (skipForSurfaceSample(obj)) return;
@@ -580,7 +708,15 @@ export function sampleBodySurfaceY(
       const dz = cz - z;
       if (dx * dx + dz * dz > r2) continue;
       const y = Math.max(a.y, b.y, c.y);
-      if (best === null || y > best) best = y;
+      if (preferY != null) {
+        const score = Math.abs(y - preferY);
+        if (score < bestScore) {
+          bestScore = score;
+          best = y;
+        }
+      } else if (best === null || y > best) {
+        best = y;
+      }
     }
   });
 
@@ -615,6 +751,7 @@ function placeAnchored(
         anchor.x,
         anchor.z,
         anchor.snapRadius ?? 0.4,
+        anchor.preferY,
       );
       if (surf != null && Number.isFinite(surf)) {
         y = surf - bottom + (anchor.sitGap ?? 0.02);
@@ -660,6 +797,7 @@ export function applyEquippedPartVisuals(
 
   const layout = CAR_PART_LAYOUTS[carId];
   const equipped = new Set(equippedParts);
+  const allowGlb = carId === "blitz";
   applyRideLift(root, carStanceLift(carId, equippedParts));
 
   const group = new Group();
@@ -674,7 +812,7 @@ export function applyEquippedPartVisuals(
       layout.big_engine.anchors,
       layout.big_engine.build,
       true,
-      layout.big_engine.preferGlb !== false,
+      allowGlb && layout.big_engine.preferGlb !== false,
     );
   }
   if (equipped.has("spike_bumper")) {
@@ -685,7 +823,7 @@ export function applyEquippedPartVisuals(
       layout.spike_bumper.anchors,
       layout.spike_bumper.build,
       false,
-      layout.spike_bumper.preferGlb !== false,
+      allowGlb && layout.spike_bumper.preferGlb !== false,
     );
   }
   if (equipped.has("reinforced_frame")) {
@@ -696,7 +834,7 @@ export function applyEquippedPartVisuals(
       layout.reinforced_frame.anchors,
       layout.reinforced_frame.build,
       false,
-      layout.reinforced_frame.preferGlb !== false,
+      allowGlb && layout.reinforced_frame.preferGlb !== false,
     );
   }
   if (equipped.has("lightweight_body")) {
@@ -707,7 +845,7 @@ export function applyEquippedPartVisuals(
       layout.lightweight_body.anchors,
       layout.lightweight_body.build,
       true,
-      layout.lightweight_body.preferGlb !== false,
+      allowGlb && layout.lightweight_body.preferGlb !== false,
     );
   }
   if (equipped.has("nitro_kit")) {
@@ -718,7 +856,7 @@ export function applyEquippedPartVisuals(
       layout.nitro_kit.anchors,
       layout.nitro_kit.build,
       true,
-      layout.nitro_kit.preferGlb !== false,
+      allowGlb && layout.nitro_kit.preferGlb !== false,
     );
   }
   if (equipped.has("rear_spoiler")) {
@@ -729,7 +867,7 @@ export function applyEquippedPartVisuals(
       layout.rear_spoiler.anchors,
       layout.rear_spoiler.build,
       true,
-      layout.rear_spoiler.preferGlb !== false,
+      allowGlb && layout.rear_spoiler.preferGlb !== false,
     );
   }
   if (equipped.has("offroad_suspension")) {
@@ -741,6 +879,7 @@ export function applyEquippedPartVisuals(
       layout.springs,
       () => buildCoilSpring(springCol),
       false,
+      allowGlb,
     );
   }
   if (equipped.has("better_brakes")) {

@@ -14,6 +14,16 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.34 Class-shaped Teile (no shared Blitz kits)
+- Trigger: user — parts placement must match parts-look concepts; generate parts where needed
+- Decision: Tripo/extracted GLBs only on **Blitz**. Other cars use improved procedural builders (hotrod perforated rails, pickup bed cage, armor exo, roof/tri cutouts, tall/roof spoilers, bed+bullbar nitro). Anchors retuned to mesh bounds / look sheets. Surface snap kept for hood/deck.
+- CONCEPT §§: §6.3 visuals only
+
+### 2026-08-12 — v3.33 Aufkleber art: Racepool red + hotrod flames
+- Trigger: user — Stern/Blitz like racepool99.de/rennstrecken; Flammen like original Donner hotrod
+- Decision: sticker-v6 canvas (no cream plate). Stern = flat `#E63212` racepool-track-red stars. Blitz = Racepool wordmark style (italic RAC + three-bar red E + POOL + red underline, **no 99**). Flammen = solid orange three-tongue hotrod silhouette (no yellow core). Proposals refreshed under `assets/tripo-concepts/sticker-proposal-*.png`.
+- CONCEPT §§: §6.2 cosmetics only (no rule change)
+
 ### 2026-08-12 — v3.32 Blitz Tripo cabin glass restored
 - Trigger: user — Blitz windows looked worse after opaque seal; Tripo art was better
 - Decision: Remove runtime opaque windshield/side planes and stop darkening glass texels in the wing-strip extract bake. Keep Tripo cabin glass albedo on stock `blitz.glb`.

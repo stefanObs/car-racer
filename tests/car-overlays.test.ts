@@ -40,9 +40,12 @@ describe("car sticker decals", () => {
     expect(emptyKit("blitz").sticker).toBe("none");
   });
 
-  it("ships sticker-v4 art helpers, DecalGeometry path, and proposal targets", () => {
+  it("ships sticker-v6 Racepool/hotrod art, DecalGeometry path, and proposal targets", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain("sticker-v5-plate:");
+    expect(src).toContain("sticker-v6:");
+    expect(src).toContain("RACEPOOL_RED");
+    expect(src).toContain('for (const ch of "RAC")');
+    expect(src).toContain('for (const ch of "POOL")');
     expect(src).toContain("drawHotRodFlames");
     expect(src).toContain("DecalGeometry");
     expect(src).toContain("findBodyMeshForStickers");

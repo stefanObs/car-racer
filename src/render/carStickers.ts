@@ -127,76 +127,86 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
   return tex;
 }
 
-function flameTongue(
-  ctx: CanvasRenderingContext2D,
-  tipX: number,
-  tipY: number,
-  baseX: number,
-  baseY: number,
-  halfW: number,
-): void {
-  const mx = (tipX + baseX) / 2;
-  const my = (tipY + baseY) / 2;
-  ctx.beginPath();
-  ctx.moveTo(baseX, baseY - halfW);
-  ctx.quadraticCurveTo(mx - halfW * 0.35, my - halfW * 0.2, tipX, tipY);
-  ctx.quadraticCurveTo(mx + halfW * 0.45, my + halfW * 0.15, baseX, baseY + halfW);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
+/** Racepool99 brand red — track outlines / logo accent on racepool99.de. */
+const RACEPOOL_RED = "#E63212";
 
-function drawHotRodFlames(ctx: CanvasRenderingContext2D, carId: CarId, w: number, h: number): void {
-  const outer =
-    carId === "bunker" ? "#FF6B1A" : carId === "bison" ? "#FF8A1F" : carId === "donnerbuechse" ? "#FF5A00" : "#FF7A18";
-  const core = "#FFE066";
-  ctx.fillStyle = outer;
-  ctx.lineWidth = Math.max(4, Math.min(w, h) * 0.055);
-  flameTongue(ctx, w * 0.08, h * 0.42, w * 0.78, h * 0.28, h * 0.16);
-  flameTongue(ctx, w * 0.05, h * 0.62, w * 0.82, h * 0.55, h * 0.2);
-  flameTongue(ctx, w * 0.12, h * 0.82, w * 0.72, h * 0.78, h * 0.14);
-  ctx.fillStyle = core;
-  ctx.lineWidth = Math.max(2.5, ctx.lineWidth * 0.55);
-  flameTongue(ctx, w * 0.18, h * 0.44, w * 0.62, h * 0.34, h * 0.07);
-  flameTongue(ctx, w * 0.14, h * 0.62, w * 0.66, h * 0.56, h * 0.09);
-}
-
-function boltMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, s: number): void {
-  ctx.beginPath();
-  ctx.moveTo(cx - s * 0.08, cy - s * 0.58);
-  ctx.lineTo(cx + s * 0.42, cy - s * 0.58);
-  ctx.lineTo(cx + s * 0.12, cy - s * 0.05);
-  ctx.lineTo(cx + s * 0.48, cy - s * 0.05);
-  ctx.lineTo(cx - s * 0.22, cy + s * 0.58);
-  ctx.lineTo(cx + s * 0.02, cy + s * 0.02);
-  ctx.lineTo(cx - s * 0.42, cy + s * 0.02);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-}
-
-function drawPowerBolt(ctx: CanvasRenderingContext2D, carId: CarId, w: number, h: number): void {
-  const cx = w * 0.52;
-  const cy = h * 0.5;
-  const s = Math.min(w, h) * 0.88;
-  ctx.fillStyle = carId === "blitz" ? "#FFE066" : carId === "bunker" ? "#7CF0FF" : "#FFD43B";
-  ctx.lineWidth = Math.max(5, Math.min(w, h) * 0.07);
-  boltMark(ctx, cx, cy, s);
-  ctx.fillStyle = "#FFF8D6";
-  ctx.lineWidth = Math.max(2.5, ctx.lineWidth * 0.45);
-  boltMark(ctx, cx - s * 0.02, cy, s * 0.48);
+/**
+ * Classic Donnerbüchse hotrod door flames: one solid orange silhouette,
+ * three tongues licking rearward (left), rounded front (right). No yellow core.
+ */
+function drawHotRodFlames(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
+  ctx.fillStyle = "#FF5A00";
   ctx.strokeStyle = ink();
-  ctx.lineWidth = Math.max(2, h * 0.035);
-  for (const [x0, y0, x1, y1] of [
-    [w * 0.12, h * 0.22, w * 0.02, h * 0.12],
-    [w * 0.88, h * 0.28, w * 0.96, h * 0.16],
-    [w * 0.9, h * 0.78, w * 0.98, h * 0.9],
-  ] as const) {
-    ctx.beginPath();
-    ctx.moveTo(x0, y0);
-    ctx.lineTo(x1, y1);
-    ctx.stroke();
+  ctx.lineWidth = Math.max(3, Math.min(w, h) * 0.035);
+  ctx.beginPath();
+  // Front bulb (right) → top tongue → mid tongue → bottom tongue → close.
+  ctx.moveTo(w * 0.9, h * 0.22);
+  ctx.bezierCurveTo(w * 0.98, h * 0.28, w * 0.99, h * 0.72, w * 0.9, h * 0.82);
+  ctx.bezierCurveTo(w * 0.72, h * 0.9, w * 0.48, h * 0.88, w * 0.22, h * 0.78);
+  ctx.quadraticCurveTo(w * 0.1, h * 0.74, w * 0.05, h * 0.7);
+  ctx.quadraticCurveTo(w * 0.16, h * 0.66, w * 0.28, h * 0.64);
+  ctx.quadraticCurveTo(w * 0.14, h * 0.58, w * 0.04, h * 0.52);
+  ctx.quadraticCurveTo(w * 0.18, h * 0.48, w * 0.32, h * 0.46);
+  ctx.quadraticCurveTo(w * 0.16, h * 0.36, w * 0.08, h * 0.28);
+  ctx.quadraticCurveTo(w * 0.2, h * 0.3, w * 0.42, h * 0.28);
+  ctx.bezierCurveTo(w * 0.62, h * 0.24, w * 0.78, h * 0.18, w * 0.9, h * 0.22);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+}
+
+/** Racepool99 wordmark style without the trailing "99" (garage chip: Blitz). */
+function drawPowerBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
+  const padX = w * 0.04;
+  const padY = h * 0.18;
+  ctx.fillStyle = "#1E1E1C";
+  ctx.beginPath();
+  const r = Math.min(w, h) * 0.08;
+  ctx.moveTo(padX + r, padY);
+  ctx.lineTo(w - padX - r, padY);
+  ctx.quadraticCurveTo(w - padX, padY, w - padX, padY + r);
+  ctx.lineTo(w - padX, h - padY - r);
+  ctx.quadraticCurveTo(w - padX, h - padY, w - padX - r, h - padY);
+  ctx.lineTo(padX + r, h - padY);
+  ctx.quadraticCurveTo(padX, h - padY, padX, h - padY - r);
+  ctx.lineTo(padX, padY + r);
+  ctx.quadraticCurveTo(padX, padY, padX + r, padY);
+  ctx.closePath();
+  ctx.fill();
+
+  const fontPx = Math.floor(h * 0.38);
+  ctx.font = `italic 900 ${fontPx}px "Arial Black", Impact, Haettenschweiler, sans-serif`;
+  ctx.textBaseline = "middle";
+  ctx.textAlign = "left";
+  const y = h * 0.48;
+  let x = w * 0.08;
+  const tracking = 0.92;
+
+  ctx.fillStyle = "#FFFFFF";
+  for (const ch of "RAC") {
+    ctx.fillText(ch, x, y);
+    x += ctx.measureText(ch).width * tracking;
   }
+
+  const barW = fontPx * 0.52;
+  const barH = Math.max(3, fontPx * 0.11);
+  const gap = fontPx * 0.12;
+  const barTop = y - fontPx * 0.34;
+  ctx.fillStyle = RACEPOOL_RED;
+  for (let i = 0; i < 3; i++) {
+    ctx.fillRect(x, barTop + i * (barH + gap), barW, barH);
+  }
+  x += barW * 1.12;
+
+  ctx.fillStyle = "#FFFFFF";
+  for (const ch of "POOL") {
+    ctx.fillText(ch, x, y);
+    x += ctx.measureText(ch).width * tracking;
+  }
+
+  const underlineY = y + fontPx * 0.4;
+  ctx.fillStyle = RACEPOOL_RED;
+  ctx.fillRect(w * 0.08, underlineY, x - w * 0.08, Math.max(3, h * 0.032));
 }
 
 function starMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
@@ -213,20 +223,15 @@ function starMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: numb
   ctx.stroke();
 }
 
-function drawRacingStar(ctx: CanvasRenderingContext2D, carId: CarId, w: number, h: number): void {
-  const fill = carId === "bison" ? "#69DB7C" : carId === "bunker" ? "#FFD43B" : "#3DB9C7";
-  const cx = w * 0.48;
-  const cy = h * 0.52;
-  const r = Math.min(w, h) * 0.42;
-  ctx.fillStyle = fill;
-  ctx.lineWidth = Math.max(5, Math.min(w, h) * 0.07);
-  starMark(ctx, cx, cy, r);
-  ctx.fillStyle = "#F8F9FA";
-  ctx.lineWidth = Math.max(2.5, ctx.lineWidth * 0.5);
-  starMark(ctx, cx - r * 0.06, cy - r * 0.08, r * 0.38);
-  ctx.fillStyle = fill;
+/** Racepool99 flat vector look (#E63212 track-outline red) as racing stars. */
+function drawRacingStar(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
+  ctx.fillStyle = RACEPOOL_RED;
+  ctx.strokeStyle = ink();
+  ctx.lineWidth = Math.max(4, Math.min(w, h) * 0.055);
+  starMark(ctx, w * 0.42, h * 0.52, Math.min(w, h) * 0.4);
   ctx.lineWidth = Math.max(3, Math.min(w, h) * 0.04);
-  starMark(ctx, w * 0.82, h * 0.28, Math.min(w, h) * 0.14);
+  starMark(ctx, w * 0.78, h * 0.32, Math.min(w, h) * 0.16);
+  starMark(ctx, w * 0.82, h * 0.72, Math.min(w, h) * 0.11);
 }
 
 function ironCladLogo(ctx: CanvasRenderingContext2D, w: number, h: number): void {
@@ -313,13 +318,9 @@ export function drawStickerArt(
 /** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none") return null;
-  return canvasTex(`sticker-v5-plate:${carId}:${sticker}`, 512, 256, (ctx) => {
-    // Opaque comic plate so DecalGeometry UVs always read on the body.
-    ctx.fillStyle = "#FFF3D6";
-    ctx.fillRect(0, 0, 512, 256);
-    ctx.strokeStyle = ink();
-    ctx.lineWidth = 10;
-    ctx.strokeRect(6, 6, 500, 244);
+  return canvasTex(`sticker-v6:${carId}:${sticker}`, 512, 256, (ctx) => {
+    // Transparent field — art draws its own plate when needed (Blitz wordmark).
+    ctx.clearRect(0, 0, 512, 256);
     drawStickerArt(ctx, sticker, carId, 512, 256);
   });
 }

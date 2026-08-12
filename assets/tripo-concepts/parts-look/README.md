@@ -1,6 +1,15 @@
 # Parts look — Asphalt-Comic 2D targets
 
-How each garage **Teil** should read **on each car**. Use these when baking Tripo add-ons or placing meshes.
+How each garage **Teil** should read **on each car**. Use these when placing meshes.
+
+## Runtime policy (v0.3.27+)
+
+| Car | Mesh source |
+|-----|-------------|
+| **Blitz** | Tripo / extracted GLBs under `public/models/parts/blitz-*.glb` |
+| **Bison, Käferkraft, Donnerbüchse, Bunker** | Class-shaped **procedural** builders in `carPartBuilders.ts` (look-sheet silhouettes) |
+
+Do **not** remount Blitz kits on other classes — proportions and mounts diverge from the sheets below.
 
 ## Full sheets (all 9 parts per car)
 
@@ -18,13 +27,13 @@ Naming: `{carId}-item-{partId}.png`
 
 | PartId | German name | Mount cue |
 |--------|-------------|-----------|
-| `big_engine` | Großer Motor | Hood / engine scoop (intakes toward nose) |
+| `big_engine` | Großer Motor | Hood / engine scoop (intakes toward nose); Käferkraft = rear block |
 | `big_wheels` | Große Räder | Fatter tires + raised stance |
 | `spike_bumper` | Spike-Stoßstange | Spiked front bumper / brush guard |
 | `better_brakes` | Bessere Bremsen | Oversized comic calipers / discs |
-| `reinforced_frame` | Verstärkter Rahmen | Sill armor + rear half-cage / bars |
-| `lightweight_body` | Leichtbau-Karosserie | Carbon vents / drilled light panels |
-| `nitro_kit` | Nitro-Kit | Nitro bottles at rear / bed / cage |
+| `reinforced_frame` | Verstärkter Rahmen | Sill armor + rear half-cage / bed bar / exo |
+| `lightweight_body` | Leichtbau-Karosserie | Carbon vents / drilled / tri cutouts |
+| `nitro_kit` | Nitro-Kit | Nitro bottles at rear / bed / cage / side |
 | `offroad_suspension` | Gelände-Federung | Visible coil springs + lift |
 | `rear_spoiler` | Heckspoiler | Rear wing (Blitz = original GT wing) |
 

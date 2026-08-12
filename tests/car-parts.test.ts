@@ -81,6 +81,7 @@ describe("Equipped-part visuals (all cars)", () => {
   it("places Käferkraft Großer Motor toward the rear (nose −X child space)", () => {
     const anchors = CAR_PART_LAYOUTS.kaeferkraft.big_engine.anchors;
     expect(anchors[0]!.x).toBeGreaterThan(0.5);
+    expect(anchors[0]!.yaw).toBeCloseTo(0);
     expect(CAR_PART_LAYOUTS.kaeferkraft.big_engine.preferGlb).toBe(false);
   });
 
@@ -154,28 +155,55 @@ describe("Equipped-part visuals (all cars)", () => {
     }
   });
 
-  it("uses Tripo GLB on every car when registered", () => {
+  it("uses Tripo GLB only on Blitz; other cars stay procedural", () => {
     registerBlitzPartTemplate("rear_spoiler", fakePartTemplate());
-    for (const id of CAR_IDS as CarId[]) {
+    const blitz = new Group();
+    applyEquippedPartVisuals(blitz, "blitz", ["rear_spoiler"]);
+    expect(blitz.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeTruthy();
+
+    for (const id of ["bison", "kaeferkraft", "donnerbuechse", "bunker"] as CarId[]) {
+      expect(CAR_PART_LAYOUTS[id].rear_spoiler.preferGlb).toBe(false);
+      expect(CAR_PART_LAYOUTS[id].big_engine.preferGlb).toBe(false);
+      expect(CAR_PART_LAYOUTS[id].nitro_kit.preferGlb).toBe(false);
       const root = new Group();
       applyEquippedPartVisuals(root, id, ["rear_spoiler"]);
-      expect(root.getObjectByName(blitzPartObjectName("rear_spoiler")), id).toBeTruthy();
+      const part = root.getObjectByName(blitzPartObjectName("rear_spoiler"));
+      expect(part, id).toBeTruthy();
+      expect(part!.name).toBe("carPart-rear_spoiler");
     }
   });
 
-  it("snaps hood scoop onto body surface Y", () => {
+  it("places Bison scoop near windshield and nitro on the bed", () => {
+    const scoopZ = CAR_PART_LAYOUTS.bison.big_engine.anchors[0]!.z;
+    const nitroZ = CAR_PART_LAYOUTS.bison.nitro_kit.anchors[0]!.z;
+    expect(scoopZ).toBeLessThan(0.75);
+    expect(scoopZ).toBeGreaterThan(0.35);
+    expect(nitroZ).toBeLessThan(-0.6);
+    expect(nitroZ).toBeGreaterThan(-1.3);
+  });
+
+  it("places Donner nitro on the driver side (−X)", () => {
+    expect(CAR_PART_LAYOUTS.donnerbuechse.nitro_kit.anchors[0]!.x).toBeLessThan(-0.8);
+    expect(CAR_PART_LAYOUTS.donnerbuechse.reinforced_frame.preferGlb).toBe(false);
+  });
+
+  it("snaps hood scoop onto body surface Y near preferY (not roof)", () => {
     registerBlitzPartTemplate("big_engine", fakePartTemplate());
     const root = new Group();
     const body = new Mesh(new BoxGeometry(1.6, 0.4, 2.4), new MeshBasicMaterial());
     body.name = "BodyPaint";
     body.position.set(0, 0.5, 0);
     root.add(body);
+    const cab = new Mesh(new BoxGeometry(1.2, 0.6, 0.8), new MeshBasicMaterial());
+    cab.name = "Cab";
+    cab.position.set(0, 1.1, -0.2);
+    root.add(cab);
 
     applyEquippedPartVisuals(root, "bison", ["big_engine"]);
     const scoop = root.getObjectByName(blitzPartObjectName("big_engine"));
     expect(scoop).toBeTruthy();
-    // Body top ~0.7; fake part half-height 0.1 → sit near 0.72+
-    expect(scoop!.position.y).toBeGreaterThan(0.65);
-    expect(scoop!.position.y).toBeLessThan(1.2);
+    // Prefer hood (~0.7) over cab roof (~1.4)
+    expect(scoop!.position.y).toBeGreaterThan(0.55);
+    expect(scoop!.position.y).toBeLessThan(1.15);
   });
 });
