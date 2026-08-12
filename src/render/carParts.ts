@@ -94,8 +94,21 @@ export type BlitzPartAnchor = PartAnchor;
 export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
   // Extracted original wing — fixed pose, no surface snap.
   rear_spoiler: [{ x: 0, y: 0.78, z: -1.55, yaw: 0, scale: 1.05, snap: false }],
-  big_engine: [{ x: 0, y: 0.52, z: 1.42, yaw: Math.PI, scale: 0.68, sitGap: 0.01 }],
-  nitro_kit: [{ x: 0, y: 0.08, z: -1.7, yaw: 0, scale: 1, snap: false }],
+  // Hood scoop — prefer hood height so cabin roof does not win the surface sample.
+  big_engine: [
+    {
+      x: 0,
+      y: 0.52,
+      z: 1.28,
+      yaw: Math.PI,
+      scale: 0.82,
+      sitGap: 0.01,
+      preferY: 0.55,
+      snapRadius: 0.35,
+    },
+  ],
+  // Look sheet: twin bottles on the rear bumper (not under the diffuser).
+  nitro_kit: [{ x: 0, y: 0.38, z: -1.85, yaw: 0, scale: 1.45, snap: false }],
   spike_bumper: [{ x: 0, y: 0.06, z: 1.7, yaw: 0, scale: 1.12, snap: false }],
   offroad_suspension: [
     { x: 0.7, y: 0.06, z: 1.05, yaw: 0, scale: 0.7, snap: false },
@@ -104,10 +117,18 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
     { x: -0.7, y: 0.06, z: -1.08, yaw: Math.PI, scale: 0.7, snap: false },
   ],
   reinforced_frame: [{ x: 0, y: 0.22, z: -0.15, yaw: 0, scale: 1.05, snap: false }],
+  // Look sheet: hood louvers on the forward deck (single panel — not roof / side triples).
   lightweight_body: [
-    { x: 0, y: 0.58, z: 0.38, yaw: 0, scale: 1.65, sitGap: 0.015 },
-    { x: 0.82, y: 0.42, z: 0.12, yaw: Math.PI / 2, scale: 1.2, sitGap: 0.015 },
-    { x: -0.82, y: 0.42, z: 0.12, yaw: -Math.PI / 2, scale: 1.2, sitGap: 0.015 },
+    {
+      x: 0,
+      y: 0.52,
+      z: 1.05,
+      yaw: 0,
+      scale: 2.65,
+      sitGap: 0.01,
+      preferY: 0.52,
+      snapRadius: 0.3,
+    },
   ],
 };
 

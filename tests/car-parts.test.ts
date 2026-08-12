@@ -51,6 +51,40 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(BLITZ_PART_PLACEMENT.big_engine[0]!.z).toBeGreaterThan(1.25);
     expect(BLITZ_PART_PLACEMENT.big_engine[0]!.y).toBeLessThan(0.6);
     expect(BLITZ_PART_PLACEMENT.big_engine[0]!.yaw).toBeCloseTo(Math.PI);
+    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.preferY).toBeLessThan(0.7);
+  });
+
+  it("places Blitz Leichtbau louvers on the hood (not cabin roof triples)", () => {
+    const anchors = BLITZ_PART_PLACEMENT.lightweight_body;
+    expect(anchors).toHaveLength(1);
+    expect(anchors[0]!.z).toBeGreaterThan(0.7);
+    expect(anchors[0]!.z).toBeLessThan(1.2);
+    expect(anchors[0]!.preferY).toBeLessThan(0.7);
+
+    registerBlitzPartTemplate("lightweight_body", fakePartTemplate());
+    const root = new Group();
+    const body = new Mesh(new BoxGeometry(1.6, 0.4, 2.4), new MeshBasicMaterial());
+    body.name = "BodyPaint";
+    body.position.set(0, 0.5, 0);
+    root.add(body);
+    const cab = new Mesh(new BoxGeometry(1.2, 0.6, 0.8), new MeshBasicMaterial());
+    cab.name = "Cab";
+    cab.position.set(0, 1.1, -0.2);
+    root.add(cab);
+
+    applyEquippedPartVisuals(root, "blitz", ["lightweight_body"]);
+    const vent = root.getObjectByName(blitzPartObjectName("lightweight_body"));
+    expect(vent).toBeTruthy();
+    expect(root.getObjectByName(blitzPartObjectName("lightweight_body", 1))).toBeUndefined();
+    expect(vent!.position.y).toBeGreaterThan(0.45);
+    expect(vent!.position.y).toBeLessThan(1.05);
+  });
+
+  it("places Blitz Nitro bottles on the rear bumper (look-sheet height)", () => {
+    const a = BLITZ_PART_PLACEMENT.nitro_kit[0]!;
+    expect(a.z).toBeLessThan(-1.6);
+    expect(a.y).toBeGreaterThan(0.3);
+    expect(a.scale).toBeGreaterThan(1.2);
   });
 
   it("does not seal Blitz cabin with opaque glass planes", () => {
