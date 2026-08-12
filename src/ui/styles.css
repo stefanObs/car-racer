@@ -781,6 +781,15 @@ button[data-act="race"]:not(:disabled) {
   color: #ffe066;
 }
 
+.hud-drift {
+  margin-top: 4px;
+  font-size: 0.95rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  color: #ff7a18;
+  text-shadow: 0 0 0 #1b1b1f;
+}
+
 .wrong-way {
   position: absolute;
   left: 50%;
@@ -907,7 +916,7 @@ button[data-act="race"]:not(:disabled) {
   right: max(8px, env(safe-area-inset-right));
   bottom: max(8px, env(safe-area-inset-bottom));
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 8px;
 }
 

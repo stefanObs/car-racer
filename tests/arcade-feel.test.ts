@@ -57,7 +57,7 @@ describe("arcade racing feel", () => {
   it("coasts instead of dumping speed when throttle is released", () => {
     const { track, car } = onTrackCar(20);
     for (let i = 0; i < 30; i++) {
-      stepCar(car, { throttle: 0, brake: 0, steer: 0, nitro: false }, track, 1 / 60, catchUp);
+      stepCar(car, { throttle: 0, brake: 0, steer: 0, nitro: false, drift: false }, track, 1 / 60, catchUp);
     }
     // ~0.5s coast — should keep most of the pace
     expect(car.speed).toBeGreaterThan(14);
@@ -66,7 +66,7 @@ describe("arcade racing feel", () => {
   it("builds pace quickly toward top speed under full throttle", () => {
     const { track, car } = onTrackCar(0);
     for (let i = 0; i < 60; i++) {
-      stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, catchUp);
+      stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false, drift: false }, track, 1 / 60, catchUp);
     }
     expect(car.speed).toBeGreaterThan(22);
   });
@@ -74,7 +74,7 @@ describe("arcade racing feel", () => {
   it("allows a slip angle under hard steer at speed (grip, not tank controls)", () => {
     const { track, car } = onTrackCar(24);
     for (let i = 0; i < 20; i++) {
-      stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false }, track, 1 / 60, catchUp);
+      stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, track, 1 / 60, catchUp);
     }
     const moveAng = Math.atan2(car.vz, car.vx);
     let slip = Math.abs(moveAng - car.heading);

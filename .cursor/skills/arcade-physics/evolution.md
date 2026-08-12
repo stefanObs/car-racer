@@ -7,6 +7,12 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-12 — v3.42 Dedicated Drift control
+- Trigger: user — still no drifting after implicit powerslide
+- RCA: drift was only hard-steer auto; no discoverable control like Kart R
+- Decision: Drift action Strg/E · LB · Touch; `driftIntent` requires hold; HUD „DRIFT“; stronger slide feed
+- CONCEPT §4.2–4.3 → v3.42
+
 ### 2026-08-12 — v3.40 Kart-style powerslide + punchy nitro
 - Trigger: user — feel should be Mario Kart / Split Second; no real drifting; nitro lame
 - RCA: grip pull too sticky (tank corners); nitro only mild continuous force under ~10% headroom

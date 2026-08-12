@@ -8,10 +8,11 @@ import { CUP_LEVELS } from "../src/data/levels";
 import { surfaceAt } from "../src/sim/zones";
 import { APP_VERSION } from "../src/core/version";
 import { formatChf } from "../src/meta/save";
+import pkg from "../package.json";
 
 describe("mvp core", () => {
   it("versions the build", () => {
-    expect(APP_VERSION).toBe("0.3.30");
+    expect(APP_VERSION).toBe(pkg.version);
   });
 
   it("builds a closed cup track with asphalt width", () => {

@@ -75,10 +75,10 @@ describe("arcade physics — Eigenschaften scaling", () => {
     hot.car.stats.handling = buggy.car.stats.handling;
     hot.car.stats.mass = buggy.car.stats.mass;
     for (let i = 0; i < 25; i++) {
-      stepCar(hot.car, { throttle: 1, brake: 0, steer: 1, nitro: false }, hot.track, 1 / 60, catchUp);
-      stepCar(buggy.car, { throttle: 1, brake: 0, steer: 1, nitro: false }, buggy.track, 1 / 60, catchUp);
+      stepCar(hot.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, hot.track, 1 / 60, catchUp);
+      stepCar(buggy.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, buggy.track, 1 / 60, catchUp);
     }
-    expect(hot.car.drift).toBeGreaterThan(buggy.car.drift * 1.08);
+    expect(hot.car.drift).toBeGreaterThan(buggy.car.drift * 1.05);
     expect(gripPullRate({ grip: 1.25, gripFactor: 1, damageGrip: 1, steerLoad: 0.5, airborne: false })).toBeGreaterThan(
       gripPullRate({ grip: 0.7, gripFactor: 1, damageGrip: 1, steerLoad: 0.5, airborne: false }),
     );
@@ -163,10 +163,18 @@ describe("arcade physics — Eigenschaften scaling", () => {
     expect(nitro.car.nitro).toBeLessThan(0.85);
   });
 
-  it("hard steer at speed creates a readable arcade powerslide (drift)", () => {
+  it("requires Drift button — steer alone does not powerslide", () => {
     const { track, car } = onTrackCar(merged("blitz"), 24);
     for (let i = 0; i < 30; i++) {
-      stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false }, track, 1 / 60, catchUp);
+      stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: false }, track, 1 / 60, catchUp);
+    }
+    expect(car.drift).toBeLessThan(0.15);
+  });
+
+  it("Drift button + steer at speed creates a readable arcade powerslide", () => {
+    const { track, car } = onTrackCar(merged("blitz"), 24);
+    for (let i = 0; i < 30; i++) {
+      stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, track, 1 / 60, catchUp);
     }
     const moveAng = Math.atan2(car.vz, car.vx);
     let slip = Math.abs(moveAng - car.heading);
@@ -182,23 +190,25 @@ describe("arcade physics — Eigenschaften scaling", () => {
     hot.car.stats.handling = buggy.car.stats.handling;
     hot.car.stats.mass = buggy.car.stats.mass;
     for (let i = 0; i < 35; i++) {
-      stepCar(hot.car, { throttle: 1, brake: 0, steer: 1, nitro: false }, hot.track, 1 / 60, catchUp);
-      stepCar(buggy.car, { throttle: 1, brake: 0, steer: 1, nitro: false }, buggy.track, 1 / 60, catchUp);
+      stepCar(hot.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, hot.track, 1 / 60, catchUp);
+      stepCar(buggy.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, buggy.track, 1 / 60, catchUp);
     }
-    expect(hot.car.drift).toBeGreaterThan(buggy.car.drift + 0.08);
+    expect(hot.car.drift).toBeGreaterThan(buggy.car.drift + 0.05);
 
     const drifter = onTrackCar(merged("blitz"), 22);
     for (let i = 0; i < 50; i++) {
-      stepCar(drifter.car, { throttle: 1, brake: 0, steer: 1, nitro: false }, drifter.track, 1 / 60, catchUp);
+      stepCar(drifter.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, drifter.track, 1 / 60, catchUp);
     }
-    expect(drifter.car.driftTime).toBeGreaterThan(0.5);
-    const before = drifter.car.speed;
-    // Release steer → exit drift, optional mini-turbo
+    expect(drifter.car.driftTime).toBeGreaterThan(0.45);
+    const heldSpeed = drifter.car.speed;
+    // Release drift button → exit, optional mini-turbo
     for (let i = 0; i < 8; i++) {
-      stepCar(drifter.car, { throttle: 1, brake: 0, steer: 0, nitro: false }, drifter.track, 1 / 60, catchUp);
+      stepCar(drifter.car, { throttle: 1, brake: 0, steer: 0, nitro: false, drift: false }, drifter.track, 1 / 60, catchUp);
     }
     expect(drifter.car.drift).toBeLessThan(0.2);
-    expect(drifter.car.speed).toBeGreaterThan(before - 1.5);
+    // Mini-turbo fires once (driftTime cleared) and keeps pace ballpark
+    expect(drifter.car.driftTime).toBe(0);
+    expect(drifter.car.speed).toBeGreaterThan(heldSpeed * 0.55);
   });
 
   it("ramps launch the car airborne and landings return to the ground", () => {

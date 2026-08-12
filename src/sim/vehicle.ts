@@ -16,6 +16,8 @@ export interface DriverInput {
   brake: number; // 0..1
   steer: number; // -1..1
   nitro: boolean;
+  /** Hold to enter arcade powerslide while steering (Kart-style). */
+  drift?: boolean;
 }
 
 export type MergedVehicleStats = VehicleStats & {
@@ -81,7 +83,7 @@ const COAST_BRAKE = 3.5;
 const AIR_STEER_SCALE = 0.35;
 const AIRBORNE_EPS = 0.04;
 const DRIFT_MIN_SPEED = 11;
-const MINI_TURBO_TIME = 0.55;
+const MINI_TURBO_TIME = 0.45;
 const MINI_TURBO_KICK = 5.5;
 
 export function createCarState(
@@ -172,7 +174,7 @@ export function yawRateFor(opts: {
   const massCut = 1 / (0.82 + 0.18 * opts.mass);
   const surfaceSteer = 0.55 + 0.45 * opts.gripFactor;
   const drift = opts.drift ?? 0;
-  const driftYaw = 1 + drift * 1.15;
+  const driftYaw = 1 + drift * 1.85;
   const auth =
     opts.steer *
     (1.9 + opts.handling * 1.2) *
@@ -205,27 +207,25 @@ export function nitroKickFor(nitroBonus: number, nitroMult: number): number {
 
 /**
  * How committed the car is to an arcade powerslide (0..1).
- * Hard steer + speed + gas/light brake; low Grip enters easier.
+ * Requires Drift button held + steer + speed; low Grip enters deeper.
  */
 export function driftIntent(opts: {
+  driftHeld: boolean;
   steer: number;
   speed: number;
-  throttle: number;
-  brake: number;
   grip: number;
   gripFactor: number;
   airborne: boolean;
 }): number {
-  if (opts.airborne || opts.speed < DRIFT_MIN_SPEED) return 0;
+  if (!opts.driftHeld || opts.airborne || opts.speed < DRIFT_MIN_SPEED) return 0;
   const steerAmt = Math.abs(opts.steer);
-  if (steerAmt < 0.35) return 0;
-  const drive = opts.throttle > 0.25 || opts.brake > 0.15;
-  if (!drive) return 0;
-  const gripEase = Math.max(0.45, Math.min(1.55, 1.55 - opts.grip * opts.gripFactor * 0.65));
-  const speedT = Math.min(1, (opts.speed - DRIFT_MIN_SPEED) / 14);
-  const steerT = Math.min(1, (steerAmt - 0.35) / 0.55);
-  const brakeHelp = opts.brake > 0.15 ? 1.12 : 1;
-  return Math.max(0, Math.min(1, steerT * (0.55 + 0.45 * speedT) * gripEase * brakeHelp));
+  if (steerAmt < 0.12) return 0;
+  const gripEase = Math.max(0.55, Math.min(1.6, 1.6 - opts.grip * opts.gripFactor * 0.7));
+  const speedT = Math.min(1, (opts.speed - DRIFT_MIN_SPEED) / 12);
+  const steerT = Math.min(1, steerAmt / 0.75);
+  // Button lock: readable floor so drift always feels "on" once engaged
+  const raw = 0.42 + steerT * 0.45 * (0.5 + 0.5 * speedT) * gripEase;
+  return Math.max(0, Math.min(1, raw));
 }
 
 /** How hard lateral velocity is pulled back toward the nose (higher = less slide). */
@@ -240,8 +240,8 @@ export function gripPullRate(opts: {
   if (opts.airborne) return 0.35;
   const gripStat = opts.grip * opts.gripFactor * opts.damageGrip;
   const base = (3.4 + gripStat * 6.2) * (1 - opts.steerLoad * 0.55);
-  const driftCut = 1 - Math.min(0.88, (opts.drift ?? 0) * 0.92);
-  return Math.max(0.4, base * driftCut);
+  const driftCut = 1 - Math.min(0.95, (opts.drift ?? 0) * 0.98);
+  return Math.max(0.15, base * driftCut);
 }
 
 function syncSpeedFromVelocity(car: CarState): void {
@@ -292,10 +292,9 @@ export function stepCar(
   surface.bump = Math.min(1, surface.bump + passable.bumpAdd);
 
   const intent = driftIntent({
+    driftHeld: Boolean(input.drift),
     steer: input.steer,
     speed: car.speed,
-    throttle: input.throttle,
-    brake: input.brake,
     grip: car.stats.grip,
     gripFactor: surface.gripFactor * dmg.grip,
     airborne,
@@ -305,11 +304,16 @@ export function stepCar(
     intent > car.drift ? 1 - Math.exp(-11 * dt) : 1 - Math.exp(-(intent < 0.05 ? 16 : 8) * dt);
   const prevDrift = car.drift;
   car.drift = car.drift + (intent - car.drift) * driftLerp;
-  if (car.drift > 0.35) car.driftTime += dt;
+  if (car.drift > 0.25) car.driftTime += dt;
   else car.driftTime = Math.max(0, car.driftTime - dt * 2);
 
-  // Mini-turbo when releasing a held drift (Kart-style)
-  if (prevDrift > 0.4 && car.drift < 0.25 && car.driftTime >= MINI_TURBO_TIME && !airborne) {
+  // Mini-turbo when releasing a charged Drift hold (Kart-style)
+  if (
+    !Boolean(input.drift) &&
+    prevDrift > 0.35 &&
+    car.driftTime >= MINI_TURBO_TIME &&
+    !airborne
+  ) {
     const hxKick = Math.cos(car.heading);
     const hzKick = Math.sin(car.heading);
     const kick = MINI_TURBO_KICK * (0.85 + 0.2 * Math.min(1, car.driftTime));
@@ -414,14 +418,20 @@ export function stepCar(
   car.vx -= latX * pull;
   car.vz -= latZ * pull;
 
-  // Feed the slide: push velocity outward while drifting so slip stays readable
-  if (car.drift > 0.2 && !airborne && Math.abs(input.steer) > 0.2) {
+  // Feed the slide: strong outward velocity while Drift is engaged
+  if (car.drift > 0.15 && !airborne && Math.abs(input.steer) > 0.1) {
     const side = Math.sign(input.steer) || 1;
     const lx = -hz2 * side;
     const lz = hx2 * side;
-    const feed = car.speed * car.drift * 1.85 * dt;
+    const feed = car.speed * car.drift * 5.8 * dt;
     car.vx += lx * feed;
     car.vz += lz * feed;
+    // Keep a chunk of sideways velocity from being deleted by grip
+    if (car.drift > 0.4) {
+      const keep = 0.35 * car.drift;
+      car.vx += lx * car.speed * keep * (1 - pull) * 0.15;
+      car.vz += lz * car.speed * keep * (1 - pull) * 0.15;
+    }
   }
 
   // Tire scrub: hard cornering costs a little pace (less while drifting)

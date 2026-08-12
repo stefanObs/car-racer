@@ -19,6 +19,11 @@ Append newest first.
 - Decision: 10 theme props (grandstand/palm/hut/tower/building/cliff/spire/tree/warehouse/scrub) via concept→Tripo→bake; outer-side placement + `SCENERY_CLEARANCE=12`; panorama/sky refreshed per proposal; Hafenstart kit unchanged
 - CONCEPT §§ touched: §8.2 → v3.41
 
+### 2026-08-12 — v3.42 Dedicated Drift button (Kart-style)
+- Trigger: user — still no drifting
+- Decision: Explicit Drift on Strg/E, LB/L1, Touch; powerslide only while held + steer; HUD indicator
+- CONCEPT §4.2 → v3.42
+
 ### 2026-08-12 — v3.40 Arcade powerslide + punchy nitro
 - Trigger: user — Mario Kart / Split Second feel; drifting missing; nitro lame
 - Decision: CONCEPT clarifies arcade powerslide (not tire sim) + kick nitro; `vehicle.ts` driftIntent/mini-turbo + nitroKick/headroom

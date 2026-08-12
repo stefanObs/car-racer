@@ -22,7 +22,7 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 | Bremsen | `better_brakes` → `brakeBonus` | Multiplies `brakeForceFor` |
 | Ram | `spike_bumper` → `ramBonus` | Stronger contact impulse + damage share |
 | Gras | class / synergy `grassMitigation` | `surfaceAt` grass speed/grip soften (never full remove) |
-| Arcade-Drift | hard steer + tempo + gas/light brake | `driftIntent` → `car.drift`; yaw opens, grip pull drops, lateral feed; mini-turbo on exit after ~0.55s |
+| Arcade-Drift | hold Drift + steer + tempo | `driftIntent` → `car.drift`; yaw opens, grip pull drops, lateral feed; mini-turbo on exit after ~0.55s |
 
 ## Surfaces & air
 

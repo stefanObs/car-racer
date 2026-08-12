@@ -117,7 +117,8 @@ export class RaceSession {
     while (err < -Math.PI) err += Math.PI * 2;
     const steer = Math.max(-1, Math.min(1, err * 1.6));
     const nitro = car.nitro > 0.5 && Math.abs(err) < 0.25 && car.speed > 10;
-    return { throttle: 0.85, brake: Math.abs(err) > 0.9 ? 0.35 : 0, steer, nitro };
+    const drift = Math.abs(err) > 0.35 && car.speed > 12;
+    return { throttle: 0.85, brake: Math.abs(err) > 0.9 ? 0.35 : 0, steer, nitro, drift };
   }
 
   private addStyle(amount: number, reason: string): void {

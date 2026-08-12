@@ -3,6 +3,8 @@ export interface Actions {
   brake: number;
   steer: number;
   nitro: boolean;
+  /** Hold for arcade drift / powerslide. */
+  drift: boolean;
   uiConfirm: boolean;
   uiBack: boolean;
   uiUp: boolean;
@@ -16,7 +18,11 @@ const keys = new Set<string>();
 export function bindKeyboard(): void {
   window.addEventListener("keydown", (e) => {
     keys.add(e.code);
-    if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space"].includes(e.code)) {
+    if (
+      ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Space", "ControlLeft", "ControlRight"].includes(
+        e.code,
+      )
+    ) {
       e.preventDefault();
     }
   });
@@ -29,6 +35,7 @@ export interface TouchState {
   left: boolean;
   right: boolean;
   nitro: boolean;
+  drift: boolean;
 }
 
 export const touchState: TouchState = {
@@ -37,6 +44,7 @@ export const touchState: TouchState = {
   left: false,
   right: false,
   nitro: false,
+  drift: false,
 };
 
 function readGamepad(): Partial<Actions> {
@@ -49,11 +57,14 @@ function readGamepad(): Partial<Actions> {
   const throttle = Math.max(0, pad.buttons[7]?.value ?? 0);
   const brake = Math.max(0, pad.buttons[6]?.value ?? 0);
   const nitro = pad.buttons[0]?.pressed || pad.buttons[5]?.pressed;
+  // LB / L1 — dedicated drift (Kart R analog on left bumper so RB stays nitro)
+  const drift = Boolean(pad.buttons[4]?.pressed);
   return {
     steer: Math.abs(steerAxis) > 0.12 ? steerAxis : 0,
     throttle,
     brake,
     nitro: Boolean(nitro),
+    drift,
     uiConfirm: Boolean(pad.buttons[0]?.pressed),
     uiBack: Boolean(pad.buttons[1]?.pressed),
     uiUp: Boolean(pad.buttons[12]?.pressed) || uiAxisY < -0.55,
@@ -71,23 +82,27 @@ export function sampleActions(): Actions {
   if (keys.has("KeyA") || keys.has("ArrowLeft")) steer -= 1;
   if (keys.has("KeyD") || keys.has("ArrowRight")) steer += 1;
   let nitro = keys.has("Space") || keys.has("ShiftLeft") || keys.has("ShiftRight");
+  let drift = keys.has("ControlLeft") || keys.has("ControlRight") || keys.has("KeyE");
 
   if (touchState.throttle) throttle = 1;
   if (touchState.brake) brake = 1;
   if (touchState.left) steer -= 1;
   if (touchState.right) steer += 1;
   if (touchState.nitro) nitro = true;
+  if (touchState.drift) drift = true;
 
   throttle = Math.max(throttle, gp.throttle ?? 0);
   brake = Math.max(brake, gp.brake ?? 0);
   if (gp.steer !== undefined && gp.steer !== 0) steer = gp.steer;
   nitro = nitro || Boolean(gp.nitro);
+  drift = drift || Boolean(gp.drift);
 
   return {
     throttle,
     brake,
     steer: Math.max(-1, Math.min(1, steer)),
     nitro,
+    drift,
     // Keyboard menu nav is handled on keydown in GameApp (avoids missed edges).
     uiConfirm: Boolean(gp.uiConfirm),
     uiBack: Boolean(gp.uiBack),

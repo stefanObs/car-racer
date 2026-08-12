@@ -150,12 +150,13 @@ export class GameApp {
         this.race.step(
           dt,
           typing
-            ? { throttle: 0, brake: 0, steer: 0, nitro: false }
+            ? { throttle: 0, brake: 0, steer: 0, nitro: false, drift: false }
             : {
                 throttle: actions.throttle,
                 brake: actions.brake,
                 steer: actions.steer,
                 nitro: actions.nitro,
+                drift: actions.drift,
               },
         );
         this.renderer.sync(this.race);
@@ -341,6 +342,11 @@ export class GameApp {
             <div class="bar" data-dev-name="hud.nitro"><span>Nitro</span><i style="width:${Math.round(p.nitro * 100)}%"></i></div>
             <div class="bar" data-dev-name="hud.hp"><span>Karosserie</span><i class="hp" style="width:${Math.round(p.hp * 100)}%"></i></div>
           </div>
+          ${
+            p.drift > 0.35
+              ? `<div class="hud-row hud-drift" data-dev-name="hud.drift">DRIFT${p.driftTime >= 0.55 ? " · Turbo bereit" : ""}</div>`
+              : ""
+          }
           <div class="hud-row hud-style" data-dev-name="hud.style-total">Style ${formatChf(this.race.styleBonus)}</div>
         </div>
         <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>
@@ -401,7 +407,7 @@ export class GameApp {
         <h1 class="brand">Crash Circuit</h1>
         <p class="tag">Hilfe & Infos</p>
         <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}</p>
-        <p class="help">Tastatur: WASD / Pfeile, Enter, Esc · Controller: D-Pad/Stick, A/B · Tablet: Touch · Dev: F1/F2/F3</p>
+        <p class="help">Tastatur: WASD / Pfeile, Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LB Drift, A/RB Nitro · Tablet: Touch</p>
         <div class="stack">
           <button data-nav data-act="garage">Zur Garage</button>
         </div>
@@ -479,6 +485,7 @@ export class GameApp {
           <button type="button" data-touch="brake">Bremse</button>
           <button type="button" data-touch="throttle">Gas</button>
           <button type="button" data-touch="right">▶</button>
+          <button type="button" data-touch="drift">Drift</button>
           <button type="button" data-touch="nitro">Nitro</button>
         </div>
       `;
