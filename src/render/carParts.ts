@@ -5,13 +5,10 @@
  */
 import {
   Box3,
-  DoubleSide,
   Group,
   Matrix4,
   Mesh,
-  MeshBasicMaterial,
   Object3D,
-  PlaneGeometry,
   Vector3,
   type MeshToonMaterial,
 } from "three";
@@ -645,37 +642,9 @@ function mountGlbOrProc(
   placeAnchored(group, bodyRoot, id, anchors, procedural, defaultSnap);
 }
 
-/** Opaque comic cabin glass so the Tripo windshield hole does not read as open. */
+/** @deprecated No-op — Tripo Blitz glass is kept; opaque plane seal removed. */
 export function sealBlitzCabinGlass(root: Object3D): void {
   root.getObjectByName(BLITZ_CABIN_GLASS)?.removeFromParent();
-  const g = new Group();
-  g.name = BLITZ_CABIN_GLASS;
-  g.userData.blitzCabinGlass = true;
-
-  const glassMat = () => {
-    const m = new MeshBasicMaterial({
-      color: 0x2c3642,
-      side: DoubleSide,
-    });
-    m.name = "Glass";
-    return m;
-  };
-
-  const windshield = new Mesh(new PlaneGeometry(1.15, 0.48), glassMat());
-  windshield.name = "blitzWindshield";
-  windshield.position.set(0, 0.88, 0.38);
-  windshield.rotation.x = -0.95;
-  g.add(windshield);
-
-  for (const side of [-1, 1] as const) {
-    const sideGlass = new Mesh(new PlaneGeometry(0.7, 0.36), glassMat());
-    sideGlass.name = side < 0 ? "blitzSideGlassL" : "blitzSideGlassR";
-    sideGlass.position.set(side * 0.79, 0.8, -0.08);
-    sideGlass.rotation.y = side * (Math.PI / 2);
-    g.add(sideGlass);
-  }
-
-  root.add(g);
 }
 
 /** Attach / hide part meshes from `kit.equippedParts` for any car. */
@@ -686,9 +655,8 @@ export function applyEquippedPartVisuals(
 ): void {
   root.getObjectByName(CAR_PARTS_GROUP)?.removeFromParent();
   root.getObjectByName("blitzParts")?.removeFromParent();
-
-  if (carId === "blitz") sealBlitzCabinGlass(root);
-  else root.getObjectByName(BLITZ_CABIN_GLASS)?.removeFromParent();
+  // Prefer Tripo cabin glass — strip any leftover opaque plane seal.
+  root.getObjectByName(BLITZ_CABIN_GLASS)?.removeFromParent();
 
   const layout = CAR_PART_LAYOUTS[carId];
   const equipped = new Set(equippedParts);

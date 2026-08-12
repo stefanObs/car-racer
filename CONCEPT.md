@@ -496,4 +496,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.31 — Hafenstart Kai/Wasser-Umgebung, kein Grünwand-Horizont.*
+*Dokumentstand: Konzept v3.32 — Blitz Tripo-Kabinenfenster wiederhergestellt.*

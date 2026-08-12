@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.32 Blitz Tripo cabin glass restored
+- Trigger: user — Blitz windows looked worse after opaque seal; Tripo art was better
+- Decision: Remove runtime opaque windshield/side planes and stop darkening glass texels in the wing-strip extract bake. Keep Tripo cabin glass albedo on stock `blitz.glb`.
+- CONCEPT §§: visuals only (no rule change)
+
 ### 2026-08-12 — v3.31 Hafenstart harbor surroundings (no green wall)
 - Trigger: Hafenstart infield/horizon read as a solid green wall; surroundings too empty for a harbor
 - Decision: **RCA verified:** `ExtrudeGeometry` along closed CatmullRom Frenet-flipped the grass/asphalt ribbons into ~19 m vertical walls. Fix: world-up `flatRibbonGeometry`. Harbor theme ground is pier-gray (not grass). Oval infield gets a blue water basin + pier/ship; denser quay/crane/container/warehouse/bollard scenery. Concept art: `assets/art-style/harbor-surroundings.png`. Track asphalt→grass→wall language unchanged.

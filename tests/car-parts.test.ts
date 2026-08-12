@@ -51,11 +51,11 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(BLITZ_PART_PLACEMENT.big_engine[0]!.yaw).toBeCloseTo(Math.PI);
   });
 
-  it("seals Blitz cabin glass even with no parts equipped", () => {
+  it("does not seal Blitz cabin with opaque glass planes", () => {
     const root = new Group();
     applyBlitzParts(root, []);
-    expect(root.getObjectByName("blitzCabinGlass")).toBeTruthy();
-    expect(root.getObjectByName("blitzWindshield")).toBeTruthy();
+    expect(root.getObjectByName("blitzCabinGlass")).toBeUndefined();
+    expect(root.getObjectByName("blitzWindshield")).toBeUndefined();
   });
 
   it("mounts Heckspoiler on the rear deck from the original car wing", () => {

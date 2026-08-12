@@ -234,8 +234,7 @@ async function splitSource() {
   const bodyDoc = buildSubDoc(bodyFaces, "BodyPaint");
   await bodyDoc.transform(dedup(), weld(), prune());
   sitAndCenter(bodyDoc, { length: 3.7, materialName: "BodyPaint" });
-  // darken glass-looking texels in body albedo so cabin reads opaque
-  await darkenGlassTexels(bodyDoc);
+  // Keep Tripo glass albedo (do not opaque-darken cabin windows).
   await io.write(outCar, bodyDoc);
   const bb = getBounds(bodyDoc.getRoot().listScenes()[0]);
   console.log("stock bbox y", (bb.max[1] - bb.min[1]).toFixed(3), "z", (bb.max[2] - bb.min[2]).toFixed(3));
@@ -268,43 +267,6 @@ async function splitSource() {
     y: +(wb.max[1] - wb.min[1]).toFixed(3),
     z: +(wb.max[2] - wb.min[2]).toFixed(3),
   });
-}
-
-async function darkenGlassTexels(doc) {
-  const { default: sharp } = await import("sharp");
-  for (const tex of doc.getRoot().listTextures()) {
-    const raw = tex.getImage();
-    if (!raw) continue;
-    const { data, info } = await sharp(Buffer.from(raw)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
-    const px = new Uint8Array(data);
-    let n = 0;
-    for (let i = 0; i < px.length; i += 4) {
-      const r = px[i], g = px[i + 1], b = px[i + 2], a = px[i + 3];
-      if (a < 8) continue;
-      // Cyan / teal / pale glass (not red body, not black tire)
-      const max = Math.max(r, g, b);
-      const min = Math.min(r, g, b);
-      const isGlass =
-        max > 40 &&
-        b >= g - 5 &&
-        b > r + 15 &&
-        (b > 70 || g > 70) &&
-        !(r > g + 20 && r > b + 10); // not red paint
-      if (!isGlass) continue;
-      // Opaque dark cabin glass
-      px[i] = 52;
-      px[i + 1] = 62;
-      px[i + 2] = 74;
-      n++;
-    }
-    if (!n) continue;
-    const out = await sharp(px, { raw: { width: info.width, height: info.height, channels: 4 } })
-      .jpeg({ quality: 90, mozjpeg: true })
-      .toBuffer();
-    tex.setImage(out);
-    tex.setMimeType("image/jpeg");
-    console.log("darkened glass texels", n);
-  }
 }
 
 await splitSource();

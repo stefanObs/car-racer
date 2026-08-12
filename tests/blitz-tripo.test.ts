@@ -44,7 +44,7 @@ describe("Blitz Tripo arcade bake", () => {
     expect(maxYNeg).toBeGreaterThan(maxYPos - 0.02);
   });
 
-  it("keeps windshield glass geometry (opaque cabin, no open hole)", async () => {
+  it("keeps windshield glass geometry (Tripo cabin glass, no open hole)", async () => {
     const path = resolve("public/models/cars/blitz.glb");
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
     let windshieldBand = 0;
@@ -59,5 +59,11 @@ describe("Blitz Tripo arcade bake", () => {
       }
     }
     expect(windshieldBand).toBeGreaterThan(200);
+  });
+
+  it("does not force-darken Tripo glass in the extract bake script", () => {
+    const src = readFileSync("scripts/extract-blitz-stock-and-spoiler.mjs", "utf8");
+    expect(src).not.toContain("darkenGlassTexels");
+    expect(src).not.toContain("Opaque dark cabin glass");
   });
 });
