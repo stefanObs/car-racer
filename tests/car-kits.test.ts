@@ -68,6 +68,8 @@ describe("car models and per-car kits", () => {
     expect(migrated.kits.blitz!.ownedParts).toEqual(["nitro_kit", "rear_spoiler"]);
     expect(migrated.kits.blitz!.equippedParts).toEqual(["nitro_kit"]);
     expect(migrated.kits.blitz!.paint).toBe("#339af0");
+    expect(migrated.kits.blitz!.ownedPaints).toContain("#339af0");
+    expect(migrated.kits.blitz!.ownedStickers).toContain("flames");
     expect(migrated.kits.bison!.ownedParts).toEqual([]);
     expect(migrated.kits.bison!.paint).toBe(CARS.bison.defaultPaint);
   });
@@ -91,7 +93,14 @@ describe("car models and per-car kits", () => {
       ownedCars: ["bunker"],
       activeCar: "bunker",
       kits: {
-        bunker: { ownedParts: [], equippedParts: [], paint: "#868e96", sticker: "ironClad" as never },
+        bunker: {
+          ownedParts: [],
+          equippedParts: [],
+          paint: "#868e96",
+          sticker: "ironClad" as never,
+          ownedPaints: [],
+          ownedStickers: [],
+        },
       },
       unlockedLevels: ["blitz_cup_01_hafenstart"],
       cupStars: {},
@@ -107,5 +116,7 @@ describe("car models and per-car kits", () => {
     expect(emptyKit("kaeferkraft").paint).toBe("#12b886");
     expect(emptyKit("bunker").paint).toBe("#868e96");
     expect(emptyKit("bunker").sticker).toBe("none");
+    expect(emptyKit("blitz").ownedPaints).toEqual(["#e03131"]);
+    expect(emptyKit("blitz").ownedStickers).toEqual(["none"]);
   });
 });

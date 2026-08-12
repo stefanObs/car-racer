@@ -431,6 +431,17 @@ button.garage-cta--primary {
   outline-offset: 2px;
 }
 
+.swatch.is-locked {
+  opacity: 0.72;
+  border-style: dashed;
+}
+
+.swatch.is-preview {
+  outline: 3px dashed #ffe066;
+  outline-offset: 2px;
+  opacity: 1;
+}
+
 .chip {
   background: #2b3036;
 }
@@ -438,6 +449,21 @@ button.garage-cta--primary {
 .chip.is-on {
   background: #495057;
   outline: 2px solid #ffe066;
+}
+
+.chip.is-locked {
+  opacity: 0.75;
+  border-style: dashed;
+}
+
+.chip.is-preview {
+  outline: 2px dashed #ffe066;
+  background: #3d3420;
+  opacity: 1;
+}
+
+.garage-cosmetic-buy {
+  margin: 8px 0 4px;
 }
 
 .garage-stock-hint {

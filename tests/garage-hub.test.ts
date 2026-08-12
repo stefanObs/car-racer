@@ -95,6 +95,35 @@ describe("garage hub", () => {
     expect(html).toMatch(/data-act="buy-car"[^>]*disabled/);
   });
 
+  it("shows locked paints/stickers and a buy CTA while previewing cosmetics", () => {
+    const kit = emptyKit("blitz");
+    const html = renderGarageHtml({
+      chf: 200,
+      activeCar: "blitz",
+      ownedCars: ["blitz"],
+      kit,
+      previewPaint: "#339af0",
+      previewSticker: "flames",
+    });
+    expect(html).toContain("is-locked");
+    expect(html).toContain("Lack-Vorschau");
+    expect(html).toContain('data-act="buy-paint"');
+    expect(html).toContain("Aufkleber-Vorschau");
+    expect(html).toContain('data-act="buy-sticker"');
+    expect(html).toContain("Tippen = Vorschau");
+  });
+
+  it("disables cosmetic buy when the purse cannot cover the price", () => {
+    const html = renderGarageHtml({
+      chf: 10,
+      activeCar: "blitz",
+      ownedCars: ["blitz"],
+      kit: emptyKit("blitz"),
+      previewPaint: "#339af0",
+    });
+    expect(html).toMatch(/data-act="buy-paint"[^>]*disabled/);
+  });
+
   it("shows buggy nose options and bunker uses shared Aufkleber chips", () => {
     const buggy = renderGarageHtml({
       chf: 2000,

@@ -6,6 +6,14 @@ import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
 import { buyCar, selectCarInGarage, showcaseCarId, showcaseKit } from "../meta/carShop";
+import {
+  buyPaint,
+  buySticker,
+  selectPaintInGarage,
+  selectStickerInGarage,
+  showcasePaint,
+  showcaseSticker,
+} from "../meta/cosmeticsShop";
 import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
 import { ensureCarPartTemplates } from "../render/carParts";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
@@ -50,6 +58,9 @@ export class GameApp {
   private lastAdhoc: LevelDefinition | null = null;
   /** Unowned car shown in the bay until bought or another owned car is picked. */
   private previewCar: CarId | null = null;
+  /** Unowned paint/sticker preview on the active car (cleared on buy or car switch). */
+  private previewPaint: string | null = null;
+  private previewSticker: StickerId | null = null;
   private stylePops = new StylePopupQueue();
   private lastUi = {
     confirm: false,
@@ -392,8 +403,8 @@ export class GameApp {
   private syncGarageLook(): void {
     const kit = showcaseKit(this.save, this.previewCar);
     this.renderer.setGarageLook({
-      paint: kit.paint,
-      sticker: kit.sticker,
+      paint: showcasePaint(kit, this.previewPaint),
+      sticker: showcaseSticker(kit, this.previewSticker),
       modelId: showcaseCarId(this.save.activeCar, this.previewCar),
       equippedParts: kit.equippedParts,
     });
@@ -478,6 +489,8 @@ export class GameApp {
         ownedCars: this.save.ownedCars,
         kit: activeKit(this.save),
         previewCar: this.previewCar,
+        previewPaint: this.previewPaint,
+        previewSticker: this.previewSticker,
       });
       this.syncGarageLook();
     } else if (this.screen === "race") {
@@ -514,7 +527,7 @@ export class GameApp {
           })
         : "";
     const previewStamp =
-      this.screen === "garage" && this.previewCar
+      this.screen === "garage" && (this.previewCar || this.previewPaint || this.previewSticker)
         ? `<div class="garage-preview-stamp" data-dev-name="garage.preview.stamp">Vorschau</div>`
         : "";
     this.uiRoot.innerHTML = `${statsPopup}${previewStamp}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
@@ -599,6 +612,8 @@ export class GameApp {
       const next = selectCarInGarage(this.save.ownedCars, this.save.activeCar, id);
       this.save.activeCar = next.activeCar;
       this.previewCar = next.previewCar;
+      this.previewPaint = null;
+      this.previewSticker = null;
       if (next.previewCar == null) ensureKit(this.save, next.activeCar);
       writeSave(this.save);
     }
@@ -606,16 +621,38 @@ export class GameApp {
       const id = btn.dataset.car as CarId;
       if (buyCar(this.save, id)) {
         this.previewCar = null;
+        this.previewPaint = null;
+        this.previewSticker = null;
         writeSave(this.save);
       }
     }
     if (act === "paint" && btn.dataset.color) {
-      activeKit(this.save).paint = btn.dataset.color;
-      writeSave(this.save);
+      const kit = activeKit(this.save);
+      const next = selectPaintInGarage(kit, btn.dataset.color, this.previewPaint);
+      kit.paint = next.paint;
+      this.previewPaint = next.previewPaint;
+      if (next.previewPaint == null) writeSave(this.save);
+    }
+    if (act === "buy-paint" && btn.dataset.color) {
+      const kit = activeKit(this.save);
+      if (buyPaint(this.save, kit, btn.dataset.color)) {
+        this.previewPaint = null;
+        writeSave(this.save);
+      }
     }
     if (act === "sticker" && btn.dataset.sticker) {
-      activeKit(this.save).sticker = btn.dataset.sticker as StickerId;
-      writeSave(this.save);
+      const kit = activeKit(this.save);
+      const next = selectStickerInGarage(kit, btn.dataset.sticker, this.previewSticker);
+      kit.sticker = next.sticker;
+      this.previewSticker = next.previewSticker;
+      if (next.previewSticker == null) writeSave(this.save);
+    }
+    if (act === "buy-sticker" && btn.dataset.sticker) {
+      const kit = activeKit(this.save);
+      if (buySticker(this.save, kit, btn.dataset.sticker)) {
+        this.previewSticker = null;
+        writeSave(this.save);
+      }
     }
     if (act === "part" && btn.dataset.part) {
       const id = btn.dataset.part as PartId;

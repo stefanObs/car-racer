@@ -1,19 +1,11 @@
 import type { CarId } from "../data/cars";
 import { CARS } from "../data/cars";
+import { isGaragePaint } from "../data/cosmetics";
 import type { PartId } from "../data/parts";
+import { sanitizeSticker, type StickerId } from "./stickerIds";
 
-export type StickerId = "none" | "flames" | "bolt" | "star";
-
-const STICKER_IDS: readonly StickerId[] = ["none", "flames", "bolt", "star"];
-
-/** Drop retired ids (e.g. ironClad) so old saves stay valid. */
-export function sanitizeSticker(raw: unknown): StickerId {
-  if (raw === "lightning") return "bolt";
-  if (typeof raw === "string" && (STICKER_IDS as readonly string[]).includes(raw)) {
-    return raw as StickerId;
-  }
-  return "none";
-}
+export type { StickerId } from "./stickerIds";
+export { sanitizeSticker } from "./stickerIds";
 
 /** Tuning + cosmetics for one owned car — not shared across cars. */
 export type CarKit = {
@@ -21,6 +13,10 @@ export type CarKit = {
   equippedParts: PartId[];
   paint: string;
   sticker: StickerId;
+  /** Purchased paints for this car (always includes class default). */
+  ownedPaints: string[];
+  /** Purchased stickers/noses (always includes none/Glatt). */
+  ownedStickers: StickerId[];
 };
 
 export interface SaveData {
@@ -52,18 +48,37 @@ type SaveDataV1 = {
 
 const KEY = "crash-circuit-save-v1";
 
+/** Grant default + equipped cosmetics; fill lists for pre-shop saves. */
+export function normalizeKitCosmetics(carId: CarId, kit: CarKit): CarKit {
+  const defaultPaint = CARS[carId].defaultPaint;
+  const paint = isGaragePaint(kit.paint) ? kit.paint : defaultPaint;
+  const sticker = sanitizeSticker(kit.sticker);
+  const ownedPaints = [...new Set([defaultPaint, paint, ...(kit.ownedPaints ?? [])])].filter(isGaragePaint);
+  const ownedStickers = [...new Set(["none" as StickerId, sticker, ...(kit.ownedStickers ?? [])])];
+  kit.paint = paint;
+  kit.sticker = sticker;
+  kit.ownedPaints = ownedPaints;
+  kit.ownedStickers = ownedStickers;
+  return kit;
+}
+
 export function emptyKit(carId: CarId): CarKit {
-  return {
+  return normalizeKitCosmetics(carId, {
     ownedParts: [],
     equippedParts: [],
     paint: CARS[carId].defaultPaint,
     sticker: "none",
-  };
+    ownedPaints: [CARS[carId].defaultPaint],
+    ownedStickers: ["none"],
+  });
 }
 
 export function ensureKit(save: SaveData, carId: CarId): CarKit {
   const existing = save.kits[carId];
-  if (existing) return existing;
+  if (existing) {
+    save.kits[carId] = normalizeKitCosmetics(carId, existing);
+    return save.kits[carId]!;
+  }
   const kit = emptyKit(carId);
   save.kits[carId] = kit;
   return kit;
@@ -100,12 +115,14 @@ export function migrateV1ToV2(raw: SaveDataV1): SaveData {
     kits[id] = emptyKit(id);
   }
   // Old global parts belonged to whichever car was active — do not clone to every car.
-  kits[active] = {
+  kits[active] = normalizeKitCosmetics(active, {
     ownedParts: [...(raw.ownedParts ?? [])],
     equippedParts: [...(raw.equippedParts ?? [])],
     paint: raw.paint ?? CARS[active].defaultPaint,
     sticker: sanitizeSticker(raw.sticker),
-  };
+    ownedPaints: [],
+    ownedStickers: [],
+  });
 
   return {
     version: 2,
@@ -134,8 +151,10 @@ export function normalizeSave(parsed: SaveData | SaveDataV1): SaveData {
     ensureKit(save, id);
   }
   ensureKit(save, save.activeCar);
-  for (const kit of Object.values(save.kits)) {
-    if (kit) kit.sticker = sanitizeSticker(kit.sticker);
+  for (const [id, kit] of Object.entries(save.kits)) {
+    if (kit && id in CARS) {
+      save.kits[id as CarId] = normalizeKitCosmetics(id as CarId, kit);
+    }
   }
   return save;
 }

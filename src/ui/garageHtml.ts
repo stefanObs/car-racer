@@ -1,12 +1,16 @@
 import { CARS, type CarId } from "../data/cars";
 import { PARTS, type PartId } from "../data/parts";
 import { APP_VERSION } from "../core/version";
+import {
+  GARAGE_PAINTS,
+  PAINT_PRICE_CHF,
+  STICKER_PRICE_CHF,
+  ownsPaint,
+  ownsSticker,
+} from "../meta/cosmeticsShop";
 import { isUnownedPreview, showcaseCarId } from "../meta/carShop";
 import { formatChf, type CarKit, type StickerId } from "../meta/save";
 import { carUsesNoseVariants } from "../render/carStickers";
-import { CAR_PAINT_BLACK } from "../render/palette";
-
-const PAINTS = ["#e03131", "#339af0", "#f08c00", "#12b886", "#2f9e44", "#868e96", "#ffffff", CAR_PAINT_BLACK] as const;
 
 function cosmeticsForCar(carId: CarId): { ids: StickerId[]; labels: Record<StickerId, string>; title: string } {
   if (carUsesNoseVariants(carId)) {
@@ -40,11 +44,15 @@ export function renderGarageHtml(opts: {
   ownedCars: CarId[];
   kit: CarKit;
   previewCar?: CarId | null;
+  previewPaint?: string | null;
+  previewSticker?: StickerId | null;
 }): string {
   const previewing = isUnownedPreview(opts.ownedCars, opts.previewCar ?? null);
   const shownId = showcaseCarId(opts.activeCar, previewing ? opts.previewCar! : null);
   const car = CARS[shownId];
   const racer = CARS[opts.activeCar];
+  const previewPaint = opts.previewPaint ?? null;
+  const previewSticker = opts.previewSticker ?? null;
 
   const carButtons = (Object.keys(CARS) as CarId[])
     .map((id) => {
@@ -95,18 +103,46 @@ export function renderGarageHtml(opts: {
     })
     .join("");
 
-  const paints = PAINTS.map(
-    (c) =>
-      `<button data-nav data-act="paint" data-color="${c}" class="swatch${opts.kit.paint === c ? " is-on" : ""}" style="--sw:${c}" aria-label="Lack ${c}">${opts.kit.paint === c ? "✓" : ""}</button>`,
-  ).join("");
+  const paints = GARAGE_PAINTS.map((c) => {
+    const owned = ownsPaint(opts.kit, c);
+    const equipped = opts.kit.paint === c && !previewPaint;
+    const preview = previewPaint === c;
+    const cls = `swatch${equipped ? " is-on" : ""}${preview ? " is-preview" : ""}${owned ? "" : " is-locked"}`;
+    const mark = equipped ? "✓" : preview ? "?" : owned ? "" : "·";
+    return `<button data-nav data-act="paint" data-color="${c}" class="${cls}" style="--sw:${c}" aria-label="Lack ${c}${owned ? "" : " Vorschau"}">${mark}</button>`;
+  }).join("");
 
   const cosmetics = cosmeticsForCar(opts.activeCar);
   const stickers = cosmetics.ids
-    .map(
-      (s) =>
-        `<button data-nav data-act="sticker" data-sticker="${s}" class="chip${opts.kit.sticker === s ? " is-on" : ""}">${cosmetics.labels[s]}</button>`,
-    )
+    .map((s) => {
+      const owned = ownsSticker(opts.kit, s);
+      const equipped = opts.kit.sticker === s && !previewSticker;
+      const preview = previewSticker === s;
+      const cls = `chip${equipped ? " is-on" : ""}${preview ? " is-preview" : ""}${owned ? "" : " is-locked"}`;
+      const tag = owned ? "" : ` · ${formatChf(STICKER_PRICE_CHF)}`;
+      return `<button data-nav data-act="sticker" data-sticker="${s}" class="${cls}">${cosmetics.labels[s]}${tag}</button>`;
+    })
     .join("");
+
+  const paintBuy =
+    previewPaint != null
+      ? `<div class="garage-cosmetic-buy" data-dev-name="garage.paint-preview">
+          <p class="garage-preview-banner"><strong>Lack-Vorschau</strong> — noch nicht gekauft.</p>
+          <button data-nav data-act="buy-paint" data-color="${previewPaint}" class="garage-buy" ${
+            opts.chf >= PAINT_PRICE_CHF ? "" : "disabled"
+          }>Kaufen ${formatChf(PAINT_PRICE_CHF)}</button>
+        </div>`
+      : "";
+
+  const stickerBuy =
+    previewSticker != null
+      ? `<div class="garage-cosmetic-buy" data-dev-name="garage.sticker-preview">
+          <p class="garage-preview-banner"><strong>${cosmetics.title}-Vorschau</strong> — noch nicht gekauft.</p>
+          <button data-nav data-act="buy-sticker" data-sticker="${previewSticker}" class="garage-buy" ${
+            opts.chf >= STICKER_PRICE_CHF ? "" : "disabled"
+          }>Kaufen ${formatChf(STICKER_PRICE_CHF)}</button>
+        </div>`
+      : "";
 
   return `
     <header class="garage-hero">
@@ -170,9 +206,12 @@ export function renderGarageHtml(opts: {
 
     <section aria-label="Lack und Schmücken">
       <h2 class="garage-section">Schmücken</h2>
+      <p class="dim garage-stock-hint">Tippen = Vorschau · Kaufen speichert den Look für ${car.name}</p>
       <div class="stack row garage-swatches">${paints}</div>
+      ${paintBuy}
       <h3 class="garage-sub">${cosmetics.title}</h3>
       <div class="stack row garage-chips">${stickers}</div>
+      ${stickerBuy}
     </section>`
     }
 

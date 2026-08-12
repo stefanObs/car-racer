@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.44 Cosmetics preview then buy
+- Trigger: user — stickers and paints must be bought; preview first
+- Decision: Per-car `ownedPaints` / `ownedStickers`; tap = Vorschau on bay; Kaufen spends CHF (75 paint / 100 sticker); default paint + Kein/Glatt free; old saves grant equipped looks
+- CONCEPT §6.2 / summary → v3.44
+
 ### 2026-08-13 — v3.43 Remove Bunker IronClad sticker
 - Trigger: user — remove ironclad sticker from Bunker
 - Decision: Drop `ironClad` sticker id; Bunker uses shared Aufkleber (Kein/Flammen/Blitz/Stern); old saves sanitize to `none`

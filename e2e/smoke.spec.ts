@@ -67,7 +67,7 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.getByRole("button", { name: "Gas" })).toBeVisible();
   });
 
-  test("garage sticker chips: Blitz side, Käferkraft nose, Bunker shared Aufkleber", async ({ page }) => {
+  test("garage cosmetics: preview then buy paint and stickers", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem(
         "crash-circuit-save-v1",
@@ -77,11 +77,46 @@ test.describe("Crash Circuit smoke", () => {
           ownedCars: ["blitz", "bison", "kaeferkraft", "donnerbuechse", "bunker"],
           activeCar: "blitz",
           kits: {
-            blitz: { ownedParts: [], equippedParts: [], paint: "#e03131", sticker: "flames" },
-            bison: { ownedParts: [], equippedParts: [], paint: "#2f9e44", sticker: "bolt" },
-            kaeferkraft: { ownedParts: [], equippedParts: [], paint: "#12b886", sticker: "flames" },
-            donnerbuechse: { ownedParts: [], equippedParts: [], paint: "#f08c00", sticker: "flames" },
-            bunker: { ownedParts: [], equippedParts: [], paint: "#868e96", sticker: "none" },
+            blitz: {
+              ownedParts: [],
+              equippedParts: [],
+              paint: "#e03131",
+              sticker: "none",
+              ownedPaints: ["#e03131"],
+              ownedStickers: ["none"],
+            },
+            bison: {
+              ownedParts: [],
+              equippedParts: [],
+              paint: "#2f9e44",
+              sticker: "none",
+              ownedPaints: ["#2f9e44"],
+              ownedStickers: ["none"],
+            },
+            kaeferkraft: {
+              ownedParts: [],
+              equippedParts: [],
+              paint: "#12b886",
+              sticker: "none",
+              ownedPaints: ["#12b886"],
+              ownedStickers: ["none"],
+            },
+            donnerbuechse: {
+              ownedParts: [],
+              equippedParts: [],
+              paint: "#f08c00",
+              sticker: "none",
+              ownedPaints: ["#f08c00"],
+              ownedStickers: ["none"],
+            },
+            bunker: {
+              ownedParts: [],
+              equippedParts: [],
+              paint: "#868e96",
+              sticker: "none",
+              ownedPaints: ["#868e96"],
+              ownedStickers: ["none"],
+            },
           },
           unlockedLevels: ["blitz_cup_01_hafenstart"],
           cupStars: {},
@@ -91,19 +126,26 @@ test.describe("Crash Circuit smoke", () => {
     });
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Aufkleber" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Flammen" })).toBeVisible();
+    await page.getByRole("button", { name: /Flammen/ }).click();
+    await expect(page.getByRole("button", { name: /Flammen/ })).toHaveClass(/is-preview/);
+    await expect(page.getByRole("button", { name: /Kaufen/ }).first()).toBeVisible();
+    await page.locator('[data-act="buy-sticker"]').click();
+    await expect(page.getByRole("button", { name: /^Flammen$/ })).toHaveClass(/is-on/);
+
     await page.getByRole("button", { name: /Käferkraft/ }).click();
     await expect(page.getByRole("heading", { name: "Nase / Kopf" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Totenkopf" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Vogel" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Hund" })).toBeVisible();
-    await page.getByRole("button", { name: "Vogel" }).click();
-    await expect(page.getByRole("button", { name: "Vogel" })).toHaveClass(/is-on/);
+    await page.getByRole("button", { name: /Vogel/ }).click();
+    await expect(page.getByRole("button", { name: /Vogel/ })).toHaveClass(/is-preview/);
+    await page.locator('[data-act="buy-sticker"]').click();
+    await expect(page.getByRole("button", { name: /^Vogel$/ })).toHaveClass(/is-on/);
+
     await page.getByRole("button", { name: /Bunker/ }).click();
     await expect(page.getByRole("heading", { name: "Aufkleber" })).toBeVisible();
     await expect(page.getByRole("button", { name: "IronClad" })).toHaveCount(0);
-    await page.getByRole("button", { name: "Flammen" }).click();
-    await expect(page.getByRole("button", { name: "Flammen" })).toHaveClass(/is-on/);
+    await page.locator('[data-act="paint"][data-color="#e03131"]').click();
+    await expect(page.locator('[data-act="paint"][data-color="#e03131"]')).toHaveClass(/is-preview/);
+    await page.locator('[data-act="buy-paint"]').click();
+    await expect(page.locator('[data-act="paint"][data-color="#e03131"]')).toHaveClass(/is-on/);
     await expect(page.locator("#game-canvas")).toBeVisible();
   });
 
