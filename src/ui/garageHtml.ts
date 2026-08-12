@@ -46,6 +46,7 @@ export function renderGarageHtml(opts: {
   previewCar?: CarId | null;
   previewPaint?: string | null;
   previewSticker?: StickerId | null;
+  previewPart?: PartId | null;
 }): string {
   const previewing = isUnownedPreview(opts.ownedCars, opts.previewCar ?? null);
   const shownId = showcaseCarId(opts.activeCar, previewing ? opts.previewCar! : null);
@@ -91,17 +92,28 @@ export function renderGarageHtml(opts: {
   const shopRows = shopParts
     .map((id) => {
       const p = PARTS[id];
-      const can = opts.chf >= p.priceChf;
-      return `<div class="garage-part garage-part--shop">
-        <button data-nav data-act="part" data-part="${id}" class="garage-part__btn" ${can ? "" : "disabled"}>
-          <span class="garage-part__state">Neu</span>
+      const preview = opts.previewPart === id;
+      const cls = `garage-part garage-part--shop${preview ? " is-preview" : ""}`;
+      return `<div class="${cls}">
+        <button data-nav data-act="part" data-part="${id}" class="garage-part__btn">
+          <span class="garage-part__state">${preview ? "Vorschau" : "Neu"}</span>
           <span class="garage-part__name">${p.name}</span>
-          <span class="garage-part__action">Kaufen ${formatChf(p.priceChf)}</span>
+          <span class="garage-part__action">${preview ? "Abbrechen" : `Anschauen · ${formatChf(p.priceChf)}`}</span>
         </button>
         <small><b>+</b> ${p.pro}<br/><b>−</b> ${p.con}</small>
       </div>`;
     })
     .join("");
+
+  const partBuy =
+    opts.previewPart != null && PARTS[opts.previewPart]
+      ? `<div class="garage-cosmetic-buy" data-dev-name="garage.part-preview">
+          <p class="garage-preview-banner"><strong>Teil-Vorschau</strong> — ${PARTS[opts.previewPart].name} noch nicht gekauft.</p>
+          <button data-nav data-act="buy-part" data-part="${opts.previewPart}" class="garage-buy" ${
+            opts.chf >= PARTS[opts.previewPart].priceChf ? "" : "disabled"
+          }>Kaufen ${formatChf(PARTS[opts.previewPart].priceChf)}</button>
+        </div>`
+      : "";
 
   const paints = GARAGE_PAINTS.map((c) => {
     const owned = ownsPaint(opts.kit, c);
@@ -199,9 +211,11 @@ export function renderGarageHtml(opts: {
         ${equipRows || `<p class="dim garage-parts__empty">Noch keine Teile — unten im Laden kaufen.</p>`}
       </div>
       <h3 class="garage-sub">Laden</h3>
+      <p class="dim garage-stock-hint">Tippen = Vorschau am Auto · dann Kaufen</p>
       <div class="garage-parts garage-parts--grid garage-parts--shop">
         ${shopRows || `<p class="dim garage-parts__empty">Alles gekauft. Zeit zum Rennen!</p>`}
       </div>
+      ${partBuy}
     </section>
 
     <section aria-label="Lack und Schmücken">

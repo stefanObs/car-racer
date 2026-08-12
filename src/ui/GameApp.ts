@@ -1,7 +1,7 @@
 import { type CarId } from "../data/cars";
 import { APP_VERSION } from "../core/version";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
-import { PARTS, type PartId } from "../data/parts";
+import { type PartId } from "../data/parts";
 import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
@@ -14,6 +14,7 @@ import {
   showcasePaint,
   showcaseSticker,
 } from "../meta/cosmeticsShop";
+import { buyPart, selectPartInGarage, showcaseParts } from "../meta/partsShop";
 import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
 import { ensureCarPartTemplates } from "../render/carParts";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
@@ -58,9 +59,10 @@ export class GameApp {
   private lastAdhoc: LevelDefinition | null = null;
   /** Unowned car shown in the bay until bought or another owned car is picked. */
   private previewCar: CarId | null = null;
-  /** Unowned paint/sticker preview on the active car (cleared on buy or car switch). */
+  /** Unowned paint/sticker/part preview on the active car (cleared on buy or car switch). */
   private previewPaint: string | null = null;
   private previewSticker: StickerId | null = null;
+  private previewPart: PartId | null = null;
   private stylePops = new StylePopupQueue();
   private lastUi = {
     confirm: false,
@@ -406,7 +408,7 @@ export class GameApp {
       paint: showcasePaint(kit, this.previewPaint),
       sticker: showcaseSticker(kit, this.previewSticker),
       modelId: showcaseCarId(this.save.activeCar, this.previewCar),
-      equippedParts: kit.equippedParts,
+      equippedParts: showcaseParts(kit, this.previewPart),
     });
   }
 
@@ -491,6 +493,7 @@ export class GameApp {
         previewCar: this.previewCar,
         previewPaint: this.previewPaint,
         previewSticker: this.previewSticker,
+        previewPart: this.previewPart,
       });
       this.syncGarageLook();
     } else if (this.screen === "race") {
@@ -523,11 +526,15 @@ export class GameApp {
       this.screen === "garage"
         ? renderCarStatsPopup({
             carId: showcaseCarId(this.save.activeCar, this.previewCar),
-            equippedParts: showcaseKit(this.save, this.previewCar).equippedParts,
+            equippedParts: showcaseParts(
+              showcaseKit(this.save, this.previewCar),
+              this.previewPart,
+            ),
           })
         : "";
     const previewStamp =
-      this.screen === "garage" && (this.previewCar || this.previewPaint || this.previewSticker)
+      this.screen === "garage" &&
+      (this.previewCar || this.previewPaint || this.previewSticker || this.previewPart)
         ? `<div class="garage-preview-stamp" data-dev-name="garage.preview.stamp">Vorschau</div>`
         : "";
     this.uiRoot.innerHTML = `${statsPopup}${previewStamp}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
@@ -614,6 +621,7 @@ export class GameApp {
       this.previewCar = next.previewCar;
       this.previewPaint = null;
       this.previewSticker = null;
+      this.previewPart = null;
       if (next.previewCar == null) ensureKit(this.save, next.activeCar);
       writeSave(this.save);
     }
@@ -623,6 +631,7 @@ export class GameApp {
         this.previewCar = null;
         this.previewPaint = null;
         this.previewSticker = null;
+        this.previewPart = null;
         writeSave(this.save);
       }
     }
@@ -657,19 +666,18 @@ export class GameApp {
     if (act === "part" && btn.dataset.part) {
       const id = btn.dataset.part as PartId;
       const kit = activeKit(this.save);
-      if (!kit.ownedParts.includes(id)) {
-        const price = PARTS[id].priceChf;
-        if (this.save.chf >= price) {
-          this.save.chf -= price;
-          kit.ownedParts.push(id);
-          kit.equippedParts.push(id);
-        }
-      } else if (kit.equippedParts.includes(id)) {
-        kit.equippedParts = kit.equippedParts.filter((p) => p !== id);
-      } else {
-        kit.equippedParts.push(id);
+      const next = selectPartInGarage(kit, id, this.previewPart);
+      kit.equippedParts = next.equippedParts;
+      this.previewPart = next.previewPart;
+      if (next.dirty) writeSave(this.save);
+    }
+    if (act === "buy-part" && btn.dataset.part) {
+      const id = btn.dataset.part as PartId;
+      const kit = activeKit(this.save);
+      if (buyPart(this.save, kit, id)) {
+        this.previewPart = null;
+        writeSave(this.save);
       }
-      writeSave(this.save);
     }
     if (this.screen !== "race") this.renderUi();
   }

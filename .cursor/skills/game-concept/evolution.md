@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.45 Parts preview then buy
+- Trigger: user — parts should preview first, buy in a second step
+- Decision: Shop Teile: tap = bay + Eigenschaften Vorschau; Kaufen spends part price and equips; owned parts still toggle An/Aus
+- CONCEPT §6.2 / §9 → v3.45
+
 ### 2026-08-13 — v3.44 Cosmetics preview then buy
 - Trigger: user — stickers and paints must be bought; preview first
 - Decision: Per-car `ownedPaints` / `ownedStickers`; tap = Vorschau on bay; Kaufen spends CHF (75 paint / 100 sticker); default paint + Kein/Glatt free; old saves grant equipped looks

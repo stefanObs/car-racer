@@ -19,7 +19,7 @@ describe("garage hub", () => {
     expect(html).toContain("Ausrüsten");
     expect(html).toContain("Bestand — nur Blitz");
     expect(html).toContain("Ablegen");
-    expect(html).toContain("Kaufen");
+    expect(html).toContain("Anschauen");
     expect(html).toContain('data-act="cup"');
     expect(html).toContain("Laden");
     expect(html).toContain("is-on");
@@ -30,7 +30,7 @@ describe("garage hub", () => {
     expect(html).toContain(`data-color="${CAR_PAINT_BLACK}"`);
   });
 
-  it("shows shop buy label for unowned parts", () => {
+  it("shows shop parts as Anschauen preview, then a buy CTA", () => {
     const html = renderGarageHtml({
       chf: 50,
       activeCar: "blitz",
@@ -38,7 +38,20 @@ describe("garage hub", () => {
       kit: emptyKit("blitz"),
     });
     expect(html).toContain("Noch keine Teile");
-    expect(html).toContain("Kaufen");
+    expect(html).toContain("Anschauen");
+    expect(html).toContain("Tippen = Vorschau am Auto");
+
+    const preview = renderGarageHtml({
+      chf: 50,
+      activeCar: "blitz",
+      ownedCars: ["blitz"],
+      kit: emptyKit("blitz"),
+      previewPart: "big_engine",
+    });
+    expect(preview).toContain("Teil-Vorschau");
+    expect(preview).toContain('data-act="buy-part"');
+    expect(preview).toContain("is-preview");
+    expect(preview).toMatch(/data-act="buy-part"[^>]*disabled/);
   });
 
   it("builds a named comic garage bay group", () => {

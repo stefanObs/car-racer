@@ -264,7 +264,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 
 1. **Schmücken (Kosmetik)** — Lack und **Aufkleber** (Flammen, Blitze, Sterne…; **Käferkraft:** Nasen-/Kopf-Varianten Glatt / Totenkopf / Vogel / Hund; Scheinwerfer gehören zum Auto). Antippen zeigt eine **klar markierte Vorschau** am Auto; **Kaufen** bucht CHF und speichert den Look **pro Auto**. Serien-Lack und „Kein“/Glatt sind gratis; weitere Farben und Aufkleber kosten CHF (günstig vs. Teile). **Kein Stats-Vorteil** (fair, sammelbar, stolz zeigen).
 2. **Neues Auto kaufen** — andere Klasse oder Variante innerhalb der Klasse. Antippen zeigt eine **klar markierte Vorschau** (3D-Bay + Eigenschaften, ohne Tuning). **Kaufen** bucht CHF und macht das Auto aktiv. Rennen starten weiter mit dem bereits besessenen Auto, bis der Kauf durch ist.
-3. **Teile tunen** — echte Stats, immer mit Trade-off.
+3. **Teile tunen** — echte Stats, immer mit Trade-off. Antippen im Laden zeigt eine **Vorschau** (Mesh + Eigenschaften); **Kaufen** bucht CHF und rüstet das Teil **pro Auto** aus. Bereits gekaufte Teile lassen sich an-/ablegen.
 
 **Aufkleber-Details:** Lesbare Decals auf Lack (Seite / Motorhaube / Tür je nach Auto; Tripo-UV-Stempel greifen bei chaotischen Atlanten nicht). Weitere Sets später über Cups oder CHF.
 
@@ -399,7 +399,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ## 9. UX / Screens (Spielerfluss)
 
-1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch** frei drehen, **ausrüsten**, Lack/Aufkleber; ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
+1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch** frei drehen, **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
 4. **Renn-HUD** — Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt  
@@ -495,7 +495,7 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 | Catch-up | Hinten: bessere Beschleunigung + minimal mehr Speed; fehlerfreier Spieler fährt davon |
 | Währung | **CHF** |
 | Sitzungs-Pacing | **7–15 min** → Freischalten oder sinnvolles Garage-Upgrade |
-| Schmücken | Lack + **Aufkleber** — **pro Auto**; Vorschau → Kauf (CHF); Serien-Lack / Kein gratis; Teile ebenfalls **nicht** zwischen Autos geteilt |
+| Schmücken / Teile | Lack + Aufkleber + Teile — **pro Auto**; jeweils Vorschau → CHF-Kauf (Serien-Lack / Kein gratis) |
 | Fahrzeug-Art | Kategorie-treue Silhouetten (nah an echten Klassen-Autos), Asphalt-Comic, engine-renderbar |
 | Modi | Cup + **Freier Modus** + **Ad-hoc-generierte Strecken** |
 | Eingabe / Plattform | **Tastatur + Controller + Tablet (Touch)** — gleichwertig spielbar |
@@ -504,4 +504,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.44 — Lack & Aufkleber: Vorschau dann CHF-Kauf (pro Auto).*
+*Dokumentstand: Konzept v3.45 — Teile ebenfalls Vorschau dann Kauf (wie Lack/Aufkleber).*

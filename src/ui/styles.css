@@ -507,6 +507,12 @@ button.garage-cta--primary {
   border-color: #37b24d;
 }
 
+.garage-part.is-preview {
+  border-color: #ffe066;
+  border-style: dashed;
+  background: rgba(255, 224, 102, 0.1);
+}
+
 .garage-part.is-on .garage-part__btn {
   background: #3b4a3a;
   border-color: #37b24d;
