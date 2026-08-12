@@ -126,6 +126,9 @@ export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnc
       if (i % 2 === 0) push("water", s, side, 12, 10);
       push("dune", s, side, 4 + (i % 2) * 3, 4);
       if (i % 4 === 0) push("hut", s, side, 7, 4);
+      // Reuse Havenstadt container / crane kit as pit / tribune props
+      if (i % 5 === 0) push("container", s, side, 8, 4);
+      if (i % 7 === 0) push("crane", s, side, 10, 4);
     }
   } else if (t === "city") {
     for (let i = 0; i < 18; i++) {
@@ -134,6 +137,9 @@ export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnc
       push(i % 3 === 0 ? "tower" : "building", s, side, (i % 3) * 1.5, i % 3 === 0 ? 5 : 5);
       if (i % 2 === 0) push("lamp", s, side, 1, 1.2);
       if (i % 6 === 0) push("crane", s, side, 5, 4);
+      // Baustelle: reuse harbor containers + silos
+      if (i % 4 === 0) push("container", s, side, 6, 4);
+      if (i % 5 === 0) push("silo", s, side, 8, 3);
     }
   } else if (t === "factory") {
     for (let i = 0; i < 16; i++) {
@@ -142,6 +148,8 @@ export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnc
       push(i % 2 === 0 ? "warehouse" : "stack", s, side, (i % 3) * 2, 5);
       if (i % 2 === 0) push("pipe", s, side, 5, 3);
       if (i % 3 === 0) push("silo", s, side, 7, 3);
+      if (i % 4 === 0) push("container", s, side, 6, 4);
+      if (i % 6 === 0) push("crane", s, side, 9, 4);
     }
   } else {
     // canyon / mountain

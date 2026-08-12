@@ -35,7 +35,7 @@ describe("race HUD UI (CONCEPT §9)", () => {
     expect(svg).toContain("<svg");
     expect(svg).toContain("polygon");
     expect(svg).toContain("#4A4F57");
-    expect(svg).toContain("#3F8F3A");
+    expect(svg).toContain("#2f6f9e"); // harbor basin infield on mini-map
     expect(svg).toContain('data-dev-name="hud.minimap"');
   });
 

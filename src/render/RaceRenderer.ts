@@ -1,7 +1,5 @@
 import {
   AmbientLight,
-  BackSide,
-  CanvasTexture,
   Color,
   DirectionalLight,
   Fog,
@@ -33,7 +31,13 @@ import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { buildGarageBay } from "./garageBay";
 import { buildLevelObstacles } from "./levelObstacles";
-import { themeLook, type ThemeLook } from "./themeLook";
+import {
+  buildPanoramaSurround,
+  buildSkyDomeMesh,
+  disposePanoramaMaps,
+  makeSkyDomeTexture,
+} from "./panoramaSurround";
+import { themeLook } from "./themeLook";
 import { buildThemeScenery } from "./themeScenery";
 import { buildSmoothTrack } from "./trackMesh";
 import {
@@ -43,29 +47,6 @@ import {
 } from "../ui/garageOrbit";
 import { ensureIdleClearsRaceField } from "./idleRaceTeardown";
 
-function hexCss(n: number): string {
-  return `#${n.toString(16).padStart(6, "0")}`;
-}
-
-function makeSkyTexture(look: ThemeLook): CanvasTexture {
-  const c = document.createElement("canvas");
-  c.width = 8;
-  c.height = 64;
-  const ctx = c.getContext("2d")!;
-  const g = ctx.createLinearGradient(0, 0, 0, 64);
-  g.addColorStop(0, hexCss(look.hemiSky));
-  g.addColorStop(0.45, hexCss(look.sky));
-  g.addColorStop(1, hexCss(look.skyLow));
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, 8, 64);
-  ctx.fillStyle = "#f4f7fa";
-  ctx.fillRect(0, 18, 8, 3);
-  ctx.fillRect(0, 28, 8, 2);
-  const tex = new CanvasTexture(c);
-  tex.colorSpace = SRGBColorSpace;
-  return tex;
-}
-
 export class RaceRenderer {
   readonly scene = new Scene();
   readonly camera = new PerspectiveCamera(46, 1, 0.1, 600);
@@ -74,6 +55,7 @@ export class RaceRenderer {
   private readonly lastNitro = new Map<string, number>();
   private trackGroup = new Group();
   private sceneryGroup = new Group();
+  private panoramaGroup = new Group();
   private obstacleGroup = new Group();
   private celebrateGroup = new Group();
   private celebrateSeed = -1;
@@ -89,7 +71,7 @@ export class RaceRenderer {
   private readonly ambient: AmbientLight;
   private readonly sun: DirectionalLight;
   private readonly groundMesh: Mesh;
-  private readonly skyMesh: Mesh;
+  private skyMesh: Mesh;
   private readonly fog: Fog;
 
   constructor(canvas: HTMLCanvasElement) {
@@ -118,33 +100,13 @@ export class RaceRenderer {
     this.sun.position.set(18, 28, 12);
     this.scene.add(this.sun);
 
-    this.groundMesh = new Mesh(new PlaneGeometry(480, 480), comicToon(look.ground));
+    this.groundMesh = new Mesh(new PlaneGeometry(640, 640), comicToon(look.ground));
     this.groundMesh.rotation.x = -Math.PI / 2;
     this.groundMesh.position.y = -0.08;
     this.scene.add(this.groundMesh);
 
-    this.skyMesh = new Mesh(
-      new SphereGeometry(280, 24, 16),
-      new MeshBasicMaterial({ map: makeSkyTexture(look), side: BackSide }),
-    );
-    this.skyMesh.scale.y = 0.72;
+    this.skyMesh = buildSkyDomeMesh(look);
     this.scene.add(this.skyMesh);
-
-    // Soft cloud cards
-    for (const [x, y, z, sx] of [
-      [-50, 34, -70, 18],
-      [40, 38, -90, 22],
-      [-30, 32, 80, 14],
-      [60, 36, 50, 16],
-    ] as const) {
-      const cloud = new Mesh(
-        new SphereGeometry(1, 8, 8),
-        comicToon(0xf8f9fa),
-      );
-      cloud.scale.set(sx, sx * 0.38, sx * 0.55);
-      cloud.position.set(x, y, z);
-      this.scene.add(cloud);
-    }
 
     this.buildIdleShowcase();
 
@@ -206,6 +168,7 @@ export class RaceRenderer {
   private applyGarageEnvironment(): void {
     this.groundMesh.visible = false;
     this.skyMesh.visible = false;
+    this.panoramaGroup.visible = false;
     // Sunny open-bay look (Asphalt-Comic daylight — not a cave)
     this.scene.background = new Color(0x5ba3d9);
     this.fog.color.setHex(0x8ec4e8);
@@ -224,6 +187,7 @@ export class RaceRenderer {
   private hideRaceFieldMeshes(): void {
     this.trackGroup.visible = false;
     this.sceneryGroup.visible = false;
+    this.panoramaGroup.visible = false;
     this.obstacleGroup.visible = false;
     this.raceFieldActive = false;
   }
@@ -292,7 +256,7 @@ export class RaceRenderer {
     (this.groundMesh.material as MeshToonMaterial).color.setHex(look.ground);
     const skyMat = this.skyMesh.material as MeshBasicMaterial;
     skyMat.map?.dispose();
-    skyMat.map = makeSkyTexture(look);
+    skyMat.map = makeSkyDomeTexture(look);
     skyMat.needsUpdate = true;
   }
 
@@ -303,19 +267,25 @@ export class RaceRenderer {
     this.applyTheme(session.level.theme);
     this.scene.remove(this.trackGroup);
     this.scene.remove(this.sceneryGroup);
+    this.scene.remove(this.panoramaGroup);
     this.scene.remove(this.obstacleGroup);
     disposeObject(this.trackGroup);
     disposeObject(this.sceneryGroup);
+    disposePanoramaMaps(this.panoramaGroup);
+    disposeObject(this.panoramaGroup);
     disposeObject(this.obstacleGroup);
+    const look = themeLook(session.level.theme);
     this.trackGroup = buildSmoothTrack(session.track);
     this.sceneryGroup = buildThemeScenery(session.track, session.level.theme);
+    this.panoramaGroup = buildPanoramaSurround(session.track, session.level.theme, look);
     this.obstacleGroup = buildLevelObstacles(session.level);
     this.trackGroup.visible = true;
     this.sceneryGroup.visible = true;
+    this.panoramaGroup.visible = true;
     this.obstacleGroup.visible = true;
     this.raceFieldActive = true;
     this.clearCelebrate();
-    this.scene.add(this.trackGroup, this.sceneryGroup, this.obstacleGroup);
+    this.scene.add(this.trackGroup, this.sceneryGroup, this.panoramaGroup, this.obstacleGroup);
     this.clearCars();
     this.lastNitro.clear();
     for (const car of session.cars) {

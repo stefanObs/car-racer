@@ -352,15 +352,14 @@ Pro Fahrzeugklasse eine **eigene Cup-Serie** mit ~10 Rennen:
 
 ### 8.2 Strecken-Themes (Beispiele)
 
-- Hafen-Asphalt mit Containern, Kranen und Wasserbecken im Oval (Kai-Grau, kein Gras-Grün als Horizont)  
-- Canyon mit Leitplanken-Lücken  
-- Stadtring mit Baustellen / Buckelpflaster  
-- Schrottplatz-Ring  
-- Bergpass mit Haarnadeln  
-- Strandpiste (mehr Gras-Risiko)  
-- Fabrik mit unebenen Platten  
+- **Hafenstart** — Hafen-Asphalt mit Containern, Kranen und Wasserbecken im Oval (Kai-Grau, kein Gras-Grün als Horizont); Sky-Dome + Panorama-Ring  
+- **Parabolbogen** — Tempo-Strecke: lange Gerade, riesiger Bogen, enge Haarnadel (Strand/`beach`-Skin)  
+- **Schikanenring** — Stadt/Baustelle mit Risk/Reward-Schikane (sichere Linie vs. Hot Line mit mehr Hindernissen)  
+- **Omegatal** — Canyon: Omega-Doppelkurve, blinde Kuppe, Wasserfall-Abfahrt (`uneven`/`ramp`)  
+- **Kuppenfinale** — Cup-Boss mit vielen Kuppen/Schanzen (Fabrik-/Industrie-Skin, Havenstadt-Props wiederverwendet)  
+- Weitere Skins: Schrottplatz-Ring, Bergpass, Strandpiste  
 
-Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse.
+Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse = Sky-Dome + große Panorama-Meshes (keine voll modellierten Fern-Props).
 
 ### 8.3 Freier Modus
 
@@ -496,4 +495,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.32 — Blitz Tripo-Kabinenfenster wiederhergestellt.*
+*Dokumentstand: Konzept v3.36 — Cup-Strecken Parabolbogen/Schikanenring/Omegatal/Kuppenfinale + Sky-Dome/Panorama.*

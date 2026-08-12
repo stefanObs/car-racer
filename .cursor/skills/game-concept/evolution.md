@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.36 Cup routes 2–5 + sky/panorama surround
+- Trigger: implement track proposals (all cups except Hafenstart); sky dome + panoramic far/infield meshes; reuse Havenstadt props
+- Decision: Parabolbogen / Schikanenring (risk-reward) / Omegatal / Kuppenfinale in `levels.ts`; `panoramaSurround.ts` for dome + horizon cylinder + infield disc; city/beach/factory reuse crane/container/silo kits
+- CONCEPT §§ touched: §8.2 → v3.36
+
 ### 2026-08-12 — v3.35 Tripo 3D assets agent skill
 - Trigger: user — analyze original Blitz Teile pipeline; teach agents to generate 3D assets
 - Decision: New skill `.cursor/skills/tripo-3d-assets/` (SKILL + pipeline cookbook) documents concept → `tripo make` → bake → mount. Wired into skills-router, AGENTS.md, parts README, TECH.md. Policy: per-class kits / no Blitz remount on other cars.

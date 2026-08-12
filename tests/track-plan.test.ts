@@ -17,12 +17,14 @@ describe("track plan SVG", () => {
     }
   });
 
-  it("marks Schanzen on Buckelpiste and Cup-Finale plans", () => {
-    const buckel = CUP_LEVELS.find((l) => l.id.includes("buckelpiste"))!;
+  it("marks Schanzen on Omegatal and Kuppenfinale plans", () => {
+    const omega = CUP_LEVELS.find((l) => l.id.includes("buckelpiste"))!;
     const finale = CUP_LEVELS.find((l) => l.id.includes("cupfinale"))!;
-    expect(buckel.obstacles.some((o) => o.type === "ramp")).toBe(true);
+    expect(omega.displayName).toBe("Omegatal");
+    expect(finale.displayName).toBe("Kuppenfinale");
+    expect(omega.obstacles.some((o) => o.type === "ramp")).toBe(true);
     expect(finale.obstacles.some((o) => o.type === "ramp")).toBe(true);
-    expect(renderTrackPlanSvg(buckel)).toContain("polygon");
+    expect(renderTrackPlanSvg(omega)).toContain("polygon");
     expect(renderTrackPlanSvg(finale)).toContain("polygon");
   });
 

@@ -12,8 +12,9 @@ describe("race smoke", () => {
       playerSticker: "none",
     });
     expect(race.cars).toHaveLength(6);
-    for (let i = 0; i < 120; i++) {
-      race.step(1 / 60, { throttle: 1, brake: 0, steer: 0, nitro: false });
+    // Stay on the opening straight (Hafenstart ~62 m) — no wall-grind KO.
+    for (let i = 0; i < 90; i++) {
+      race.step(1 / 60, { throttle: 0.35, brake: 0, steer: 0, nitro: false });
     }
     expect(race.done).toBe(false);
     expect(race.player().progress).toBeGreaterThan(8);

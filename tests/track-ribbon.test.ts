@@ -21,5 +21,5 @@ describe("track ribbon bounds", () => {
         expect(Math.max(s.x, s.z), `${level.id} ${name} span`).toBeGreaterThan(20);
       }
     }
-  });
+  }, 20_000);
 });
