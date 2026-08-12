@@ -95,7 +95,7 @@ describe("garage hub", () => {
     expect(html).toMatch(/data-act="buy-car"[^>]*disabled/);
   });
 
-  it("shows buggy nose options and bunker IronClad door sticker", () => {
+  it("shows buggy nose options and bunker uses shared Aufkleber chips", () => {
     const buggy = renderGarageHtml({
       chf: 2000,
       activeCar: "kaeferkraft",
@@ -115,8 +115,10 @@ describe("garage hub", () => {
       ownedCars: ["bunker"],
       kit: emptyKit("bunker"),
     });
-    expect(bunker).toContain("Tür-Aufkleber");
-    expect(bunker).toContain("IronClad");
-    expect(emptyKit("bunker").sticker).toBe("ironClad");
+    expect(bunker).toContain("Aufkleber");
+    expect(bunker).not.toContain("IronClad");
+    expect(bunker).not.toContain("Tür-Aufkleber");
+    expect(bunker).toContain("Flammen");
+    expect(emptyKit("bunker").sticker).toBe("none");
   });
 });

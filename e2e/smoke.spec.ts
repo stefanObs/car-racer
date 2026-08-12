@@ -67,7 +67,7 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.getByRole("button", { name: "Gas" })).toBeVisible();
   });
 
-  test("garage sticker chips: Blitz side, Käferkraft nose, Bunker IronClad", async ({ page }) => {
+  test("garage sticker chips: Blitz side, Käferkraft nose, Bunker shared Aufkleber", async ({ page }) => {
     await page.addInitScript(() => {
       localStorage.setItem(
         "crash-circuit-save-v1",
@@ -81,7 +81,7 @@ test.describe("Crash Circuit smoke", () => {
             bison: { ownedParts: [], equippedParts: [], paint: "#2f9e44", sticker: "bolt" },
             kaeferkraft: { ownedParts: [], equippedParts: [], paint: "#12b886", sticker: "flames" },
             donnerbuechse: { ownedParts: [], equippedParts: [], paint: "#f08c00", sticker: "flames" },
-            bunker: { ownedParts: [], equippedParts: [], paint: "#868e96", sticker: "ironClad" },
+            bunker: { ownedParts: [], equippedParts: [], paint: "#868e96", sticker: "none" },
           },
           unlockedLevels: ["blitz_cup_01_hafenstart"],
           cupStars: {},
@@ -100,8 +100,8 @@ test.describe("Crash Circuit smoke", () => {
     await page.getByRole("button", { name: "Vogel" }).click();
     await expect(page.getByRole("button", { name: "Vogel" })).toHaveClass(/is-on/);
     await page.getByRole("button", { name: /Bunker/ }).click();
-    await expect(page.getByRole("heading", { name: "Tür-Aufkleber" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "IronClad" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Aufkleber" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "IronClad" })).toHaveCount(0);
     await page.getByRole("button", { name: "Flammen" }).click();
     await expect(page.getByRole("button", { name: "Flammen" })).toHaveClass(/is-on/);
     await expect(page.locator("#game-canvas")).toBeVisible();

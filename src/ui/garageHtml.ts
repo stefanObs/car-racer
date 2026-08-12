@@ -18,20 +18,6 @@ function cosmeticsForCar(carId: CarId): { ids: StickerId[]; labels: Record<Stick
         flames: "Totenkopf",
         bolt: "Vogel",
         star: "Hund",
-        ironClad: "IronClad",
-      },
-    };
-  }
-  if (carId === "bunker") {
-    return {
-      title: "Tür-Aufkleber",
-      ids: ["none", "ironClad", "flames", "bolt", "star"],
-      labels: {
-        none: "Kein",
-        ironClad: "IronClad",
-        flames: "Flammen",
-        bolt: "Blitz",
-        star: "Stern",
       },
     };
   }
@@ -43,7 +29,6 @@ function cosmeticsForCar(carId: CarId): { ids: StickerId[]; labels: Record<Stick
       flames: "Flammen",
       bolt: "Blitz",
       star: "Stern",
-      ironClad: "IronClad",
     },
   };
 }

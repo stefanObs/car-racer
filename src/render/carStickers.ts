@@ -23,7 +23,7 @@ import { DecalGeometry } from "three/addons/geometries/DecalGeometry.js";
 import type { CarId } from "../data/cars";
 import { ComicPaletteCss } from "./palette";
 
-export type StickerId = "none" | "flames" | "bolt" | "star" | "ironClad";
+export type StickerId = "none" | "flames" | "bolt" | "star";
 
 export type StickerSlot = "side" | "hood" | "door";
 
@@ -338,54 +338,6 @@ function drawRacingStar(ctx: CanvasRenderingContext2D, _carId: CarId, w: number,
   starMark(ctx, w * 0.82, h * 0.72, Math.min(w, h) * 0.11);
 }
 
-function ironCladLogo(ctx: CanvasRenderingContext2D, w: number, h: number): void {
-  ctx.clearRect(0, 0, w, h);
-  ctx.lineJoin = "round";
-  ctx.lineCap = "round";
-  ctx.fillStyle = "#C5CAD0";
-  ctx.strokeStyle = ink();
-  ctx.lineWidth = Math.max(4, h * 0.075);
-  ctx.beginPath();
-  ctx.moveTo(h * 0.18, h * 0.14);
-  ctx.lineTo(w - h * 0.1, h * 0.14);
-  ctx.lineTo(w - h * 0.04, h * 0.86);
-  ctx.lineTo(h * 0.06, h * 0.86);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = ComicPaletteCss.repairSpark;
-  ctx.fillRect(h * 0.14, h * 0.2, w * 0.72, h * 0.12);
-  ctx.strokeStyle = ink();
-  ctx.lineWidth = Math.max(2.5, h * 0.04);
-  ctx.strokeRect(h * 0.14, h * 0.2, w * 0.72, h * 0.12);
-  ctx.fillStyle = "#8B9098";
-  ctx.beginPath();
-  const sx = h * 0.22;
-  const sy = h * 0.4;
-  const sw = h * 0.42;
-  const sh = h * 0.4;
-  ctx.moveTo(sx + sw * 0.5, sy);
-  ctx.lineTo(sx + sw, sy + sh * 0.28);
-  ctx.lineTo(sx + sw * 0.82, sy + sh);
-  ctx.lineTo(sx + sw * 0.18, sy + sh);
-  ctx.lineTo(sx, sy + sh * 0.28);
-  ctx.closePath();
-  ctx.fill();
-  ctx.stroke();
-  ctx.fillStyle = ComicPaletteCss.repairSpark;
-  ctx.font = `bold ${Math.floor(h * 0.22)}px Impact, Haettenschweiler, sans-serif`;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.strokeStyle = ink();
-  ctx.lineWidth = Math.max(2, h * 0.03);
-  ctx.strokeText("IC", sx + sw * 0.5, sy + sh * 0.48);
-  ctx.fillText("IC", sx + sw * 0.5, sy + sh * 0.48);
-  ctx.fillStyle = ink();
-  ctx.font = `bold ${Math.floor(h * 0.28)}px Impact, Haettenschweiler, sans-serif`;
-  ctx.textAlign = "left";
-  ctx.fillText("IRONCLAD", h * 0.22 + sw * 1.15, h * 0.62);
-}
-
 /** Draw sticker art into a rect (transparent outside). Car-themed colors. */
 export function drawStickerArt(
   ctx: CanvasRenderingContext2D,
@@ -395,16 +347,11 @@ export function drawStickerArt(
   h: number,
 ): void {
   ctx.clearRect(0, 0, w, h);
-  if (!sticker || sticker === "none") return;
+  if (!sticker || sticker === "none" || sticker === "ironClad") return;
   ctx.lineJoin = "round";
   ctx.lineCap = "round";
   ctx.strokeStyle = ink();
   ctx.lineWidth = Math.max(4, Math.min(w, h) * 0.06);
-
-  if (sticker === "ironClad") {
-    ironCladLogo(ctx, w, h);
-    return;
-  }
 
   if (sticker === "flames") {
     drawHotRodFlames(ctx, carId, w, h);
@@ -421,7 +368,7 @@ export function drawStickerArt(
 
 /** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
-  if (!sticker || sticker === "none") return null;
+  if (!sticker || sticker === "none" || sticker === "ironClad") return null;
   return canvasTex(`sticker-v11:${carId}:${sticker}`, 512, 256, (ctx) => {
     ctx.clearRect(0, 0, 512, 256);
     drawStickerArt(ctx, sticker, carId, 512, 256);
@@ -430,6 +377,7 @@ export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture
 
 function normalizeSticker(sticker: string): string {
   if (sticker === "lightning") return "bolt";
+  if (sticker === "ironClad") return "none";
   return sticker || "none";
 }
 

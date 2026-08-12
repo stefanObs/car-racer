@@ -262,7 +262,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 
 ### 6.2 Drei Ausgaben-Säulen
 
-1. **Schmücken (Kosmetik)** — Lack, **Aufkleber** (Flammen, Blitze, Sterne, Emblem…; **Bunker:** Tür-Badge „IronClad“ austauschbar), Felgen-Look, Spoiler-Optik, Unterbodenlicht, Nummernschild-Text, Horn-Sound. **Käferkraft:** statt Flach-Aufkleber **Nasen-/Kopf-Modellvarianten** (Glatt, Totenkopf inkl. Hörner, Vogel, Hund); die vorderen **Scheinwerfer** gehören zum Auto (nicht zur Nasen-Kosmetik). **Kein Stats-Vorteil** (fair, sammelbar, stolz zeigen).
+1. **Schmücken (Kosmetik)** — Lack, **Aufkleber** (Flammen, Blitze, Sterne…), Felgen-Look, Spoiler-Optik, Unterbodenlicht, Nummernschild-Text, Horn-Sound. **Käferkraft:** statt Flach-Aufkleber **Nasen-/Kopf-Modellvarianten** (Glatt, Totenkopf inkl. Hörner, Vogel, Hund); die vorderen **Scheinwerfer** gehören zum Auto (nicht zur Nasen-Kosmetik). **Kein Stats-Vorteil** (fair, sammelbar, stolz zeigen).
 2. **Neues Auto kaufen** — andere Klasse oder Variante innerhalb der Klasse. Antippen zeigt eine **klar markierte Vorschau** (3D-Bay + Eigenschaften, ohne Tuning). **Kaufen** bucht CHF und macht das Auto aktiv. Rennen starten weiter mit dem bereits besessenen Auto, bis der Kauf durch ist.
 3. **Teile tunen** — echte Stats, immer mit Trade-off.
 
@@ -504,4 +504,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.42 — Explizite Drift-Aktion (Taste/Bumper/Touch) wie Kart-Racer.*
+*Dokumentstand: Konzept v3.43 — IronClad-Tür-Badge vom Bunker entfernt; shared Aufkleber.*

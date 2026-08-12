@@ -84,11 +84,28 @@ describe("car models and per-car kits", () => {
     expect(n.kits.blitz!.ownedParts).toEqual([]);
   });
 
+  it("sanitizes retired ironClad sticker to none", () => {
+    const n = normalizeSave({
+      version: 2,
+      chf: 0,
+      ownedCars: ["bunker"],
+      activeCar: "bunker",
+      kits: {
+        bunker: { ownedParts: [], equippedParts: [], paint: "#868e96", sticker: "ironClad" as never },
+      },
+      unlockedLevels: ["blitz_cup_01_hafenstart"],
+      cupStars: {},
+      cupIndexUnlocked: 1,
+    });
+    expect(n.kits.bunker!.sticker).toBe("none");
+  });
+
   it("emptyKit starts with class default paint and no parts", () => {
     const k = emptyKit("bison");
     expect(k.ownedParts).toEqual([]);
     expect(k.paint).toBe("#2f9e44");
     expect(emptyKit("kaeferkraft").paint).toBe("#12b886");
     expect(emptyKit("bunker").paint).toBe("#868e96");
+    expect(emptyKit("bunker").sticker).toBe("none");
   });
 });

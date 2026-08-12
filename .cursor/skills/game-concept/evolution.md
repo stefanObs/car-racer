@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.43 Remove Bunker IronClad sticker
+- Trigger: user — remove ironclad sticker from Bunker
+- Decision: Drop `ironClad` sticker id; Bunker uses shared Aufkleber (Kein/Flammen/Blitz/Stern); old saves sanitize to `none`
+- CONCEPT §9 cosmetics → v3.43
+
 ### 2026-08-12 — v3.41 Theme Tripo scenery for cups 2–5
 - Trigger: user — Tripo assets for all tracks except Havenstadt matching proposals; nothing on the racing surface; sky/surround textures same treatment
 - Decision: 10 theme props (grandstand/palm/hut/tower/building/cliff/spire/tree/warehouse/scrub) via concept→Tripo→bake; outer-side placement + `SCENERY_CLEARANCE=12`; panorama/sky refreshed per proposal; Hafenstart kit unchanged

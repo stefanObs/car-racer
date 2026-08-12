@@ -45,7 +45,7 @@ test.describe("Aufkleber DecalGeometry", () => {
             bison: { ownedParts: [], equippedParts: [], paint: "#2f9e44", sticker: "bolt" },
             kaeferkraft: { ownedParts: [], equippedParts: [], paint: "#12b886", sticker: "flames" },
             donnerbuechse: { ownedParts: [], equippedParts: [], paint: "#228be6", sticker: "flames" },
-            bunker: { ownedParts: [], equippedParts: [], paint: "#f8f9fa", sticker: "ironClad" },
+            bunker: { ownedParts: [], equippedParts: [], paint: "#f8f9fa", sticker: "flames" },
           },
           unlockedLevels: ["blitz_cup_01_hafenstart"],
           cupStars: {},

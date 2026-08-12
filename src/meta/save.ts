@@ -2,7 +2,18 @@ import type { CarId } from "../data/cars";
 import { CARS } from "../data/cars";
 import type { PartId } from "../data/parts";
 
-export type StickerId = "none" | "flames" | "bolt" | "star" | "ironClad";
+export type StickerId = "none" | "flames" | "bolt" | "star";
+
+const STICKER_IDS: readonly StickerId[] = ["none", "flames", "bolt", "star"];
+
+/** Drop retired ids (e.g. ironClad) so old saves stay valid. */
+export function sanitizeSticker(raw: unknown): StickerId {
+  if (raw === "lightning") return "bolt";
+  if (typeof raw === "string" && (STICKER_IDS as readonly string[]).includes(raw)) {
+    return raw as StickerId;
+  }
+  return "none";
+}
 
 /** Tuning + cosmetics for one owned car — not shared across cars. */
 export type CarKit = {
@@ -33,7 +44,7 @@ type SaveDataV1 = {
   ownedParts?: PartId[];
   equippedParts?: PartId[];
   paint?: string;
-  sticker?: StickerId;
+  sticker?: string;
   unlockedLevels?: string[];
   cupStars?: Record<string, number>;
   cupIndexUnlocked?: number;
@@ -46,8 +57,7 @@ export function emptyKit(carId: CarId): CarKit {
     ownedParts: [],
     equippedParts: [],
     paint: CARS[carId].defaultPaint,
-    // Bunker ships with door badge; others default to no sticker / bare nose
-    sticker: carId === "bunker" ? "ironClad" : "none",
+    sticker: "none",
   };
 }
 
@@ -94,7 +104,7 @@ export function migrateV1ToV2(raw: SaveDataV1): SaveData {
     ownedParts: [...(raw.ownedParts ?? [])],
     equippedParts: [...(raw.equippedParts ?? [])],
     paint: raw.paint ?? CARS[active].defaultPaint,
-    sticker: raw.sticker ?? "none",
+    sticker: sanitizeSticker(raw.sticker),
   };
 
   return {
@@ -124,6 +134,9 @@ export function normalizeSave(parsed: SaveData | SaveDataV1): SaveData {
     ensureKit(save, id);
   }
   ensureKit(save, save.activeCar);
+  for (const kit of Object.values(save.kits)) {
+    if (kit) kit.sticker = sanitizeSticker(kit.sticker);
+  }
   return save;
 }
 

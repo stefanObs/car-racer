@@ -29,13 +29,14 @@ describe("car sticker decals", () => {
   it("builds car-specific sticker textures", () => {
     expect(stickerTexture("flames", "blitz")).toBeTruthy();
     expect(stickerTexture("bolt", "bison")).toBeTruthy();
-    expect(stickerTexture("ironClad", "bunker")).toBeTruthy();
+    expect(stickerTexture("star", "bunker")).toBeTruthy();
+    expect(stickerTexture("ironClad", "bunker")).toBeNull();
     expect(stickerTexture("none")).toBeNull();
     expect(overlayTextureCacheSize()).toBeGreaterThan(0);
   });
 
-  it("defaults bunker IronClad and donner none", () => {
-    expect(emptyKit("bunker").sticker).toBe("ironClad");
+  it("defaults all cars including bunker to no sticker", () => {
+    expect(emptyKit("bunker").sticker).toBe("none");
     expect(emptyKit("donnerbuechse").sticker).toBe("none");
     expect(emptyKit("blitz").sticker).toBe("none");
   });
