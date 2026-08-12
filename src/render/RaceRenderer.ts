@@ -1,5 +1,6 @@
 import {
   AmbientLight,
+  Box3,
   Color,
   DirectionalLight,
   EquirectangularReflectionMapping,
@@ -30,7 +31,7 @@ import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
-import { buildGarageBay, GARAGE_PAD_CENTER, garagePadDeckY } from "./garageBay";
+import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
 import { buildLevelObstacles } from "./levelObstacles";
 import {
   buildPanoramaSurround,
@@ -157,15 +158,20 @@ export class RaceRenderer {
     );
     upgradeCarFx(visual);
     const pad = this.idleGroup.getObjectByName("garagePad");
-    const deckY = pad ? garagePadDeckY(pad) + 0.01 : GARAGE_PAD_CENTER.y + 0.13;
+    const deckY = pad ? garagePadDeckY(pad) : GARAGE_PAD_DECK_FALLBACK_Y;
     visual.root.position.set(GARAGE_PAD_CENTER.x, deckY, GARAGE_PAD_CENTER.z);
     visual.root.rotation.y = this.garageYaw;
     visual.root.scale.setScalar(1.35);
-    // Ride-lift baseline must match the pad deck (not a hardcoded floor sit).
-    visual.root.userData.carPartsSitY = deckY;
-    visual.root.userData.blitzSitY = deckY;
-    this.idleCar = visual.root;
     this.idleGroup.add(visual.root);
+    // Wheels/skirts can sit below the GLB origin after scale — lift so the mesh clears the deck.
+    visual.root.updateMatrixWorld(true);
+    const carMinY = new Box3().setFromObject(visual.root).min.y;
+    if (Number.isFinite(carMinY)) {
+      visual.root.position.y += deckY + 0.02 - carMinY;
+    }
+    visual.root.userData.carPartsSitY = visual.root.position.y;
+    visual.root.userData.blitzSitY = visual.root.position.y;
+    this.idleCar = visual.root;
     this.scene.add(this.idleGroup);
     if (import.meta.env.DEV) {
       const w = window as unknown as {
