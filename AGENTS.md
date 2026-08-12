@@ -12,6 +12,7 @@ This repo’s design and workflow live in project skills. **Use every skill that
 | Asphalt-Comic art | `.cursor/skills/asphalt-comic-art/SKILL.md` | Any visuals / image generation |
 | Level editor | `.cursor/skills/level-editor/SKILL.md` | Tracks, cups, free/ad-hoc levels |
 | Tripo 3D assets | `.cursor/skills/tripo-3d-assets/SKILL.md` | Cars, Teile, FX, track kit, garage props — concept → Tripo → bake GLB |
+| Arcade physics | `.cursor/skills/arcade-physics/SKILL.md` | Driving feel, Eigenschaften→forces, grip/slide, jumps, nitro, mass contact — evolve deliberately |
 
 Source of truth for design: `CONCEPT.md`. Tech (free-only, adopted): `TECH.md`.
 

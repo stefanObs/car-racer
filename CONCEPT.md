@@ -77,6 +77,8 @@ Gleiche Aktionen auf allen Eingabegeräten; kein Feature nur auf einer Plattform
 
 Kein realistisches Drift-Physik-Sim — eher **Gewicht + Grip + Impuls** mit Arcade-Fahrgefühl: Lenkung wird bei Tempo ruhiger, Grip lässt das Auto in Kurven leicht rutschen statt panzerartig zu drehen, Gas baut Tempo knackig auf, Loslassen lässt es **ausrollen** (nicht abrupt stoppen). **Schanzen** geben echte Luftzeit; die Landung braucht Grip/Federung. Kontakt schiebt nach **Masse** (leichte Autos fliegen weiter).
 
+**Physik-Autorenschaft:** Skill `.cursor/skills/arcade-physics/` (Stat-Map + Evolution-Log) — Änderungen an Fahrgefühl/Eigenschaften-Skalierung immer dort entlang evolvieren.
+
 ### 4.3 Physik-Säulen (fürs Balancing)
 
 Jedes Auto hat (Basis + Teile) — die **Eigenschaften** skalieren die Arcade-Physik direkt:
@@ -500,4 +502,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.38 — Theme-Tripo-Kulisse Cups 2–5 (frei von der Rennfläche).*
+*Dokumentstand: Konzept v3.39 — Arcade-Physik-Skill (Autorenschaft / Evolution).*

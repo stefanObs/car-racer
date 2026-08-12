@@ -100,7 +100,13 @@ tests/
 
 ### Camera (locks open decision toward MVP)
 
-**Flat chase / slightly elevated 3D** behind the car (concept recommendation). Readable line, grass, and wall types — not top-down sim, not cinematic only.
+**Flat chase / slightly elevated 3D** behind the car (concept recommendation). Readable line, grass, and wall types — not top-down sim, not cinematic only. Follows `car.y` during Schanze airtime.
+
+### Arcade physics (sim)
+
+- Implementation: `src/sim/vehicle.ts` (zones/damage/catchup/race helpers).
+- **Agent skill:** `.cursor/skills/arcade-physics/` — evolve feel via Eigenschaften mapping + feel tests; do not grow a parallel physics design doc.
+- Lock tests: `tests/arcade-physics.test.ts`, `tests/arcade-feel.test.ts`.
 
 ---
 

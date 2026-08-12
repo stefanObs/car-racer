@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-12 — v3.39 Arcade-physics skill (subagent)
+- Trigger: user — subagent that owns physics so it can evolve
+- Decision: `.cursor/skills/arcade-physics/` (SKILL + stat-map + evolution) + router/AGENTS/TECH/CONCEPT §4.2 pointer; feel changes go through evolve checklist + feel tests
+- CONCEPT §§: §4.2 authorship → v3.39
+
 ### 2026-08-12 — v3.38 Theme Tripo scenery for cups 2–5
 - Trigger: user — Tripo assets for all tracks except Havenstadt matching proposals; nothing on the racing surface; sky/surround textures same treatment
 - Decision: 10 theme props (grandstand/palm/hut/tower/building/cliff/spire/tree/warehouse/scrub) via concept→Tripo→bake; outer-side placement + `SCENERY_CLEARANCE=12`; panorama/sky refreshed per proposal; Hafenstart kit unchanged

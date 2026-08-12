@@ -1,0 +1,20 @@
+---
+description: Route driving-physics / race-feel tasks to the arcade-physics skill.
+globs:
+  - src/sim/**
+  - tests/arcade-*.test.ts
+  - tests/wall-collision.test.ts
+  - tests/impact-bounce.test.ts
+  - src/data/cars.ts
+  - src/data/parts.ts
+alwaysApply: false
+---
+
+# Arcade physics
+
+When changing **driving physics**, race feel, Eigenschaften→forces, grip/slide, handling, nitro, brakes, jumps, mass shove, walls/obstacles contact, or car base/part stats that feed the sim:
+
+1. Read `.cursor/skills/arcade-physics/SKILL.md` (and `stat-map.md` / `evolution.md` as needed)
+2. Also read `.cursor/skills/clean-programming/` for any code change
+3. If CONCEPT §4 rules move, also follow `.cursor/skills/game-concept/`
+4. Evolve deliberately — failing feel test → smallest fix → log evolution.md → version/commit/push

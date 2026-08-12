@@ -77,6 +77,8 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Cars read as their real-world category (silhouette test vs `car-category-targets.png`)
 - [ ] Grass ≠ asphalt ≠ tire wall ≠ concrete
 - [ ] Uneven surfaces read as buckel/wobble opportunity
+- [ ] Schanzen: car lifts (`y`) then lands; not hop-only in render
+- [ ] Class feel readable (e.g. Blitz vs Bunker accel / shove) — arcade-physics skill
 - [ ] Damage and heal FX on-model and readable
 - [ ] Stickers aligned; no z-fight / stretch
 - [ ] Menus share the same visual language as race view
