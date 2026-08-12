@@ -26,6 +26,26 @@ describe("garage bay comic textures", () => {
     expect(garageTextureCacheSize()).toBeGreaterThan(0);
   });
 
+  it("caches distinct floor and wall texture keys", () => {
+    clearGarageTextureCache();
+    const floor = floorTexture();
+    const wallA = wallPanelTexture(1);
+    const wallB = wallPanelTexture(2);
+    expect(floor).not.toBe(wallA);
+    expect(wallA).not.toBe(wallB);
+    expect(floorTexture()).toBe(floor);
+    expect(wallPanelTexture(1)).toBe(wallA);
+    expect(garageTextureCacheSize()).toBeGreaterThanOrEqual(3);
+  });
+
+  it("wires named floor and wall meshes on the bay", () => {
+    const bay = buildGarageBay();
+    expect(bay.getObjectByName("garageFloor")).toBeTruthy();
+    expect(bay.getObjectByName("garageWallBack")).toBeTruthy();
+    expect(bay.getObjectByName("garageWallLeft")).toBeTruthy();
+    expect(bay.getObjectByName("garageWallRight")).toBeTruthy();
+  });
+
   it("builds banner, poster, and sky textures for the bay shell", () => {
     expect(bannerTexture()).toBeTruthy();
     expect(posterTexture("#339AF0")).toBeTruthy();

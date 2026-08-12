@@ -1,10 +1,12 @@
 /**
  * Bright Asphalt-Comic garage textures — flat base + bold ink detail (reference daylight look).
+ * Floor/wall match `assets/art-style/car-category-targets.png` workshop shell.
  */
 import {
   CanvasTexture,
   DataTexture,
   NearestFilter,
+  RepeatWrapping,
   RGBAFormat,
   SRGBColorSpace,
   type Texture,
@@ -35,11 +37,20 @@ function fallbackTex(r = 200, g = 205, b = 210): DataTexture {
   return tex;
 }
 
-function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderingContext2D) => void): Texture {
+type CanvasTexOpts = { repeatX?: number; repeatY?: number; fallbackRgb?: [number, number, number] };
+
+function canvasTex(
+  key: string,
+  w: number,
+  h: number,
+  draw: (ctx: CanvasRenderingContext2D) => void,
+  opts: CanvasTexOpts = {},
+): Texture {
   const hit = texCache.get(key);
   if (hit) return hit;
   if (typeof document === "undefined") {
-    const tex = fallbackTex();
+    const [r, g, b] = opts.fallbackRgb ?? [200, 205, 210];
+    const tex = fallbackTex(r, g, b);
     texCache.set(key, tex);
     return tex;
   }
@@ -48,7 +59,8 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
   c.height = h;
   const ctx = c.getContext("2d");
   if (!ctx) {
-    const tex = fallbackTex();
+    const [r, g, b] = opts.fallbackRgb ?? [200, 205, 210];
+    const tex = fallbackTex(r, g, b);
     texCache.set(key, tex);
     return tex;
   }
@@ -58,6 +70,11 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
   tex.minFilter = NearestFilter;
   tex.magFilter = NearestFilter;
   tex.generateMipmaps = false;
+  if (opts.repeatX || opts.repeatY) {
+    tex.wrapS = RepeatWrapping;
+    tex.wrapT = RepeatWrapping;
+    tex.repeat.set(opts.repeatX ?? 1, opts.repeatY ?? 1);
+  }
   tex.needsUpdate = true;
   texCache.set(key, tex);
   return tex;
@@ -81,51 +98,102 @@ function roundRect(
   ctx.closePath();
 }
 
-/** Workshop concrete — cooler grey, cracks, ink seams (car-targets garage). */
+/**
+ * Workshop concrete floor (car-targets garage): dark cel slabs, thick joints,
+ * yellow bay paint, oil blobs, tire scuffs — readable when tiled on the bay plane.
+ */
 export function floorTexture(): Texture {
-  return canvasTex("garage-floor-v6", 512, 512, (ctx) => {
-    const w = 512;
-    const h = 512;
-    ctx.fillStyle = "#C5C9CE";
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "#B7BCC2";
-    for (let y = 0; y < h; y += 72) {
-      for (let x = 0; x < w; x += 72) {
-        if (((x + y) / 72) % 2 === 0) ctx.fillRect(x, y, 72, 72);
+  return canvasTex(
+    "garage-floor-v7",
+    1024,
+    1024,
+    (ctx) => {
+      const w = 1024;
+      const h = 1024;
+      // Base — cooler dark concrete (2–3 value steps)
+      ctx.fillStyle = "#6E747C";
+      ctx.fillRect(0, 0, w, h);
+      const slab = 128;
+      for (let y = 0; y < h; y += slab) {
+        for (let x = 0; x < w; x += slab) {
+          const shade = ((x / slab + y / slab) % 2 === 0 ? "#7A8088" : "#656B73");
+          ctx.fillStyle = shade;
+          ctx.fillRect(x + 2, y + 2, slab - 4, slab - 4);
+          // Hard cel highlight on each slab corner
+          ctx.fillStyle = "rgba(232,226,214,0.14)";
+          ctx.fillRect(x + 6, y + 6, slab * 0.38, slab * 0.18);
+        }
       }
-    }
-    ctx.strokeStyle = ink();
-    ctx.lineWidth = 3;
-    ctx.globalAlpha = 0.4;
-    for (let x = 72; x < w; x += 72) {
+      // Expansion joints — thick comic ink
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 5;
+      for (let x = slab; x < w; x += slab) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, h);
+        ctx.stroke();
+      }
+      for (let y = slab; y < h; y += slab) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(w, y);
+        ctx.stroke();
+      }
+      // Yellow parking bay frame (workshop cue from car-targets)
+      ctx.strokeStyle = ComicPaletteCss.repairSpark;
+      ctx.lineWidth = 14;
+      ctx.strokeRect(72, 72, w - 144, h - 144);
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 4;
+      ctx.strokeRect(72, 72, w - 144, h - 144);
+      // Dashed center guide
+      ctx.strokeStyle = ComicPaletteCss.asphaltLine;
+      ctx.lineWidth = 8;
+      ctx.setLineDash([28, 22]);
       ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, h);
+      ctx.moveTo(w / 2, 100);
+      ctx.lineTo(w / 2, h - 100);
       ctx.stroke();
-    }
-    for (let y = 72; y < h; y += 72) {
+      ctx.setLineDash([]);
+      // Oil stains — flat comic blobs + outline
+      const stains: Array<[number, number, number, number]> = [
+        [220, 780, 90, 50],
+        [710, 260, 70, 42],
+        [480, 560, 110, 55],
+        [160, 340, 55, 35],
+      ];
+      for (const [sx, sy, sw, sh] of stains) {
+        ctx.fillStyle = "#3A3E46";
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, sw, sh, -0.35, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = ink();
+        ctx.lineWidth = 3;
+        ctx.stroke();
+        ctx.fillStyle = "rgba(27,27,31,0.45)";
+        ctx.beginPath();
+        ctx.ellipse(sx - sw * 0.15, sy - sh * 0.1, sw * 0.45, sh * 0.4, -0.2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      // Tire scuff arcs
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 6;
+      ctx.lineCap = "round";
+      ctx.globalAlpha = 0.55;
       ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(w, y);
+      ctx.arc(320, 700, 120, 0.2, 1.4);
       ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    ctx.strokeStyle = ink();
-    ctx.lineWidth = 2.5;
-    ctx.globalAlpha = 0.45;
-    ctx.beginPath();
-    ctx.moveTo(40, 80);
-    ctx.lineTo(90, 140);
-    ctx.lineTo(70, 210);
-    ctx.lineTo(130, 280);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(380, 60);
-    ctx.lineTo(420, 130);
-    ctx.lineTo(400, 200);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-  });
+      ctx.beginPath();
+      ctx.arc(700, 420, 95, 2.2, 3.5);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      // Outer ink frame so tile seams stay readable
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 10;
+      ctx.strokeRect(4, 4, w - 8, h - 8);
+    },
+    { repeatX: 3, repeatY: 3, fallbackRgb: [110, 116, 124] },
+  );
 }
 
 /** Circular asphalt turntable with hazard ring. */
@@ -197,65 +265,101 @@ export function asphaltPadTexture(): Texture {
   });
 }
 
-/** Concrete wall with mid hazard band (car-targets garage). */
+/**
+ * Concrete wall panels (car-targets garage): mid-grey slabs, solid yellow shop stripe,
+ * pillar seams with bolts, cel cracks/smudges — not photoreal plaster.
+ */
 export function wallPanelTexture(seed: number): Texture {
-  return canvasTex(`garage-wall-v6-${seed}`, 640, 480, (ctx) => {
-    const w = 640;
-    const h = 480;
-    ctx.fillStyle = seed % 2 === 0 ? "#D8DCE1" : "#CED3D8";
-    ctx.fillRect(0, 0, w, h);
-    ctx.fillStyle = "rgba(90,100,110,0.12)";
-    ctx.fillRect(0, 0, w, h * 0.18);
-    ctx.fillStyle = ComicPaletteCss.repairSpark;
-    ctx.fillRect(0, h * 0.38, w, 22);
-    ctx.strokeStyle = ink();
-    ctx.lineWidth = 4;
-    ctx.strokeRect(0, h * 0.38, w, 22);
-    const hy = h * 0.46;
-    const hh = 36;
-    ctx.fillStyle = ComicPaletteCss.repairSpark;
-    ctx.fillRect(0, hy, w, hh);
-    ctx.fillStyle = ink();
-    const step = 44;
-    for (let x = -hh; x < w + hh; x += step) {
-      ctx.beginPath();
-      ctx.moveTo(x, hy);
-      ctx.lineTo(x + hh * 0.5, hy);
-      ctx.lineTo(x + hh * 0.5 + hh, hy + hh);
-      ctx.lineTo(x + hh, hy + hh);
-      ctx.closePath();
-      ctx.fill();
-    }
-    ctx.strokeStyle = ink();
-    ctx.lineWidth = 6;
-    for (const x of [160, 320, 480]) {
-      ctx.beginPath();
-      ctx.moveTo(x, 14);
-      ctx.lineTo(x, h - 14);
-      ctx.stroke();
-    }
-    ctx.fillStyle = ink();
-    for (const x of [160, 320, 480]) {
-      for (let y = 36; y < h - 28; y += 44) {
-        ctx.beginPath();
-        ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fill();
+  return canvasTex(
+    `garage-wall-v7-${seed}`,
+    768,
+    512,
+    (ctx) => {
+      const w = 768;
+      const h = 512;
+      const base = seed % 2 === 0 ? "#9AA1AA" : "#8E959E";
+      const face = seed % 2 === 0 ? "#B0B6BE" : "#A4ABB4";
+      ctx.fillStyle = base;
+      ctx.fillRect(0, 0, w, h);
+
+      const panels = 4;
+      const gap = 10;
+      const pw = (w - gap * (panels + 1)) / panels;
+      for (let i = 0; i < panels; i++) {
+        const x = gap + i * (pw + gap);
+        ctx.fillStyle = face;
+        ctx.fillRect(x, 16, pw, h * 0.74);
+        ctx.fillStyle = "rgba(248,249,250,0.2)";
+        ctx.fillRect(x, 16, pw, h * 0.12);
+        ctx.strokeStyle = ink();
+        ctx.lineWidth = 5;
+        ctx.strokeRect(x, 16, pw, h * 0.74);
+        for (const bx of [x + 14, x + pw - 14]) {
+          for (let y = 44; y < h * 0.7; y += 56) {
+            ctx.fillStyle = ink();
+            ctx.beginPath();
+            ctx.arc(bx, y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = "#E8E2D6";
+            ctx.beginPath();
+            ctx.arc(bx - 1.4, y - 1.4, 1.7, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
       }
-    }
-    ctx.strokeStyle = ink();
-    ctx.lineWidth = 2.5;
-    ctx.globalAlpha = 0.55;
-    const ox = 40 + seed * 40;
-    ctx.beginPath();
-    ctx.moveTo(ox, 80);
-    ctx.lineTo(ox + 35, 120);
-    ctx.lineTo(ox + 18, 170);
-    ctx.lineTo(ox + 50, 210);
-    ctx.stroke();
-    ctx.globalAlpha = 1;
-    ctx.lineWidth = 10;
-    ctx.strokeRect(5, 5, w - 10, h - 10);
-  });
+
+      ctx.fillStyle = "#6E7580";
+      ctx.fillRect(0, h * 0.78, w, h * 0.22);
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(0, h * 0.78);
+      ctx.lineTo(w, h * 0.78);
+      ctx.stroke();
+
+      const stripeY = h * 0.36;
+      ctx.fillStyle = ComicPaletteCss.repairSpark;
+      ctx.fillRect(0, stripeY, w, 30);
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 5;
+      ctx.strokeRect(0, stripeY, w, 30);
+      ctx.fillStyle = "#E03131";
+      ctx.fillRect(0, stripeY + 30, w, 9);
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 3;
+      ctx.strokeRect(0, stripeY + 30, w, 9);
+
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 3.5;
+      ctx.globalAlpha = 0.7;
+      const ox = 70 + (seed % 3) * 40;
+      ctx.beginPath();
+      ctx.moveTo(ox, 70);
+      ctx.lineTo(ox + 36, 115);
+      ctx.lineTo(ox + 14, 165);
+      ctx.lineTo(ox + 48, 210);
+      ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(w - ox, 80);
+      ctx.lineTo(w - ox - 40, 140);
+      ctx.lineTo(w - ox - 18, 195);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+
+      ctx.fillStyle = "rgba(70,78,88,0.32)";
+      ctx.beginPath();
+      ctx.ellipse(180 + seed * 20, h * 0.62, 52, 24, 0.25, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(w - 200, h * 0.58, 40, 20, -0.35, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = ink();
+      ctx.lineWidth = 10;
+      ctx.strokeRect(5, 5, w - 10, h - 10);
+    },
+    { repeatX: seed === 1 ? 2.2 : 1.6, repeatY: 1.15, fallbackRgb: [168, 174, 182] },
+  );
 }
 
 /** Bold hazard chevrons. */

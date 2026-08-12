@@ -58,7 +58,8 @@ export function buildGarageBay(): Group {
   doorFill.position.set(10, 5, 8);
   g.add(keyFill, rimFill, doorFill);
 
-  const floor = new Mesh(new PlaneGeometry(28, 30), mapped(floorTexture(), 0xc5c9ce));
+  const floor = new Mesh(new PlaneGeometry(28, 30), mapped(floorTexture(), 0x6e747c));
+  floor.name = "garageFloor";
   floor.rotation.x = -Math.PI / 2;
   g.add(floor);
 
@@ -75,11 +76,14 @@ export function buildGarageBay(): Group {
     g.add(tile);
   }
 
-  const back = withOutline(new BoxGeometry(26, 11, 0.4), mapped(wallPanelTexture(1), 0xd8dce1), 0.05);
+  const back = withOutline(new BoxGeometry(26, 11, 0.4), mapped(wallPanelTexture(1), 0xa8aeb6), 0.05);
+  back.name = "garageWallBack";
   back.position.set(1, 5.5, -11);
-  const left = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(2), 0xced3d8), 0.05);
+  const left = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(2), 0x9aa1aa), 0.05);
+  left.name = "garageWallLeft";
   left.position.set(-11.5, 5.5, 0);
-  const right = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(3), 0xced3d8), 0.05);
+  const right = withOutline(new BoxGeometry(0.4, 11, 24), mapped(wallPanelTexture(3), 0x9aa1aa), 0.05);
+  right.name = "garageWallRight";
   right.position.set(12.5, 5.5, 0);
   const ceiling = new Mesh(new BoxGeometry(28, 0.25, 26), comicFlat(0x5c636a));
   ceiling.position.set(1, 10.15, 0);
