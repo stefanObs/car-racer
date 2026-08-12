@@ -4,8 +4,14 @@ import { describe, expect, it } from "vitest";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { getBounds } from "@gltf-transform/functions";
-import { GARAGE_HERO, GARAGE_PROP_IDS, GARAGE_STOCK } from "../src/data/garageProps";
-import { GARAGE_PAD_RADIUS, isOutsideGaragePad } from "../src/render/garageBay";
+import {
+  GARAGE_BACK_WALL_VISIBLE_X,
+  GARAGE_BACK_WALL_Z,
+  GARAGE_HERO,
+  GARAGE_PROP_IDS,
+  GARAGE_STOCK,
+} from "../src/data/garageProps";
+import { GARAGE_PAD_CENTER, GARAGE_PAD_RADIUS, isOutsideGaragePad } from "../src/render/garageBay";
 
 const FILES = [
   { id: "cabinet", file: "cabinet.glb", minH: 1.7, maxH: 2.25, minBytes: 20_000 },
@@ -47,13 +53,27 @@ describe("garage Tripo workshop bake", () => {
     }
   });
 
-  it("keeps workshop props in a tight ring near the pad (camera frustum)", () => {
-    const cx = 1.5;
-    const cz = 0;
+  it("keeps side props near the pad and back-wall props against the rear wall", () => {
     for (const place of [...GARAGE_STOCK, ...GARAGE_HERO]) {
-      const r = Math.hypot(place.position.x - cx, place.position.z - cz);
+      const r = Math.hypot(
+        place.position.x - GARAGE_PAD_CENTER.x,
+        place.position.z - GARAGE_PAD_CENTER.z,
+      );
       expect(r, place.name).toBeGreaterThan(GARAGE_PAD_RADIUS + 0.35);
-      expect(r, place.name).toBeLessThan(7.5);
+      if (place.wall === "back") {
+        expect(place.position.z, place.name).toBeGreaterThanOrEqual(GARAGE_BACK_WALL_Z.min);
+        expect(place.position.z, place.name).toBeLessThanOrEqual(GARAGE_BACK_WALL_Z.max);
+        expect(place.position.x, place.name).toBeGreaterThanOrEqual(GARAGE_BACK_WALL_VISIBLE_X.min);
+        expect(place.position.x, place.name).toBeLessThanOrEqual(GARAGE_BACK_WALL_VISIBLE_X.max);
+        expect(r, place.name).toBeLessThan(12);
+      } else {
+        expect(r, place.name).toBeLessThan(7.5);
+      }
     }
+  });
+
+  it("puts cabinet, workbench, shelf, and hoist on the back wall", () => {
+    const back = [...GARAGE_STOCK, ...GARAGE_HERO].filter((p) => p.wall === "back");
+    expect(back.map((p) => p.id).sort()).toEqual(["cabinet", "hoist", "shelf", "workbench"]);
   });
 });
