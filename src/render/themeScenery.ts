@@ -81,7 +81,7 @@ function sample(track: BuiltTrack, i: number, n: number) {
   return sampleCenterline(track, along);
 }
 
-/** Oval infield center — used for harbor basin water. */
+/** Oval infield center — used for panorama discs and theme placement. */
 export function trackCentroid(track: BuiltTrack): { x: number; z: number } {
   let x = 0;
   let z = 0;
@@ -119,17 +119,13 @@ export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnc
   };
 
   if (t === "harbor") {
-    for (let i = 0; i < 20; i++) {
-      const s = sample(track, i, 20);
-      const side: 1 | -1 = i % 2 === 0 ? 1 : -1;
-      push("crane", s, side, (i % 3) * 2, 4);
-      push("container", s, side, 5 + (i % 3) * 2, 4);
-      if (i % 2 === 0) push("water", s, side, 12, 10);
-      if (i % 3 === 0) push("ship", s, side, 16, 12);
-      if (i % 4 === 0) push("silo", s, side, 7, 3);
-      if (i % 2 === 0) push("warehouse", s, side, 9 + (i % 2), 5);
-      if (i % 5 === 0) push("quay", s, side, 2, 3);
-      if (i % 3 === 0) push("bollard", s, side, 1.2, 0.8);
+    // Sparse near-track Tripo kit only — distant harbor is sky dome + panorama cylinders/discs.
+    const kinds = ["crane", "container", "warehouse", "tank"] as const;
+    for (let i = 0; i < 8; i++) {
+      const s = sample(track, i, 8);
+      const out = outerSide(track, s);
+      const kind = kinds[i % kinds.length]!;
+      push(kind, s, out, 2 + (i % 3) * 3, kind === "crane" ? 4.5 : 5);
     }
   } else if (t === "beach") {
     // Parabolbogen: palms, dunes, water, yellow grandstands — no harbor cranes on the ribbon.
@@ -179,12 +175,6 @@ export function buildThemeScenery(track: BuiltTrack, theme: string): Group {
   const anchors = planSceneryAnchors(track, theme);
   const t = theme.toLowerCase();
 
-  if (t === "harbor") {
-    const c = trackCentroid(track);
-    const r = infieldClearRadius(track);
-    if (r >= 6) root.add(makeHarborBasin(c.x, c.z, r));
-  }
-
   for (const a of anchors) {
     const near = nearestOnTrack(track, { x: a.x, z: a.z });
     const yaw = Math.atan2(near.tangent.z, near.tangent.x);
@@ -198,17 +188,9 @@ export function buildThemeScenery(track: BuiltTrack, theme: string): Group {
       case "water":
         root.add(makeWaterPatch(a.x, a.z, t === "beach" ? 22 : 18));
         break;
-      case "ship":
-        root.add(makeShip(a.x, a.z, yaw));
-        break;
       case "silo":
+      case "tank":
         root.add(makeSilo(a.x, a.z, yaw));
-        break;
-      case "quay":
-        root.add(makeQuay(a.x, a.z, yaw));
-        break;
-      case "bollard":
-        root.add(makeBollard(a.x, a.z, yaw));
         break;
       case "palm":
         root.add(makePalm(a.x, a.z, yaw));
@@ -266,55 +248,6 @@ function makeWaterPatch(x: number, z: number, size: number): Mesh {
   return water;
 }
 
-/** Comic harbor basin filling the oval infield — kills the old green “wall” look. */
-function makeHarborBasin(x: number, z: number, radius: number): Group {
-  const g = new Group();
-  g.position.set(x, 0, z);
-  g.userData.sceneryKind = "basin";
-  const diam = radius * 2;
-  const water = new Mesh(new RoundedBoxGeometry(diam, 0.1, diam, 2, 0.2), comicToon(WATER));
-  water.position.y = -0.42;
-  g.add(water);
-  // Small pier finger into the basin
-  const pier = withOutline(
-    new RoundedBoxGeometry(Math.min(14, diam * 0.35), 0.35, Math.min(4.5, diam * 0.12), 2, 0.08),
-    comicToon(0x8b7355),
-    0.05,
-  );
-  pier.position.set(0, -0.05, radius * 0.35);
-  g.add(pier);
-  const ship = makeShip(0, radius * 0.15, Math.PI / 2);
-  ship.scale.setScalar(Math.min(1, radius / 22));
-  g.add(ship);
-  return g;
-}
-
-function makeQuay(x: number, z: number, yaw: number): Group {
-  const g = new Group();
-  g.position.set(x, 0, z);
-  g.rotation.y = yaw;
-  g.userData.sceneryKind = "quay";
-  const deck = withOutline(new RoundedBoxGeometry(10, 0.45, 4.2, 2, 0.1), comicToon(0x7a828c), 0.05);
-  deck.position.y = 0.12;
-  const edge = withOutline(new RoundedBoxGeometry(10.2, 0.55, 0.45, 1, 0.06), comicToon(0x5c636c), 0.04);
-  edge.position.set(0, 0.2, 2.1);
-  g.add(deck, edge);
-  return g;
-}
-
-function makeBollard(x: number, z: number, yaw: number): Group {
-  const g = new Group();
-  g.position.set(x, 0, z);
-  g.rotation.y = yaw;
-  g.userData.sceneryKind = "bollard";
-  const post = withOutline(new CylinderGeometry(0.28, 0.32, 0.9, 8), comicToon(0xe03131), 0.04);
-  post.position.y = 0.45;
-  const cap = withOutline(new CylinderGeometry(0.36, 0.36, 0.18, 8), comicToon(0xf8f9fa), 0.03);
-  cap.position.y = 0.95;
-  g.add(post, cap);
-  return g;
-}
-
 function makeCrane(x: number, z: number, yaw: number): Group {
   const kit = hasTrackProp("crane") ? instanceTrackProp("crane", x, z, yaw) : null;
   if (kit) return kit;
@@ -357,18 +290,6 @@ function makeContainerStack(x: number, z: number, yaw: number): Group {
     c.position.set((i - 1) * 0.25, 1.15 + i * 2.3, 0);
     g.add(c);
   }
-  return g;
-}
-
-function makeShip(x: number, z: number, yaw: number): Group {
-  const g = new Group();
-  g.position.set(x, -0.15, z);
-  g.rotation.y = yaw;
-  const hull = withOutline(new RoundedBoxGeometry(9, 3.2, 30, 3, 0.35), comicToon(0x1c7ed6), 0.07);
-  hull.position.y = 1.3;
-  const bridge = withOutline(new RoundedBoxGeometry(5.5, 4.2, 6.5, 3, 0.25), comicToon(0xf8f9fa), 0.06);
-  bridge.position.set(0, 4.8, -9);
-  g.add(hull, bridge);
   return g;
 }
 

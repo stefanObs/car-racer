@@ -39,7 +39,7 @@ describe("cup track variance", () => {
     expect(new Set(themes).size).toBe(CUP_LEVELS.length);
 
     const expectedKinds: Record<string, string[]> = {
-      harbor: ["crane", "container", "water", "ship", "warehouse", "quay", "bollard"],
+      harbor: ["crane", "container", "warehouse", "tank"],
       beach: ["palm", "water", "dune", "hut", "grandstand"],
       city: ["building", "tower", "lamp"],
       factory: ["warehouse", "tree", "scrub", "stack"],

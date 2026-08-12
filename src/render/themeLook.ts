@@ -11,12 +11,13 @@ export type ThemeLook = {
 
 const LOOKS: Record<string, ThemeLook> = {
   harbor: {
-    sky: 0x5ba3d9,
-    skyLow: 0x3d7eae,
+    sky: 0x4aa3d9,
+    skyLow: 0x2f7eb8,
     // Pier / dock concrete — never grass-green (that read as a “green wall” in the oval infield).
     ground: 0x6e7580,
-    fogNear: 90,
-    fogFar: 280,
+    // Push fog out so the harbor panorama cylinder / sky dome stay readable.
+    fogNear: 120,
+    fogFar: 420,
     hemiSky: 0xc8e4ff,
     hemiGround: 0x5a6a78,
   },

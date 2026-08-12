@@ -2,7 +2,7 @@
 
 Inspiration: [racepool99.de/rennstrecken](https://www.racepool99.de/rennstrecken/) — echte deutsche Pisten-Archetypen, übersetzt in Crash-Circuit-Fantasy (Asphalt-Comic, keine Markennamen auf der Strecke).
 
-**Bleibt unverändert:** Cup 1 **Hafenstart** (Hafen-Oval).
+**Layout bleibt:** Cup 1 **Hafenstart** (Hafen-Oval). Distant surround is panorama textures + sparse Tripo kit (not denser box scenery).
 
 | Cup | Alt | Neu (Vorschlag) | Real-Inspiration | Fantasy-Feel |
 |-----|-----|-----------------|------------------|--------------|
@@ -68,4 +68,4 @@ Inspiration: [racepool99.de/rennstrecken](https://www.racepool99.de/rennstrecken
 5. **Schikanenring:** Dual-Line via Verge-Blocker + innere Öl/Uneben-Hot-Line auf breiter Bahn.
 6. **Omegatal:** Centerline `trackSelfIntersects === false`.
 
-**Nicht** anfassen: Hafenstart-Layout und Hafen-Theme (Basin bleibt modelliert).
+**Nicht** anfassen: Hafenstart **layout** (oval). Harbor surround evolved in v0.3.43 to sky dome + panorama discs/cylinders.

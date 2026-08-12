@@ -69,9 +69,14 @@ Append newest first.
 - Decision: Remove runtime opaque windshield/side planes and stop darkening glass texels in the wing-strip extract bake. Keep Tripo cabin glass albedo on stock `blitz.glb`.
 - CONCEPT §§: visuals only (no rule change)
 
+### 2026-08-12 — v3.43 Hafenstart panorama surround (no box basin)
+- Trigger: Havenstadt still showed random box props (ship/quay/water patches) and lacked a readable harbor background when looking out; infield was a modelled box basin
+- Decision: Distant harbor is **sky dome + panoramic horizon cylinders + infield disc** (authored PNG plates under `public/textures/panorama/`, canvas fallback). Near-track scenery is sparse Tripo kit only (crane/container/warehouse/tank). Removed box ship/quay/bollard/basin. Fog pushed out so the surround reads.
+- CONCEPT §§ touched: §8 Hafen theme feel (backgrounds) — visuals only
+
 ### 2026-08-12 — v3.31 Hafenstart harbor surroundings (no green wall)
 - Trigger: Hafenstart infield/horizon read as a solid green wall; surroundings too empty for a harbor
-- Decision: **RCA verified:** `ExtrudeGeometry` along closed CatmullRom Frenet-flipped the grass/asphalt ribbons into ~19 m vertical walls. Fix: world-up `flatRibbonGeometry`. Harbor theme ground is pier-gray (not grass). Oval infield gets a blue water basin + pier/ship; denser quay/crane/container/warehouse/bollard scenery. Concept art: `assets/art-style/harbor-surroundings.png`. Track asphalt→grass→wall language unchanged.
+- Decision: **RCA verified:** `ExtrudeGeometry` along closed CatmullRom Frenet-flipped the grass/asphalt ribbons into ~19 m vertical walls. Fix: world-up `flatRibbonGeometry`. Harbor theme ground is pier-gray (not grass). *(Superseded for basin/box props by v3.43 panorama surround.)* Concept art: `assets/art-style/harbor-surroundings.png`. Track asphalt→grass→wall language unchanged.
 - CONCEPT §§ touched: §8 Hafen theme feel (backgrounds) → dokumentstand v3.31
 
 ### 2026-08-12 — v3.30 Tripo Teile on all cars + surface snap

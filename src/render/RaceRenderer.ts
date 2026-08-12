@@ -2,6 +2,7 @@ import {
   AmbientLight,
   Color,
   DirectionalLight,
+  EquirectangularReflectionMapping,
   Fog,
   Group,
   HemisphereLight,
@@ -38,7 +39,7 @@ import {
   makeSkyDomeTexture,
 } from "./panoramaSurround";
 import { themeLook } from "./themeLook";
-import { buildThemeScenery } from "./themeScenery";
+import { buildThemeScenery, trackCentroid } from "./themeScenery";
 import { buildSmoothTrack } from "./trackMesh";
 import {
   applyGarageDragYaw,
@@ -49,7 +50,7 @@ import { ensureIdleClearsRaceField } from "./idleRaceTeardown";
 
 export class RaceRenderer {
   readonly scene = new Scene();
-  readonly camera = new PerspectiveCamera(46, 1, 0.1, 600);
+  readonly camera = new PerspectiveCamera(46, 1, 0.1, 900);
   readonly renderer: WebGLRenderer;
   private readonly carVisuals = new Map<string, ComicCarParts>();
   private readonly lastNitro = new Map<string, number>();
@@ -262,7 +263,7 @@ export class RaceRenderer {
     this.renderer.setSize(w, h, false);
   }
 
-  private applyTheme(theme: string): void {
+  private applyTheme(theme: string, trackCentroidXZ?: { x: number; z: number }): void {
     const look = themeLook(theme);
     this.scene.background = new Color(look.sky);
     this.fog.color.setHex(look.skyLow);
@@ -277,17 +278,39 @@ export class RaceRenderer {
     this.sun.intensity = 1.25;
     this.sun.position.set(18, 28, 12);
     (this.groundMesh.material as MeshToonMaterial).color.setHex(look.ground);
+    // Harbor: pier pad around the oval only — water apron + panorama own the horizon.
+    // Must be centered on the track centroid (Hafenstart is not at world origin).
+    const harbor = theme.toLowerCase() === "harbor";
+    const span = harbor ? 128 : 640;
+    const prev = this.groundMesh.geometry;
+    this.groundMesh.geometry = new PlaneGeometry(span, span);
+    prev.dispose();
+    if (trackCentroidXZ) {
+      this.groundMesh.position.set(trackCentroidXZ.x, -0.08, trackCentroidXZ.z);
+    } else {
+      this.groundMesh.position.set(0, -0.08, 0);
+    }
     const skyMat = this.skyMesh.material as MeshBasicMaterial;
     skyMat.map?.dispose();
-    skyMat.map = makeSkyDomeTexture(look);
+    const skyTex = makeSkyDomeTexture(look, theme);
+    skyMat.map = skyTex;
     skyMat.needsUpdate = true;
+    // Equirect harbor plate as scene background so the skyline always reads when looking out.
+    if (harbor) {
+      skyTex.mapping = EquirectangularReflectionMapping;
+      this.scene.background = skyTex;
+      this.skyMesh.visible = false;
+    } else {
+      this.scene.background = new Color(look.sky);
+      this.skyMesh.visible = true;
+    }
   }
 
   buildTrack(session: RaceSession): void {
     this.idleGroup.visible = false;
     this.groundMesh.visible = true;
     this.skyMesh.visible = true;
-    this.applyTheme(session.level.theme);
+    this.applyTheme(session.level.theme, trackCentroid(session.track));
     this.scene.remove(this.trackGroup);
     this.scene.remove(this.sceneryGroup);
     this.scene.remove(this.panoramaGroup);

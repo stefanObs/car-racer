@@ -9,7 +9,7 @@ import {
 } from "../src/render/themeScenery";
 
 describe("theme scenery clearance", () => {
-  it("keeps harbor props (incl. blue ship/containers) off the racing surface", () => {
+  it("keeps scenery props off the racing surface", () => {
     for (const level of CUP_LEVELS) {
       const track = buildTrackFromLevel(level);
       const anchors = planSceneryAnchors(track, level.theme);
@@ -26,7 +26,7 @@ describe("theme scenery clearance", () => {
     expect(sceneryOverlapsTrack(track, broken.x, broken.z, broken.radius)).toBe(true);
   });
 
-  it("sizes Hafenstart infield basin inside the asphalt ribbon", () => {
+  it("sizes Hafenstart infield clear radius inside the asphalt ribbon", () => {
     const track = buildTrackFromLevel(CUP_LEVELS[0]!);
     const c = trackCentroid(track);
     const r = infieldClearRadius(track);
