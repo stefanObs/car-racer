@@ -12,8 +12,8 @@ const CRANE = 0xe85d04;
 const WATER = 0x2f6f9e;
 const SAND = 0xc2a66a;
 
-/** Keep props off grass/asphalt, but close enough to read from chase cam. */
-export const SCENERY_CLEARANCE = 8;
+/** Keep props well clear of grass/asphalt so the racing corridor stays readable. */
+export const SCENERY_CLEARANCE = 12;
 
 export type SceneryAnchor = {
   kind: string;
@@ -53,14 +53,27 @@ export function placeOffTrack(
 ): { x: number; z: number } {
   const trySide = (dir: 1 | -1): { x: number; z: number } | null => {
     let dist = Math.max(startDist, track.asphaltHalfWidth + track.grassWidth + SCENERY_CLEARANCE);
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 80; i++) {
       const p = lateralPoint(s, dist * dir);
       if (!sceneryOverlapsTrack(track, p.x, p.z, radius)) return p;
-      dist += 5;
+      dist += 4;
     }
     return null;
   };
-  return trySide(side) ?? trySide(side === 1 ? -1 : 1) ?? lateralPoint(s, (startDist + 80) * side);
+  return trySide(side) ?? trySide(side === 1 ? -1 : 1) ?? lateralPoint(s, (startDist + 100) * side);
+}
+
+/** Prefer the outside of the loop (away from centroid) for large props. */
+export function outerSide(
+  track: BuiltTrack,
+  s: { position: { x: number; z: number }; tangent: { x: number; z: number } },
+): 1 | -1 {
+  const c = trackCentroid(track);
+  const toCenterX = c.x - s.position.x;
+  const toCenterZ = c.z - s.position.z;
+  const rightX = -s.tangent.z;
+  const rightZ = s.tangent.x;
+  return rightX * toCenterX + rightZ * toCenterZ > 0 ? -1 : 1;
 }
 
 function sample(track: BuiltTrack, i: number, n: number) {
@@ -93,7 +106,7 @@ export function infieldClearRadius(track: BuiltTrack): number {
   return Math.max(4, minDist - track.asphaltHalfWidth - 1.2);
 }
 
-/** Planned prop anchors — theme-specific sets. */
+/** Planned prop anchors — theme-specific sets. Large props prefer the outer side. */
 export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnchor[] {
   const t = theme.toLowerCase();
   const wallOuter = track.asphaltHalfWidth + track.grassWidth;
@@ -119,45 +132,42 @@ export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnc
       if (i % 3 === 0) push("bollard", s, side, 1.2, 0.8);
     }
   } else if (t === "beach") {
-    for (let i = 0; i < 16; i++) {
-      const s = sample(track, i, 16);
-      const side: 1 | -1 = i % 2 === 0 ? 1 : -1;
-      push("palm", s, side, (i % 3) * 2, 3);
-      if (i % 2 === 0) push("water", s, side, 12, 10);
-      push("dune", s, side, 4 + (i % 2) * 3, 4);
-      if (i % 4 === 0) push("hut", s, side, 7, 4);
-      // Reuse Havenstadt container / crane kit as pit / tribune props
-      if (i % 5 === 0) push("container", s, side, 8, 4);
-      if (i % 7 === 0) push("crane", s, side, 10, 4);
+    // Parabolbogen: palms, dunes, water, yellow grandstands — no harbor cranes on the ribbon.
+    for (let i = 0; i < 14; i++) {
+      const s = sample(track, i, 14);
+      const out = outerSide(track, s);
+      push("palm", s, out, (i % 3) * 2, 3.5);
+      if (i % 2 === 0) push("water", s, out, 14, 11);
+      push("dune", s, out, 5 + (i % 2) * 3, 4.5);
+      if (i % 3 === 0) push("hut", s, out, 8, 4.5);
+      if (i % 4 === 0) push("grandstand", s, out, 10, 7);
     }
   } else if (t === "city") {
-    for (let i = 0; i < 18; i++) {
-      const s = sample(track, i, 18);
-      const side: 1 | -1 = i % 2 === 0 ? 1 : -1;
-      push(i % 3 === 0 ? "tower" : "building", s, side, (i % 3) * 1.5, i % 3 === 0 ? 5 : 5);
-      if (i % 2 === 0) push("lamp", s, side, 1, 1.2);
-      if (i % 6 === 0) push("crane", s, side, 5, 4);
-      // Baustelle: reuse harbor containers + silos
-      if (i % 4 === 0) push("container", s, side, 6, 4);
-      if (i % 5 === 0) push("silo", s, side, 8, 3);
+    // Schikanenring: buildings / control towers off the corridor; sparse Baustelle kits outer-only.
+    for (let i = 0; i < 14; i++) {
+      const s = sample(track, i, 14);
+      const out = outerSide(track, s);
+      push(i % 3 === 0 ? "tower" : "building", s, out, 3 + (i % 3) * 2, 6);
+      if (i % 2 === 0) push("lamp", s, out, 2, 1.5);
+      if (i % 5 === 0) push("container", s, out, 8, 4.5);
     }
   } else if (t === "factory") {
-    for (let i = 0; i < 16; i++) {
-      const s = sample(track, i, 16);
-      const side: 1 | -1 = i % 2 === 0 ? 1 : -1;
-      push(i % 2 === 0 ? "warehouse" : "stack", s, side, (i % 3) * 2, 5);
-      if (i % 2 === 0) push("pipe", s, side, 5, 3);
-      if (i % 3 === 0) push("silo", s, side, 7, 3);
-      if (i % 4 === 0) push("container", s, side, 6, 4);
-      if (i % 6 === 0) push("crane", s, side, 9, 4);
+    // Kuppenfinale: forest hills + sparse warehouse sheds (proposal look).
+    for (let i = 0; i < 14; i++) {
+      const s = sample(track, i, 14);
+      const out = outerSide(track, s);
+      push("tree", s, out, (i % 3) * 2, 3.5);
+      if (i % 2 === 0) push("scrub", s, out, 3, 2.2);
+      if (i % 4 === 0) push("warehouse", s, out, 9, 7);
+      if (i % 5 === 0) push("stack", s, out, 11, 4);
     }
   } else {
-    // canyon / mountain
-    for (let i = 0; i < 16; i++) {
-      const s = sample(track, i, 16);
-      const side: 1 | -1 = i % 2 === 0 ? 1 : -1;
-      push(i % 2 === 0 ? "cliff" : "spire", s, side, (i % 3) * 2, i % 2 === 0 ? 7 : 3.5);
-      push("scrub", s, side, 2 + (i % 2) * 2, 2);
+    // Omegatal canyon: cliffs / spires / scrub well outside the ribbon.
+    for (let i = 0; i < 14; i++) {
+      const s = sample(track, i, 14);
+      const out = outerSide(track, s);
+      push(i % 2 === 0 ? "cliff" : "spire", s, out, 4 + (i % 3) * 2, i % 2 === 0 ? 8 : 4);
+      push("scrub", s, out, 3 + (i % 2) * 2, 2.2);
     }
   }
 
@@ -209,11 +219,14 @@ export function buildThemeScenery(track: BuiltTrack, theme: string): Group {
       case "hut":
         root.add(makeHut(a.x, a.z, yaw));
         break;
+      case "grandstand":
+        root.add(makeGrandstand(a.x, a.z, yaw));
+        break;
       case "building":
         root.add(makeBuilding(a.x, a.z, yaw, 6 + (Math.abs(a.x) % 5)));
         break;
       case "tower":
-        root.add(makeBuilding(a.x, a.z, yaw, 14));
+        root.add(makeTower(a.x, a.z, yaw));
         break;
       case "lamp":
         root.add(makeLamp(a.x, a.z, yaw));
@@ -235,6 +248,9 @@ export function buildThemeScenery(track: BuiltTrack, theme: string): Group {
         break;
       case "scrub":
         root.add(makeScrub(a.x, a.z, yaw));
+        break;
+      case "tree":
+        root.add(makeTree(a.x, a.z, yaw));
         break;
       default:
         break;
@@ -371,6 +387,8 @@ function makeSilo(x: number, z: number, yaw: number): Group {
 }
 
 function makePalm(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("palm") ? instanceTrackProp("palm", x, z, yaw) : null;
+  if (kit) return kit;
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
@@ -399,6 +417,8 @@ function makeDune(x: number, z: number, yaw: number): Group {
 }
 
 function makeHut(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("hut") ? instanceTrackProp("hut", x, z, yaw) : null;
+  if (kit) return kit;
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
@@ -410,7 +430,26 @@ function makeHut(x: number, z: number, yaw: number): Group {
   return g;
 }
 
+function makeGrandstand(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("grandstand") ? instanceTrackProp("grandstand", x, z, yaw) : null;
+  if (kit) return kit;
+  const g = new Group();
+  g.position.set(x, 0, z);
+  g.rotation.y = yaw;
+  const base = withOutline(new RoundedBoxGeometry(10, 1.2, 5, 2, 0.15), comicToon(0x4dabf7), 0.06);
+  base.position.y = 0.6;
+  const seats = withOutline(new RoundedBoxGeometry(9.5, 2.4, 4.2, 2, 0.12), comicToon(0xfcc419), 0.06);
+  seats.position.set(0, 2.2, -0.2);
+  g.add(base, seats);
+  return g;
+}
+
 function makeBuilding(x: number, z: number, yaw: number, h: number): Group {
+  const kit = hasTrackProp("building") ? instanceTrackProp("building", x, z, yaw) : null;
+  if (kit) {
+    kit.scale.setScalar(Math.max(0.85, Math.min(1.25, h / 8)));
+    return kit;
+  }
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
@@ -421,6 +460,12 @@ function makeBuilding(x: number, z: number, yaw: number, h: number): Group {
   win.position.set(0, h * 0.55, 3.6);
   g.add(b, win);
   return g;
+}
+
+function makeTower(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("tower") ? instanceTrackProp("tower", x, z, yaw) : null;
+  if (kit) return kit;
+  return makeBuilding(x, z, yaw, 14);
 }
 
 function makeLamp(x: number, z: number, yaw: number): Group {
@@ -436,6 +481,8 @@ function makeLamp(x: number, z: number, yaw: number): Group {
 }
 
 function makeWarehouse(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("warehouse") ? instanceTrackProp("warehouse", x, z, yaw) : null;
+  if (kit) return kit;
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
@@ -471,6 +518,8 @@ function makePipe(x: number, z: number, yaw: number): Group {
 }
 
 function makeCliff(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("cliff") ? instanceTrackProp("cliff", x, z, yaw) : null;
+  if (kit) return kit;
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
@@ -482,6 +531,8 @@ function makeCliff(x: number, z: number, yaw: number): Group {
 }
 
 function makeSpire(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("spire") ? instanceTrackProp("spire", x, z, yaw) : null;
+  if (kit) return kit;
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
@@ -492,6 +543,8 @@ function makeSpire(x: number, z: number, yaw: number): Group {
 }
 
 function makeScrub(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("scrub") ? instanceTrackProp("scrub", x, z, yaw) : null;
+  if (kit) return kit;
   const g = new Group();
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
@@ -499,5 +552,20 @@ function makeScrub(x: number, z: number, yaw: number): Group {
   bush.position.y = 1;
   bush.scale.set(1.3, 0.7, 1.1);
   g.add(bush);
+  return g;
+}
+
+function makeTree(x: number, z: number, yaw: number): Group {
+  const kit = hasTrackProp("tree") ? instanceTrackProp("tree", x, z, yaw) : null;
+  if (kit) return kit;
+  const g = new Group();
+  g.position.set(x, 0, z);
+  g.rotation.y = yaw;
+  const trunk = withOutline(new CylinderGeometry(0.35, 0.5, 3.2, 8), comicToon(0x6b4f2a), 0.05);
+  trunk.position.y = 1.6;
+  const crown = withOutline(new SphereGeometry(2.2, 10, 8), comicToon(0x2f6b3a), 0.07);
+  crown.position.y = 4.4;
+  crown.scale.set(1, 1.35, 1);
+  g.add(trunk, crown);
   return g;
 }

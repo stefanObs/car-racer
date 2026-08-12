@@ -90,11 +90,12 @@ tests/
 - Authoring bake: `fx:bake-tripo` from `assets/tripo-out/fx/` (gitignored). Provenance: `public/models/fx/README.md`.
 
 
-### Track kit (walls + harbor scenery)
+### Track kit (walls + theme scenery)
 
-- Asphalt/grass ribbons stay spline-extruded. Discrete walls/obstacles/scenery use a small Tripo kit in `public/models/track/`.
+- Asphalt/grass ribbons stay spline-extruded. Discrete walls/obstacles/scenery use a Tripo kit in `public/models/track/`.
 - Tire modules on corners, concrete + chain-link fence on straights; `tire_stack` / `concrete_barrier` reuse the same modules.
-- Harbor cranes use the kit; containers/tanks stay procedural if those optional GLBs are absent.
+- Harbor: crane / container / tank. Cups 2–5: grandstand, palm, hut, tower, building, cliff, spire, tree, warehouse, scrub (procedural fallback if optional GLB absent).
+- Scenery anchors stay outside asphalt+grass (`SCENERY_CLEARANCE`); solid obstacles stay on the verge so the center corridor stays clear.
 - Collision/physics unchanged (visuals may overhang).
 - Authoring bake: `track:bake-tripo` from `assets/tripo-out/track/` (gitignored). Provenance: `public/models/track/SOURCES.md`.
 

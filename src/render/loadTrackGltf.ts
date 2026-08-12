@@ -14,7 +14,7 @@ import {
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import {
   CONCRETE_WALL_HEIGHT,
-  OPTIONAL_TRACK_PROP_IDS,
+  OPTIONAL_ALL_TRACK_PROP_IDS,
   REQUIRED_TRACK_PROP_IDS,
   TRACK_PROPS,
   type TrackPropId,
@@ -52,11 +52,11 @@ export function preloadTrackModels(): Promise<void> {
     await Promise.all([
       Promise.all(REQUIRED_TRACK_PROP_IDS.map((id) => loadOne(id))),
       Promise.all(
-        OPTIONAL_TRACK_PROP_IDS.map(async (id) => {
+        OPTIONAL_ALL_TRACK_PROP_IDS.map(async (id) => {
           try {
             await loadOne(id);
           } catch {
-            // Harbor extras stay as primitive scenery if a GLB is absent.
+            // Harbor / theme extras stay as primitive scenery if a GLB is absent.
           }
         }),
       ),

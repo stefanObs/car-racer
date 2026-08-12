@@ -36,6 +36,17 @@ const PROPS = [
   { id: "crane", along: "x", primary: "y", meters: 18, simplify: 0.28 },
   { id: "container", along: "z", primary: "z", meters: 6.2, maxY: 2.7, simplify: 0.4 },
   { id: "tank", along: "x", primary: "y", meters: 8, simplify: 0.42 },
+  // Cups 2–5 theme scenery (proposals)
+  { id: "grandstand", along: "x", primary: "y", meters: 6.5, maxX: 14, maxZ: 8, simplify: 0.35 },
+  { id: "palm", along: "x", primary: "y", meters: 7.5, maxX: 5, maxZ: 5, simplify: 0.55 },
+  { id: "hut", along: "z", primary: "z", meters: 5.5, maxY: 4, simplify: 0.45 },
+  { id: "tower", along: "x", primary: "y", meters: 12, maxX: 8, maxZ: 8, simplify: 0.38 },
+  { id: "building", along: "z", primary: "y", meters: 10, maxX: 10, maxZ: 10, simplify: 0.4 },
+  { id: "cliff", along: "x", primary: "y", meters: 14, maxX: 12, maxZ: 10, simplify: 0.32 },
+  { id: "spire", along: "x", primary: "y", meters: 12, maxX: 5, maxZ: 5, simplify: 0.4 },
+  { id: "tree", along: "x", primary: "y", meters: 9, maxX: 5, maxZ: 5, simplify: 0.5 },
+  { id: "warehouse", along: "z", primary: "z", meters: 14, maxY: 8, simplify: 0.38 },
+  { id: "scrub", along: "x", primary: "y", meters: 1.8, maxX: 3.5, maxZ: 3.5, simplify: 0.6 },
 ];
 
 function bakeNodeTree(node) {

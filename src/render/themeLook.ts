@@ -39,13 +39,14 @@ const LOOKS: Record<string, ThemeLook> = {
     hemiGround: 0x5a5f66,
   },
   factory: {
-    sky: 0x8a9aa8,
-    skyLow: 0x6a7a88,
-    ground: 0x5a5550,
-    fogNear: 65,
-    fogFar: 230,
-    hemiSky: 0xc0c8d0,
-    hemiGround: 0x6a6058,
+    // Kuppenfinale forest bowl — green ground, soft cool sky
+    sky: 0x7eb8e8,
+    skyLow: 0x5a9acc,
+    ground: 0x4f6b45,
+    fogNear: 70,
+    fogFar: 250,
+    hemiSky: 0xd0e8ff,
+    hemiGround: 0x5a6b48,
   },
   canyon: {
     sky: 0x6eb0e0,

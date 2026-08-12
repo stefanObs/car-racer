@@ -11,7 +11,29 @@ export const REQUIRED_TRACK_PROP_IDS = [
 /** Harbor extras — loaded when present; otherwise primitive fallback. */
 export const OPTIONAL_TRACK_PROP_IDS = ["container", "tank"] as const;
 
-export const TRACK_PROP_IDS = [...REQUIRED_TRACK_PROP_IDS, ...OPTIONAL_TRACK_PROP_IDS] as const;
+/**
+ * Theme scenery for cups 2–5 (Parabolbogen / Schikanenring / Omegatal / Kuppenfinale).
+ * Optional — procedural primitives if a GLB is missing.
+ */
+export const THEME_TRACK_PROP_IDS = [
+  "grandstand",
+  "palm",
+  "hut",
+  "tower",
+  "building",
+  "cliff",
+  "spire",
+  "tree",
+  "warehouse",
+  "scrub",
+] as const;
+
+export const OPTIONAL_ALL_TRACK_PROP_IDS = [
+  ...OPTIONAL_TRACK_PROP_IDS,
+  ...THEME_TRACK_PROP_IDS,
+] as const;
+
+export const TRACK_PROP_IDS = [...REQUIRED_TRACK_PROP_IDS, ...OPTIONAL_ALL_TRACK_PROP_IDS] as const;
 
 export type TrackPropId = (typeof TRACK_PROP_IDS)[number];
 
@@ -71,6 +93,76 @@ export const TRACK_PROPS: Record<TrackPropId, TrackPropSpec> = {
     yaw: 0,
     scale: 1,
     tileAlong: 4.4,
+  },
+  grandstand: {
+    id: "grandstand",
+    url: "/models/track/grandstand.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 10,
+  },
+  palm: {
+    id: "palm",
+    url: "/models/track/palm.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 2.5,
+  },
+  hut: {
+    id: "hut",
+    url: "/models/track/hut.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 5,
+  },
+  tower: {
+    id: "tower",
+    url: "/models/track/tower.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 6,
+  },
+  building: {
+    id: "building",
+    url: "/models/track/building.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 7,
+  },
+  cliff: {
+    id: "cliff",
+    url: "/models/track/cliff.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 8,
+  },
+  spire: {
+    id: "spire",
+    url: "/models/track/spire.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 3,
+  },
+  tree: {
+    id: "tree",
+    url: "/models/track/tree.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 3,
+  },
+  warehouse: {
+    id: "warehouse",
+    url: "/models/track/warehouse.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 12,
+  },
+  scrub: {
+    id: "scrub",
+    url: "/models/track/scrub.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 2.5,
   },
 };
 

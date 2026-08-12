@@ -55,17 +55,19 @@ export function makeSkyDomeTexture(look: ThemeLook): Texture {
   const { c, ctx } = canvas;
   const g = ctx.createLinearGradient(0, 0, 0, 128);
   g.addColorStop(0, hexCss(look.hemiSky));
-  g.addColorStop(0.42, hexCss(look.sky));
-  g.addColorStop(0.72, hexCss(look.skyLow));
+  g.addColorStop(0.38, hexCss(look.sky));
+  g.addColorStop(0.68, hexCss(look.skyLow));
   g.addColorStop(1, hexCss(look.ground));
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, 64, 128);
-  ctx.fillStyle = "rgba(244,247,250,0.92)";
+  // Soft cel cloud bands — denser near zenith
+  ctx.fillStyle = "rgba(244,247,250,0.88)";
   for (const [y, h] of [
-    [22, 5],
-    [34, 3],
-    [48, 4],
-    [58, 2],
+    [18, 6],
+    [30, 4],
+    [42, 5],
+    [54, 3],
+    [66, 2],
   ] as const) {
     ctx.fillRect(0, y, 64, h);
   }
@@ -148,8 +150,12 @@ export function makeHorizonPanoramaTexture(theme: string, look: ThemeLook): Text
       }
     }
   } else if (kind === "beach") {
+    // Parabolbogen: water band, palms, yellow tribunes
     ctx.fillStyle = "#2f6f9e";
-    ctx.fillRect(0, 175, 1024, 40);
+    ctx.fillRect(0, 175, 1024, 45);
+    ctx.strokeStyle = outline;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(0, 175, 1024, 45);
     for (let i = 0; i < 12; i++) {
       const x = 30 + i * 85;
       drawBox(x + 8, 110, 6, 55, "#8b6914");
@@ -161,11 +167,12 @@ export function makeHorizonPanoramaTexture(theme: string, look: ThemeLook): Text
       ctx.stroke();
       if (i % 3 === 0) drawBox(x + 40, 145, 36, 28, "#f8f9fa");
     }
-    // Yellow stadium / tribune blocks (Parabolbogen)
     for (let i = 0; i < 6; i++) {
-      drawBox(80 + i * 160, 155, 70, 28, "#fcc419");
+      drawBox(80 + i * 160, 148, 78, 32, "#fcc419");
+      drawBox(88 + i * 160, 140, 62, 10, "#4dabf7");
     }
   } else if (kind === "city") {
+    // Schikanenring: blocky city skyline + control towers
     for (let i = 0; i < 16; i++) {
       const x = 20 + i * 64;
       const h = 50 + (i % 5) * 18;
@@ -173,29 +180,37 @@ export function makeHorizonPanoramaTexture(theme: string, look: ThemeLook): Text
       ctx.fillStyle = "#74c0fc";
       ctx.fillRect(x + 6, 210 - h, 12, h * 0.45);
     }
-    // Reuse harbor crane on a few sites (Baustelle)
-    for (const x of [120, 520, 880]) {
-      drawBox(x, 90, 8, 80, "#e85d04");
-      drawBox(x - 20, 96, 70, 7, "#e85d04");
+    for (const x of [180, 460, 780]) {
+      drawBox(x, 70, 28, 110, "#868e96");
+      drawBox(x - 6, 60, 40, 18, "#f8f9fa");
+      ctx.fillStyle = "#74c0fc";
+      ctx.fillRect(x + 4, 78, 20, 28);
     }
   } else if (kind === "factory") {
-    for (let i = 0; i < 10; i++) {
-      const x = 40 + i * 100;
-      drawBox(x, 120, 70, 70, "#8b9098");
-      ctx.fillStyle = "#868e96";
+    // Kuppenfinale: forested hills + sparse sheds
+    ctx.fillStyle = "#3f5e38";
+    ctx.fillRect(0, 175, 1024, 50);
+    for (let i = 0; i < 18; i++) {
+      const x = 20 + i * 56;
+      drawBox(x + 10, 150, 6, 28, "#6b4f2a");
+      ctx.fillStyle = "#2f6b3a";
       ctx.beginPath();
-      ctx.moveTo(x + 20, 120);
-      ctx.lineTo(x + 35, 40);
-      ctx.lineTo(x + 50, 120);
+      ctx.moveTo(x, 150);
+      ctx.lineTo(x + 13, 95 + (i % 3) * 10);
+      ctx.lineTo(x + 26, 150);
       ctx.closePath();
       ctx.fill();
       ctx.strokeStyle = outline;
+      ctx.lineWidth = 2;
       ctx.stroke();
-      ctx.fillStyle = "#e03131";
-      ctx.fillRect(x + 28, 70, 14, 8);
+    }
+    for (let i = 0; i < 4; i++) {
+      drawBox(120 + i * 220, 155, 70, 40, "#8b9098");
+      ctx.fillStyle = "#fcc419";
+      ctx.fillRect(128 + i * 220, 168, 54, 6);
     }
   } else {
-    // canyon hills
+    // Omegatal canyon cliffs + scrub band
     ctx.fillStyle = "#a0785a";
     ctx.strokeStyle = outline;
     ctx.lineWidth = 3;
@@ -209,6 +224,16 @@ export function makeHorizonPanoramaTexture(theme: string, look: ThemeLook): Text
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
+      // Spire silhouettes
+      ctx.beginPath();
+      ctx.moveTo(x + 55, 210);
+      ctx.lineTo(x + 70, 70 + (i % 2) * 15);
+      ctx.lineTo(x + 85, 210);
+      ctx.closePath();
+      ctx.fillStyle = "#8b6848";
+      ctx.fill();
+      ctx.stroke();
+      ctx.fillStyle = "#a0785a";
     }
     ctx.fillStyle = "#5c7c3a";
     ctx.fillRect(0, 200, 1024, 30);
@@ -277,16 +302,29 @@ export function makeInfieldPanoramaTexture(theme: string, look: ThemeLook): Text
       ctx.fillRect(x, y, 80, 100);
       ctx.strokeStyle = "#1B1B1F";
       ctx.strokeRect(x, y, 80, 100);
+      ctx.fillStyle = "#74c0fc";
+      ctx.fillRect(x + 12, y + 16, 56, 40);
     }
   } else if (kind === "factory") {
-    ctx.fillStyle = "#5a5550";
+    // Forest bowl infield
+    ctx.fillStyle = "#4f6b45";
     ctx.fillRect(0, 0, 512, 512);
-    for (let i = 0; i < 5; i++) {
-      ctx.fillStyle = "#8b9098";
-      ctx.fillRect(60 + i * 85, 160, 60, 160);
+    for (let i = 0; i < 16; i++) {
+      const a = (i / 16) * Math.PI * 2;
+      const r = 70 + (i % 3) * 40;
+      const x = 256 + Math.cos(a) * r;
+      const y = 256 + Math.sin(a) * r;
+      ctx.fillStyle = "#2f6b3a";
+      ctx.beginPath();
+      ctx.arc(x, y, 14 + (i % 3) * 4, 0, Math.PI * 2);
+      ctx.fill();
       ctx.strokeStyle = "#1B1B1F";
-      ctx.strokeRect(60 + i * 85, 160, 60, 160);
+      ctx.lineWidth = 2;
+      ctx.stroke();
     }
+    ctx.fillStyle = "#8b9098";
+    ctx.fillRect(210, 220, 90, 55);
+    ctx.strokeRect(210, 220, 90, 55);
   } else {
     ctx.fillStyle = "#5c7c3a";
     ctx.fillRect(0, 0, 512, 512);
