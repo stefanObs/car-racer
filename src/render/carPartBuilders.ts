@@ -1,6 +1,7 @@
 /**
  * Asphalt-Comic procedural Teil meshes (parts-look targets).
- * Flat colors, clear silhouettes — used for every car; Blitz may prefer Tripo GLBs.
+ * Flat colors, clear silhouettes — fallback when Tripo GLBs are not preloaded;
+ * also used for better_brakes / big_wheels (no GLB).
  */
 import {
   BoxGeometry,

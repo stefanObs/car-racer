@@ -64,7 +64,7 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(existsSync("scripts/extract-blitz-stock-and-spoiler.mjs")).toBe(true);
   });
 
-  it("attaches procedural Teile on every car class", () => {
+  it("attaches Teile on every car class", () => {
     for (const id of CAR_IDS) {
       const root = new Group();
       applyEquippedPartVisuals(root, id, ALL_VISUAL_PARTS);
@@ -81,6 +81,7 @@ describe("Equipped-part visuals (all cars)", () => {
   it("places Käferkraft Großer Motor toward the rear (nose −X child space)", () => {
     const anchors = CAR_PART_LAYOUTS.kaeferkraft.big_engine.anchors;
     expect(anchors[0]!.x).toBeGreaterThan(0.5);
+    expect(CAR_PART_LAYOUTS.kaeferkraft.big_engine.preferGlb).toBe(false);
   });
 
   it("clears parts when unequipped", () => {
@@ -153,10 +154,28 @@ describe("Equipped-part visuals (all cars)", () => {
     }
   });
 
-  it("uses Blitz Tripo GLB when registered", () => {
+  it("uses Tripo GLB on every car when registered", () => {
     registerBlitzPartTemplate("rear_spoiler", fakePartTemplate());
+    for (const id of CAR_IDS as CarId[]) {
+      const root = new Group();
+      applyEquippedPartVisuals(root, id, ["rear_spoiler"]);
+      expect(root.getObjectByName(blitzPartObjectName("rear_spoiler")), id).toBeTruthy();
+    }
+  });
+
+  it("snaps hood scoop onto body surface Y", () => {
+    registerBlitzPartTemplate("big_engine", fakePartTemplate());
     const root = new Group();
-    applyEquippedPartVisuals(root, "blitz", ["rear_spoiler"]);
-    expect(root.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeTruthy();
+    const body = new Mesh(new BoxGeometry(1.6, 0.4, 2.4), new MeshBasicMaterial());
+    body.name = "BodyPaint";
+    body.position.set(0, 0.5, 0);
+    root.add(body);
+
+    applyEquippedPartVisuals(root, "bison", ["big_engine"]);
+    const scoop = root.getObjectByName(blitzPartObjectName("big_engine"));
+    expect(scoop).toBeTruthy();
+    // Body top ~0.7; fake part half-height 0.1 → sit near 0.72+
+    expect(scoop!.position.y).toBeGreaterThan(0.65);
+    expect(scoop!.position.y).toBeLessThan(1.2);
   });
 });

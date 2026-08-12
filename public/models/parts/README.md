@@ -1,10 +1,10 @@
-# Blitz tuning-part add-ons
+# Tuning-part add-ons (Tripo kits)
 
-Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching `PartId`. Visualization only — stats stay in `mergeStats`.
+Small Asphalt-Comic GLBs attached on **every car** when `kit.equippedParts` includes the matching `PartId`. Kits are authored for Blitz and re-mounted with per-car scale/yaw + surface snap. Visualization only — stats stay in `mergeStats`.
 
 | File | Part |
 |------|------|
-| `blitz-rear_spoiler.glb` | Heckspoiler — original wing extracted from the Blitz body (`npm run cars:extract-blitz-spoiler`) |
+| `blitz-rear_spoiler.glb` | Heckspoiler — original wing extracted from the Blitz body (`npm run cars:extract-blitz-spoiler`; not overwritten by Tripo bake) |
 | `blitz-big_engine.glb` | Großer Motor (tall hood scoop) |
 | `blitz-nitro_kit.glb` | Nitro-Kit |
 | `blitz-spike_bumper.glb` | Spike-Stoßstange |
@@ -12,6 +12,6 @@ Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching
 | `blitz-reinforced_frame.glb` | Verstärkter Rahmen (sill armor + half-cage) |
 | `blitz-lightweight_body.glb` | Leichtbau |
 
-Große Räder is stance lift only (no fake shared wheel overlays).
+Große Räder / Bessere Bremsen stay procedural (stance / calipers).
 
-Rebuild parts (Tripo): `npm run cars:bake-blitz-parts-tripo`. Rebuild stock Blitz + original Heckspoiler: `npm run cars:extract-blitz-spoiler`.
+Rebuild Tripo parts: `npm run cars:bake-blitz-parts-tripo`. Rebuild stock Blitz + original Heckspoiler: `npm run cars:extract-blitz-spoiler`.

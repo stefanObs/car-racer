@@ -27,7 +27,7 @@ const outDir = join(rootDir, "public/models/parts");
 
 /** Nose +Z, cabin −Z — same as Blitz body. Rear parts extra yaw 180. */
 const JOBS = [
-  { id: "rear_spoiler", material: "Spoiler", toward: "-z", targetSpan: 1.55, maxH: 0.42, simplify: 0.35 },
+  // Heckspoiler stays the extracted original wing (`npm run cars:extract-blitz-spoiler`) — not Tripo.
   { id: "big_engine", material: "Carbon", toward: "+z", targetSpan: 0.85, maxH: 0.38, simplify: 0.4 },
   { id: "nitro_kit", material: "NitroKit", toward: "-z", targetSpan: 0.9, maxH: 0.42, simplify: 0.4 },
   { id: "spike_bumper", material: "Spike", toward: "+z", targetSpan: 1.68, maxH: 0.32, simplify: 0.4 },
