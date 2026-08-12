@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { emptyKit } from "../src/meta/save";
-import { buildGarageBay, GARAGE_PAD_CENTER } from "../src/render/garageBay";
+import { buildGarageBay, GARAGE_PAD_CENTER, garagePadDeckY } from "../src/render/garageBay";
 import { CAR_PAINT_BLACK } from "../src/render/palette";
 import { renderGarageHtml } from "../src/ui/garageHtml";
 
@@ -54,7 +55,13 @@ describe("garage hub", () => {
     expect(preview).toMatch(/data-act="buy-part"[^>]*disabled/);
   });
 
-  it("builds a named comic garage bay group", () => {
+  it("idle showcase sits cars on the pad deck, not a hardcoded floor y", () => {
+    const src = readFileSync("src/render/RaceRenderer.ts", "utf8");
+    expect(src).toContain("garagePadDeckY");
+    expect(src).not.toContain("position.set(1.5, 0.12, 0)");
+  });
+
+  it("builds a named comic garage bay with a pad deck above the floor", () => {
     const bay = buildGarageBay();
     expect(bay.name).toBe("garageBay");
     expect(bay.children.length).toBeGreaterThan(20);
@@ -63,6 +70,9 @@ describe("garage hub", () => {
     expect(pad!.position.x).toBe(GARAGE_PAD_CENTER.x);
     expect(pad!.position.z).toBe(GARAGE_PAD_CENTER.z);
     expect(bay.getObjectByName("garageStock")).toBeTruthy();
+    const deck = garagePadDeckY(pad!);
+    expect(deck).toBeGreaterThan(0.12);
+    expect(deck).toBeLessThan(0.6);
   });
 
   it("renders five category cars in the garage roster", () => {

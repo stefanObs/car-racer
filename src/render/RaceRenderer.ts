@@ -30,7 +30,7 @@ import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
-import { buildGarageBay } from "./garageBay";
+import { buildGarageBay, GARAGE_PAD_CENTER, garagePadDeckY } from "./garageBay";
 import { buildLevelObstacles } from "./levelObstacles";
 import {
   buildPanoramaSurround,
@@ -156,9 +156,14 @@ export class RaceRenderer {
       }),
     );
     upgradeCarFx(visual);
-    visual.root.position.set(1.5, 0.12, 0);
+    const pad = this.idleGroup.getObjectByName("garagePad");
+    const deckY = pad ? garagePadDeckY(pad) + 0.01 : GARAGE_PAD_CENTER.y + 0.13;
+    visual.root.position.set(GARAGE_PAD_CENTER.x, deckY, GARAGE_PAD_CENTER.z);
     visual.root.rotation.y = this.garageYaw;
     visual.root.scale.setScalar(1.35);
+    // Ride-lift baseline must match the pad deck (not a hardcoded floor sit).
+    visual.root.userData.carPartsSitY = deckY;
+    visual.root.userData.blitzSitY = deckY;
     this.idleCar = visual.root;
     this.idleGroup.add(visual.root);
     this.scene.add(this.idleGroup);

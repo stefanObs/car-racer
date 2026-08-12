@@ -10,6 +10,7 @@ import {
   MeshBasicMaterial,
   PlaneGeometry,
   PointLight,
+  type Object3D,
   type Texture,
 } from "three";
 import { GARAGE_HERO, GARAGE_STOCK, type GaragePropId } from "../data/garageProps";
@@ -34,6 +35,16 @@ import { ComicPalette } from "./palette";
 /** Turntable center — car sits here; workshop props stay off this disc. */
 export const GARAGE_PAD_CENTER = { x: 1.5, y: 0.04, z: 0 } as const;
 export const GARAGE_PAD_RADIUS = 4.5;
+/** Fallback deck height when the Tripo turntable shell is missing. */
+export const GARAGE_PAD_DECK_FALLBACK_Y = GARAGE_PAD_CENTER.y + 0.085;
+
+/** World Y of the turntable top (cars must sit on this, not the workshop floor). */
+export function garagePadDeckY(pad: Object3D): number {
+  pad.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(pad);
+  if (!Number.isFinite(box.max.y)) return GARAGE_PAD_DECK_FALLBACK_Y;
+  return box.max.y;
+}
 
 /** Stock and heroes must sit outside this disc (plus a small clearance). */
 export function isOutsideGaragePad(x: number, z: number, margin = 0.35): boolean {
@@ -150,13 +161,16 @@ function buildTurntable(): Group {
     const scale = (GARAGE_PAD_RADIUS * 2) / span;
     tripo.scale.setScalar(scale);
     g.add(tripo);
-    // Flat comic albedo disc on top so the hazard ring reads from the chase cam
+    g.updateMatrixWorld(true);
+    const deckLocalY = garagePadDeckY(g) - g.position.y;
+    // Flat comic albedo disc flush with the Tripo deck so hazard ring + tires agree.
     const top = new Mesh(
       new CircleGeometry(GARAGE_PAD_RADIUS - 0.05, 48),
       mapped(turntableTexture(), 0x8a9098),
     );
+    top.name = "garagePadDeck";
     top.rotation.x = -Math.PI / 2;
-    top.position.y = 0.12;
+    top.position.y = deckLocalY + 0.002;
     g.add(top);
     return g;
   }
@@ -172,6 +186,7 @@ function buildTurntable(): Group {
     new CircleGeometry(GARAGE_PAD_RADIUS - 0.08, 40),
     mapped(turntableTexture(), 0x8a9098),
   );
+  top.name = "garagePadDeck";
   top.rotation.x = -Math.PI / 2;
   top.position.y = 0.085;
   g.add(top);
