@@ -1,10 +1,9 @@
 /**
  * Equipped-Teile visuals for every car (CONCEPT §6.3 + parts-look sheets).
  * Silhouette Teile (engine/scoop, spike, nitro, spoiler, frame, lightweight)
- * use per-car Tripo/extracted GLBs (`preferGlb: true`). Procedural builders
- * are load-time fallback only, plus tiny stance/caliper hints
- * (`better_brakes`, `big_wheels`). Hood/deck parts surface-snap. Meshes are
- * cosmetic — stats stay in mergeStats.
+ * use per-car Tripo/extracted GLBs (`preferGlb: true`). Procedural: better_brakes
+ * calipers + big_wheels replacement tires (stock wheels extracted/hidden).
+ * Hood/deck parts surface-snap. Meshes are cosmetic — stats stay in mergeStats.
  */
 import {
   Box3,
@@ -28,12 +27,14 @@ import {
   buildRearSpoiler,
   buildReinforcedFrame,
   buildSpikeBumper,
-  buildWheelBulkHint,
+  buildUpgradeWheel,
   caliperColorFor,
   markPartUserData,
   springColorFor,
 } from "./carPartBuilders";
 import { comicToon } from "./comicMaterials";
+import { applyStockWheelVisibility, extractStockWheels, isStockWheelObject } from "./stockWheels";
+import { carSupportsPart } from "../data/partsCatalog";
 
 export const CAR_PARTS_GROUP = "carParts";
 /** @deprecated alias — Blitz cabin glass seal */
@@ -42,9 +43,10 @@ export const BLITZ_CABIN_GLASS = "blitzCabinGlass";
 /** Donnerbüchse replaceable stock V8 — hidden when Großer Motor is equipped. */
 export const STOCK_ENGINE_MESH = "StockEngine";
 
-export const WHEEL_LIFT = 0.09;
+export const WHEEL_LIFT = 0.1;
+/** Blitz goes wider, not taller — tiny ride lift only. */
+export const BLITZ_WHEEL_LIFT = 0.02;
 export const SUSPENSION_LIFT = 0.06;
-export const BLITZ_WHEEL_LIFT = WHEEL_LIFT;
 export const BLITZ_SUSPENSION_LIFT = SUSPENSION_LIFT;
 
 /** Parts that ship a Tripo (or extracted) add-on GLB under /models/parts/. */
@@ -150,20 +152,21 @@ type CarVisualLayout = {
 
 function layoutBlitz(): CarVisualLayout {
   return {
-    wheelLift: WHEEL_LIFT,
-    suspensionLift: SUSPENSION_LIFT,
+    wheelLift: BLITZ_WHEEL_LIFT,
+    suspensionLift: BLITZ_SUSPENSION_LIFT,
     brakes: [
-      { x: 0.72, y: 0.28, z: 1.15, yaw: 0, scale: 0.85, snap: false },
-      { x: -0.72, y: 0.28, z: 1.15, yaw: Math.PI, scale: 0.85, snap: false },
-      { x: 0.72, y: 0.28, z: -1.15, yaw: 0, scale: 0.85, snap: false },
-      { x: -0.72, y: 0.28, z: -1.15, yaw: Math.PI, scale: 0.85, snap: false },
+      { x: 0.62, y: 0.3, z: 1.15, yaw: 0, scale: 0.9, snap: false },
+      { x: -0.62, y: 0.3, z: 1.15, yaw: Math.PI, scale: 0.9, snap: false },
+      { x: 0.62, y: 0.3, z: -1.15, yaw: 0, scale: 0.9, snap: false },
+      { x: -0.62, y: 0.3, z: -1.15, yaw: Math.PI, scale: 0.9, snap: false },
     ],
     springs: BLITZ_PART_PLACEMENT.offroad_suspension,
+    // Wider tires (builder width), slight outboard so they fill the arches.
     wheelHints: [
-      { x: 0.78, y: 0.32, z: 1.15, yaw: 0, scale: 1, snap: false },
-      { x: -0.78, y: 0.32, z: 1.15, yaw: 0, scale: 1, snap: false },
-      { x: 0.78, y: 0.32, z: -1.15, yaw: 0, scale: 1, snap: false },
-      { x: -0.78, y: 0.32, z: -1.15, yaw: 0, scale: 1, snap: false },
+      { x: 0.8, y: 0.3, z: 1.15, yaw: 0, scale: 1, snap: false },
+      { x: -0.8, y: 0.3, z: 1.15, yaw: 0, scale: 1, snap: false },
+      { x: 0.8, y: 0.3, z: -1.15, yaw: 0, scale: 1, snap: false },
+      { x: -0.8, y: 0.3, z: -1.15, yaw: 0, scale: 1, snap: false },
     ],
     big_engine: {
       anchors: BLITZ_PART_PLACEMENT.big_engine,
@@ -199,25 +202,20 @@ function layoutBlitz(): CarVisualLayout {
 function layoutBison(): CarVisualLayout {
   // Mesh bounds ~ x±0.85 y≤1.45 z±1.9 — use class procs (not Blitz Tripo kits).
   return {
-    wheelLift: 0.1,
-    suspensionLift: 0.1,
+    wheelLift: 0.12,
+    suspensionLift: 0,
     brakes: [
       { x: 0.72, y: 0.4, z: 1.2, yaw: 0, scale: 1, snap: false },
       { x: -0.72, y: 0.4, z: 1.2, yaw: Math.PI, scale: 1, snap: false },
       { x: 0.72, y: 0.4, z: -1.2, yaw: 0, scale: 1, snap: false },
       { x: -0.72, y: 0.4, z: -1.2, yaw: Math.PI, scale: 1, snap: false },
     ],
-    springs: [
-      { x: 0.68, y: 0.14, z: 1.15, yaw: 0, scale: 0.9, snap: false },
-      { x: -0.68, y: 0.14, z: 1.15, yaw: 0, scale: 0.9, snap: false },
-      { x: 0.68, y: 0.14, z: -1.15, yaw: 0, scale: 0.9, snap: false },
-      { x: -0.68, y: 0.14, z: -1.15, yaw: 0, scale: 0.9, snap: false },
-    ],
+    springs: [],
     wheelHints: [
-      { x: 0.8, y: 0.44, z: 1.2, yaw: 0, scale: 1.2, snap: false },
-      { x: -0.8, y: 0.44, z: 1.2, yaw: 0, scale: 1.2, snap: false },
-      { x: 0.8, y: 0.44, z: -1.2, yaw: 0, scale: 1.2, snap: false },
-      { x: -0.8, y: 0.44, z: -1.2, yaw: 0, scale: 1.2, snap: false },
+      { x: 0.85, y: 0.48, z: 1.2, yaw: 0, scale: 1, snap: false },
+      { x: -0.85, y: 0.48, z: 1.2, yaw: 0, scale: 1, snap: false },
+      { x: 0.85, y: 0.48, z: -1.2, yaw: 0, scale: 1, snap: false },
+      { x: -0.85, y: 0.48, z: -1.2, yaw: 0, scale: 1, snap: false },
     ],
     big_engine: {
       // Mid-hood scoop (look sheet) — deck ~y1.03; keep scale modest so it does not read as cab roof.
@@ -285,25 +283,20 @@ function layoutBison(): CarVisualLayout {
 function layoutKaeferkraft(): CarVisualLayout {
   // Hull child yaw π/2; mesh local nose −X, width ±Z. Cage roof ~y1.65 near x0.3–0.6.
   return {
-    wheelLift: 0.08,
-    suspensionLift: 0.1,
+    wheelLift: 0.12,
+    suspensionLift: 0,
     brakes: [
       { x: -1.15, y: 0.4, z: 0.72, yaw: Math.PI / 2, scale: 0.95, snap: false },
       { x: -1.15, y: 0.4, z: -0.72, yaw: -Math.PI / 2, scale: 0.95, snap: false },
       { x: 1.1, y: 0.4, z: 0.72, yaw: Math.PI / 2, scale: 0.95, snap: false },
       { x: 1.1, y: 0.4, z: -0.72, yaw: -Math.PI / 2, scale: 0.95, snap: false },
     ],
-    springs: [
-      { x: -1.1, y: 0.18, z: 0.68, yaw: 0, scale: 1, snap: false },
-      { x: -1.1, y: 0.18, z: -0.68, yaw: 0, scale: 1, snap: false },
-      { x: 1.05, y: 0.18, z: 0.68, yaw: 0, scale: 1, snap: false },
-      { x: 1.05, y: 0.18, z: -0.68, yaw: 0, scale: 1, snap: false },
-    ],
+    springs: [],
     wheelHints: [
-      { x: -1.2, y: 0.45, z: 0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
-      { x: -1.2, y: 0.45, z: -0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
-      { x: 1.15, y: 0.45, z: 0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
-      { x: 1.15, y: 0.45, z: -0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
+      { x: -1.22, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
+      { x: -1.22, y: 0.5, z: -0.82, yaw: Math.PI / 2, scale: 1, snap: false },
+      { x: 1.18, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
+      { x: 1.18, y: 0.5, z: -0.82, yaw: Math.PI / 2, scale: 1, snap: false },
     ],
     big_engine: {
       // Exhaust / block in the open rear bay (nose −X → rear +X).
@@ -348,25 +341,20 @@ function layoutKaeferkraft(): CarVisualLayout {
 function layoutDonner(): CarVisualLayout {
   // Mesh bounds ~ x±1.19 y≤1.55 z±1.9 — nose +Z, cabin aft. StockEngine hides for big_engine.
   return {
-    wheelLift: 0.08,
-    suspensionLift: 0.09,
+    wheelLift: 0.11,
+    suspensionLift: 0,
     brakes: [
       { x: 0.9, y: 0.38, z: 1.25, yaw: 0, scale: 0.95, snap: false },
       { x: -0.9, y: 0.38, z: 1.25, yaw: Math.PI, scale: 0.95, snap: false },
       { x: 1.0, y: 0.48, z: -1.1, yaw: 0, scale: 1.1, snap: false },
       { x: -1.0, y: 0.48, z: -1.1, yaw: Math.PI, scale: 1.1, snap: false },
     ],
-    springs: [
-      { x: 0.85, y: 0.16, z: 1.2, yaw: 0, scale: 0.9, snap: false },
-      { x: -0.85, y: 0.16, z: 1.2, yaw: 0, scale: 0.9, snap: false },
-      { x: 0.95, y: 0.2, z: -1.05, yaw: 0, scale: 1, snap: false },
-      { x: -0.95, y: 0.2, z: -1.05, yaw: 0, scale: 1, snap: false },
-    ],
+    springs: [],
     wheelHints: [
-      { x: 1.0, y: 0.42, z: 1.25, yaw: 0, scale: 1.1, snap: false },
-      { x: -1.0, y: 0.42, z: 1.25, yaw: 0, scale: 1.1, snap: false },
-      { x: 1.1, y: 0.52, z: -1.1, yaw: 0, scale: 1.35, snap: false },
-      { x: -1.1, y: 0.52, z: -1.1, yaw: 0, scale: 1.35, snap: false },
+      { x: 1.02, y: 0.44, z: 1.25, yaw: 0, scale: 1, snap: false },
+      { x: -1.02, y: 0.44, z: 1.25, yaw: 0, scale: 1, snap: false },
+      { x: 1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
+      { x: -1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
     ],
     big_engine: {
       // Replaces StockEngine in the open bay (intakes toward nose +Z).
@@ -423,25 +411,20 @@ function layoutDonner(): CarVisualLayout {
 function layoutBunker(): CarVisualLayout {
   // Mesh bounds ~ x±0.98 y≤2.12 z±1.93 — nose +Z. Hood ~y0.95–1.1 at z1.2–1.5; roof ~y1.9–2.1.
   return {
-    wheelLift: 0.1,
-    suspensionLift: 0.12,
+    wheelLift: 0.14,
+    suspensionLift: 0,
     brakes: [
       { x: 0.88, y: 0.5, z: 1.2, yaw: 0, scale: 1.05, snap: false },
       { x: -0.88, y: 0.5, z: 1.2, yaw: Math.PI, scale: 1.05, snap: false },
       { x: 0.88, y: 0.5, z: -1.15, yaw: 0, scale: 1.05, snap: false },
       { x: -0.88, y: 0.5, z: -1.15, yaw: Math.PI, scale: 1.05, snap: false },
     ],
-    springs: [
-      { x: 0.82, y: 0.22, z: 1.15, yaw: 0, scale: 1.05, snap: false },
-      { x: -0.82, y: 0.22, z: 1.15, yaw: 0, scale: 1.05, snap: false },
-      { x: 0.82, y: 0.22, z: -1.1, yaw: 0, scale: 1.05, snap: false },
-      { x: -0.82, y: 0.22, z: -1.1, yaw: 0, scale: 1.05, snap: false },
-    ],
+    springs: [],
     wheelHints: [
-      { x: 0.98, y: 0.58, z: 1.2, yaw: 0, scale: 1.3, snap: false },
-      { x: -0.98, y: 0.58, z: 1.2, yaw: 0, scale: 1.3, snap: false },
-      { x: 0.98, y: 0.58, z: -1.15, yaw: 0, scale: 1.3, snap: false },
-      { x: -0.98, y: 0.58, z: -1.15, yaw: 0, scale: 1.3, snap: false },
+      { x: 1.02, y: 0.62, z: 1.2, yaw: 0, scale: 1, snap: false },
+      { x: -1.02, y: 0.62, z: 1.2, yaw: 0, scale: 1, snap: false },
+      { x: 1.02, y: 0.62, z: -1.15, yaw: 0, scale: 1, snap: false },
+      { x: -1.02, y: 0.62, z: -1.15, yaw: 0, scale: 1, snap: false },
     ],
     big_engine: {
       // Look sheet: low hood scoop between grille and windshield (not roof turret).
@@ -535,6 +518,7 @@ export function isBlitzPartMeshId(id: string): id is BlitzPartMeshId {
 }
 
 export function isCarWheelObject(obj: Object3D): boolean {
+  if (isStockWheelObject(obj)) return true;
   if (obj.userData.isWheel === true || obj.userData.spinWheel === true) return true;
   if (obj.name.startsWith("WheelSpin_")) return true;
   const n = obj.name.toLowerCase();
@@ -685,7 +669,9 @@ export function carStanceLift(carId: CarId, equippedParts: readonly PartId[]): n
   const layout = CAR_PART_LAYOUTS[carId];
   let lift = 0;
   if (equippedParts.includes("big_wheels")) lift += layout.wheelLift;
-  if (equippedParts.includes("offroad_suspension")) lift += layout.suspensionLift;
+  if (carSupportsPart(carId, "offroad_suspension") && equippedParts.includes("offroad_suspension")) {
+    lift += layout.suspensionLift;
+  }
   return lift;
 }
 
@@ -825,6 +811,22 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
     if (obj.name !== STOCK_ENGINE_MESH) return;
     obj.visible = !hideEngine;
   });
+  applyStockWheelVisibility(root, equippedParts.includes("big_wheels"));
+}
+
+function upgradeWheelFor(carId: CarId) {
+  if (carId === "blitz") {
+    // Wider track tires, stock-ish diameter (not taller).
+    return () => buildUpgradeWheel({ radius: 0.32, width: 0.4 });
+  }
+  if (carId === "bunker" || carId === "bison") {
+    return () => buildUpgradeWheel({ radius: 0.46, width: 0.34 });
+  }
+  if (carId === "kaeferkraft") {
+    return () => buildUpgradeWheel({ radius: 0.42, width: 0.32 });
+  }
+  // donnerbuechse — fat rear-bias street meats, still “bigger”
+  return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 
 /** Prefer Tripo/extracted GLB when preloaded for this car; else procedural. */
@@ -957,7 +959,7 @@ export function applyEquippedPartVisuals(
       layout.rear_spoiler.tint,
     );
   }
-  if (equipped.has("offroad_suspension")) {
+  if (equipped.has("offroad_suspension") && carSupportsPart(carId, "offroad_suspension")) {
     const springCol = springColorFor(carId);
     mountGlbOrProc(
       group,
@@ -975,7 +977,7 @@ export function applyEquippedPartVisuals(
     placeAnchored(group, root, "better_brakes", layout.brakes, () => buildBrakeUnit(col), false);
   }
   if (equipped.has("big_wheels")) {
-    placeAnchored(group, root, "big_wheels", layout.wheelHints, () => buildWheelBulkHint(), false);
+    placeAnchored(group, root, "big_wheels", layout.wheelHints, upgradeWheelFor(carId), false);
   }
 
   if (group.children.length > 0) root.add(group);

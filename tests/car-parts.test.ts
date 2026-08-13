@@ -127,7 +127,13 @@ describe("Equipped-part visuals (all cars)", () => {
       expect(root.getObjectByName(blitzPartObjectName("spike_bumper")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("rear_spoiler")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("big_engine")), id).toBeTruthy();
-      expect(carStanceLift(id, ["big_wheels", "offroad_suspension"])).toBeGreaterThan(0.1);
+      expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeTruthy();
+      expect(carStanceLift(id, ["big_wheels"])).toBeGreaterThan(0);
+      if (id === "blitz") {
+        expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeTruthy();
+      } else {
+        expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeFalsy();
+      }
     }
   });
 
@@ -155,20 +161,24 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(withPart.grip).toBeGreaterThan(bare.grip);
   });
 
-  it("raises stance for big_wheels without mounting WheelSpin hubs", () => {
+  it("raises stance for big_wheels and mounts upgrade tires (no WheelSpin hubs)", () => {
     expect(blitzStanceLift(["big_wheels"])).toBeCloseTo(BLITZ_WHEEL_LIFT);
     const root = new Group();
     root.position.y = 0;
     applyBlitzParts(root, ["big_wheels"]);
     expect(root.position.y).toBeCloseTo(BLITZ_WHEEL_LIFT);
     expect(root.getObjectByName("WheelSpin_FL")).toBeUndefined();
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
     applyBlitzParts(root, []);
     expect(root.position.y).toBeCloseTo(0);
   });
 
-  it("stacks big_wheels and offroad_suspension lifts", () => {
+  it("stacks big_wheels and offroad_suspension lifts on Blitz only", () => {
     expect(blitzStanceLift(["big_wheels", "offroad_suspension"])).toBeCloseTo(
       BLITZ_WHEEL_LIFT + BLITZ_SUSPENSION_LIFT,
+    );
+    expect(carStanceLift("bunker", ["big_wheels", "offroad_suspension"])).toBe(
+      CAR_PART_LAYOUTS.bunker.wheelLift,
     );
   });
 
@@ -182,7 +192,6 @@ describe("Equipped-part visuals (all cars)", () => {
   it("boot preloads car part meshes", () => {
     const src = readFileSync("src/main.ts", "utf8");
     expect(src).toContain("preloadCarParts");
-    expect(src).not.toContain("preloadComicWheel");
   });
 
   it("garage look key changes when Teile are equipped", () => {

@@ -1,5 +1,6 @@
 import { CARS, type CarId } from "../data/cars";
 import { PARTS, type PartId } from "../data/parts";
+import { partsForCar } from "../data/partsCatalog";
 import { APP_VERSION } from "../core/version";
 import {
   GARAGE_PAINTS,
@@ -71,8 +72,9 @@ export function renderGarageHtml(opts: {
     })
     .join("");
 
-  const ownedParts = (Object.keys(PARTS) as PartId[]).filter((id) => opts.kit.ownedParts.includes(id));
-  const shopParts = (Object.keys(PARTS) as PartId[]).filter((id) => !opts.kit.ownedParts.includes(id));
+  const catalog = partsForCar(shownId);
+  const ownedParts = catalog.filter((id) => opts.kit.ownedParts.includes(id));
+  const shopParts = catalog.filter((id) => !opts.kit.ownedParts.includes(id));
 
   const equipRows = ownedParts
     .map((id) => {

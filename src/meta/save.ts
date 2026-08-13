@@ -2,6 +2,7 @@ import type { CarId } from "../data/cars";
 import { CARS } from "../data/cars";
 import { isGaragePaint } from "../data/cosmetics";
 import type { PartId } from "../data/parts";
+import { sanitizeKitParts } from "../data/partsCatalog";
 import { sanitizeSticker, type StickerId } from "./stickerIds";
 
 export type { StickerId } from "./stickerIds";
@@ -59,6 +60,7 @@ export function normalizeKitCosmetics(carId: CarId, kit: CarKit): CarKit {
   kit.sticker = sticker;
   kit.ownedPaints = ownedPaints;
   kit.ownedStickers = ownedStickers;
+  sanitizeKitParts(carId, kit);
   return kit;
 }
 

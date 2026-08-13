@@ -31,6 +31,7 @@ import {
   bakeAuthoredWhiteToPaint,
   isWheelPaintVertex,
 } from "./paintAuthoredWhite";
+import { extractStockWheels } from "./stockWheels";
 
 type Template = {
   root: Object3D;
@@ -137,6 +138,10 @@ function normalizeCarScene(root: Object3D, spec: CarModelSpec): void {
     root.position.y -= box2.min.y;
     root.position.y += spec.y;
   }
+
+  // Detach authored tires so Große Räder can hide/replace them.
+  extractStockWheels(root);
+  root.updateMatrixWorld(true);
 
   root.traverse((obj) => {
     const mesh = obj as Mesh;

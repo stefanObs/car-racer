@@ -117,6 +117,12 @@ Append newest first.
 - Decision: Tripo albedo UV stamps miss doors (chaotic atlases). Project sticker-v5 comic plates with `DecalGeometry` onto BodyPaint (Seite/Haube/Tür). Käferkraft stays nose GLBs. No Tripo bake required for flat decals.
 - CONCEPT §§ touched: §6.2 Aufkleber-Details → v3.29
 
+### 2026-08-13 — v3.48 Removable wheels + brakes + offroad catalog
+
+- Trigger: user — make wheels removable; fix bigger wheels / brakes / offroad suspension across cars
+- Decision: Split stock tire triangles into `StockWheel_*` at GLB normalize; `big_wheels` hides them and mounts procedural upgrade tires (Blitz = wider, others = larger diameter) plus stance lift. Keep procedural better_brakes (look sheets exist). `offroad_suspension` only for Blitz (ships `blitz-offroad_suspension.glb`); dropped from other cars’ shop/kits — those use tire stance from Große Räder instead.
+- CONCEPT §§ touched: §6.3 Sichtbarkeit → v3.48
+
 ### 2026-08-12 — v3.28 Equipped Teile visuals on every car
 
 - Trigger: user — implement car parts as proposed in the parts-look sheets

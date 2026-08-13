@@ -8,7 +8,6 @@ import {
   CylinderGeometry,
   Group,
   Mesh,
-  SphereGeometry,
   type Object3D,
 } from "three";
 import { comicToon } from "./comicMaterials";
@@ -144,16 +143,19 @@ export function buildSpikeBumper(spikeCount = 5, width = 1.2): Group {
   return g;
 }
 
-/** Single caliper + disc (place near a wheel). */
+/** Single caliper + disc (place near a wheel hub, look-sheet style). */
 export function buildBrakeUnit(caliperColor: number = CALIPER_RED): Group {
   const g = new Group();
   g.name = "proc-better_brakes";
-  const disc = cyl(0.24, 0.24, 0.045, CHROME, "BrakeDisc", 12);
+  const disc = cyl(0.28, 0.28, 0.04, CHROME, "BrakeDisc", 14);
   disc.rotation.z = Math.PI / 2;
   g.add(disc);
-  const cal = box(0.13, 0.18, 0.2, caliperColor, "Caliper");
-  cal.position.set(0.13, 0.02, 0);
+  const cal = box(0.12, 0.22, 0.28, caliperColor, "Caliper");
+  cal.position.set(0.16, 0.04, 0);
   g.add(cal);
+  const piston = box(0.06, 0.1, 0.12, CHROME, "CaliperPiston");
+  piston.position.set(0.14, 0.04, 0);
+  g.add(piston);
   return g;
 }
 
@@ -477,19 +479,48 @@ export function springColorFor(carId: string): number {
 }
 
 export function caliperColorFor(carId: string): number {
-  if (carId === "bunker") return CALIPER_YELLOW;
+  if (carId === "blitz" || carId === "bunker") return CALIPER_YELLOW;
   return CALIPER_RED;
 }
 
-/** Tiny tire “bulk” discs when big_wheels is on (no fake shared hub overlays). */
-export function buildWheelBulkHint(): Group {
+export type UpgradeWheelStyle = {
+  /** Tire outer radius (meters). */
+  radius: number;
+  /** Lateral tire width (meters) — Blitz goes wider, not taller. */
+  width: number;
+};
+
+/** Replacement wheel when stock tires are hidden for Große Räder. */
+export function buildUpgradeWheel(style: UpgradeWheelStyle): Group {
   const g = new Group();
   g.name = "proc-big_wheels";
-  const tire = new Mesh(new SphereGeometry(0.32, 10, 8), comicToon(ComicPalette.tire));
-  tire.name = "TireBulk";
-  tire.scale.set(0.55, 1, 1);
+  const tire = new Mesh(
+    new CylinderGeometry(style.radius, style.radius, style.width, 16),
+    comicToon(ComicPalette.tire),
+  );
+  tire.name = "UpgradeTire";
+  tire.rotation.z = Math.PI / 2;
   g.add(tire);
+  const rim = new Mesh(
+    new CylinderGeometry(style.radius * 0.62, style.radius * 0.62, style.width * 0.55, 12),
+    comicToon(0xb0b4ba),
+  );
+  rim.name = "UpgradeRim";
+  rim.rotation.z = Math.PI / 2;
+  g.add(rim);
+  const hub = new Mesh(
+    new CylinderGeometry(style.radius * 0.18, style.radius * 0.18, style.width * 0.62, 8),
+    comicToon(0x2b2d31),
+  );
+  hub.name = "UpgradeHub";
+  hub.rotation.z = Math.PI / 2;
+  g.add(hub);
   return g;
+}
+
+/** @deprecated use buildUpgradeWheel */
+export function buildWheelBulkHint(): Group {
+  return buildUpgradeWheel({ radius: 0.36, width: 0.28 });
 }
 
 export type ProcPartId =

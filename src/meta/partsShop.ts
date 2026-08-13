@@ -1,4 +1,6 @@
 import { PARTS, type PartId } from "../data/parts";
+import { carSupportsPart } from "../data/partsCatalog";
+import type { CarId } from "../data/cars";
 import type { CarKit } from "./save";
 
 /** Click a part: owned → toggle equip; shop → toggle bay/stats preview (no CHF). */
@@ -6,7 +8,11 @@ export function selectPartInGarage(
   kit: CarKit,
   partId: PartId,
   previewPart: PartId | null,
+  carId?: CarId,
 ): { equippedParts: PartId[]; previewPart: PartId | null; dirty: boolean } {
+  if (carId && !carSupportsPart(carId, partId)) {
+    return { equippedParts: kit.equippedParts, previewPart: null, dirty: false };
+  }
   if (kit.ownedParts.includes(partId)) {
     const equipped = kit.equippedParts.includes(partId)
       ? kit.equippedParts.filter((p) => p !== partId)
@@ -19,8 +25,14 @@ export function selectPartInGarage(
   return { equippedParts: kit.equippedParts, previewPart: partId, dirty: false };
 }
 
-/** Spend CHF, own + equip. False if already owned or broke. */
-export function buyPart(save: { chf: number }, kit: CarKit, partId: PartId): boolean {
+/** Spend CHF, own + equip. False if already owned, unsupported, or broke. */
+export function buyPart(
+  save: { chf: number },
+  kit: CarKit,
+  partId: PartId,
+  carId?: CarId,
+): boolean {
+  if (carId && !carSupportsPart(carId, partId)) return false;
   if (kit.ownedParts.includes(partId)) return false;
   const price = PARTS[partId].priceChf;
   if (save.chf < price) return false;

@@ -666,7 +666,7 @@ export class GameApp {
     if (act === "part" && btn.dataset.part) {
       const id = btn.dataset.part as PartId;
       const kit = activeKit(this.save);
-      const next = selectPartInGarage(kit, id, this.previewPart);
+      const next = selectPartInGarage(kit, id, this.previewPart, this.save.activeCar);
       kit.equippedParts = next.equippedParts;
       this.previewPart = next.previewPart;
       if (next.dirty) writeSave(this.save);
@@ -674,7 +674,7 @@ export class GameApp {
     if (act === "buy-part" && btn.dataset.part) {
       const id = btn.dataset.part as PartId;
       const kit = activeKit(this.save);
-      if (buyPart(this.save, kit, id)) {
+      if (buyPart(this.save, kit, id, this.save.activeCar)) {
         this.previewPart = null;
         writeSave(this.save);
       }
