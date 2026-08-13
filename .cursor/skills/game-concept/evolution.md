@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.59 Drop Bessere Bremsen on Käferkraft
+- Trigger: user — buggy: remove the better brakes item art
+- Decision: `better_brakes` also dropped for Käferkraft (like Blitz/Bison): shop/kits strip via `carSupportsPart`; empty brake anchors / no caliper meshes. Donnerbüchse and Bunker keep the part.
+- CONCEPT §6.3 Sichtbarkeit → v3.59
+
 ### 2026-08-13 — v3.57 Drop Bessere Bremsen on Bison
 - Trigger: user — remove improved brakes items from Bison
 - Decision: `better_brakes` also dropped for Bison (like Blitz): shop/kits strip via `carSupportsPart`; empty brake anchors / no caliper meshes until a fitting kit exists. Other classes keep the part.

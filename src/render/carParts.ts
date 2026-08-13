@@ -284,12 +284,8 @@ function layoutKaeferkraft(): CarVisualLayout {
   return {
     wheelLift: 0.12,
     suspensionLift: 0,
-    brakes: [
-      { x: -1.15, y: 0.4, z: 0.72, yaw: Math.PI / 2, scale: 0.95, snap: false },
-      { x: -1.15, y: 0.4, z: -0.72, yaw: -Math.PI / 2, scale: 0.95, snap: false },
-      { x: 1.1, y: 0.4, z: 0.72, yaw: Math.PI / 2, scale: 0.95, snap: false },
-      { x: 1.1, y: 0.4, z: -0.72, yaw: -Math.PI / 2, scale: 0.95, snap: false },
-    ],
+    // Käferkraft drops Bessere Bremsen from the shop — no caliper anchors.
+    brakes: [],
     springs: [],
     wheelHints: [
       { x: -1.22, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
