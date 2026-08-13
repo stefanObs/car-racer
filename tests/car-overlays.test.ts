@@ -41,26 +41,26 @@ describe("car sticker decals", () => {
     expect(emptyKit("blitz").sticker).toBe("none");
   });
 
-  it("ships sticker-v12 Flammen + lightning Blitz + shooting-star Stern (side only)", () => {
+  it("ships sticker-v13 classic Flammen sprite + lightning Blitz + shooting-star Stern", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain("sticker-v12:");
-    expect(src).toContain("DONNER_FLAME_ORANGE");
+    expect(src).toContain("sticker-v13:");
+    expect(src).toContain("FLAME_ORANGE");
+    expect(src).toContain("FLAME_CORE");
     expect(src).toContain("drawHotRodFlames");
     expect(src).toContain("drawLightningBolt");
     expect(src).toContain("drawStarTrailVinyl");
     expect(src).toContain("preloadFlameSticker");
     expect(src).toContain("/stickers/flames-donner.png");
-    expect(src).toContain("donnerbuechse-concept-3q");
+    expect(src).toContain("three sharp tongues");
     expect(src).toContain("shooting-star");
     expect(src).toContain("mountDonnerDoorPlanes");
     expect(src).not.toContain('slot: "hood"');
     expect(existsSync("public/stickers/flames-donner.png")).toBe(true);
-    expect(existsSync("assets/tripo-concepts/donnerbuechse-concept-3q.png")).toBe(true);
     const main = readFileSync("src/main.ts", "utf8");
     expect(main).toContain("preloadFlameSticker");
   });
 
-  it("Flammen sticker PNG is orange on transparent (not opaque white)", async () => {
+  it("Flammen sticker PNG is orange+yellow on transparent (no card, no white fill)", async () => {
     const sharp = (await import("sharp")).default;
     const { data, info } = await sharp("public/stickers/flames-donner.png")
       .ensureAlpha()
@@ -68,6 +68,7 @@ describe("car sticker decals", () => {
       .toBuffer({ resolveWithObject: true });
     let white = 0;
     let orange = 0;
+    let yellow = 0;
     let opaque = 0;
     for (let i = 0; i < data.length; i += 4) {
       if (data[i + 3]! < 200) continue;
@@ -76,12 +77,26 @@ describe("car sticker decals", () => {
       const g = data[i + 1]!;
       const b = data[i + 2]!;
       if (r > 240 && g > 240 && b > 240) white++;
-      if (r > 150 && r > g + 30 && r > b + 40) orange++;
+      if (r > 150 && r > g + 20 && r > b + 30 && g < 180) orange++;
+      if (r > 200 && g > 160 && b < 140) yellow++;
+    }
+    // Corners must stay clear (no floating rectangle card).
+    for (const [x, y] of [
+      [0, 0],
+      [info.width - 1, 0],
+      [0, info.height - 1],
+      [info.width - 1, info.height - 1],
+    ] as const) {
+      const i = (y * info.width + x) * 4;
+      expect(data[i + 3]!).toBeLessThan(20);
     }
     expect(opaque).toBeGreaterThan(10_000);
+    expect(opaque / (info.width * info.height)).toBeLessThan(0.55);
     expect(white / opaque).toBeLessThan(0.02);
-    expect(orange / opaque).toBeGreaterThan(0.7);
+    expect(orange / opaque).toBeGreaterThan(0.4);
+    expect(yellow / opaque).toBeGreaterThan(0.08);
     expect(info.width).toBe(512);
+    expect(info.height).toBe(256);
   });
 
   it("anchors Donner stickers on the coupe door (between engine and rear wheel)", () => {

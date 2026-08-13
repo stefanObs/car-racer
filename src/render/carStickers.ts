@@ -31,7 +31,7 @@ export const CAR_STICKERS_GROUP = "carStickers";
 
 const texCache = new Map<string, Texture>();
 
-/** Concept-matched Flammen sprite (`public/stickers/flames-donner.png`). */
+/** Optional baked Flammen sprite (`public/stickers/flames-donner.png`). */
 let flameSprite: HTMLImageElement | null = null;
 let flameSpritePromise: Promise<void> | null = null;
 
@@ -43,7 +43,6 @@ export function preloadFlameSticker(): Promise<void> {
     img.decoding = "async";
     img.onload = () => {
       flameSprite = img;
-      // Drop cached flame textures so the next paint uses the sprite.
       for (const key of [...texCache.keys()]) {
         if (key.includes(":flames")) texCache.delete(key);
       }
@@ -156,41 +155,73 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
   return tex;
 }
 
-/** Donnerbüchse concept flame orange (sampled from donnerbuechse-concept-3q). */
-const DONNER_FLAME_ORANGE = "#CB4C01";
+/** Hotrod vinyl orange + yellow core (Asphalt-Comic / concept door flames). */
+const FLAME_ORANGE = "#FF6B1A";
+const FLAME_CORE = "#FFE066";
 
 /**
- * Hotrod door flames matching `donnerbuechse-concept-3q.png`.
- * Vector silhouette only — the shipped sprite had an opaque white/orange card
- * behind the tongues which read as a floating rectangle on the coupe door.
+ * Classic side-vinyl flames: scalloped nose (left) → three sharp tongues (aft).
+ * Prefers baked Asphalt-Comic sprite; vector fallback keeps transparent tongues.
  */
 function drawHotRodFlames(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
-  ctx.fillStyle = DONNER_FLAME_ORANGE;
-  ctx.strokeStyle = ink();
-  ctx.lineWidth = Math.max(3.5, Math.min(w, h) * 0.045);
+  if (flameSprite && flameSprite.complete && flameSprite.naturalWidth > 0) {
+    ctx.drawImage(flameSprite, 0, 0, w, h);
+    return;
+  }
+
+  const inkCol = ink();
+  const line = Math.max(3.2, Math.min(w, h) * 0.038);
+
+  // Outer orange — elongated, deep valleys, sharp tips (classic hotrod vinyl).
   ctx.beginPath();
-  // Nose scallop (left) → aft tongues (right).
-  ctx.moveTo(w * 0.14, h * 0.2);
-  ctx.quadraticCurveTo(w * 0.06, h * 0.22, w * 0.04, h * 0.34);
-  ctx.quadraticCurveTo(w * 0.1, h * 0.42, w * 0.18, h * 0.44);
-  ctx.quadraticCurveTo(w * 0.1, h * 0.5, w * 0.05, h * 0.58);
-  ctx.quadraticCurveTo(w * 0.08, h * 0.72, w * 0.16, h * 0.78);
-  ctx.quadraticCurveTo(w * 0.22, h * 0.82, w * 0.28, h * 0.8);
-  ctx.bezierCurveTo(w * 0.42, h * 0.82, w * 0.55, h * 0.88, w * 0.68, h * 0.86);
-  ctx.quadraticCurveTo(w * 0.74, h * 0.85, w * 0.72, h * 0.78);
-  ctx.quadraticCurveTo(w * 0.62, h * 0.76, w * 0.52, h * 0.72);
-  ctx.bezierCurveTo(w * 0.62, h * 0.7, w * 0.78, h * 0.72, w * 0.9, h * 0.68);
-  ctx.quadraticCurveTo(w * 0.96, h * 0.66, w * 0.94, h * 0.58);
-  ctx.quadraticCurveTo(w * 0.82, h * 0.58, w * 0.7, h * 0.56);
-  ctx.bezierCurveTo(w * 0.82, h * 0.52, w * 0.94, h * 0.48, w * 0.98, h * 0.4);
-  ctx.quadraticCurveTo(w * 0.99, h * 0.34, w * 0.92, h * 0.32);
-  ctx.quadraticCurveTo(w * 0.8, h * 0.34, w * 0.66, h * 0.36);
-  ctx.bezierCurveTo(w * 0.78, h * 0.28, w * 0.88, h * 0.18, w * 0.86, h * 0.12);
-  ctx.quadraticCurveTo(w * 0.84, h * 0.08, w * 0.76, h * 0.1);
-  ctx.bezierCurveTo(w * 0.6, h * 0.14, w * 0.42, h * 0.18, w * 0.3, h * 0.2);
-  ctx.quadraticCurveTo(w * 0.22, h * 0.2, w * 0.14, h * 0.2);
+  ctx.moveTo(w * 0.06, h * 0.36);
+  // Leading scallops (nose / into the wind).
+  ctx.bezierCurveTo(w * 0.0, h * 0.28, w * 0.02, h * 0.18, w * 0.12, h * 0.2);
+  ctx.bezierCurveTo(w * 0.04, h * 0.42, w * 0.04, h * 0.58, w * 0.12, h * 0.62);
+  ctx.bezierCurveTo(w * 0.02, h * 0.72, w * 0.06, h * 0.86, w * 0.18, h * 0.84);
+  // Bottom tongue (short, sharp).
+  ctx.bezierCurveTo(w * 0.38, h * 0.86, w * 0.58, h * 0.9, w * 0.72, h * 0.82);
+  ctx.lineTo(w * 0.8, h * 0.78);
+  ctx.bezierCurveTo(w * 0.74, h * 0.74, w * 0.62, h * 0.7, w * 0.52, h * 0.68);
+  // Mid tongue (longest hero tip).
+  ctx.bezierCurveTo(w * 0.68, h * 0.64, w * 0.88, h * 0.58, w * 0.98, h * 0.48);
+  ctx.lineTo(w * 0.92, h * 0.42);
+  ctx.bezierCurveTo(w * 0.78, h * 0.44, w * 0.6, h * 0.46, w * 0.5, h * 0.42);
+  // Top tongue.
+  ctx.bezierCurveTo(w * 0.66, h * 0.34, w * 0.82, h * 0.22, w * 0.9, h * 0.12);
+  ctx.lineTo(w * 0.82, h * 0.08);
+  ctx.bezierCurveTo(w * 0.68, h * 0.14, w * 0.5, h * 0.2, w * 0.34, h * 0.24);
+  ctx.bezierCurveTo(w * 0.22, h * 0.26, w * 0.12, h * 0.3, w * 0.06, h * 0.36);
   ctx.closePath();
+  ctx.fillStyle = FLAME_ORANGE;
   ctx.fill();
+  ctx.strokeStyle = inkCol;
+  ctx.lineWidth = line;
+  ctx.lineJoin = "round";
+  ctx.lineCap = "round";
+  ctx.stroke();
+
+  // Yellow core — same tongue layout, inset.
+  ctx.beginPath();
+  ctx.moveTo(w * 0.14, h * 0.4);
+  ctx.bezierCurveTo(w * 0.1, h * 0.34, w * 0.12, h * 0.26, w * 0.2, h * 0.28);
+  ctx.bezierCurveTo(w * 0.12, h * 0.44, w * 0.12, h * 0.56, w * 0.2, h * 0.58);
+  ctx.bezierCurveTo(w * 0.12, h * 0.66, w * 0.16, h * 0.76, w * 0.24, h * 0.74);
+  ctx.bezierCurveTo(w * 0.4, h * 0.76, w * 0.54, h * 0.78, w * 0.64, h * 0.72);
+  ctx.lineTo(w * 0.7, h * 0.68);
+  ctx.bezierCurveTo(w * 0.64, h * 0.66, w * 0.54, h * 0.62, w * 0.46, h * 0.6);
+  ctx.bezierCurveTo(w * 0.6, h * 0.58, w * 0.76, h * 0.54, w * 0.86, h * 0.48);
+  ctx.lineTo(w * 0.8, h * 0.44);
+  ctx.bezierCurveTo(w * 0.68, h * 0.46, w * 0.54, h * 0.46, w * 0.46, h * 0.44);
+  ctx.bezierCurveTo(w * 0.58, h * 0.38, w * 0.7, h * 0.28, w * 0.76, h * 0.2);
+  ctx.lineTo(w * 0.7, h * 0.18);
+  ctx.bezierCurveTo(w * 0.58, h * 0.24, w * 0.44, h * 0.28, w * 0.32, h * 0.32);
+  ctx.bezierCurveTo(w * 0.24, h * 0.34, w * 0.18, h * 0.36, w * 0.14, h * 0.4);
+  ctx.closePath();
+  ctx.fillStyle = FLAME_CORE;
+  ctx.fill();
+  ctx.strokeStyle = inkCol;
+  ctx.lineWidth = Math.max(2, line * 0.55);
   ctx.stroke();
 }
 
@@ -369,7 +400,7 @@ export function drawStickerArt(
 /** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none" || sticker === "ironClad") return null;
-  return canvasTex(`sticker-v12:${carId}:${sticker}`, 512, 256, (ctx) => {
+  return canvasTex(`sticker-v13:${carId}:${sticker}`, 512, 256, (ctx) => {
     ctx.clearRect(0, 0, 512, 256);
     drawStickerArt(ctx, sticker, carId, 512, 256);
   });
