@@ -45,6 +45,8 @@ export const BLITZ_PARTS_GROUP = CAR_PARTS_GROUP;
 export const BLITZ_CABIN_GLASS = "blitzCabinGlass";
 /** Donnerbüchse replaceable stock V8 — hidden when Großer Motor is equipped. */
 export const STOCK_ENGINE_MESH = "StockEngine";
+/** Käferkraft replaceable stock roll-cage top — hidden when Verstärkter Rahmen is equipped. */
+export const STOCK_CAGE_MESH = "StockCage";
 
 export const WHEEL_LIFT = 0.1;
 /** Blitz goes wider, not taller — tiny ride lift only. */
@@ -309,8 +311,8 @@ function layoutKaeferkraft(): CarVisualLayout {
       tint: 0x2c3136,
     },
     reinforced_frame: {
-      // Overlay stock cage (single BodyPaint — cannot hide/replace tubes without re-bake).
-      anchors: [{ x: 0, y: 0, z: 0, yaw: Math.PI / 2, scale: 1.55, snap: false }],
+      // Fills StockCage slot; nudged toward nose (−X) so Tripo cage sits over seats.
+      anchors: [{ x: 0.0, y: 0.55, z: 0, yaw: Math.PI / 2, scale: 1.5, scaleY: 1.35, snap: false }],
       build: () => buildReinforcedFrame("buggy"),
       preferGlb: true,
     },
@@ -928,9 +930,10 @@ function placeAnchored(
 /** Hide replaceable stock meshes when a Teil supersedes them. */
 export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedParts: readonly PartId[]): void {
   const hideEngine = carId === "donnerbuechse" && equippedParts.includes("big_engine");
+  const hideCage = carId === "kaeferkraft" && equippedParts.includes("reinforced_frame");
   root.traverse((obj) => {
-    if (obj.name !== STOCK_ENGINE_MESH) return;
-    obj.visible = !hideEngine;
+    if (obj.name === STOCK_ENGINE_MESH) obj.visible = !hideEngine;
+    if (obj.name === STOCK_CAGE_MESH) obj.visible = !hideCage;
   });
   applyStockWheelVisibility(root, equippedParts.includes("big_wheels"));
 }

@@ -22,6 +22,7 @@ import {
   registerBlitzPartTemplate,
   registerCarPartTemplate,
   STOCK_ENGINE_MESH,
+  STOCK_CAGE_MESH,
 } from "../src/render/carParts";
 
 function fakePartTemplate(): Group {
@@ -334,8 +335,17 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(wing.scale).toBeGreaterThan(0.95);
 
     const frame = L.reinforced_frame.anchors[0]!;
-    expect(frame.scale).toBeGreaterThan(1.3);
+    // Replaces StockCage — sits on cabin deck, not floating above the roof.
+    expect(frame.y).toBeGreaterThan(0.4);
+    expect(frame.y).toBeLessThan(0.7);
+    expect(frame.x).toBeGreaterThan(-0.15);
+    expect(frame.x).toBeLessThan(0.2);
+    expect(frame.scale).toBeGreaterThan(1.35);
+    expect(frame.scale).toBeLessThan(1.65);
+    expect(frame.scaleY ?? frame.scale).toBeGreaterThan(1.2);
+    expect(frame.yaw).toBeCloseTo(Math.PI / 2);
     expect(L.reinforced_frame.preferGlb).toBe(true);
+    expect(existsSync("scripts/extract-kaeferkraft-stock-cage.mjs")).toBe(true);
 
     const light = L.lightweight_body.anchors[0]!;
     // Mirrored hole flank on blue rails; chunky Tripo half removed in fix script.
@@ -486,10 +496,31 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(stock.visible).toBe(true);
   });
 
+  it("hides Käferkraft StockCage when Verstärkter Rahmen is equipped", () => {
+    const root = new Group();
+    const stock = new Group();
+    stock.name = STOCK_CAGE_MESH;
+    root.add(stock);
+    applyStockPartVisibility(root, "kaeferkraft", []);
+    expect(stock.visible).toBe(true);
+    applyStockPartVisibility(root, "kaeferkraft", ["reinforced_frame"]);
+    expect(stock.visible).toBe(false);
+    stock.visible = true;
+    applyStockPartVisibility(root, "bison", ["reinforced_frame"]);
+    expect(stock.visible).toBe(true);
+  });
+
   it("ships Donner StockEngine mesh in the car GLB", () => {
     const buf = readFileSync("public/models/cars/donnerbuechse.glb");
     const text = buf.toString("latin1");
     expect(text).toContain("StockEngine");
+    expect(text).toContain("BodyPaint");
+  });
+
+  it("ships Käferkraft StockCage mesh in the car GLB", () => {
+    const buf = readFileSync("public/models/cars/kaeferkraft.glb");
+    const text = buf.toString("latin1");
+    expect(text).toContain("StockCage");
     expect(text).toContain("BodyPaint");
   });
 
