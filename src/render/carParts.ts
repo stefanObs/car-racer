@@ -132,18 +132,26 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
   ],
 };
 
+type PartVisual = {
+  anchors: PartAnchor[];
+  build: () => Group;
+  preferGlb?: boolean;
+  /** Multiply toon albedo after clone (keeps maps; Bison spike charcoal-green). */
+  tint?: number;
+};
+
 type CarVisualLayout = {
   wheelLift: number;
   suspensionLift: number;
   brakes: PartAnchor[];
   springs: PartAnchor[];
   wheelHints: PartAnchor[];
-  big_engine: { anchors: PartAnchor[]; build: () => Group; preferGlb?: boolean };
-  spike_bumper: { anchors: PartAnchor[]; build: () => Group; preferGlb?: boolean };
-  reinforced_frame: { anchors: PartAnchor[]; build: () => Group; preferGlb?: boolean };
-  lightweight_body: { anchors: PartAnchor[]; build: () => Group; preferGlb?: boolean };
-  nitro_kit: { anchors: PartAnchor[]; build: () => Group; preferGlb?: boolean };
-  rear_spoiler: { anchors: PartAnchor[]; build: () => Group; preferGlb?: boolean };
+  big_engine: PartVisual;
+  spike_bumper: PartVisual;
+  reinforced_frame: PartVisual;
+  lightweight_body: PartVisual;
+  nitro_kit: PartVisual;
+  rear_spoiler: PartVisual;
 };
 
 function layoutBlitz(): CarVisualLayout {
@@ -214,45 +222,38 @@ function layoutBison(): CarVisualLayout {
       { x: -0.8, y: 0.44, z: -1.2, yaw: 0, scale: 1.2, snap: false },
     ],
     big_engine: {
-      // Scoop near windshield (look sheet), not nose tip / not cab roof.
+      // Mid-hood scoop (look sheet) — deck ~y1.03; keep scale modest so it does not read as cab roof.
       anchors: [
         {
           x: 0,
-          y: 1.0,
-          z: 0.55,
+          y: 1.03,
+          z: 0.92,
           yaw: Math.PI,
-          scale: 1.05,
-          sitGap: 0.02,
-          snapRadius: 0.32,
-          preferY: 1.0,
+          scale: 0.72,
+          sitGap: 0.01,
+          snapRadius: 0.28,
+          preferY: 1.03,
         },
       ],
       build: () => buildHoodScoop("block"),
       preferGlb: true,
     },
     spike_bumper: {
-      anchors: [{ x: 0, y: 0.32, z: 1.88, yaw: 0, scale: 1.15, snap: false }],
-      build: () => buildSpikeBumper(5, 1.4),
+      // Flush-ish to the grille; olive-charcoal tint vs washed grey map.
+      anchors: [{ x: 0, y: 0.22, z: 1.32, yaw: 0, scale: 0.68, snap: false }],
+      build: () => buildSpikeBumper(5, 1.15),
       preferGlb: true,
+      tint: 0x5c6a4a,
     },
     reinforced_frame: {
-      anchors: [{ x: 0, y: 0.45, z: -0.35, yaw: 0, scale: 1.05, snap: false }],
+      // Bed roll bar behind cab (Tripo cage), mounts on bed rails.
+      anchors: [{ x: 0, y: 0.62, z: -0.58, yaw: 0, scale: 1.0, snap: false }],
       build: () => buildReinforcedFrame("pickup"),
       preferGlb: true,
     },
     lightweight_body: {
-      anchors: [
-        {
-          x: 0,
-          y: 1.0,
-          z: 0.35,
-          yaw: 0,
-          scale: 1.15,
-          sitGap: 0.02,
-          snapRadius: 0.4,
-          preferY: 1.0,
-        },
-      ],
+      // Fixed hood-deck Y — snap would use door-vent bottoms and lift onto the roof.
+      anchors: [{ x: 0, y: 1.03, z: 1.0, yaw: 0, scale: 1.05, snap: false }],
       build: () => buildLightweightBody("hood_bed"),
       preferGlb: false,
     },
@@ -263,16 +264,17 @@ function layoutBison(): CarVisualLayout {
       preferGlb: true,
     },
     rear_spoiler: {
+      // Cab-roof wing (look sheet); yaw π so the thick face points toward the nose.
       anchors: [
         {
           x: 0,
-          y: 1.05,
-          z: -1.72,
-          yaw: 0,
-          scale: 1.05,
-          sitGap: 0.02,
-          snapRadius: 0.3,
-          preferY: 0.95,
+          y: 1.35,
+          z: -0.28,
+          yaw: Math.PI,
+          scale: 1.0,
+          sitGap: 0.01,
+          snapRadius: 0.28,
+          preferY: 1.38,
         },
       ],
       build: () => buildRearSpoiler("tall"),
@@ -675,6 +677,18 @@ function clonePartTemplate(template: Group): Group {
   return clone;
 }
 
+function tintPartMeshes(root: Object3D, hex: number): void {
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh) return;
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    for (const m of mats) {
+      const toon = m as MeshToonMaterial;
+      if (toon?.color) toon.color.setHex(hex);
+    }
+  });
+}
+
 function applyRideLift(root: Object3D, lift: number): void {
   const baseY =
     typeof root.userData.carPartsSitY === "number"
@@ -834,13 +848,15 @@ function mountGlbOrProc(
   procedural: () => Group,
   defaultSnap: boolean,
   preferGlb = true,
+  tint?: number,
 ): void {
   const template = preferGlb ? templates.get(partTemplateKey(carId, id)) : undefined;
-  if (template) {
-    placeAnchored(group, bodyRoot, id, anchors, () => clonePartTemplate(template), defaultSnap);
-    return;
-  }
-  placeAnchored(group, bodyRoot, id, anchors, procedural, defaultSnap);
+  const factory = (): Group => {
+    const inst = template ? clonePartTemplate(template) : procedural();
+    if (tint != null) tintPartMeshes(inst, tint);
+    return inst;
+  };
+  placeAnchored(group, bodyRoot, id, anchors, factory, defaultSnap);
 }
 
 /** @deprecated No-op — Tripo Blitz glass is kept; opaque plane seal removed. */
@@ -877,6 +893,7 @@ export function applyEquippedPartVisuals(
       layout.big_engine.build,
       true,
       layout.big_engine.preferGlb !== false,
+      layout.big_engine.tint,
     );
   }
   if (equipped.has("spike_bumper")) {
@@ -889,6 +906,7 @@ export function applyEquippedPartVisuals(
       layout.spike_bumper.build,
       false,
       layout.spike_bumper.preferGlb !== false,
+      layout.spike_bumper.tint,
     );
   }
   if (equipped.has("reinforced_frame")) {
@@ -901,6 +919,7 @@ export function applyEquippedPartVisuals(
       layout.reinforced_frame.build,
       false,
       layout.reinforced_frame.preferGlb !== false,
+      layout.reinforced_frame.tint,
     );
   }
   if (equipped.has("lightweight_body")) {
@@ -913,6 +932,7 @@ export function applyEquippedPartVisuals(
       layout.lightweight_body.build,
       true,
       layout.lightweight_body.preferGlb !== false,
+      layout.lightweight_body.tint,
     );
   }
   if (equipped.has("nitro_kit")) {
@@ -925,6 +945,7 @@ export function applyEquippedPartVisuals(
       layout.nitro_kit.build,
       true,
       layout.nitro_kit.preferGlb !== false,
+      layout.nitro_kit.tint,
     );
   }
   if (equipped.has("rear_spoiler")) {
@@ -937,6 +958,7 @@ export function applyEquippedPartVisuals(
       layout.rear_spoiler.build,
       true,
       layout.rear_spoiler.preferGlb !== false,
+      layout.rear_spoiler.tint,
     );
   }
   if (equipped.has("offroad_suspension")) {

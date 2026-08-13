@@ -274,18 +274,24 @@ export function buildLightweightBody(style: LightweightStyle = "vents"): Group {
   const g = new Group();
   g.name = "proc-lightweight_body";
   if (style === "hood_bed") {
-    for (const x of [-0.2, 0.2]) {
-      const vent = box(0.22, 0.045, 0.42, CARBON, "HoodVent");
-      vent.position.set(x, 0.02, 0.15);
+    // Origin on hood deck: louvers on hood + lightening holes along the bed sides.
+    for (const [x, z] of [
+      [-0.28, 0.22],
+      [0.28, 0.22],
+      [-0.28, -0.05],
+      [0.28, -0.05],
+    ] as const) {
+      const vent = box(0.2, 0.04, 0.28, CARBON, "HoodVent");
+      vent.position.set(x, 0.02, z);
       g.add(vent);
     }
-    for (let i = 0; i < 6; i++) {
-      const hole = cyl(0.055, 0.055, 0.05, 0x111114, "BedHole", 8);
+    for (let i = 0; i < 4; i++) {
+      const hole = cyl(0.05, 0.05, 0.05, 0x111114, "BedHole", 8);
       hole.rotation.z = Math.PI / 2;
-      hole.position.set(0.58, 0.28, -0.15 - i * 0.14);
+      hole.position.set(0.62, -0.28, -0.9 - i * 0.12);
       g.add(hole);
       const holeL = hole.clone();
-      holeL.position.x = -0.58;
+      holeL.position.x = -0.62;
       g.add(holeL);
     }
     return g;

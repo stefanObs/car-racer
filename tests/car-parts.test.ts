@@ -233,13 +233,45 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(appSrc).toContain("ensureCarPartTemplates");
   });
 
-  it("places Bison scoop near windshield and nitro on the bed", () => {
-    const scoopZ = CAR_PART_LAYOUTS.bison.big_engine.anchors[0]!.z;
+  it("places Bison scoop on mid-hood and nitro on the bed", () => {
+    const scoop = CAR_PART_LAYOUTS.bison.big_engine.anchors[0]!;
     const nitroZ = CAR_PART_LAYOUTS.bison.nitro_kit.anchors[0]!.z;
-    expect(scoopZ).toBeLessThan(0.75);
-    expect(scoopZ).toBeGreaterThan(0.35);
+    expect(scoop.z).toBeGreaterThan(0.8);
+    expect(scoop.z).toBeLessThan(1.15);
+    expect(scoop.scale).toBeLessThan(0.85);
+    expect(scoop.preferY).toBeLessThan(1.15);
     expect(nitroZ).toBeLessThan(-0.6);
     expect(nitroZ).toBeGreaterThan(-1.3);
+  });
+
+  it("tucks Bison spike bumper and tints it olive-charcoal", () => {
+    const spike = CAR_PART_LAYOUTS.bison.spike_bumper;
+    expect(spike.anchors[0]!.z).toBeLessThan(1.4);
+    expect(spike.anchors[0]!.scale).toBeLessThan(0.75);
+    expect(spike.tint).toBe(0x5c6a4a);
+  });
+
+  it("places Bison reinforced frame in the bed behind the cab", () => {
+    const frame = CAR_PART_LAYOUTS.bison.reinforced_frame.anchors[0]!;
+    expect(frame.z).toBeLessThan(-0.45);
+    expect(frame.y).toBeGreaterThan(0.5);
+  });
+
+  it("places Bison lightweight vents on the hood deck", () => {
+    const light = CAR_PART_LAYOUTS.bison.lightweight_body.anchors[0]!;
+    expect(light.z).toBeGreaterThan(0.85);
+    expect(light.y).toBeGreaterThan(0.95);
+    expect(light.y).toBeLessThan(1.15);
+    expect(light.snap).toBe(false);
+    expect(CAR_PART_LAYOUTS.bison.lightweight_body.preferGlb).toBe(false);
+  });
+
+  it("places Bison rear spoiler on the cab roof facing the nose", () => {
+    const wing = CAR_PART_LAYOUTS.bison.rear_spoiler.anchors[0]!;
+    expect(wing.z).toBeGreaterThan(-0.5);
+    expect(wing.z).toBeLessThan(-0.1);
+    expect(wing.yaw).toBeCloseTo(Math.PI);
+    expect(wing.preferY).toBeGreaterThan(1.2);
   });
 
   it("places Donner nitro on the driver side (−X)", () => {
@@ -247,24 +279,36 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(CAR_PART_LAYOUTS.donnerbuechse.reinforced_frame.preferGlb).toBe(true);
   });
 
+  it("applies Bison spike bumper tint on mount", () => {
+    const g = new Group();
+    g.add(new Mesh(new BoxGeometry(0.3, 0.2, 0.4), new MeshBasicMaterial({ color: 0xffffff, name: "Spike" })));
+    registerCarPartTemplate("bison", "spike_bumper", g);
+    const root = new Group();
+    applyEquippedPartVisuals(root, "bison", ["spike_bumper"]);
+    const part = root.getObjectByName(blitzPartObjectName("spike_bumper"));
+    expect(part).toBeTruthy();
+    const mesh = part!.children[0] as Mesh;
+    expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0x5c6a4a);
+  });
+
   it("snaps hood scoop onto body surface Y near preferY (not roof)", () => {
     registerBlitzPartTemplate("big_engine", fakePartTemplate());
     const root = new Group();
     const body = new Mesh(new BoxGeometry(1.6, 0.4, 2.4), new MeshBasicMaterial());
     body.name = "BodyPaint";
-    body.position.set(0, 0.5, 0);
+    body.position.set(0, 0.9, 0.9);
     root.add(body);
     const cab = new Mesh(new BoxGeometry(1.2, 0.6, 0.8), new MeshBasicMaterial());
     cab.name = "Cab";
-    cab.position.set(0, 1.1, -0.2);
+    cab.position.set(0, 1.3, -0.2);
     root.add(cab);
 
     applyEquippedPartVisuals(root, "bison", ["big_engine"]);
     const scoop = root.getObjectByName(blitzPartObjectName("big_engine"));
     expect(scoop).toBeTruthy();
-    // Prefer hood (~0.7) over cab roof (~1.4)
-    expect(scoop!.position.y).toBeGreaterThan(0.55);
-    expect(scoop!.position.y).toBeLessThan(1.15);
+    // Prefer hood deck (~1.0) over cab roof (~1.6)
+    expect(scoop!.position.y).toBeGreaterThan(0.85);
+    expect(scoop!.position.y).toBeLessThan(1.25);
   });
 
   it("ships per-car Tripo kits for look-sheet deltas", () => {
