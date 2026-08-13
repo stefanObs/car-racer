@@ -6,6 +6,7 @@ import { mergeStats, type PartId } from "../src/data/parts";
 import {
   applyEquippedPartVisuals,
   applyBlitzParts,
+  applyStockPartVisibility,
   BLITZ_PART_PLACEMENT,
   BLITZ_PARTS_GROUP,
   BLITZ_SUSPENSION_LIFT,
@@ -20,6 +21,7 @@ import {
   partGlbUrl,
   registerBlitzPartTemplate,
   registerCarPartTemplate,
+  STOCK_ENGINE_MESH,
 } from "../src/render/carParts";
 
 function fakePartTemplate(): Group {
@@ -351,6 +353,54 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(CAR_PART_LAYOUTS.donnerbuechse.reinforced_frame.preferGlb).toBe(true);
   });
 
+  it("places Donner spike low on the front frame and spoiler on the rear deck", () => {
+    const L = CAR_PART_LAYOUTS.donnerbuechse;
+    const spike = L.spike_bumper.anchors[0]!;
+    expect(spike.y).toBeLessThan(0.12);
+    expect(spike.z).toBeGreaterThan(1.65);
+    expect(spike.scale).toBeLessThan(0.65);
+    expect(L.spike_bumper.tint).toBe(0x2c3136);
+
+    const wing = L.rear_spoiler.anchors[0]!;
+    expect(wing.z).toBeLessThan(-1.2);
+    expect(wing.yaw).toBeCloseTo(0);
+    expect(wing.snap).toBe(true);
+
+    const frame = L.reinforced_frame.anchors[0]!;
+    expect(frame.yaw).toBeCloseTo(-Math.PI / 2);
+    expect(frame.z).toBeLessThan(-0.8);
+
+    const light = L.lightweight_body;
+    expect(light.preferGlb).toBe(true);
+    expect(light.anchors[0]!.yaw).toBeCloseTo(Math.PI / 2);
+    expect(existsSync("public/models/parts/donnerbuechse-lightweight_body.glb")).toBe(true);
+
+    const eng = L.big_engine.anchors[0]!;
+    expect(eng.z).toBeGreaterThan(0.4);
+    expect(eng.yaw).toBeCloseTo(0);
+  });
+
+  it("hides Donner StockEngine when Großer Motor is equipped", () => {
+    const root = new Group();
+    const stock = new Group();
+    stock.name = STOCK_ENGINE_MESH;
+    root.add(stock);
+    applyStockPartVisibility(root, "donnerbuechse", []);
+    expect(stock.visible).toBe(true);
+    applyStockPartVisibility(root, "donnerbuechse", ["big_engine"]);
+    expect(stock.visible).toBe(false);
+    stock.visible = true;
+    applyStockPartVisibility(root, "blitz", ["big_engine"]);
+    expect(stock.visible).toBe(true);
+  });
+
+  it("ships Donner StockEngine mesh in the car GLB", () => {
+    const buf = readFileSync("public/models/cars/donnerbuechse.glb");
+    const text = buf.toString("latin1");
+    expect(text).toContain("StockEngine");
+    expect(text).toContain("BodyPaint");
+  });
+
   it("applies Bison spike bumper tint on mount", () => {
     const g = new Group();
     g.add(new Mesh(new BoxGeometry(0.3, 0.2, 0.4), new MeshBasicMaterial({ color: 0xffffff, name: "Spike" })));
@@ -397,5 +447,6 @@ describe("Equipped-part visuals (all cars)", () => {
       }
     }
     expect(existsSync("public/models/parts/kaeferkraft-lightweight_body.glb")).toBe(true);
+    expect(existsSync("public/models/parts/donnerbuechse-lightweight_body.glb")).toBe(true);
   });
 });

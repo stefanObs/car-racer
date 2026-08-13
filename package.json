@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.54",
+  "version": "0.3.55",
   "private": true,
   "type": "module",
   "description": "Crash Circuit — arcade racer (free OSS stack)",
@@ -32,7 +32,8 @@
     "garage:bake-tripo": "node scripts/bake-garage-tripo.mjs",
     "garage:bake-shell-tripo": "node scripts/bake-garage-shell-tripo.mjs",
     "fx:bake-tripo": "node scripts/bake-fx-tripo.mjs",
-    "cars:extract-blitz-spoiler": "node scripts/extract-blitz-stock-and-spoiler.mjs"
+    "cars:extract-blitz-spoiler": "node scripts/extract-blitz-stock-and-spoiler.mjs",
+    "cars:extract-donner-stock-engine": "node scripts/extract-donner-stock-engine.mjs"
   },
   "engines": {
     "node": ">=20"

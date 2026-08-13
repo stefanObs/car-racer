@@ -64,6 +64,7 @@ const CAR_JOBS = {
     { id: "nitro_kit", toward: "+z", targetSpan: 0.75, maxH: 0.6, simplify: 0.4 },
     { id: "rear_spoiler", toward: "-z", targetSpan: 1.15, maxH: 0.7, simplify: 0.4 },
     { id: "reinforced_frame", toward: "+z", targetSpan: 1.9, maxH: 1.05, simplify: 0.35 },
+    { id: "lightweight_body", toward: "+z", targetSpan: 2.2, maxH: 1.1, simplify: 0.4 },
   ],
   bunker: [
     { id: "big_engine", toward: "+z", targetSpan: 0.85, maxH: 0.35, simplify: 0.4 },

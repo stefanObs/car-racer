@@ -39,6 +39,8 @@ export const CAR_PARTS_GROUP = "carParts";
 /** @deprecated alias — Blitz cabin glass seal */
 export const BLITZ_PARTS_GROUP = CAR_PARTS_GROUP;
 export const BLITZ_CABIN_GLASS = "blitzCabinGlass";
+/** Donnerbüchse replaceable stock V8 — hidden when Großer Motor is equipped. */
+export const STOCK_ENGINE_MESH = "StockEngine";
 
 export const WHEEL_LIFT = 0.09;
 export const SUSPENSION_LIFT = 0.06;
@@ -344,7 +346,7 @@ function layoutKaeferkraft(): CarVisualLayout {
 }
 
 function layoutDonner(): CarVisualLayout {
-  // Mesh bounds ~ x±1.19 y≤1.55 z±1.9
+  // Mesh bounds ~ x±1.19 y≤1.55 z±1.9 — nose +Z, cabin aft. StockEngine hides for big_engine.
   return {
     wheelLift: 0.08,
     suspensionLift: 0.09,
@@ -367,46 +369,29 @@ function layoutDonner(): CarVisualLayout {
       { x: -1.1, y: 0.52, z: -1.1, yaw: 0, scale: 1.35, snap: false },
     ],
     big_engine: {
-      anchors: [
-        {
-          x: 0,
-          y: 0.85,
-          z: 0.7,
-          yaw: Math.PI,
-          scale: 1.05,
-          sitGap: 0.015,
-          snapRadius: 0.35,
-          preferY: 0.85,
-        },
-      ],
+      // Replaces StockEngine in the open bay (intakes toward nose +Z).
+      anchors: [{ x: 0, y: 0.48, z: 0.72, yaw: 0, scale: 1.25, snap: false }],
       build: () => buildHoodScoop("blower"),
       preferGlb: true,
     },
     spike_bumper: {
-      anchors: [{ x: 0, y: 0.35, z: 1.88, yaw: 0, scale: 1.2, snap: false }],
+      // Low front frame crossbar under the grille.
+      anchors: [{ x: 0, y: 0.06, z: 1.82, yaw: 0, scale: 0.5, snap: false }],
       build: () => buildSpikeBumper(5, 1.45),
       preferGlb: true,
+      tint: 0x2c3136,
     },
     reinforced_frame: {
-      anchors: [{ x: 0, y: 0.2, z: -0.1, yaw: 0, scale: 1, snap: false }],
+      // Tripo = rail + roll hoop (hoop at +X in bake → yaw −π/2 puts hoop over cabin).
+      anchors: [{ x: 0, y: 0.15, z: -1.3, yaw: -Math.PI / 2, scale: 1.1, snap: false }],
       build: () => buildReinforcedFrame("hotrod"),
       preferGlb: true,
     },
     lightweight_body: {
-      anchors: [
-        {
-          x: 0,
-          y: 1.15,
-          z: -0.35,
-          yaw: 0,
-          scale: 1.05,
-          sitGap: 0.02,
-          snapRadius: 0.4,
-          preferY: 1.15,
-        },
-      ],
+      // Tripo perforated coupe — long axis → +Z, sit on chassis.
+      anchors: [{ x: 0, y: 0, z: -0.2, yaw: Math.PI / 2, scale: 1.5, snap: false }],
       build: () => buildLightweightBody("roof_holes"),
-      preferGlb: false,
+      preferGlb: true,
     },
     nitro_kit: {
       // Driver side (DE LHD = −X), behind door / above rear arch.
@@ -415,16 +400,18 @@ function layoutDonner(): CarVisualLayout {
       preferGlb: true,
     },
     rear_spoiler: {
+      // Rear deck / trunk lip — feet snapped on body, wing spans ±X.
       anchors: [
         {
           x: 0,
-          y: 1.05,
-          z: -1.7,
+          y: 1.0,
+          z: -1.42,
           yaw: 0,
-          scale: 1.1,
-          sitGap: 0.02,
-          snapRadius: 0.3,
-          preferY: 1.0,
+          scale: 1.15,
+          snap: true,
+          sitGap: 0.005,
+          snapRadius: 0.45,
+          preferY: 1.05,
         },
       ],
       build: () => buildRearSpoiler("tall"),
@@ -849,6 +836,15 @@ function placeAnchored(
   });
 }
 
+/** Hide replaceable stock meshes when a Teil supersedes them. */
+export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedParts: readonly PartId[]): void {
+  const hideEngine = carId === "donnerbuechse" && equippedParts.includes("big_engine");
+  root.traverse((obj) => {
+    if (obj.name !== STOCK_ENGINE_MESH) return;
+    obj.visible = !hideEngine;
+  });
+}
+
 /** Prefer Tripo/extracted GLB when preloaded for this car; else procedural. */
 function mountGlbOrProc(
   group: Group,
@@ -891,6 +887,7 @@ export function applyEquippedPartVisuals(
   const layout = CAR_PART_LAYOUTS[carId];
   const equipped = new Set(equippedParts);
   applyRideLift(root, carStanceLift(carId, equippedParts));
+  applyStockPartVisibility(root, carId, equippedParts);
   const paintTint = opts?.paint ? paintHexToNumber(opts.paint) : undefined;
 
   const group = new Group();

@@ -12,6 +12,7 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     expect(statSync(path).size).toBeGreaterThan(40_000);
     const text = readFileSync(path).toString("latin1");
     expect(text).toContain("BodyPaint");
+    expect(text).toContain("StockEngine");
 
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
     const b = getBounds(doc.getRoot().listScenes()[0]!);
