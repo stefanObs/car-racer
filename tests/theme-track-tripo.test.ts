@@ -4,10 +4,17 @@ import { describe, expect, it } from "vitest";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { getBounds } from "@gltf-transform/functions";
-import { THEME_TRACK_PROP_IDS, TRACK_PROPS } from "../src/data/trackModels";
+import { THEME_TRACK_PROP_IDS, TRACK_PROP_IDS, TRACK_PROPS } from "../src/data/trackModels";
 import { CUP_LEVELS } from "../src/data/levels";
-import { planSceneryAnchors, sceneryOverlapsTrack, SCENERY_CLEARANCE } from "../src/render/themeScenery";
+import {
+  isTripoSceneryKind,
+  normalizeTrackTheme,
+  planSceneryAnchors,
+  sceneryOverlapsTrack,
+  SCENERY_CLEARANCE,
+} from "../src/render/themeScenery";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
+import { generateAdhocLevel } from "../src/track/adhoc";
 
 describe("theme track Tripo kit (cups 2–5)", () => {
   it("ships baked theme scenery GLBs that sit on y=0", async () => {
@@ -30,6 +37,43 @@ describe("theme track Tripo kit (cups 2–5)", () => {
     expect(new Set(THEME_TRACK_PROP_IDS.map((id) => statSync(resolve("public/models/track", `${id}.glb`)).size)).size).toBe(
       THEME_TRACK_PROP_IDS.length,
     );
+  });
+
+  it("boot awaits the full track Tripo kit before the garage opens", () => {
+    const src = readFileSync("src/main.ts", "utf8");
+    expect(src).toContain("preloadTrackModels");
+    expect(src).toMatch(/Promise\.all\(\[[\s\S]*preloadTrackModels\(\)/);
+    expect(TRACK_PROP_IDS.length).toBe(16);
+  });
+
+  it("race start awaits track kit so walls/scenery never miss Tripo", () => {
+    const src = readFileSync("src/ui/GameApp.ts", "utf8");
+    expect(src).toContain("preloadTrackModels");
+    expect(src).toMatch(/await preloadTrackModels\(\)/);
+  });
+
+  it("maps every cup + ad-hoc theme scenery kind onto shipped Tripo props", () => {
+    expect(normalizeTrackTheme("scrapyard")).toBe("factory");
+    expect(normalizeTrackTheme("mountain")).toBe("canyon");
+
+    for (const level of CUP_LEVELS) {
+      const track = buildTrackFromLevel(level);
+      const anchors = planSceneryAnchors(track, level.theme);
+      expect(anchors.length, level.id).toBeGreaterThan(5);
+      for (const a of anchors) {
+        if (a.kind === "water" || a.kind === "dune" || a.kind === "lamp" || a.kind === "stack") continue;
+        expect(isTripoSceneryKind(a.kind), `${level.id} ${a.kind}`).toBe(true);
+      }
+    }
+
+    for (const theme of ["harbor", "beach", "city", "canyon", "factory", "scrapyard", "mountain"] as const) {
+      const level = generateAdhocLevel({ seed: "A7F2", theme });
+      const track = buildTrackFromLevel(level);
+      const anchors = planSceneryAnchors(track, level.theme);
+      expect(anchors.length, theme).toBeGreaterThan(5);
+      const tripo = anchors.filter((a) => isTripoSceneryKind(a.kind));
+      expect(tripo.length, theme).toBeGreaterThan(0);
+    }
   });
 
   it("keeps scenery clearance larger than the wall ribbon for cups 2–5", () => {

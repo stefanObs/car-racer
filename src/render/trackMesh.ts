@@ -125,12 +125,14 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
   const tireBatch = hasTrackProp("tire-wall") ? instanceTrackPropBatch("tire-wall", tires) : null;
   if (tireBatch) {
     tireBatch.userData.wallKind = "tire";
+    tireBatch.userData.tripoTrack = true;
     root.add(tireBatch);
   } else {
     for (const p of tires) root.add(makeTireStack(p.x, p.z, p.yaw));
   }
   const concreteBatch = hasTrackProp("concrete-wall") ? instanceConcreteFenceBatch(cons) : null;
   if (concreteBatch) {
+    concreteBatch.userData.tripoTrack = true;
     root.add(concreteBatch);
   } else {
     for (const p of cons) root.add(makeConcreteFallback(p.x, p.z, p.yaw, p.side));

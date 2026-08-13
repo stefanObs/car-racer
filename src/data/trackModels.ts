@@ -8,12 +8,12 @@ export const REQUIRED_TRACK_PROP_IDS = [
   "crane",
 ] as const;
 
-/** Harbor extras — loaded when present; otherwise primitive fallback. */
+/** Harbor extras — also required at boot (shipped Tripo kit). */
 export const OPTIONAL_TRACK_PROP_IDS = ["container", "tank"] as const;
 
 /**
- * Theme scenery for cups 2–5 (Parabolbogen / Schikanenring / Omegatal / Kuppenfinale).
- * Optional — procedural primitives if a GLB is missing.
+ * Theme scenery for cups 2–5 (+ free/ad-hoc themes).
+ * Shipped Tripo GLBs — boot awaits the full kit so races never use box fallbacks.
  */
 export const THEME_TRACK_PROP_IDS = [
   "grandstand",

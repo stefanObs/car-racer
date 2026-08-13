@@ -98,8 +98,9 @@ tests/
 ### Track kit (walls + theme scenery)
 
 - Asphalt/grass ribbons stay spline-extruded. Discrete walls/obstacles/scenery use a Tripo kit in `public/models/track/`.
-- Tire modules on corners, concrete + chain-link fence on straights; `tire_stack` / `concrete_barrier` reuse the same modules.
-- Harbor: crane / container / tank. Cups 2–5: grandstand, palm, hut, tower, building, cliff, spire, tree, warehouse, scrub (procedural fallback if optional GLB absent).
+- Boot **awaits** `preloadTrackModels()` for the full kit (16 GLBs); race start awaits again so cup / free / ad-hoc never build with box fallbacks.
+- Tire modules on corners, concrete + chain-link fence on straights; on-track `tire_stack` / `concrete_barrier` stay compact props (not the long outer-wall modules).
+- Harbor: crane / container / tank / warehouse. Cups 2–5 + ad-hoc aliases: grandstand, palm, hut, tower, building, cliff, spire, tree, warehouse, scrub.
 - Scenery anchors stay outside asphalt+grass (`SCENERY_CLEARANCE`); solid obstacles stay on the verge so the center corridor stays clear.
 - Collision/physics unchanged (visuals may overhang).
 - Authoring bake: `track:bake-tripo` from `assets/tripo-out/track/` (gitignored). Provenance: `public/models/track/SOURCES.md`.

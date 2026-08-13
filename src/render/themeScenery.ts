@@ -12,6 +12,29 @@ const CRANE = 0xe85d04;
 const WATER = 0x2f6f9e;
 const SAND = 0xc2a66a;
 
+/** Scenery anchor kinds that map 1:1 onto shipped Tripo track props. */
+export const TRIPO_SCENERY_KINDS = [
+  "crane",
+  "container",
+  "tank",
+  "palm",
+  "hut",
+  "grandstand",
+  "building",
+  "tower",
+  "warehouse",
+  "cliff",
+  "spire",
+  "scrub",
+  "tree",
+] as const;
+
+export type TripoSceneryKind = (typeof TRIPO_SCENERY_KINDS)[number];
+
+export function isTripoSceneryKind(kind: string): kind is TripoSceneryKind {
+  return (TRIPO_SCENERY_KINDS as readonly string[]).includes(kind);
+}
+
 /** Keep props well clear of grass/asphalt so the racing corridor stays readable. */
 export const SCENERY_CLEARANCE = 12;
 
@@ -106,9 +129,17 @@ export function infieldClearRadius(track: BuiltTrack): number {
   return Math.max(4, minDist - track.asphaltHalfWidth - 1.2);
 }
 
+/** Normalize ad-hoc / free theme labels onto cup scenery kits (Tripo props). */
+export function normalizeTrackTheme(theme: string): string {
+  const t = theme.toLowerCase();
+  if (t === "scrapyard") return "factory";
+  if (t === "mountain") return "canyon";
+  return t;
+}
+
 /** Planned prop anchors — theme-specific sets. Large props prefer the outer side. */
 export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnchor[] {
-  const t = theme.toLowerCase();
+  const t = normalizeTrackTheme(theme);
   const wallOuter = track.asphaltHalfWidth + track.grassWidth;
   const anchors: SceneryAnchor[] = [];
 
@@ -173,7 +204,7 @@ export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnc
 export function buildThemeScenery(track: BuiltTrack, theme: string): Group {
   const root = new Group();
   const anchors = planSceneryAnchors(track, theme);
-  const t = theme.toLowerCase();
+  const t = normalizeTrackTheme(theme);
 
   for (const a of anchors) {
     const near = nearestOnTrack(track, { x: a.x, z: a.z });

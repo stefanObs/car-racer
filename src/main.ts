@@ -6,6 +6,7 @@ import { preloadFxModels } from "./render/loadFxGltf";
 import { preloadGarageProps, preloadGarageShellMeshes } from "./render/loadGarageGltf";
 import { preloadGarageShellTextures } from "./render/garageTextures";
 import { preloadPanoramaTextures } from "./render/panoramaSurround";
+import { preloadTrackModels } from "./render/loadTrackGltf";
 import { preloadFlameSticker, preloadFlameStickerGlb } from "./render/carStickers";
 import { gameAudio } from "./audio/GameAudio";
 import { GameApp } from "./ui/GameApp";
@@ -41,6 +42,7 @@ async function boot(): Promise<void> {
   await Promise.all([
     preloadCarModels(),
     preloadBuggyNoses(),
+    preloadTrackModels(),
     preloadGarageShellTextures().catch((err) => console.warn("[boot] garage shell textures skipped", err)),
     preloadGarageShellMeshes().catch((err) => console.warn("[boot] garage shell meshes skipped", err)),
     preloadGarageProps().catch((err) => console.warn("[boot] garage skipped", err)),

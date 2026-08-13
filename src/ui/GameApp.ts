@@ -20,6 +20,7 @@ import { buyPart, selectPartInGarage, showcaseParts } from "../meta/partsShop";
 import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
 import { ensureCarPartTemplates } from "../render/carParts";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
+import { preloadTrackModels } from "../render/loadTrackGltf";
 import { DAMAGE_LABELS } from "../sim/damage";
 import { RaceSession } from "../sim/race";
 import { renderTrackPlanSvg } from "./trackPlan";
@@ -318,6 +319,12 @@ export class GameApp {
   }
 
   private startRaceWithLevel(level: LevelDefinition): void {
+    void this.beginRace(level);
+  }
+
+  private async beginRace(level: LevelDefinition): Promise<void> {
+    // Guarantee Tripo track kit (walls + theme scenery) before mesh build
+    await preloadTrackModels();
     this.renderer.clearCars();
     this.stylePops.clear();
     this.finishCelebrate = null;

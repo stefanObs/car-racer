@@ -14,8 +14,7 @@ import {
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import {
   CONCRETE_WALL_HEIGHT,
-  OPTIONAL_ALL_TRACK_PROP_IDS,
-  REQUIRED_TRACK_PROP_IDS,
+  TRACK_PROP_IDS,
   TRACK_PROPS,
   type TrackPropId,
 } from "../data/trackModels";
@@ -31,36 +30,29 @@ const templates = new Map<TrackPropId, Template>();
 const luminanceMaps = new Map<Texture, Texture>();
 let preloadPromise: Promise<void> | null = null;
 
-/** Load track kit GLBs once. Missing files fail boot (no silent empty walls). */
+/**
+ * Load the full track Tripo kit once. Every shipped prop is required so cups,
+ * free mode, and ad-hoc never fall back to procedural scenery/walls at race time.
+ */
 export function preloadTrackModels(): Promise<void> {
   if (preloadPromise) return preloadPromise;
   preloadPromise = (async () => {
     const loader = new GLTFLoader();
-    const loadOne = async (id: TrackPropId): Promise<void> => {
-      const spec = TRACK_PROPS[id];
-      const gltf = await loader.loadAsync(spec.url);
-      const root = gltf.scene;
-      normalizeTrackScene(root, id);
-      root.updateMatrixWorld(true);
-      const box = meshBounds(root);
-      templates.set(id, {
-        root,
-        alongX: Math.max(0, box.max.x - box.min.x),
-        heightY: Math.max(0, box.max.y - box.min.y),
-      });
-    };
-    await Promise.all([
-      Promise.all(REQUIRED_TRACK_PROP_IDS.map((id) => loadOne(id))),
-      Promise.all(
-        OPTIONAL_ALL_TRACK_PROP_IDS.map(async (id) => {
-          try {
-            await loadOne(id);
-          } catch {
-            // Harbor / theme extras stay as primitive scenery if a GLB is absent.
-          }
-        }),
-      ),
-    ]);
+    await Promise.all(
+      TRACK_PROP_IDS.map(async (id) => {
+        const spec = TRACK_PROPS[id];
+        const gltf = await loader.loadAsync(spec.url);
+        const root = gltf.scene;
+        normalizeTrackScene(root, id);
+        root.updateMatrixWorld(true);
+        const box = meshBounds(root);
+        templates.set(id, {
+          root,
+          alongX: Math.max(0, box.max.x - box.min.x),
+          heightY: Math.max(0, box.max.y - box.min.y),
+        });
+      }),
+    );
   })();
   return preloadPromise;
 }
