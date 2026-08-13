@@ -1,7 +1,7 @@
 import { CARS, type CarId } from "../data/cars";
 import { PARTS, type PartId } from "../data/parts";
 import { partsForCar } from "../data/partsCatalog";
-import { APP_VERSION } from "../core/version";
+import { APP_CREDIT, APP_VERSION } from "../core/version";
 import {
   GARAGE_PAINTS,
   PAINT_PRICE_CHF,
@@ -169,6 +169,7 @@ export function renderGarageHtml(opts: {
         <span class="garage-wallet__label">Kasse</span>
         <strong>${formatChf(opts.chf)}</strong>
         <span class="garage-wallet__ver">v${APP_VERSION}</span>
+        <span class="garage-wallet__credit">${APP_CREDIT}</span>
       </div>
     </header>
 

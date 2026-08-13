@@ -6,13 +6,17 @@ import { applyHeal, applyHit, stageFromHp } from "../src/sim/damage";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
 import { CUP_LEVELS } from "../src/data/levels";
 import { surfaceAt } from "../src/sim/zones";
-import { APP_VERSION } from "../src/core/version";
+import { APP_CREDIT, APP_VERSION } from "../src/core/version";
 import { formatChf } from "../src/meta/save";
 import pkg from "../package.json";
 
 describe("mvp core", () => {
   it("versions the build", () => {
     expect(APP_VERSION).toBe(pkg.version);
+  });
+
+  it("ships a short German AI credit for Hilfe / Garage", () => {
+    expect(APP_CREDIT).toBe("Mit KI erstellt · menschliche Anleitung");
   });
 
   it("builds a closed cup track with asphalt width", () => {

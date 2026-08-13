@@ -18,6 +18,7 @@ describe("garage hub", () => {
     });
     expect(html).toContain("Garage");
     expect(html).toContain("Ausrüsten");
+    expect(html).toContain("Mit KI erstellt · menschliche Anleitung");
     expect(html).toContain("Bestand — nur Blitz");
     expect(html).toContain("Ablegen");
     expect(html).toContain("Anschauen");
