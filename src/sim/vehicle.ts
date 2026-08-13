@@ -85,7 +85,7 @@ const AIRBORNE_EPS = 0.04;
 const DRIFT_MIN_SPEED = 11;
 const OVERSTEER_MIN_SPEED = 17;
 const MINI_TURBO_TIME = 0.45;
-const MINI_TURBO_KICK = 7;
+const MINI_TURBO_KICK = 8.5;
 
 export function createCarState(
   partial: Omit<
@@ -311,9 +311,9 @@ export function stepCar(
     gripFactor: surface.gripFactor * dmg.grip,
     airborne,
   });
-  // Smooth into / out of powerslide (snap out faster when steer released)
+  // Smooth into / out of powerslide (gentler than a snap, still exits in ~0.2s)
   const driftLerp =
-    intent > car.drift ? 1 - Math.exp(-11 * dt) : 1 - Math.exp(-(intent < 0.05 ? 16 : 8) * dt);
+    intent > car.drift ? 1 - Math.exp(-11 * dt) : 1 - Math.exp(-(intent < 0.05 ? 11 : 7) * dt);
   const prevDrift = car.drift;
   const prevDriftTime = car.driftTime;
   car.drift = car.drift + (intent - car.drift) * driftLerp;
@@ -382,8 +382,8 @@ export function stepCar(
     if (input.throttle < 0.05 && !boosting && !airborne && car.drift < 0.25) {
       scrub += COAST_BRAKE * dt;
     }
-    // Powerslide keeps more pace (Kart) — mild scrub only
-    if (car.drift > 0.3) scrub *= 1 - car.drift * 0.35;
+    // Powerslide / exit keep more pace (Kart) — mild scrub only
+    if (car.drift > 0.12) scrub *= 1 - Math.min(0.45, car.drift * 0.4 + 0.08);
     const next = Math.max(0, car.speed - scrub);
     car.vx = fx * next;
     car.vz = fz * next;
@@ -443,11 +443,11 @@ export function stepCar(
     car.vz += lz * feed;
   }
 
-  // Mild pace cost from slip — never a hard dump
+  // Very mild pace cost from slip — exit must not feel like a brake tap
   const forward = car.vx * hx2 + car.vz * hz2;
   const latMag = Math.hypot(car.vx - hx2 * forward, car.vz - hz2 * forward);
-  if (!airborne && latMag > 0.5) {
-    const scrub = 1 - Math.min(0.08, latMag * 0.004) * (1 - car.drift * 0.7);
+  if (!airborne && latMag > 0.8) {
+    const scrub = 1 - Math.min(0.028, latMag * 0.0012) * (1 - car.drift * 0.9);
     car.vx *= scrub;
     car.vz *= scrub;
   }

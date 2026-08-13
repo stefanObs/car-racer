@@ -209,13 +209,26 @@ describe("arcade physics — Eigenschaften scaling", () => {
     expect(drifter.car.driftTime).toBeGreaterThan(0.45);
     const heldSpeed = drifter.car.speed;
     // Release drift button → exit, optional mini-turbo
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 12; i++) {
       stepCar(drifter.car, { throttle: 1, brake: 0, steer: 0, nitro: false, drift: false }, drifter.track, 1 / 60, catchUp);
     }
-    expect(drifter.car.drift).toBeLessThan(0.2);
-    // Mini-turbo fires once (driftTime cleared) and keeps pace ballpark
+    expect(drifter.car.drift).toBeLessThan(0.25);
+    // Mini-turbo fires once (driftTime cleared) and keeps most of the pace
     expect(drifter.car.driftTime).toBe(0);
-    expect(drifter.car.speed).toBeGreaterThan(heldSpeed * 0.55);
+    expect(drifter.car.speed).toBeGreaterThan(heldSpeed * 0.9);
+  });
+
+  it("keeps most pace when exiting a drift while still steering through the corner", () => {
+    const { track, car } = onTrackCar(merged("blitz"), 24);
+    for (let i = 0; i < 45; i++) {
+      stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, track, 1 / 60, catchUp);
+    }
+    expect(car.drift).toBeGreaterThan(0.45);
+    const heldSpeed = car.speed;
+    for (let i = 0; i < 12; i++) {
+      stepCar(car, { throttle: 1, brake: 0, steer: 0.55, nitro: false, drift: false }, track, 1 / 60, catchUp);
+    }
+    expect(car.speed).toBeGreaterThan(heldSpeed * 0.9);
   });
 
   it("ramps launch the car airborne and landings return to the ground", () => {

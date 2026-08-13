@@ -7,6 +7,11 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-13 — Softer post-drift slowdown
+- Trigger: user — exit slowdown after drifting feels harsh
+- RCA: slip scrub ramped up as `drift` fell (exit felt like a brake); exit lerp snapped grip back; drag relief ended too early
+- Decision: gentler exit lerp; much softer lat scrub; drag relief while drift > 0.12; MINI_TURBO_KICK 8.5; feel tests lock ≥90% pace retention
+
 ### 2026-08-13 — v3.46 Oversteer auto-drift + accel/nitro retune
 - Trigger: user — drift into hard corners; wrong drift pose; slower accel; stronger nitro
 - RCA: lateral feed pushed inward (wrong side of heading); pose lean ignored real slip; BASE_ACCEL too snappy; nitro still mild; grip *deleted* lateral on exit → pace dump + wrong feel
