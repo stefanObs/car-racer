@@ -313,10 +313,18 @@ describe("Equipped-part visuals (all cars)", () => {
 
     const nitro = L.nitro_kit.anchors[0]!;
     const engine = L.big_engine.anchors[0]!;
-    expect(nitro.x).toBeLessThan(engine.x - 0.4);
-    expect(nitro.y).toBeGreaterThan(1.3);
-
     const wing = L.rear_spoiler.anchors[0]!;
+    // Look sheet panel 7: vertical tanks on aft cage, under Heckspoiler (panel 9).
+    expect(nitro.x).toBeGreaterThan(0.8);
+    expect(nitro.x).toBeLessThan(1.05);
+    expect(nitro.x).toBeLessThanOrEqual(engine.x);
+    expect(nitro.x).toBeCloseTo(wing.x, 1);
+    expect(nitro.y).toBeGreaterThan(0.65);
+    expect(nitro.y).toBeLessThan(0.95);
+    expect(nitro.y).toBeLessThan(wing.y - 0.7);
+    expect(nitro.yaw).toBeCloseTo(Math.PI);
+    expect(nitro.scale).toBeGreaterThan(0.9);
+
     // Aft cage top (past mid-cabin ~0.4), raised so the wing clears the tubes.
     expect(wing.x).toBeGreaterThan(0.8);
     expect(wing.x).toBeLessThan(1.15);

@@ -321,8 +321,8 @@ function layoutKaeferkraft(): CarVisualLayout {
       preferGlb: true,
     },
     nitro_kit: {
-      // Upper rear crossbar behind seats — clear of engine bay (+X).
-      anchors: [{ x: 0.35, y: 1.45, z: 0, yaw: Math.PI / 2, scale: 0.72, snap: false }],
+      // Look sheet panel 7: upright tanks on rear deck behind seats, under Heckspoiler.
+      anchors: [{ x: 0.95, y: 0.78, z: 0, yaw: Math.PI, scale: 1, snap: false }],
       build: () => buildNitroKit("rear_rack"),
       preferGlb: true,
     },
