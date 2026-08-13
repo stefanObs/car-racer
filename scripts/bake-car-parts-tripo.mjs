@@ -56,6 +56,7 @@ const CAR_JOBS = {
     { id: "nitro_kit", toward: "+z", targetSpan: 0.7, maxH: 0.65, simplify: 0.4 },
     { id: "rear_spoiler", toward: "-z", targetSpan: 1.05, maxH: 0.55, simplify: 0.4 },
     { id: "reinforced_frame", toward: "+z", targetSpan: 1.5, maxH: 1.0, simplify: 0.35 },
+    { id: "lightweight_body", toward: "+z", targetSpan: 1.6, maxH: 0.85, simplify: 0.4 },
   ],
   donnerbuechse: [
     { id: "big_engine", toward: "+z", targetSpan: 0.9, maxH: 0.55, simplify: 0.4 },

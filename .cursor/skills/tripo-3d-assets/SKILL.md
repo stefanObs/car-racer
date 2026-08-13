@@ -18,19 +18,23 @@ Full CLI / path cookbook: [pipeline.md](pipeline.md).
 ## Hard rules
 
 1. **Concept first** — Asphalt-Comic PNG (GenerateImage + style lock + `reference.png`), then Tripo, then bake.
-2. **One mesh family per car class** — do **not** remount Blitz Tripo kits on Bison/Käferkraft/Donner/Bunker. Prefer per-car part GLBs or procedural builders that match `assets/tripo-concepts/parts-look/`.
-3. **Credits before generate** — `tripo doctor` / `tripo balance`. Stop and ask the user to top up if balance is 0.
-4. **Ship only baked outputs** — commit `public/models/**/*.glb` + bake scripts/tests; never commit `assets/tripo-out/` or `.tripo/`.
-5. **Visuals ≠ stats** — equipped Teile meshes are cosmetic; stats stay in `mergeStats`.
-6. **Delivery** — version → commit `master` → push after a bake that changes shipped GLBs.
+2. **One mesh family per car class** — do **not** remount Blitz Tripo kits on Bison/Käferkraft/Donner/Bunker. Ship **per-car** part GLBs that match `assets/tripo-concepts/parts-look/`.
+3. **Cars use Tripo Teile only** — equipped silhouette Teile on every car must be Tripo (or extracted) GLBs under `public/models/parts/{carId}-{partId}.glb` with `preferGlb: true` in `src/render/carParts.ts`. Do **not** ship intentional procedural silhouette meshes on cars.
+   - **Temporary allowlist (must rematch Tripo ASAP):** `blitz` `reinforced_frame` + `lightweight_body` only (procedural until kits match look sheets). No new allowlist entries.
+4. **Credits before generate** — `tripo doctor` / `tripo balance`. Stop and ask the user to top up if balance is 0.
+5. **Ship only baked outputs** — commit `public/models/**/*.glb` + bake scripts/tests; never commit `assets/tripo-out/` or `.tripo/`.
+6. **Visuals ≠ stats** — equipped Teile meshes are cosmetic; stats stay in `mergeStats`.
+7. **Delivery** — version → commit `master` → push after a bake that changes shipped GLBs.
 
 ## When Tripo vs procedural
 
-| Prefer Tripo | Prefer procedural (`carPartBuilders.ts`) |
+| Prefer Tripo (required on cars) | Prefer procedural (`carPartBuilders.ts`) |
 |--------------|------------------------------------------|
-| Full cars, distinctive props, FX blobs, track walls | `better_brakes`, `big_wheels` stance hints |
-| Per-class Teile when look-sheet needs unique silhouette | Quick iterate / no credits / tiny calipers |
-| Garage workshop stock | Temporary fallback until bake lands |
+| Full cars, FX blobs, track walls, garage props | `better_brakes` calipers, `big_wheels` stance hints only |
+| Silhouette Teile: `big_engine`, `spike_bumper`, `nitro_kit`, `rear_spoiler`, `reinforced_frame`, `lightweight_body` | Load-time fallback if a GLB failed to load (never leave `preferGlb: false` once a kit ships) |
+| Per-class kits matching parts-look sheets | Temporary authoring only until bake lands — then flip `preferGlb: true` |
+
+**Agent check:** if `public/models/parts/{car}-{part}.glb` exists for a silhouette part, layout must have `preferGlb: true`. Unit tests in `tests/car-parts.test.ts` enforce this.
 
 ## Agent checklist (any new 3D asset)
 
@@ -90,7 +94,7 @@ npm run cars:extract-blitz-spoiler
 - Register URL in `PART_URLS` / preload (`preloadCarParts`)
 - Per-car anchors in `CAR_PART_LAYOUTS` / `BLITZ_PART_PLACEMENT`
 - Hood/deck: surface snap + `preferY` so scoops do not jump onto cab roofs
-- `preferGlb: true` only for the car that owns that kit (Blitz today)
+- `preferGlb: true` for every car that ships that kit (required — Tripo-only on cars)
 
 ### 5. Lock with tests
 

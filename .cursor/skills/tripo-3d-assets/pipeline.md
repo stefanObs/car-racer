@@ -67,10 +67,10 @@ Pipeline steps per job:
 2. Generate isolated `assets/tripo-concepts/{carId}-part-{partId}.png`.
 3. `tripo make` → `assets/tripo-out/parts/{carId}/{partId}/`.
 4. Copy/adapt bake script → `public/models/parts/{carId}-{partId}.glb` with class-appropriate `targetSpan` / `maxH` / facing.
-5. Wire `PART_URLS` (or per-car map), `preferGlb: true` **only** for that `carId`, anchors from mesh bounds + look sheet.
-6. Tests: size/material/bounds + garage e2e for that car.
+5. Wire `partGlbUrl` / bake table, set `preferGlb: true` for that `carId`, anchors from mesh bounds + look sheet.
+6. Tests: size/material/bounds + garage e2e for that car + Tripo-only preferGlb lock in `tests/car-parts.test.ts`.
 
-Until Tripo kits exist, keep `preferGlb: false` and class procedural builders (policy since v0.3.27).
+**Hard rule:** silhouette Teile on cars are Tripo-only. Do not leave `preferGlb: false` once `public/models/parts/{carId}-{partId}.glb` ships. Procedural builders remain load-time fallback + `better_brakes` / `big_wheels` hints only.
 
 ## Concept art tips for Tripo
 

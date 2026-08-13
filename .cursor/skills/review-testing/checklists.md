@@ -75,6 +75,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Matches Asphalt-Comic reference (outlines, flat color, hard shade)
 - [ ] No purple glow / photoreal / diorama / low-poly drift
 - [ ] Cars read as their real-world category (silhouette test vs `car-category-targets.png`)
+- [ ] Equipped silhouette Teile are **Tripo/extract GLBs** (not procedural boxes) — check garage with parts on; only brakes/wheels hints may be procedural
 - [ ] Grass ≠ asphalt ≠ tire wall ≠ concrete
 - [ ] Uneven surfaces read as buckel/wobble opportunity
 - [ ] Schanzen: car lifts (`y`) then lands; not hop-only in render

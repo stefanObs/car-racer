@@ -1,8 +1,10 @@
 /**
  * Equipped-Teile visuals for every car (CONCEPT §6.3 + parts-look sheets).
- * Blitz keeps Tripo/extracted GLBs; other classes use class-shaped procedural
- * meshes so they match `assets/tripo-concepts/parts-look/`. Hood/deck parts
- * surface-snap. Meshes are cosmetic — stats stay in mergeStats.
+ * Silhouette Teile (engine/scoop, spike, nitro, spoiler, frame, lightweight)
+ * use per-car Tripo/extracted GLBs (`preferGlb: true`). Procedural builders
+ * are load-time fallback only, plus tiny stance/caliper hints
+ * (`better_brakes`, `big_wheels`). Hood/deck parts surface-snap. Meshes are
+ * cosmetic — stats stay in mergeStats.
  */
 import {
   Box3,
@@ -172,11 +174,13 @@ function layoutBlitz(): CarVisualLayout {
     reinforced_frame: {
       anchors: BLITZ_PART_PLACEMENT.reinforced_frame,
       build: () => buildReinforcedFrame("sport"),
+      // Temporary: Tripo slab is thin; sport cage+skirts procedural until rematched.
       preferGlb: false,
     },
     lightweight_body: {
       anchors: BLITZ_PART_PLACEMENT.lightweight_body,
       build: () => buildLightweightBody("vents"),
+      // Temporary: Tripo kit is wrong silhouette; hood louvers procedural until rematched.
       preferGlb: false,
     },
     nitro_kit: {
@@ -277,6 +281,7 @@ function layoutBison(): CarVisualLayout {
 
 /** Child local: nose −X, width ±Z (parent yaw π/2 → world +Z). Mesh ~ x±1.68 y≤1.72. */
 function layoutKaeferkraft(): CarVisualLayout {
+  // Hull child yaw π/2; mesh local nose −X, width ±Z. Cage roof ~y1.65 near x0.3–0.6.
   return {
     wheelLift: 0.08,
     suspensionLift: 0.1,
@@ -299,35 +304,39 @@ function layoutKaeferkraft(): CarVisualLayout {
       { x: 1.15, y: 0.45, z: -0.8, yaw: Math.PI / 2, scale: 1.25, snap: false },
     ],
     big_engine: {
-      // Exhaust tips face local +X = buggy rear (nose is −X).
-      anchors: [{ x: 1.15, y: 0.72, z: 0, yaw: 0, scale: 1.05, snap: false }],
+      // Exhaust / block in the open rear bay (nose −X → rear +X).
+      anchors: [{ x: 1.05, y: 0.55, z: 0, yaw: 0, scale: 0.95, snap: false }],
       build: () => buildRearEngineBlock(),
       preferGlb: true,
     },
     spike_bumper: {
-      // Spikes local +Z → yaw +π/2 points toward nose (−X).
-      anchors: [{ x: -1.62, y: 0.35, z: 0, yaw: Math.PI / 2, scale: 1.05, snap: false }],
+      // Spikes local +Z → yaw −π/2 toward nose (−X). Sit on front crossbar.
+      anchors: [{ x: -1.52, y: 0.42, z: 0, yaw: -Math.PI / 2, scale: 0.45, snap: false }],
       build: () => buildSpikeBumper(4, 1.2),
       preferGlb: true,
+      tint: 0x2c3136,
     },
     reinforced_frame: {
-      anchors: [{ x: 0.1, y: 0.25, z: 0, yaw: Math.PI / 2, scale: 1, snap: false }],
+      // Overlay stock cage (single BodyPaint — cannot hide/replace tubes without re-bake).
+      anchors: [{ x: 0, y: 0, z: 0, yaw: Math.PI / 2, scale: 1.55, snap: false }],
       build: () => buildReinforcedFrame("buggy"),
       preferGlb: true,
     },
     lightweight_body: {
-      anchors: [{ x: 0.05, y: 0.55, z: 0, yaw: Math.PI / 2, scale: 1.15, snap: false }],
+      // Tripo hood/side panels — scale to cover look-sheet panel area.
+      anchors: [{ x: -0.35, y: 0.15, z: 0, yaw: Math.PI / 2, scale: 1.2, snap: false }],
       build: () => buildLightweightBody("holes"),
-      preferGlb: false,
+      preferGlb: true,
     },
     nitro_kit: {
-      anchors: [{ x: 1.25, y: 0.9, z: 0, yaw: 0, scale: 1, snap: false }],
+      // Upper rear crossbar behind seats — clear of engine bay (+X).
+      anchors: [{ x: 0.35, y: 1.45, z: 0, yaw: Math.PI / 2, scale: 0.72, snap: false }],
       build: () => buildNitroKit("rear_rack"),
       preferGlb: true,
     },
     rear_spoiler: {
-      // Blade spans ±Z (width) after yaw −π/2; sit on rear cage.
-      anchors: [{ x: 1.05, y: 1.28, z: 0, yaw: -Math.PI / 2, scale: 0.9, snap: false }],
+      // Clamp onto highest rear cage tube.
+      anchors: [{ x: 0.4, y: 1.52, z: 0, yaw: -Math.PI / 2, scale: 0.88, snap: false }],
       build: () => buildRearSpoiler("tall"),
       preferGlb: true,
     },
@@ -913,8 +922,8 @@ export function applyEquippedPartVisuals(
       false,
       layout.spike_bumper.preferGlb !== false,
       spikeTint ?? undefined,
-      // Paint-driven spike: solid body color (drop grey albedo map).
-      layout.spike_bumper.tint == null && paintTint != null,
+      // Solid tint — drop Tripo albedo so charcoal/paint reads clean.
+      spikeTint != null,
     );
   }
   if (equipped.has("reinforced_frame")) {

@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.47 Tripo-only silhouette Teile on cars
+- Trigger: user — Käferkraft mounts wrong; cars must use Tripo3D art only for Teile
+- Decision: CONCEPT §6.3 — silhouette Teile = per-car Tripo/extract GLBs only; procedural only for brakes/wheels hints (+ temporary Blitz frame/lightweight allowlist until rematched). Käferkraft mounts retuned to parts-look; lightweight Tripo kit shipped.
+- Impl: `carParts.ts` mounts + `kaeferkraft-lightweight_body.glb`; agent skill + tests lock Tripo-only
+- CONCEPT dokumentstand → v3.47
+
 ### 2026-08-13 — v3.46 Oversteer auto-drift + accel/nitro retune
 - Trigger: user — drift into hard corners; wrong drift pose; slower accel; stronger nitro
 - Decision: CONCEPT §4.2–4.3 — Drift = Taste **oder** Oversteer; langsameres Gas; knackigeres Nitro

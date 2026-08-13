@@ -286,7 +286,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 **Design-Regel für jedes Teil:**  
 Kind muss in **einem Satz** Vor- und Nachteil verstehen. UI zeigt immer beides + kurze Empfehlung („Gut mit großen Rädern“).
 
-**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Mesh-Teile nutzen Tripo-GLBs (Blitz-Kits, pro Auto skaliert/gedreht und auf die Karosserie gesnappt); Bremsen/Räder bleiben prozedural. Ablegen blendet sie aus. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
+**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. Nur Bremsen-Bremssättel und Rad-Stance-Hints bleiben prozedural. Ablegen blendet sie aus. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
 
 ### 6.4 Synergie-System („gute Kombinationen“)
 
@@ -504,4 +504,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.46 — Oversteer-Auto-Drift + langsameres Gas / stärkeres Nitro.*
+*Dokumentstand: Konzept v3.47 — Tripo-only Silhouette-Teile am Auto; Käferkraft-Mounts.*

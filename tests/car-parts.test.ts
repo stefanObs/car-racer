@@ -234,8 +234,65 @@ describe("Equipped-part visuals (all cars)", () => {
       expect(CAR_PART_LAYOUTS[id].nitro_kit.preferGlb).toBe(true);
       expect(CAR_PART_LAYOUTS[id].rear_spoiler.preferGlb).toBe(true);
       expect(CAR_PART_LAYOUTS[id].reinforced_frame.preferGlb).toBe(true);
-      expect(CAR_PART_LAYOUTS[id].lightweight_body.preferGlb).toBe(false);
     }
+    expect(CAR_PART_LAYOUTS.kaeferkraft.lightweight_body.preferGlb).toBe(true);
+  });
+
+  it("requires Tripo preferGlb whenever a silhouette part GLB ships", () => {
+    const silhouette = [
+      "big_engine",
+      "spike_bumper",
+      "nitro_kit",
+      "rear_spoiler",
+      "reinforced_frame",
+      "lightweight_body",
+    ] as const;
+    /** Temporary Blitz allowlist until Tripo kits rematch look sheets — no new entries. */
+    const allowPreferFalse = new Set(["blitz:reinforced_frame", "blitz:lightweight_body"]);
+    for (const car of CAR_IDS as CarId[]) {
+      for (const part of silhouette) {
+        const path = `public/models/parts/${car}-${part}.glb`;
+        if (!existsSync(path)) continue;
+        const key = `${car}:${part}`;
+        if (allowPreferFalse.has(key)) {
+          expect(CAR_PART_LAYOUTS[car][part].preferGlb, key).toBe(false);
+          continue;
+        }
+        expect(CAR_PART_LAYOUTS[car][part].preferGlb, `${key} ships ${path}`).not.toBe(false);
+      }
+    }
+  });
+
+  it("places Käferkraft spike/nitro/spoiler/frame/lightweight per look sheets", () => {
+    const L = CAR_PART_LAYOUTS.kaeferkraft;
+    const spike = L.spike_bumper.anchors[0]!;
+    expect(spike.x).toBeLessThan(-1.4);
+    expect(spike.x).toBeGreaterThan(-1.65);
+    expect(spike.y).toBeGreaterThan(0.3);
+    expect(spike.y).toBeLessThan(0.55);
+    expect(spike.yaw).toBeCloseTo(-Math.PI / 2);
+    expect(spike.scale).toBeLessThan(0.55);
+    expect(L.spike_bumper.tint).toBe(0x2c3136);
+
+    const nitro = L.nitro_kit.anchors[0]!;
+    const engine = L.big_engine.anchors[0]!;
+    expect(nitro.x).toBeLessThan(engine.x - 0.4);
+    expect(nitro.y).toBeGreaterThan(1.3);
+
+    const wing = L.rear_spoiler.anchors[0]!;
+    expect(wing.x).toBeLessThan(0.55);
+    expect(wing.y).toBeGreaterThan(1.4);
+    expect(wing.y).toBeLessThan(1.65);
+
+    const frame = L.reinforced_frame.anchors[0]!;
+    expect(frame.scale).toBeGreaterThan(1.3);
+    expect(L.reinforced_frame.preferGlb).toBe(true);
+
+    const light = L.lightweight_body.anchors[0]!;
+    expect(light.y).toBeLessThan(0.25);
+    expect(light.scale).toBeGreaterThan(1.0);
+    expect(L.lightweight_body.preferGlb).toBe(true);
+    expect(existsSync("public/models/parts/kaeferkraft-lightweight_body.glb")).toBe(true);
   });
 
   it("lazy-loads per-car kits via ensureCarPartTemplates", () => {
@@ -327,11 +384,18 @@ describe("Equipped-part visuals (all cars)", () => {
   });
 
   it("ships per-car Tripo kits for look-sheet deltas", () => {
-    const kits = ["big_engine", "spike_bumper", "nitro_kit", "rear_spoiler", "reinforced_frame"] as const;
+    const kits = [
+      "big_engine",
+      "spike_bumper",
+      "nitro_kit",
+      "rear_spoiler",
+      "reinforced_frame",
+    ] as const;
     for (const car of ["bison", "kaeferkraft", "donnerbuechse", "bunker"] as CarId[]) {
       for (const part of kits) {
         expect(existsSync(`public/models/parts/${car}-${part}.glb`), `${car}-${part}`).toBe(true);
       }
     }
+    expect(existsSync("public/models/parts/kaeferkraft-lightweight_body.glb")).toBe(true);
   });
 });
