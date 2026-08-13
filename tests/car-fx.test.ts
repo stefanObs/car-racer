@@ -15,14 +15,16 @@ function stubChunk(_id: FxChunkId): Group {
 }
 
 describe("shared comic car FX", () => {
-  it("exposes smoke, sparks, and nitro groups on every car visual", () => {
+  it("exposes smoke, sparks, nitro, and lap-shield groups on every car visual", () => {
     const fx = makeFxGroups(-1.6, stubChunk);
     expect(fx.smoke.children).toHaveLength(4);
     expect(fx.sparks.children).toHaveLength(8);
     expect(fx.nitro.children).toHaveLength(5);
+    expect(fx.shield.children).toHaveLength(1);
     expect(fx.smoke.children.every((c) => !c.visible)).toBe(true);
     expect(fx.sparks.children.every((c) => !c.visible)).toBe(true);
     expect(fx.nitro.children.every((c) => !c.visible)).toBe(true);
+    expect(fx.shield.children.every((c) => !c.visible)).toBe(true);
   });
 
   it("places nitro chunks behind the rear, not a Blitz-only offset", () => {
@@ -48,15 +50,20 @@ describe("shared comic car FX", () => {
     const fx = makeFxGroups(-1.7, stubChunk);
     const visual = { ...fx, fxRearZ: -1.7 };
 
-    applyCarFx(visual, { stage: 2, healFx: 0, boosting: false }, 1);
+    applyCarFx(visual, { stage: 2, healFx: 0, boosting: false, lapShield: 0 }, 1);
     expect(fx.smoke.children.filter((c) => c.visible)).toHaveLength(3);
     expect(fx.nitro.children.every((c) => !c.visible)).toBe(true);
     expect(fx.sparks.children.every((c) => !c.visible)).toBe(true);
+    expect(fx.shield.children.every((c) => !c.visible)).toBe(true);
     expect(fx.smoke.children[0]!.position.z).toBeCloseTo(-1.7, 5);
 
-    applyCarFx(visual, { stage: 0, healFx: 0, boosting: true }, 1);
+    applyCarFx(visual, { stage: 0, healFx: 0, boosting: true, lapShield: 0 }, 1);
     expect(fx.smoke.children.every((c) => !c.visible)).toBe(true);
     expect(fx.nitro.children.every((c) => c.visible)).toBe(true);
+
+    applyCarFx(visual, { stage: 0, healFx: 0, boosting: false, lapShield: 1.5 }, 1);
+    expect(fx.shield.visible).toBe(true);
+    expect(fx.shield.children.every((c) => c.visible)).toBe(true);
   });
 
   it("upgradeCarFx is a no-op when FX GLBs are not preloaded", () => {
@@ -67,6 +74,7 @@ describe("shared comic car FX", () => {
       smoke,
       sparks: new Group(),
       nitro: new Group(),
+      shield: new Group(),
     } as ComicCarParts;
     expect(() => upgradeCarFx(visual)).not.toThrow();
     expect(visual.smoke.userData.tripoFx).toBeFalsy();

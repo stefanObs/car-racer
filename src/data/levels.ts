@@ -124,7 +124,7 @@ function makeCup(
     theme,
     classCup: "sport",
     cupIndex: index,
-    laps: opts.laps ?? 3,
+    laps: opts.laps ?? 5,
     recommendedClass: "sport",
     gripMultiplier: 1,
     track: {
@@ -203,7 +203,7 @@ function placeSolidInGrass(
 
 export const CUP_LEVELS: LevelDefinition[] = [
   makeCup(1, "blitz_cup_01_hafenstart", "Hafenstart", "Einführung — weites Hafen-Oval, Gras meiden.", "harbor", {
-    laps: 2,
+    laps: 5,
     asphaltWidth: 13,
     grass: 3,
   }),
@@ -216,7 +216,7 @@ export const CUP_LEVELS: LevelDefinition[] = [
     {
       grass: 5,
       asphaltWidth: 12,
-      laps: 2,
+      laps: 5,
       ribbonHazards: [{ type: "uneven", along: 70, intensity: 0.4, radius: 5 }],
     },
   ),
@@ -229,7 +229,7 @@ export const CUP_LEVELS: LevelDefinition[] = [
     {
       grass: 2.5,
       asphaltWidth: 14,
-      laps: 3,
+      laps: 5,
       // Grass-side markers only — asphalt stays clear for the safe line.
       vergeBlockers: [
         { type: "tire_stack", along: 42, side: 1 },
@@ -277,7 +277,7 @@ export const CUP_LEVELS: LevelDefinition[] = [
     {
       grass: 3.5,
       asphaltWidth: 12,
-      laps: 3,
+      laps: 5,
       purse: [600, 420, 300, 220, 160, 130],
       vergeBlockers: [
         { type: "tire_stack", along: 40, side: 1 },

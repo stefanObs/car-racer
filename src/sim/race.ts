@@ -4,7 +4,7 @@ import { buildTrackFromLevel, sampleCenterline } from "../track/buildTrack";
 import type { BuiltTrack, LevelDefinition } from "../track/types";
 import { catchUpMultipliers } from "./catchup";
 import { stageFromHp } from "./damage";
-import { createCarState, resolveContact, stepCar, type CarState, type DriverInput } from "./vehicle";
+import { createCarState, grantLapShield, resolveContact, stepCar, type CarState, type DriverInput } from "./vehicle";
 import { isCarFacingWrongWay, shouldShowWrongWayWarning, tickWrongWayHold } from "./wrongWay";
 
 export interface RaceConfig {
@@ -156,6 +156,10 @@ export class RaceSession {
       const along = car.distanceAlong;
       if (prevAlong > this.track.totalLength * 0.75 && along < this.track.totalLength * 0.25 && car.speed > 2) {
         car.lap += 1;
+        if (car.lap <= this.level.laps) {
+          grantLapShield(car);
+          if (car.isPlayer) this.addStyle(15, "Schild!");
+        }
         if (car.isPlayer) this.addStyle(20, "Runde!");
       }
       car.progress = along + (car.lap - 1) * this.track.totalLength;

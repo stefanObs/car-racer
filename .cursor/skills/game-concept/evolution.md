@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.52 Five laps + start-line lap shield
+- Trigger: user — make races 5 laps; lap shield when going through start; Tripo mesh
+- Decision: all modes default **5 Runden**; crossing S/F grants ~2s damage immunity + Tripo comic shield FX + „Schild!“
+- CONCEPT §3 / §4.5 / pacing → v3.52
+
 ### 2026-08-13 — v3.51 Drop Bessere Bremsen on Blitz
 
 - Trigger: user — remove improved brakes from Blitz (yellow caliper blocks clipping the coupe)

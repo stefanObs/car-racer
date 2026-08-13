@@ -13,6 +13,7 @@ export const FX_CHUNK_IDS = [
   "repairSpark",
   "nitroOrange",
   "nitroCyan",
+  "lapShield",
 ] as const;
 
 export type FxChunkId = (typeof FX_CHUNK_IDS)[number];
@@ -23,6 +24,7 @@ export const FX_URLS: Record<FxChunkId, string> = {
   repairSpark: "/models/fx/repair-spark.glb",
   nitroOrange: "/models/fx/nitro-orange.glb",
   nitroCyan: "/models/fx/nitro-cyan.glb",
+  lapShield: "/models/fx/lap-shield.glb",
 };
 
 type FxLook = {
@@ -44,6 +46,11 @@ const FX_LOOK: Record<FxChunkId, FxLook> = {
     color: ComicPalette.nitroCyan,
     emissive: ComicPalette.nitroCyan,
     emissiveIntensity: 0.65,
+  },
+  lapShield: {
+    color: ComicPalette.nitroCyan,
+    emissive: ComicPalette.nitroCyan,
+    emissiveIntensity: 0.45,
   },
 };
 

@@ -32,8 +32,8 @@ describe("session economy pacing (7–15 min)", () => {
     expect(secondCarIsLongerGoal()).toBe(true);
   });
 
-  it("uses short early cup races so more loops fit in 7–15 min", () => {
-    expect(CUP_LEVELS[0]!.laps).toBe(2);
-    expect(CUP_LEVELS[1]!.laps).toBe(2);
+  it("uses five-lap cup races so races share one clear length", () => {
+    expect(CUP_LEVELS[0]!.laps).toBe(5);
+    expect(CUP_LEVELS[1]!.laps).toBe(5);
   });
 });

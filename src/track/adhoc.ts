@@ -68,9 +68,9 @@ function cornerPlan(rng: Rng, curviness: number): number[] {
 }
 
 function lengthScale(length: AdhocLength): { straight: [number, number]; laps: number } {
-  if (length === "short") return { straight: [22, 38], laps: 2 };
-  if (length === "long") return { straight: [36, 58], laps: 3 };
-  return { straight: [28, 48], laps: 3 };
+  if (length === "short") return { straight: [22, 38], laps: 5 };
+  if (length === "long") return { straight: [36, 58], laps: 5 };
+  return { straight: [28, 48], laps: 5 };
 }
 
 function buildSegments(

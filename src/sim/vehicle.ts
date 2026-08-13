@@ -10,6 +10,8 @@ export type TrackObstacle = LevelDefinition["obstacles"][number];
 
 /** Seconds between damage applications from walls/obstacles. */
 export const IMPACT_DAMAGE_COOLDOWN = 0.55;
+/** Damage immunity after crossing start/finish (CONCEPT §4.5 Runden-Schild). */
+export const LAP_SHIELD_DURATION = 2;
 
 export interface DriverInput {
   throttle: number; // 0..1
@@ -50,6 +52,8 @@ export interface CarState {
   nitro: number;
   koTimer: number;
   healFx: number;
+  /** Seconds of start-line lap shield (damage immunity). */
+  lapShield: number;
   /** Seconds until next wall/obstacle damage tick (prevents grind KO). */
   impactCooldown: number;
   isPlayer: boolean;
@@ -102,6 +106,7 @@ export function createCarState(
     | "nitro"
     | "koTimer"
     | "healFx"
+    | "lapShield"
     | "impactCooldown"
     | "place"
     | "lap"
@@ -128,6 +133,7 @@ export function createCarState(
     nitro: 1,
     koTimer: 0,
     healFx: 0,
+    lapShield: 0,
     impactCooldown: 0,
     place: 1,
     lap: 1,
@@ -149,11 +155,28 @@ export function createCarState(
   if (partial.drift === undefined) car.drift = 0;
   if (partial.driftTime === undefined) car.driftTime = 0;
   if (partial.nitroHeld === undefined) car.nitroHeld = false;
+  if (partial.lapShield === undefined) car.lapShield = 0;
   return car;
 }
 
 export function isAirborne(car: CarState): boolean {
   return car.y > AIRBORNE_EPS || car.vy > 0.5;
+}
+
+export function grantLapShield(car: CarState, duration = LAP_SHIELD_DURATION): void {
+  car.lapShield = Math.max(car.lapShield, duration);
+}
+
+export function isLapShieldActive(car: Pick<CarState, "lapShield">): boolean {
+  return car.lapShield > 0;
+}
+
+/** Apply hit unless Runden-Schild is up (shove/bounce still apply elsewhere). */
+export function damageCar(car: CarState, amount: number): boolean {
+  if (isLapShieldActive(car) || amount <= 0) return false;
+  const prev = car.hp;
+  car.hp = applyHit(car.hp, amount, car.stats.armor);
+  return car.hp < prev;
 }
 
 /**
@@ -471,6 +494,7 @@ export function stepCar(
   car.z += car.vz * dt;
 
   if (car.impactCooldown > 0) car.impactCooldown = Math.max(0, car.impactCooldown - dt);
+  if (car.lapShield > 0) car.lapShield = Math.max(0, car.lapShield - dt);
 
   // Walls are solid on the ground: project back, bounce velocity inward.
   let hitWall = false;
@@ -615,10 +639,8 @@ export function applyWallBounce(
     const impact = Math.min(1, Math.max(0, outwardVel) / BASE_TOP);
     const base = afterMove.wallKind === "concrete" ? 0.07 : 0.045;
     const amount = base * (0.35 + 0.65 * impact);
-    const prev = car.hp;
-    car.hp = applyHit(car.hp, amount, car.stats.armor);
+    damaged = damageCar(car, amount);
     car.impactCooldown = IMPACT_DAMAGE_COOLDOWN;
-    damaged = car.hp < prev;
   }
   return damaged || outwardVel > 0.5;
 }
@@ -672,7 +694,7 @@ export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boo
     if (car.impactCooldown <= 0) {
       const base = o.type === "concrete_barrier" ? 0.055 : 0.035;
       const impact = Math.min(1, car.speed / BASE_TOP);
-      car.hp = applyHit(car.hp, base * (0.4 + 0.6 * impact), car.stats.armor);
+      damageCar(car, base * (0.4 + 0.6 * impact));
       car.impactCooldown = IMPACT_DAMAGE_COOLDOWN;
     }
     hit = true;
@@ -753,6 +775,6 @@ export function resolveContact(a: CarState, b: CarState): void {
   syncSpeedFromVelocity(b);
 
   const hit = 0.01 + closing * 0.0035 + (a.stats.ramBonus + b.stats.ramBonus) * 0.01;
-  a.hp = applyHit(a.hp, (hit * b.stats.mass) / totalMass, a.stats.armor);
-  b.hp = applyHit(b.hp, (hit * a.stats.mass) / totalMass, b.stats.armor);
+  damageCar(a, (hit * b.stats.mass) / totalMass);
+  damageCar(b, (hit * a.stats.mass) / totalMass);
 }

@@ -5,7 +5,7 @@
   "description": "Kurze Einführungsrunde — Linie halten, Gras meiden.",
   "locale": "de",
   "theme": "harbor",
-  "laps": 3,
+  "laps": 5,
   "recommendedClass": "sport",
   "weather": "clear",
   "gripMultiplier": 1.0,

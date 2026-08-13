@@ -32,6 +32,7 @@ const JOBS = [
   { id: "repair-spark", mat: "RepairSpark", longest: 0.25, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   { id: "nitro-orange", mat: "NitroOrange", longest: 0.65, sit: false, alignLongZ: true, bluntPosZ: true, ratio: 0.02, error: 0.01 },
   { id: "nitro-cyan", mat: "NitroCyan", longest: 0.65, sit: false, alignLongZ: true, bluntPosZ: true, ratio: 0.02, error: 0.01 },
+  { id: "lap-shield", mat: "LapShield", longest: 1.4, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.4, error: 0.0015 },
 ];
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);

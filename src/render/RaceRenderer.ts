@@ -437,9 +437,10 @@ export class RaceRenderer {
           smoke: visual.smoke,
           sparks: visual.sparks,
           nitro: visual.nitro,
+          shield: visual.shield,
           fxRearZ: fxRearZOf(visual),
         },
-        { stage, healFx: car.healFx, boosting },
+        { stage, healFx: car.healFx, boosting, lapShield: car.lapShield },
         this.fxTime,
       );
     }

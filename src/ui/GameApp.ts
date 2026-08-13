@@ -363,6 +363,11 @@ export class GameApp {
               ? `<div class="hud-row hud-drift" data-dev-name="hud.drift">DRIFT${p.driftTime >= 0.55 ? " · Turbo bereit" : ""}</div>`
               : ""
           }
+          ${
+            p.lapShield > 0.05
+              ? `<div class="hud-row hud-shield" data-dev-name="hud.shield">SCHILD</div>`
+              : ""
+          }
           <div class="hud-row hud-style" data-dev-name="hud.style-total">Style ${formatChf(this.race.styleBonus)}</div>
         </div>
         <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>

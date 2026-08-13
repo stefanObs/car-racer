@@ -36,7 +36,7 @@ Du baust in der Garage dein Auto so, dass die Teile **zusammenpassen**, und fäh
 ```
 Garage / Menü
     → Modus wählen: Cup / Freier Modus / Ad-hoc-Strecke
-        → Rennen (3–5 Runden, ca. 2–4 Min)
+        → Rennen (**5 Runden**, ca. 2–5 Min)
             → Platzierung + Style-Boni → CHF
         → Ergebnis-Screen
     → Garage: Auto schmücken / kaufen / teilen
@@ -156,6 +156,12 @@ So belohnt saubere Linienführung; Abkürzen über Gras ist möglich, aber teuer
 - Erneuter Treffer unterbricht / setzt Heilung zurück.
 - So bleibt Schaden spürbar, aber kein Dauer-Debuff für den Rest des Rennens.
 
+**Runden-Schild (Start/Ziel)**
+
+- Jedes Rennen hat **5 Runden** (Cup, Freier Modus, Ad-hoc).
+- Beim Durchfahren der Start/Ziel-Linie (neue Runde) bekommt das Auto kurz ein **Runden-Schild**: ~2 s **kein Schaden** von Mauer / Hindernis / Kontakt (Schub bleibt).
+- Sichtbar als Comic-Energie-Schild (Tripo-FX am Auto) + Style-Popup „Schild!“ — lesbar für ~10+.
+
 **Respawn nach K.O.**
 
 - Nach ~3–5 Sekunden kehrt das Auto **unbeschädigt** zurück.
@@ -213,7 +219,7 @@ Basis: 1. = hoch, ab 4. noch „Trostrunde“, damit Fortschritt nie tot ist
 | Ziel | Richtwert |
 |------|-----------|
 | Erfolgreiche Kurz-Sitzung | 7–15 min |
-| Frühe Cup-Rennen | eher **2 Runden** (kurz, wiederholbar) |
+| Frühe Cup-Rennen | **5 Runden** (einheitliche Rennlänge) |
 | Starter-Teil (spürbar) | nach **≤ 2** Intro-Rennen auch mit **Mittelfeld (Platz 4)** finanzierbar |
 | Solides frühes Teil | mit **Platz 1** im ersten Intro-Rennen kaufbar |
 | 2. Auto (Bison) | eher Ende der 7–15-min-Spanne / etwas darüber bei gutem Fahren — kein Sofort-Kauf |
@@ -504,4 +510,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.51 — Blitz ohne Bessere Bremsen.*
+*Dokumentstand: Konzept v3.52 — 5 Runden + Runden-Schild an Start/Ziel.*

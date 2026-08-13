@@ -17,6 +17,7 @@ export type ComicCarParts = {
   smoke: Group;
   sparks: Group;
   nitro: Group;
+  shield: Group;
   lastHeading: number;
 };
 
@@ -50,7 +51,7 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
   root.add(body);
 
   const fx = makeFxGroups(-1.7);
-  root.add(groundBlob(1.4), fx.smoke, fx.sparks, fx.nitro);
+  root.add(groundBlob(1.4), fx.smoke, fx.sparks, fx.nitro, fx.shield);
   const visual = { root, body, ...fx, lastHeading: car.heading };
   upgradeCarFx(visual);
   return visual;
@@ -66,7 +67,7 @@ function groundBlob(radius: number): Mesh {
   return blob;
 }
 
-function makeFxGroups(nitroZ: number): Pick<ComicCarParts, "smoke" | "sparks" | "nitro"> {
+function makeFxGroups(nitroZ: number): Pick<ComicCarParts, "smoke" | "sparks" | "nitro" | "shield"> {
   const smoke = new Group();
   for (let i = 0; i < 6; i++) {
     const puff = new Mesh(new SphereGeometry(0.22 + i * 0.05, 10, 10), comicToon(ComicPalette.smoke));
@@ -96,5 +97,15 @@ function makeFxGroups(nitroZ: number): Pick<ComicCarParts, "smoke" | "sparks" | 
     trail.visible = false;
     nitro.add(trail);
   }
-  return { smoke, sparks, nitro };
+  const shield = new Group();
+  shield.name = "fx-shield";
+  const crest = new Mesh(
+    new SphereGeometry(1.15, 16, 12),
+    comicToon(ComicPalette.nitroCyan, { emissive: ComicPalette.nitroCyan, emissiveIntensity: 0.35 }),
+  );
+  crest.scale.set(1.15, 0.85, 1.35);
+  crest.position.y = 0.75;
+  crest.visible = false;
+  shield.add(crest);
+  return { smoke, sparks, nitro, shield };
 }

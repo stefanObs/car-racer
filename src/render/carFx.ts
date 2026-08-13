@@ -5,6 +5,7 @@ export type CarFxVisual = {
   smoke: { children: Object3D[] };
   sparks: { children: Object3D[] };
   nitro: { children: Object3D[] };
+  shield: { children: Object3D[]; scale: { setScalar: (n: number) => void }; visible: boolean };
   fxRearZ: number;
 };
 
@@ -25,16 +26,20 @@ export function nitroBoosting(prevNitro: number, nitro: number): boolean {
   return nitro < prevNitro - 0.001;
 }
 
+export function lapShieldVisible(lapShield: number): boolean {
+  return lapShield > 0.05;
+}
+
 /**
  * Bob / scale / visibility for shared comic FX groups.
  * Positions are local to the car root (nose +Z, rear −Z).
  */
 export function applyCarFx(
   visual: CarFxVisual,
-  opts: { stage: DamageStage; healFx: number; boosting: boolean },
+  opts: { stage: DamageStage; healFx: number; boosting: boolean; lapShield: number },
   fxTime: number,
 ): void {
-  const { smoke, sparks, nitro, fxRearZ } = visual;
+  const { smoke, sparks, nitro, shield, fxRearZ } = visual;
   const puffCount = smokeVisibleCount(opts.stage);
   smoke.children.forEach((child, i) => {
     child.visible = i < puffCount;
@@ -56,4 +61,14 @@ export function applyCarFx(
     child.visible = opts.boosting;
     if (child.visible) child.scale.z = 1 + (i % 3) * 0.15 + Math.sin(fxTime * 20 + i) * 0.1;
   });
+
+  const shielded = lapShieldVisible(opts.lapShield);
+  shield.visible = shielded;
+  shield.children.forEach((child) => {
+    child.visible = shielded;
+  });
+  if (shielded) {
+    const pulse = 1 + Math.sin(fxTime * 10) * 0.06;
+    shield.scale.setScalar(pulse);
+  }
 }

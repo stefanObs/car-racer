@@ -9,5 +9,6 @@ Tripo3D image-to-mesh from Asphalt-Comic concepts in `assets/tripo-concepts/fx-*
 | Repair spark | `fx-repair-spark.png` | same |
 | Nitro orange | `fx-nitro-orange.png` | same |
 | Nitro cyan | `fx-nitro-cyan.png` (mesh may reuse orange bake, tinted `#3DB9C7` at runtime) | same |
+| Lap shield | `fx-lap-shield.png` | same |
 
 Style lock: `.cursor/skills/asphalt-comic-art/reference.png`. Nitro colors `#FF7A18` / `#3DB9C7` — no purple bloom.

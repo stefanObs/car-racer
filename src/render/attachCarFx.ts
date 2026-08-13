@@ -22,7 +22,7 @@ function clearGroup(group: Group): void {
 export function makeFxGroups(
   nitroZ: number,
   cloneChunk: (id: FxChunkId) => Object3D = cloneFxChunk,
-): { smoke: Group; sparks: Group; nitro: Group } {
+): { smoke: Group; sparks: Group; nitro: Group; shield: Group } {
   const smoke = new Group();
   smoke.name = "fx-smoke";
   const puffIds: FxChunkId[] = ["smokePuff", "smokePuff", "smokeHeavy", "smokeHeavy"];
@@ -49,7 +49,15 @@ export function makeFxGroups(
     trail.visible = false;
     nitro.add(trail);
   }
-  return { smoke, sparks, nitro };
+
+  const shield = new Group();
+  shield.name = "fx-shield";
+  const crest = cloneChunk("lapShield");
+  crest.position.set(0, 0.9, 0);
+  crest.scale.setScalar(1.35);
+  crest.visible = false;
+  shield.add(crest);
+  return { smoke, sparks, nitro, shield };
 }
 
 /** Replace sphere placeholders with Tripo chunks when preloaded; otherwise keep spheres. */
@@ -65,9 +73,12 @@ export function upgradeCarFx(visual: ComicCarParts): void {
   for (const child of [...fx.sparks.children]) visual.sparks.add(child);
   clearGroup(visual.nitro);
   for (const child of [...fx.nitro.children]) visual.nitro.add(child);
+  clearGroup(visual.shield);
+  for (const child of [...fx.shield.children]) visual.shield.add(child);
   visual.smoke.name = "fx-smoke";
   visual.sparks.name = "fx-sparks";
   visual.nitro.name = "fx-nitro";
+  visual.shield.name = "fx-shield";
   visual.smoke.userData.tripoFx = true;
 }
 

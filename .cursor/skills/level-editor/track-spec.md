@@ -50,7 +50,7 @@ Generator stitches segments into a closed loop; samples grass width from level p
   "theme": "harbor",
   "classCup": "sport",
   "cupIndex": 1,
-  "laps": 3,
+  "laps": 5,
   "recommendedClass": "sport",
   "weather": "clear",
   "gripMultiplier": 1.0,
@@ -102,7 +102,7 @@ Minimal required keys: `id`, `kind`, `displayName`, `theme`, `track` (with cross
   "unevenRatio": 0.2,
   "grassWidth": 3,
   "theme": "city",
-  "laps": 3
+  "laps": 5
 }
 ```
 

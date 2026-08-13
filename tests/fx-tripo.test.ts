@@ -12,6 +12,7 @@ const FILES: Record<(typeof FX_CHUNK_IDS)[number], { file: string; mat: string; 
   repairSpark: { file: "repair-spark.glb", mat: "RepairSpark", min: 0.15, max: 0.4 },
   nitroOrange: { file: "nitro-orange.glb", mat: "NitroOrange", min: 0.4, max: 0.95 },
   nitroCyan: { file: "nitro-cyan.glb", mat: "NitroCyan", min: 0.4, max: 0.95 },
+  lapShield: { file: "lap-shield.glb", mat: "LapShield", min: 0.9, max: 1.7 },
 };
 
 describe("Tripo comic FX bakes", () => {
