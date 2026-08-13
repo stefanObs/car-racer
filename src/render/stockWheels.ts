@@ -1,4 +1,5 @@
 import {
+  Box3,
   BufferAttribute,
   BufferGeometry,
   Mesh,
@@ -185,4 +186,71 @@ export function applyStockWheelVisibility(root: Object3D, hideStock: boolean): v
     if (!isStockWheelObject(obj)) return;
     obj.visible = !hideStock;
   });
+}
+
+/** Visible tire meshes used for ground contact (stock or Große Räder). */
+export function isWheelContactObject(obj: Object3D): boolean {
+  if (!obj.visible) return false;
+  if (isStockWheelObject(obj)) return true;
+  if (obj.name === "UpgradeTire" || obj.userData.isUpgradeWheel === true) return true;
+  return false;
+}
+
+/**
+ * Lowest world Y of tire contact patches.
+ * Prefer this over `Box3.setFromObject(root)` — invisible FX / debris under the
+ * origin would otherwise sink the car and leave detached wheels floating.
+ */
+export function wheelContactMinY(root: Object3D): number | null {
+  root.updateMatrixWorld(true);
+  let minY = Infinity;
+  let found = false;
+  root.traverse((obj) => {
+    if (!isWheelContactObject(obj)) return;
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const bb = mesh.geometry.boundingBox;
+    if (!bb) return;
+    const world = bb.clone().applyMatrix4(mesh.matrixWorld);
+    if (!Number.isFinite(world.min.y)) return;
+    minY = Math.min(minY, world.min.y);
+    found = true;
+  });
+  return found ? minY : null;
+}
+
+/**
+ * Showcase / pad sit height: tires when present, else visible non-FX meshes only.
+ */
+export function groundContactMinY(root: Object3D): number {
+  const wheels = wheelContactMinY(root);
+  if (wheels != null) return wheels;
+
+  root.updateMatrixWorld(true);
+  const box = new Box3();
+  let found = false;
+  root.traverse((obj) => {
+    if (!obj.visible) return;
+    if (obj.name.startsWith("fx-") || obj.userData.tripoFx) return;
+    let p: Object3D | null = obj;
+    while (p) {
+      if (p.name.startsWith("fx-") || p.userData.tripoFx) return;
+      p = p.parent;
+    }
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const bb = mesh.geometry.boundingBox;
+    if (!bb) return;
+    const world = bb.clone().applyMatrix4(mesh.matrixWorld);
+    if (!found) {
+      box.copy(world);
+      found = true;
+    } else {
+      box.union(world);
+    }
+  });
+  if (found && Number.isFinite(box.min.y)) return box.min.y;
+  return new Box3().setFromObject(root).min.y;
 }

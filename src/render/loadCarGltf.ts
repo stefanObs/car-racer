@@ -31,7 +31,7 @@ import {
   bakeAuthoredWhiteToPaint,
   isWheelPaintVertex,
 } from "./paintAuthoredWhite";
-import { extractStockWheels } from "./stockWheels";
+import { extractStockWheels, wheelContactMinY } from "./stockWheels";
 
 type Template = {
   root: Object3D;
@@ -139,9 +139,17 @@ function normalizeCarScene(root: Object3D, spec: CarModelSpec): void {
     root.position.y += spec.y;
   }
 
-  // Detach authored tires so Große Räder can hide/replace them.
+  // Detach authored tires so Große Räder can hide/replace them, then re-sit on tires
+  // (skirts / splitters must not define the ground plane).
   extractStockWheels(root);
   root.updateMatrixWorld(true);
+  {
+    const tireY = wheelContactMinY(root);
+    if (tireY != null && Number.isFinite(tireY) && Math.abs(tireY) > 1e-4) {
+      root.position.y -= tireY;
+      root.updateMatrixWorld(true);
+    }
+  }
 
   root.traverse((obj) => {
     const mesh = obj as Mesh;
@@ -188,9 +196,13 @@ function meshBounds(root: Object3D): Box3 {
 function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
   const roofLamp = carId === "kaeferkraft" && isKaeferkraftRoofLampMesh(mesh);
   const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+  const meshNameLower = (mesh.name ?? "").toLowerCase();
+  const stockWheel = meshNameLower.startsWith("stockwheel_") || mesh.userData.isStockWheel === true;
   const next = mats.map((mat) => {
     const color = materialColor(mat);
-    const name = (mat?.name ?? mesh.name ?? "").toLowerCase();
+    // Prefer mesh name for StockWheel_* — cloned mats keep "BodyPaint" and would stay red.
+    const matName = (mat?.name ?? "").toLowerCase();
+    const name = stockWheel ? `${meshNameLower} tire` : matName || meshNameLower;
     const std = mat as MeshStandardMaterial & MeshToonMaterial;
     const map = std.map ?? null;
     const isBumperLamp =
@@ -202,15 +214,11 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
         (name === "dark" || name.includes("dark")) &&
         isBuggySkullHornMesh(mesh));
     let toon;
-    if (name.includes("glass") || name.includes("window")) {
-      toon = comicToon(color.getHex());
-    } else if (
-      name.includes("tire") ||
-      name.includes("rubber") ||
-      name.includes("wheel") ||
-      name.includes("hubcap")
-    ) {
+    if (stockWheel || name.includes("tire") || name.includes("rubber") || name.includes("hubcap") || name.includes("wheel")) {
+      // Detached StockWheel_* must stay flat dark rubber — body atlas would paint them red.
       toon = comicToon(0x3a3a42);
+    } else if (name.includes("glass") || name.includes("window")) {
+      toon = comicToon(color.getHex());
     } else if (isHeadlamp) {
       // Bumper EyeRed + roll-cage pods — same sealed-beam look.
       toon = comicToon(0xfff8e8);
@@ -243,11 +251,12 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
       toon = comicToon(color.getHex());
     }
     const skullOrnament = isHornMat || name.includes("skull");
+    const tireMesh = stockWheel || name.includes("tire") || name.includes("rubber") || name.includes("hubcap");
     // Keep authored atlas maps (Tripo bake / leftover free-asset maps) under cel shading.
-    if (map && !skullOrnament) {
+    if (map && !skullOrnament && !tireMesh) {
       toon.map = map;
       toon.needsUpdate = true;
-    } else if (!carUsesAuthoredAtlas(carId) && mesh.geometry && !skullOrnament && !toon.map) {
+    } else if (!tireMesh && !carUsesAuthoredAtlas(carId) && mesh.geometry && !skullOrnament && !toon.map) {
       ensureComicBoxUvs(mesh.geometry);
       const role = isHeadlamp ? "headlight" : atlasRoleFromName(mat?.name ?? mesh.name ?? "", carId);
       const atlas = comicAtlasForRole(carId, role);
@@ -261,7 +270,9 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
         ? "SkullHorn"
         : name.includes("skull")
           ? "Skull"
-          : (mat?.name ?? mesh.name ?? "BodyPaint");
+          : tireMesh || stockWheel
+            ? "Tire"
+            : (mat?.name ?? mesh.name ?? "BodyPaint");
     return toon;
   });
   mesh.material = next.length === 1 ? next[0]! : next;

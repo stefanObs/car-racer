@@ -1,6 +1,5 @@
 import {
   AmbientLight,
-  Box3,
   Color,
   DirectionalLight,
   EquirectangularReflectionMapping,
@@ -32,6 +31,7 @@ import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
+import { groundContactMinY } from "./stockWheels";
 import { buildLevelObstacles } from "./levelObstacles";
 import {
   buildPanoramaSurround,
@@ -163,9 +163,9 @@ export class RaceRenderer {
     visual.root.rotation.y = this.garageYaw;
     visual.root.scale.setScalar(1.35);
     this.idleGroup.add(visual.root);
-    // Wheels/skirts can sit below the GLB origin after scale — lift so the mesh clears the deck.
+    // Sit on tire contact — not full Box3 (invisible FX chunks under the origin sink the body).
     visual.root.updateMatrixWorld(true);
-    const carMinY = new Box3().setFromObject(visual.root).min.y;
+    const carMinY = groundContactMinY(visual.root);
     if (Number.isFinite(carMinY)) {
       visual.root.position.y += deckY + 0.02 - carMinY;
     }

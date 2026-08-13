@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, type Mesh as MeshType } from "three";
+import { Box3, BoxGeometry, Group, Mesh, MeshBasicMaterial, type Mesh as MeshType } from "three";
 import { describe, expect, it } from "vitest";
 import { CAR_IDS, type CarId } from "../src/data/cars";
 import { carSupportsPart, partsForCar } from "../src/data/partsCatalog";
@@ -13,7 +13,7 @@ import {
   carStanceLift,
 } from "../src/render/carParts";
 import { shouldApplyGaragePaint } from "../src/render/loadCarGltf";
-import { stockWheelName } from "../src/render/stockWheels";
+import { groundContactMinY, stockWheelName } from "../src/render/stockWheels";
 
 describe("parts catalog (per-car)", () => {
   it("keeps Gelände-Federung only on Blitz (has Tripo spring kit)", () => {
@@ -63,8 +63,55 @@ describe("stock wheels + Große Räder", () => {
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
     expect(root.getObjectByName("UpgradeTire")).toBeTruthy();
 
+    // Empty equip on Blitz still hides broken extracts and mounts floor stand-ins.
     applyEquippedPartVisuals(root, "blitz", []);
-    expect(stock.visible).toBe(true);
+    expect(stock.visible).toBe(false);
+    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeTruthy();
+  });
+
+  it("groundContactMinY prefers tires over low invisible FX debris", () => {
+    const root = new Group();
+    const stock = new Mesh(new BoxGeometry(0.4, 0.5, 0.4), new MeshBasicMaterial());
+    stock.name = stockWheelName("FL");
+    stock.userData.isStockWheel = true;
+    stock.position.set(-0.7, 0.25, 1.0);
+    root.add(stock);
+    const fx = new Mesh(new BoxGeometry(0.3, 0.3, 0.3), new MeshBasicMaterial());
+    fx.visible = false;
+    fx.position.set(0, -0.2, 0);
+    const fxGroup = new Group();
+    fxGroup.name = "fx-smoke";
+    fxGroup.add(fx);
+    root.add(fxGroup);
+    root.updateMatrixWorld(true);
+    const fullMin = new Box3().setFromObject(root).min.y;
+    const contact = groundContactMinY(root);
+    expect(contact).toBeGreaterThan(fullMin);
+    // Tire box height 0.5 centered at y=0.25 → bottom at 0.
+    expect(contact).toBeCloseTo(0, 2);
+  });
+
+  it("skips garage paint on StockWheel mesh names", () => {
+    expect(shouldApplyGaragePaint("StockWheel_FL")).toBe(false);
+    expect(shouldApplyGaragePaint("Tire")).toBe(false);
+    expect(shouldApplyGaragePaint("BodyPaint")).toBe(true);
+  });
+
+  it("mounts Blitz stock tire stand-ins on the ground when extracts exist", () => {
+    const root = new Group();
+    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
+    stock.name = stockWheelName("FL");
+    stock.userData.isStockWheel = true;
+    root.add(stock);
+
+    applyEquippedPartVisuals(root, "blitz", []);
+    expect(stock.visible).toBe(false);
+    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeTruthy();
+    expect(root.getObjectByName("UpgradeTire")).toBeTruthy();
+
+    applyEquippedPartVisuals(root, "blitz", ["big_wheels"]);
+    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
   });
 
   it("Blitz upgrade wheels are wider than bunker meats", () => {

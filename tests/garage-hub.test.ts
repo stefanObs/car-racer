@@ -55,10 +55,12 @@ describe("garage hub", () => {
     expect(preview).toMatch(/data-act="buy-part"[^>]*disabled/);
   });
 
-  it("idle showcase sits cars on the pad deck, not a hardcoded floor y", () => {
+  it("idle showcase sits cars on the pad deck via tire contact (not FX Box3)", () => {
     const src = readFileSync("src/render/RaceRenderer.ts", "utf8");
     expect(src).toContain("garagePadDeckY");
+    expect(src).toContain("groundContactMinY");
     expect(src).not.toContain("position.set(1.5, 0.12, 0)");
+    expect(src).not.toMatch(/Box3\(\)\.setFromObject\(visual\.root\)/);
   });
 
   it("builds a named comic garage bay with a pad deck above the floor", () => {
