@@ -6,7 +6,7 @@ import { preloadFxModels } from "./render/loadFxGltf";
 import { preloadGarageProps, preloadGarageShellMeshes } from "./render/loadGarageGltf";
 import { preloadGarageShellTextures } from "./render/garageTextures";
 import { preloadPanoramaTextures } from "./render/panoramaSurround";
-import { preloadFlameSticker } from "./render/carStickers";
+import { preloadFlameSticker, preloadFlameStickerGlb } from "./render/carStickers";
 import { GameApp } from "./ui/GameApp";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
@@ -33,7 +33,7 @@ async function boot(): Promise<void> {
   if (touchCapable) document.documentElement.dataset.touch = "1";
 
   await preloadBuggyNoseTextures();
-  await preloadFlameSticker();
+  await Promise.all([preloadFlameSticker(), preloadFlameStickerGlb()]);
   await Promise.all([
     preloadCarModels(),
     preloadBuggyNoses(),

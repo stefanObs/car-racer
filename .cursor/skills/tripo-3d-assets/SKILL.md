@@ -111,7 +111,7 @@ npm run cars:extract-blitz-spoiler
 | FX | `fx-*.png` | `tripo-out/fx/` | `fx:bake-tripo` |
 | Track kit | `track-*.png` | `tripo-out/track/` | `track:bake-tripo` |
 | Garage props | `garage-*.png` | `tripo-out/garage/` | `garage:bake-tripo` |
-| Buggy noses | `kaeferkraft-*-concept.png` | under `tripo-out/` | `cars:bake-kaeferkraft-tripo` |
+| Stickers / Flammen | `sticker-flames-*.png` | `tripo-out/stickers/flames/` | `stickers:bake-flames-tripo` |
 
 Provenance docs: `public/models/*/SOURCES.md` or `README.md`.
 

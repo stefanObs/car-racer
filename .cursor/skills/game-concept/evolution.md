@@ -117,6 +117,12 @@ Append newest first.
 - Decision: Tripo albedo UV stamps miss doors (chaotic atlases). Project sticker-v5 comic plates with `DecalGeometry` onto BodyPaint (Seite/Haube/Tür). Käferkraft stays nose GLBs. No Tripo bake required for flat decals.
 - CONCEPT §§ touched: §6.2 Aufkleber-Details → v3.29
 
+### 2026-08-13 — v3.50 Flammen Tripo plaque
+
+- Trigger: user — Flame sticker still bland; use Tripo3D for a nice one
+- Decision: Asphalt-Comic concept → Tripo image-to-mesh+texture → bake `flames.glb` relief on side/door anchors; concept-stripped PNG as 2D albedo/preview. Bolt/star remain canvas.
+- CONCEPT §§ touched: §6.2 Aufkleber-Details → v3.50
+
 ### 2026-08-13 — v3.49 Stickers: Stern trail + Blitz bolt, side only
 
 - Trigger: user — “Bolt sticker” is actually star vinyl (good on side); remove from front; make new Bolt sticker

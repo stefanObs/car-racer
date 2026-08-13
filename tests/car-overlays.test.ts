@@ -41,23 +41,32 @@ describe("car sticker decals", () => {
     expect(emptyKit("blitz").sticker).toBe("none");
   });
 
-  it("ships sticker-v13 classic Flammen sprite + lightning Blitz + shooting-star Stern", () => {
+  it("ships sticker-v14 Tripo Flammen plaque + lightning Blitz + shooting-star Stern", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain("sticker-v13:");
+    expect(src).toContain("sticker-v14:");
     expect(src).toContain("FLAME_ORANGE");
     expect(src).toContain("FLAME_CORE");
     expect(src).toContain("drawHotRodFlames");
     expect(src).toContain("drawLightningBolt");
     expect(src).toContain("drawStarTrailVinyl");
     expect(src).toContain("preloadFlameSticker");
+    expect(src).toContain("preloadFlameStickerGlb");
+    expect(src).toContain("mountFlameTripoPlates");
     expect(src).toContain("/stickers/flames-donner.png");
+    expect(src).toContain("/models/stickers/flames.glb");
     expect(src).toContain("three sharp tongues");
     expect(src).toContain("shooting-star");
     expect(src).toContain("mountDonnerDoorPlanes");
     expect(src).not.toContain('slot: "hood"');
     expect(existsSync("public/stickers/flames-donner.png")).toBe(true);
+    expect(existsSync("public/models/stickers/flames.glb")).toBe(true);
+    expect(existsSync("assets/tripo-concepts/sticker-flames-tripo-concept.png")).toBe(true);
+    expect(existsSync("scripts/bake-sticker-flames-tripo.mjs")).toBe(true);
     const main = readFileSync("src/main.ts", "utf8");
     expect(main).toContain("preloadFlameSticker");
+    expect(main).toContain("preloadFlameStickerGlb");
+    const pkg = readFileSync("package.json", "utf8");
+    expect(pkg).toContain("stickers:bake-flames-tripo");
   });
 
   it("Flammen sticker PNG is orange+yellow on transparent (no card, no white fill)", async () => {
@@ -117,6 +126,14 @@ describe("car sticker decals", () => {
     expect(STICKER_DECALS.bison.some((a) => a.slot === "hood")).toBe(false);
   });
 
+  it("places stickers per car (no buggy stickers)", () => {
+    expect(stickerSlotsForCar("blitz")).toEqual(["side"]);
+    expect(stickerSlotsForCar("bison")).toEqual(["side"]);
+    expect(stickerSlotsForCar("donnerbuechse")).toEqual(["side"]);
+    expect(stickerSlotsForCar("bunker")).toEqual(["side"]);
+    expect(stickerSlotsForCar("kaeferkraft")).toEqual([]);
+  });
+
   it("maps bolt to lightning art and star to shooting-star trail", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
     const boltBranch = src.slice(src.indexOf('if (sticker === "bolt"'), src.indexOf('if (sticker === "star"'));
@@ -152,14 +169,13 @@ describe("car sticker decals", () => {
     expect(root.getObjectByName(CAR_STICKERS_GROUP)?.children.length).toBeGreaterThan(0);
   });
 
-  it("mounts two door-plane stickers on Donnerbüchse", () => {
+  it("mounts two door stickers on Donnerbüchse (plane fallback without Tripo preload)", () => {
     const root = fakeCarRoot(2.4, 1.0, 3.8);
     applyCarStickers(root, "donnerbuechse", "flames");
     const g = root.getObjectByName(CAR_STICKERS_GROUP);
     expect(g?.children.length).toBe(2);
     for (const child of g!.children) {
       expect(child.name.startsWith("stickerDecal-side")).toBe(true);
-      expect((child as Mesh).geometry.type).toBe("PlaneGeometry");
     }
   });
 

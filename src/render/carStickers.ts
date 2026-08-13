@@ -1,7 +1,7 @@
 /**
- * Garage stickers as Asphalt-Comic decals projected onto the body (CONCEPT §6.2).
- * Tripo atlases pack chaotically — UV stamps miss doors. DecalGeometry lands on
- * Seite / Tür (no hood/front). Käferkraft uses nose variants instead.
+ * Garage stickers as Asphalt-Comic decals / Tripo plaques (CONCEPT §6.2).
+ * Flammen uses Tripo relief GLB on side anchors; Blitz/Stern stay canvas decals.
+ * Käferkraft uses nose variants instead.
  */
 import {
   CanvasTexture,
@@ -20,6 +20,7 @@ import {
   type Texture,
 } from "three";
 import { DecalGeometry } from "three/addons/geometries/DecalGeometry.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { CarId } from "../data/cars";
 import { ComicPaletteCss } from "./palette";
 
@@ -29,11 +30,17 @@ export type StickerSlot = "side" | "hood" | "door";
 
 export const CAR_STICKERS_GROUP = "carStickers";
 
+export const FLAME_STICKER_URL = "/models/stickers/flames.glb";
+
 const texCache = new Map<string, Texture>();
 
 /** Optional baked Flammen sprite (`public/stickers/flames-donner.png`). */
 let flameSprite: HTMLImageElement | null = null;
 let flameSpritePromise: Promise<void> | null = null;
+
+/** Tripo relief plaque template (shared clones). */
+let flameGlbTemplate: Object3D | null = null;
+let flameGlbPromise: Promise<void> | null = null;
 
 export function preloadFlameSticker(): Promise<void> {
   if (typeof Image === "undefined") return Promise.resolve();
@@ -55,6 +62,37 @@ export function preloadFlameSticker(): Promise<void> {
     img.src = "/stickers/flames-donner.png";
   });
   return flameSpritePromise;
+}
+
+/** Load Tripo Flammen plaque once (comic relief on doors/sides). */
+export function preloadFlameStickerGlb(): Promise<void> {
+  if (flameGlbPromise) return flameGlbPromise;
+  if (typeof window === "undefined") {
+    flameGlbPromise = Promise.resolve();
+    return flameGlbPromise;
+  }
+  flameGlbPromise = (async () => {
+    try {
+      const loader = new GLTFLoader();
+      const gltf = await loader.loadAsync(FLAME_STICKER_URL);
+      flameGlbTemplate = gltf.scene;
+      flameGlbTemplate.traverse((obj) => {
+        const mesh = obj as Mesh;
+        if (!mesh.isMesh) return;
+        mesh.castShadow = false;
+        mesh.receiveShadow = false;
+        mesh.renderOrder = 12;
+      });
+    } catch (err) {
+      console.warn("[stickers] flames.glb missing — canvas/decal fallback", err);
+      flameGlbTemplate = null;
+    }
+  })();
+  return flameGlbPromise;
+}
+
+export function hasFlameStickerGlb(): boolean {
+  return flameGlbTemplate != null;
 }
 
 type DecalAnchor = {
@@ -400,7 +438,7 @@ export function drawStickerArt(
 /** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none" || sticker === "ironClad") return null;
-  return canvasTex(`sticker-v13:${carId}:${sticker}`, 512, 256, (ctx) => {
+  return canvasTex(`sticker-v14:${carId}:${sticker}`, 512, 256, (ctx) => {
     ctx.clearRect(0, 0, 512, 256);
     drawStickerArt(ctx, sticker, carId, 512, 256);
   });
@@ -447,9 +485,58 @@ export function findBodyMeshForStickers(root: Object3D): Mesh | null {
   return best;
 }
 
+function cloneFlamePlaque(): Object3D | null {
+  if (!flameGlbTemplate) return null;
+  const clone = flameGlbTemplate.clone(true);
+  clone.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh) return;
+    if (mesh.geometry) mesh.geometry = mesh.geometry.clone();
+    if (Array.isArray(mesh.material)) {
+      mesh.material = mesh.material.map((m) => m.clone());
+    } else if (mesh.material) {
+      mesh.material = mesh.material.clone();
+    }
+  });
+  return clone;
+}
+
+/** Tripo Flammen relief on every side/door anchor (same yaw as door planes). */
+function mountFlameTripoPlates(root: Object3D, carId: Exclude<CarId, "kaeferkraft">): boolean {
+  if (!flameGlbTemplate) return false;
+  clearStickerDecals(root);
+  const group = new Group();
+  group.name = CAR_STICKERS_GROUP;
+  group.userData.carStickers = "flames";
+  group.userData.flameTripo = true;
+
+  for (const [i, anchor] of STICKER_DECALS[carId].entries()) {
+    const plaque = cloneFlamePlaque();
+    if (!plaque) continue;
+    plaque.name = `stickerDecal-${anchor.slot}-${i}`;
+    plaque.userData.stickerDecal = "flames";
+    plaque.userData.stickerSlot = anchor.slot;
+    // Plaque is XY facing +Z; yaw like PlaneGeometry so +Z faces out of the door.
+    plaque.position.set(anchor.x, anchor.y, anchor.z);
+    plaque.rotation.y = anchor.yaw;
+    plaque.position.x += Math.sign(anchor.x || 1) * 0.03;
+    const fit = anchor.width / 1.05;
+    // Left side (−X) needs X flip so tongues still point aft after yaw −π/2.
+    const mirror = anchor.x < 0 ? -1 : 1;
+    plaque.scale.set(fit * mirror, fit * (anchor.height / 0.48), Math.abs(fit));
+    group.add(plaque);
+  }
+
+  if (group.children.length === 0) return false;
+  root.add(group);
+  return true;
+}
+
 function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">, sticker: string): void {
   clearStickerDecals(root);
   if (sticker === "none") return;
+
+  if (sticker === "flames" && mountFlameTripoPlates(root, carId)) return;
 
   const tex = stickerTexture(sticker, carId);
   if (!tex) return;
