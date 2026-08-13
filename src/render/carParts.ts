@@ -36,7 +36,7 @@ import {
   springColorFor,
 } from "./carPartBuilders";
 import { comicToon } from "./comicMaterials";
-import { applyStockWheelVisibility, extractStockWheels, isStockWheelObject } from "./stockWheels";
+import { applyStockWheelVisibility, isStockWheelObject } from "./stockWheels";
 import { carSupportsPart } from "../data/partsCatalog";
 
 export const CAR_PARTS_GROUP = "carParts";
@@ -941,14 +941,6 @@ function upgradeWheelFor(carId: CarId) {
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 
-function rootHasExtractedStockWheels(root: Object3D): boolean {
-  let found = false;
-  root.traverse((obj) => {
-    if (isStockWheelObject(obj)) found = true;
-  });
-  return found;
-}
-
 /** Prefer Tripo/extracted GLB when preloaded for this car; else procedural. */
 function mountGlbOrProc(
   group: Group,
@@ -1103,26 +1095,6 @@ export function applyEquippedPartVisuals(
   }
   if (equipped.has("big_wheels")) {
     placeAnchored(group, root, "big_wheels", layout.wheelHints, upgradeWheelFor(carId), false);
-  } else if (carId === "blitz" && rootHasExtractedStockWheels(root)) {
-    // Blitz Tripo extract is over-cut / body-painted — hide it and put readable tires on the floor.
-    applyStockWheelVisibility(root, true);
-    const radius = 0.33;
-    const anchors = layout.wheelHints.map((a) => ({
-      ...a,
-      // Slightly outboard + hub in the arch; sit-on-tire then keeps bumper height readable.
-      x: a.x * 1.08,
-      y: 0.42,
-      scale: 1,
-      snap: false as const,
-    }));
-    placeAnchored(
-      group,
-      root,
-      "stock_tires",
-      anchors,
-      () => buildUpgradeWheel({ radius, width: 0.38 }),
-      false,
-    );
   }
 
   if (group.children.length > 0) root.add(group);

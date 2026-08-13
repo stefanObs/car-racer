@@ -63,10 +63,10 @@ describe("stock wheels + Große Räder", () => {
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
     expect(root.getObjectByName("UpgradeTire")).toBeTruthy();
 
-    // Empty equip on Blitz still hides broken extracts and mounts floor stand-ins.
+    // Empty equip keeps original StockWheel extracts visible (no procedural stand-ins).
     applyEquippedPartVisuals(root, "blitz", []);
-    expect(stock.visible).toBe(false);
-    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeTruthy();
+    expect(stock.visible).toBe(true);
+    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
   });
 
   it("groundContactMinY prefers tires over low invisible FX debris", () => {
@@ -97,7 +97,7 @@ describe("stock wheels + Große Räder", () => {
     expect(shouldApplyGaragePaint("BodyPaint")).toBe(true);
   });
 
-  it("mounts Blitz stock tire stand-ins on the ground when extracts exist", () => {
+  it("keeps Blitz StockWheel extracts when no big_wheels (original car tires)", () => {
     const root = new Group();
     const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
     stock.name = stockWheelName("FL");
@@ -105,11 +105,11 @@ describe("stock wheels + Große Räder", () => {
     root.add(stock);
 
     applyEquippedPartVisuals(root, "blitz", []);
-    expect(stock.visible).toBe(false);
-    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeTruthy();
-    expect(root.getObjectByName("UpgradeTire")).toBeTruthy();
+    expect(stock.visible).toBe(true);
+    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
 
     applyEquippedPartVisuals(root, "blitz", ["big_wheels"]);
+    expect(stock.visible).toBe(false);
     expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
   });
