@@ -167,10 +167,15 @@ describe("Equipped-part visuals (all cars)", () => {
     }
   });
 
-  it("places Käferkraft Großer Motor toward the rear (nose −X child space)", () => {
-    const anchors = CAR_PART_LAYOUTS.kaeferkraft.big_engine.anchors;
-    expect(anchors[0]!.x).toBeGreaterThan(0.5);
-    expect(anchors[0]!.yaw).toBeCloseTo(0);
+  it("places Käferkraft Großer Motor on the aft deck (look sheet panel 1)", () => {
+    const a = CAR_PART_LAYOUTS.kaeferkraft.big_engine.anchors[0]!;
+    expect(a.x).toBeGreaterThan(1.15);
+    expect(a.x).toBeLessThan(1.45);
+    expect(a.y).toBeGreaterThan(0.85);
+    expect(a.y).toBeLessThan(1.1);
+    expect(a.scale).toBeGreaterThan(1.2);
+    expect(a.scaleY ?? a.scale).toBeGreaterThan(1.35);
+    expect(a.yaw).toBeCloseTo(0);
     expect(CAR_PART_LAYOUTS.kaeferkraft.big_engine.preferGlb).toBe(true);
   });
 

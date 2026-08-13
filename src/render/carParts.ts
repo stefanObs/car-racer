@@ -290,8 +290,8 @@ function layoutKaeferkraft(): CarVisualLayout {
     // Große Räder scales baked StockWheel_* — no procedural anchor tires.
     wheelHints: [],
     big_engine: {
-      // Exhaust / block in the open rear bay (nose −X → rear +X).
-      anchors: [{ x: 1.05, y: 0.55, z: 0, yaw: 0, scale: 0.95, snap: false }],
+      // Look sheet panel 1: fat block on open rear deck; scoop clears top cage tubes.
+      anchors: [{ x: 1.28, y: 0.95, z: 0, yaw: 0, scale: 1.35, scaleY: 1.5, snap: false }],
       build: () => buildRearEngineBlock(),
       preferGlb: true,
     },
