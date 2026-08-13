@@ -1,8 +1,10 @@
 #!/usr/bin/env node
 /**
  * From pre-wing-free Blitz (has windshield + GT wing):
- *  - stock body = mesh without wing faces → public/models/cars/blitz.glb
+ *  - stock body = FULL coupe (keeps stock lip — cutting wing faces opened a hole)
  *  - Heckspoiler part = extracted wing → public/models/parts/blitz-rear_spoiler.glb
+ *
+ * Equipped spoiler sits on / covers the stock lip; unequipped car stays complete.
  *
  * Source: git 292c6a6 blitz.glb (or --from path).
  */
@@ -48,13 +50,15 @@ if (!srcArg) {
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
 
-/** GT wing on old bake: high rear deck geometry (struts + blade). */
+/** GT wing blade / endplates — keep the trunk deck on the stock body. */
 function isWingVertex(x, y, z) {
-  if (z > -1.22) return false;
-  // Strip all rear-deck wing / lip / strut above the trunk sheet
-  if (y < 0.72) return false;
-  if (y >= 0.78) return true;
-  if (Math.abs(x) < 0.62 && z < -1.38) return true;
+  if (z > -1.25) return false;
+  // Blade above the trunk sheet (deck stays ~0.72–0.86).
+  if (y >= 0.88) return true;
+  // Side endplates / strut feet near the rear corners.
+  if (y >= 0.78 && Math.abs(x) > 0.45 && z < -1.45) return true;
+  // Center lip slightly above the deck trailing edge.
+  if (y >= 0.84 && z < -1.45) return true;
   return false;
 }
 
@@ -151,6 +155,14 @@ async function splitSource() {
   }
   console.log("faces body", bodyFaces.length, "wing", wingFaces.length);
 
+  // Stock coupe keeps EVERY face (including the stock lip). Cutting the wing
+  // out of a watertight Tripo mesh left an open hole in the rear deck, so
+  // unequipping Heckspoiler looked like it deleted part of the car.
+  const allFaces = [];
+  for (let t = 0; t < triCount; t++) {
+    allFaces.push([idx.getScalar(t * 3), idx.getScalar(t * 3 + 1), idx.getScalar(t * 3 + 2)]);
+  }
+
   function buildSubDoc(faces, materialName) {
     const sub = new Document();
     const buffer = sub.createBuffer();
@@ -231,7 +243,7 @@ async function splitSource() {
     return sub;
   }
 
-  const bodyDoc = buildSubDoc(bodyFaces, "BodyPaint");
+  const bodyDoc = buildSubDoc(allFaces, "BodyPaint");
   await bodyDoc.transform(dedup(), weld(), prune());
   sitAndCenter(bodyDoc, { length: 3.7, materialName: "BodyPaint" });
   // Keep Tripo glass albedo (do not opaque-darken cabin windows).

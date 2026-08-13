@@ -66,4 +66,20 @@ describe("Blitz Tripo arcade bake", () => {
     expect(src).not.toContain("darkenGlassTexels");
     expect(src).not.toContain("Opaque dark cabin glass");
   });
+
+  it("keeps the full Blitz coupe (stock lip) so unequipping spoiler leaves no hole", async () => {
+    const src = readFileSync("scripts/extract-blitz-stock-and-spoiler.mjs", "utf8");
+    expect(src).toContain("allFaces");
+    expect(src).toContain("FULL coupe");
+
+    const path = resolve("public/models/cars/blitz.glb");
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
+    const pos = doc.getRoot().listMeshes()[0]!.listPrimitives()[0]!.getAttribute("POSITION")!;
+    let highRear = 0;
+    for (let i = 0; i < pos.getCount(); i++) {
+      const v = pos.getElement(i, []);
+      if (v[2]! < -1.22 && v[1]! >= 0.88) highRear++;
+    }
+    expect(highRear).toBeGreaterThan(40);
+  });
 });

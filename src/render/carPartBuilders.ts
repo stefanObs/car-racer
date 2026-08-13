@@ -248,21 +248,29 @@ export function buildReinforcedFrame(
     g.add(hoopTop);
     return g;
   }
-  // sport: sill + rear hoop
-  for (const x of [-0.72, 0.72]) {
-    const sill = box(0.14, 0.18, 1.6, GREY, "SillPlate");
-    sill.position.set(x, 0.2, -0.1);
+  // sport: bolted side skirts + compact rear hoop (fits Blitz roof ~y1.03).
+  for (const side of [-1, 1] as const) {
+    const sill = box(0.14, 0.12, 1.7, GREY, "SillPlate");
+    sill.position.set(side * 0.82, 0.12, -0.05);
     g.add(sill);
+    for (let i = 0; i < 3; i++) {
+      const gusset = box(0.07, 0.1, 0.12, GREY, "SillGusset");
+      gusset.position.set(side * 0.82, 0.18, 0.5 - i * 0.5);
+      g.add(gusset);
+    }
   }
-  const hoopL = cyl(0.04, 0.04, 0.85, CARBON, "HoopL", 6);
-  hoopL.position.set(-0.55, 0.7, -0.7);
-  g.add(hoopL);
-  const hoopR = cyl(0.04, 0.04, 0.85, CARBON, "HoopR", 6);
-  hoopR.position.set(0.55, 0.7, -0.7);
-  g.add(hoopR);
-  const hoopTop = cyl(0.04, 0.04, 1.15, CARBON, "HoopTop", 6);
+  for (const side of [-1, 1] as const) {
+    const upright = cyl(0.04, 0.04, 0.55, CARBON, "CageUpright", 6);
+    upright.position.set(side * 0.42, 0.72, -1.15);
+    g.add(upright);
+    const diag = cyl(0.035, 0.035, 0.48, CARBON, "CageDiag", 6);
+    diag.rotation.x = 0.7;
+    diag.position.set(side * 0.28, 0.58, -1.35);
+    g.add(diag);
+  }
+  const hoopTop = cyl(0.04, 0.04, 0.9, CARBON, "CageTop", 6);
   hoopTop.rotation.z = Math.PI / 2;
-  hoopTop.position.set(0, 1.1, -0.7);
+  hoopTop.position.set(0, 0.95, -1.15);
   g.add(hoopTop);
   return g;
 }
@@ -349,12 +357,11 @@ export function buildLightweightBody(style: LightweightStyle = "vents"): Group {
     }
     return g;
   }
-  // hood louvers (Blitz)
-  for (let row = 0; row < 3; row++) {
+  // hood louvers only (Blitz look sheet) — fender panels floated off the body.
+  for (let row = 0; row < 4; row++) {
     for (const side of [-1, 1] as const) {
-      const vent = box(0.16, 0.035, 0.28, CARBON, "HoodLouver");
-      vent.position.set(side * 0.28, 0.02, 0.15 - row * 0.22);
-      vent.rotation.y = side * 0.15;
+      const vent = box(0.18, 0.03, 0.22, CARBON, "HoodLouver");
+      vent.position.set(side * 0.26, 0.02, 0.22 - row * 0.18);
       g.add(vent);
     }
   }

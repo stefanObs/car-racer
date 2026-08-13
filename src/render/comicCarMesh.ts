@@ -42,7 +42,7 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
   const parts = car.equippedParts ?? [];
   const gltf = cloneGltfCar(id, car.paint, car.sticker || "none")!;
   const hull = gltf.children[0] ?? gltf;
-  applyEquippedPartVisuals(hull, id, parts);
+  applyEquippedPartVisuals(hull, id, parts, { paint: car.paint });
   root.add(gltf);
 
   const body = new Mesh();

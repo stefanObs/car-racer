@@ -48,7 +48,7 @@ describe("Equipped-part visuals (all cars)", () => {
   });
 
   it("mounts Blitz Großer Motor on the hood facing the nose", () => {
-    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.z).toBeGreaterThan(1.25);
+    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.z).toBeGreaterThan(1.15);
     expect(BLITZ_PART_PLACEMENT.big_engine[0]!.y).toBeLessThan(0.6);
     expect(BLITZ_PART_PLACEMENT.big_engine[0]!.yaw).toBeCloseTo(Math.PI);
     expect(BLITZ_PART_PLACEMENT.big_engine[0]!.preferY).toBeLessThan(0.7);
@@ -59,32 +59,46 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(anchors).toHaveLength(1);
     expect(anchors[0]!.z).toBeGreaterThan(0.7);
     expect(anchors[0]!.z).toBeLessThan(1.2);
-    expect(anchors[0]!.preferY).toBeLessThan(0.7);
+    expect(anchors[0]!.snap).toBe(false);
+    expect(CAR_PART_LAYOUTS.blitz.lightweight_body.preferGlb).toBe(false);
 
-    registerBlitzPartTemplate("lightweight_body", fakePartTemplate());
     const root = new Group();
-    const body = new Mesh(new BoxGeometry(1.6, 0.4, 2.4), new MeshBasicMaterial());
-    body.name = "BodyPaint";
-    body.position.set(0, 0.5, 0);
-    root.add(body);
-    const cab = new Mesh(new BoxGeometry(1.2, 0.6, 0.8), new MeshBasicMaterial());
-    cab.name = "Cab";
-    cab.position.set(0, 1.1, -0.2);
-    root.add(cab);
-
     applyEquippedPartVisuals(root, "blitz", ["lightweight_body"]);
     const vent = root.getObjectByName(blitzPartObjectName("lightweight_body"));
     expect(vent).toBeTruthy();
     expect(root.getObjectByName(blitzPartObjectName("lightweight_body", 1))).toBeUndefined();
-    expect(vent!.position.y).toBeGreaterThan(0.45);
-    expect(vent!.position.y).toBeLessThan(1.05);
+    expect(vent!.position.y).toBeCloseTo(0.52, 2);
+    expect(vent!.position.z).toBeGreaterThan(0.7);
   });
 
-  it("places Blitz Nitro bottles on the rear bumper (look-sheet height)", () => {
-    const a = BLITZ_PART_PLACEMENT.nitro_kit[0]!;
-    expect(a.z).toBeLessThan(-1.6);
-    expect(a.y).toBeGreaterThan(0.3);
-    expect(a.scale).toBeGreaterThan(1.2);
+  it("tints Blitz spike bumper from car paint", () => {
+    const g = new Group();
+    g.add(new Mesh(new BoxGeometry(0.3, 0.2, 0.4), new MeshBasicMaterial({ color: 0xffffff, name: "Spike" })));
+    registerCarPartTemplate("blitz", "spike_bumper", g);
+    const root = new Group();
+    applyEquippedPartVisuals(root, "blitz", ["spike_bumper"], { paint: "#e03131" });
+    const part = root.getObjectByName(blitzPartObjectName("spike_bumper"));
+    expect(part).toBeTruthy();
+    const mesh = part!.children[0] as Mesh;
+    expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0xe03131);
+  });
+
+  it("keeps Blitz nitro below the deck spoiler and smaller", () => {
+    const nitro = BLITZ_PART_PLACEMENT.nitro_kit[0]!;
+    const wing = BLITZ_PART_PLACEMENT.rear_spoiler[0]!;
+    expect(nitro.z).toBeLessThan(-1.6);
+    expect(nitro.scale).toBeLessThan(0.85);
+    expect(nitro.z).toBeLessThan(wing.z);
+    expect(nitro.y + 0.42 * nitro.scale).toBeLessThan(wing.y);
+  });
+
+  it("places Blitz reinforced frame as sport cage+skirts (not thin Tripo slab)", () => {
+    expect(CAR_PART_LAYOUTS.blitz.reinforced_frame.preferGlb).toBe(false);
+    const root = new Group();
+    applyEquippedPartVisuals(root, "blitz", ["reinforced_frame"]);
+    const frame = root.getObjectByName(blitzPartObjectName("reinforced_frame"));
+    expect(frame).toBeTruthy();
+    expect(frame!.children.length).toBeGreaterThan(3);
   });
 
   it("does not seal Blitz cabin with opaque glass planes", () => {
@@ -96,6 +110,7 @@ describe("Equipped-part visuals (all cars)", () => {
 
   it("mounts Heckspoiler on the rear deck from the original car wing", () => {
     expect(BLITZ_PART_PLACEMENT.rear_spoiler[0]!.z).toBeLessThan(-1.4);
+    expect(BLITZ_PART_PLACEMENT.rear_spoiler[0]!.y).toBeGreaterThan(0.75);
     expect(existsSync("public/models/parts/blitz-rear_spoiler.glb")).toBe(true);
     expect(existsSync("scripts/extract-blitz-stock-and-spoiler.mjs")).toBe(true);
   });

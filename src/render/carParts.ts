@@ -92,23 +92,23 @@ export type BlitzPartAnchor = PartAnchor;
  * Käferkraft child is still nose −X (parent yaw π/2) — see KAEFERKRAFT layout.
  */
 export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
-  // Extracted original wing — fixed pose, no surface snap.
-  rear_spoiler: [{ x: 0, y: 0.78, z: -1.55, yaw: 0, scale: 1.05, snap: false }],
+  // Extracted wing sits flush on the stock lip (body keeps the full coupe).
+  rear_spoiler: [{ x: 0, y: 0.8, z: -1.52, yaw: 0, scale: 1.0, snap: false }],
   // Hood scoop — prefer hood height so cabin roof does not win the surface sample.
   big_engine: [
     {
       x: 0,
       y: 0.52,
-      z: 1.28,
+      z: 1.22,
       yaw: Math.PI,
-      scale: 0.82,
+      scale: 0.9,
       sitGap: 0.01,
       preferY: 0.55,
       snapRadius: 0.35,
     },
   ],
-  // Look sheet: twin bottles on the rear bumper (not under the diffuser).
-  nitro_kit: [{ x: 0, y: 0.38, z: -1.85, yaw: 0, scale: 1.45, snap: false }],
+  // Twin bottles on the rear bumper — low/small so they clear the deck spoiler.
+  nitro_kit: [{ x: 0, y: 0.16, z: -1.95, yaw: 0, scale: 0.72, snap: false }],
   spike_bumper: [{ x: 0, y: 0.06, z: 1.7, yaw: 0, scale: 1.12, snap: false }],
   offroad_suspension: [
     { x: 0.7, y: 0.06, z: 1.05, yaw: 0, scale: 0.7, snap: false },
@@ -116,20 +116,10 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
     { x: 0.7, y: 0.06, z: -1.08, yaw: 0, scale: 0.7, snap: false },
     { x: -0.7, y: 0.06, z: -1.08, yaw: Math.PI, scale: 0.7, snap: false },
   ],
-  reinforced_frame: [{ x: 0, y: 0.22, z: -0.15, yaw: 0, scale: 1.05, snap: false }],
-  // Look sheet: hood louvers on the forward deck (single panel — not roof / side triples).
-  lightweight_body: [
-    {
-      x: 0,
-      y: 0.52,
-      z: 1.05,
-      yaw: 0,
-      scale: 2.65,
-      sitGap: 0.01,
-      preferY: 0.52,
-      snapRadius: 0.3,
-    },
-  ],
+  // Origin-centered sport cage+skirts (procedural) — not the thin Tripo slab.
+  reinforced_frame: [{ x: 0, y: 0, z: 0, yaw: 0, scale: 1, snap: false }],
+  // Hood louvers — fixed Y (no roof snap).
+  lightweight_body: [{ x: 0, y: 0.52, z: 1.0, yaw: 0, scale: 1.0, snap: false }],
 };
 
 type PartVisual = {
@@ -182,10 +172,12 @@ function layoutBlitz(): CarVisualLayout {
     reinforced_frame: {
       anchors: BLITZ_PART_PLACEMENT.reinforced_frame,
       build: () => buildReinforcedFrame("sport"),
+      preferGlb: false,
     },
     lightweight_body: {
       anchors: BLITZ_PART_PLACEMENT.lightweight_body,
       build: () => buildLightweightBody("vents"),
+      preferGlb: false,
     },
     nitro_kit: {
       anchors: BLITZ_PART_PLACEMENT.nitro_kit,
@@ -677,16 +669,26 @@ function clonePartTemplate(template: Group): Group {
   return clone;
 }
 
-function tintPartMeshes(root: Object3D, hex: number): void {
+function tintPartMeshes(root: Object3D, hex: number, solid = false): void {
   root.traverse((obj) => {
     const mesh = obj as Mesh;
     if (!mesh.isMesh) return;
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const m of mats) {
       const toon = m as MeshToonMaterial;
-      if (toon?.color) toon.color.setHex(hex);
+      if (!toon?.color) continue;
+      if (solid) {
+        toon.map = null;
+        toon.needsUpdate = true;
+      }
+      toon.color.setHex(hex);
     }
   });
+}
+
+function paintHexToNumber(paint: string): number | null {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(paint.trim());
+  return m ? Number.parseInt(m[1]!, 16) : null;
 }
 
 function applyRideLift(root: Object3D, lift: number): void {
@@ -849,11 +851,12 @@ function mountGlbOrProc(
   defaultSnap: boolean,
   preferGlb = true,
   tint?: number,
+  solidTint = false,
 ): void {
   const template = preferGlb ? templates.get(partTemplateKey(carId, id)) : undefined;
   const factory = (): Group => {
     const inst = template ? clonePartTemplate(template) : procedural();
-    if (tint != null) tintPartMeshes(inst, tint);
+    if (tint != null) tintPartMeshes(inst, tint, solidTint);
     return inst;
   };
   placeAnchored(group, bodyRoot, id, anchors, factory, defaultSnap);
@@ -869,6 +872,7 @@ export function applyEquippedPartVisuals(
   root: Object3D,
   carId: CarId,
   equippedParts: readonly PartId[],
+  opts?: { paint?: string },
 ): void {
   root.getObjectByName(CAR_PARTS_GROUP)?.removeFromParent();
   root.getObjectByName("blitzParts")?.removeFromParent();
@@ -878,6 +882,7 @@ export function applyEquippedPartVisuals(
   const layout = CAR_PART_LAYOUTS[carId];
   const equipped = new Set(equippedParts);
   applyRideLift(root, carStanceLift(carId, equippedParts));
+  const paintTint = opts?.paint ? paintHexToNumber(opts.paint) : undefined;
 
   const group = new Group();
   group.name = CAR_PARTS_GROUP;
@@ -897,6 +902,7 @@ export function applyEquippedPartVisuals(
     );
   }
   if (equipped.has("spike_bumper")) {
+    const spikeTint = layout.spike_bumper.tint ?? paintTint ?? undefined;
     mountGlbOrProc(
       group,
       root,
@@ -906,7 +912,9 @@ export function applyEquippedPartVisuals(
       layout.spike_bumper.build,
       false,
       layout.spike_bumper.preferGlb !== false,
-      layout.spike_bumper.tint,
+      spikeTint ?? undefined,
+      // Paint-driven spike: solid body color (drop grey albedo map).
+      layout.spike_bumper.tint == null && paintTint != null,
     );
   }
   if (equipped.has("reinforced_frame")) {
