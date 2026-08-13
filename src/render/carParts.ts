@@ -260,19 +260,8 @@ function layoutBison(): CarVisualLayout {
       preferGlb: true,
     },
     rear_spoiler: {
-      // Cab-roof wing (look sheet); yaw π so the thick face points toward the nose.
-      anchors: [
-        {
-          x: 0,
-          y: 1.35,
-          z: -0.28,
-          yaw: Math.PI,
-          scale: 1.0,
-          sitGap: 0.01,
-          snapRadius: 0.28,
-          preferY: 1.38,
-        },
-      ],
+      // Bed-mounted wing on the tailgate / aft bed rails — not the cab roof.
+      anchors: [{ x: 0, y: 0.92, z: -1.68, yaw: Math.PI, scale: 1.05, snap: false }],
       build: () => buildRearSpoiler("tall"),
       preferGlb: true,
     },

@@ -349,12 +349,14 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(CAR_PART_LAYOUTS.bison.lightweight_body.preferGlb).toBe(false);
   });
 
-  it("places Bison rear spoiler on the cab roof facing the nose", () => {
+  it("places Bison rear spoiler on the bed (aft rails), not the cab roof", () => {
     const wing = CAR_PART_LAYOUTS.bison.rear_spoiler.anchors[0]!;
-    expect(wing.z).toBeGreaterThan(-0.5);
-    expect(wing.z).toBeLessThan(-0.1);
+    expect(wing.snap).toBe(false);
+    expect(wing.z).toBeLessThan(-1.5);
+    expect(wing.z).toBeGreaterThan(-1.9);
+    expect(wing.y).toBeGreaterThan(0.8);
+    expect(wing.y).toBeLessThan(1.1);
     expect(wing.yaw).toBeCloseTo(Math.PI);
-    expect(wing.preferY).toBeGreaterThan(1.2);
   });
 
   it("places Bunker hood intake on the deck (not the roof) and roof spoiler aft", () => {
