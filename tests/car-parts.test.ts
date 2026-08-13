@@ -348,6 +348,34 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(wing.preferY).toBeGreaterThan(1.2);
   });
 
+  it("places Bunker hood intake on the deck (not the roof) and roof spoiler aft", () => {
+    const L = CAR_PART_LAYOUTS.bunker;
+    const eng = L.big_engine.anchors[0]!;
+    expect(eng.snap).toBe(false);
+    expect(eng.y).toBeLessThan(1.15);
+    expect(eng.y).toBeGreaterThan(0.9);
+    expect(eng.z).toBeGreaterThan(1.15);
+    expect(eng.yaw).toBeCloseTo(0);
+
+    const frame = L.reinforced_frame.anchors[0]!;
+    expect(frame.snap).toBe(false);
+    expect(frame.y).toBeGreaterThan(0.35);
+    expect(frame.y).toBeLessThan(0.6);
+
+    const light = L.lightweight_body;
+    expect(light.preferGlb).toBe(true);
+    expect(light.anchors[0]!.y).toBeGreaterThan(0.35);
+    expect(light.anchors[0]!.y).toBeLessThan(0.6);
+    expect(existsSync("public/models/parts/bunker-lightweight_body.glb")).toBe(true);
+
+    const wing = L.rear_spoiler.anchors[0]!;
+    expect(wing.snap).toBe(false);
+    expect(wing.z).toBeLessThan(-1.35);
+    expect(wing.z).toBeGreaterThan(-1.7);
+    expect(wing.y).toBeGreaterThan(1.6);
+    expect(wing.y).toBeLessThan(1.85);
+  });
+
   it("places Donner nitro on the driver side (−X)", () => {
     expect(CAR_PART_LAYOUTS.donnerbuechse.nitro_kit.anchors[0]!.x).toBeLessThan(-0.8);
     expect(CAR_PART_LAYOUTS.donnerbuechse.reinforced_frame.preferGlb).toBe(true);
@@ -448,5 +476,6 @@ describe("Equipped-part visuals (all cars)", () => {
     }
     expect(existsSync("public/models/parts/kaeferkraft-lightweight_body.glb")).toBe(true);
     expect(existsSync("public/models/parts/donnerbuechse-lightweight_body.glb")).toBe(true);
+    expect(existsSync("public/models/parts/bunker-lightweight_body.glb")).toBe(true);
   });
 });

@@ -421,7 +421,7 @@ function layoutDonner(): CarVisualLayout {
 }
 
 function layoutBunker(): CarVisualLayout {
-  // Mesh bounds ~ x±0.98 y≤2.12 z±1.93 — roof spoiler, side nitro, armor cage.
+  // Mesh bounds ~ x±0.98 y≤2.12 z±1.93 — nose +Z. Hood ~y0.95–1.1 at z1.2–1.5; roof ~y1.9–2.1.
   return {
     wheelLift: 0.1,
     suspensionLift: 0.12,
@@ -444,18 +444,8 @@ function layoutBunker(): CarVisualLayout {
       { x: -0.98, y: 0.58, z: -1.15, yaw: 0, scale: 1.3, snap: false },
     ],
     big_engine: {
-      anchors: [
-        {
-          x: 0,
-          y: 1.15,
-          z: 0.75,
-          yaw: Math.PI,
-          scale: 1.1,
-          sitGap: 0.02,
-          snapRadius: 0.35,
-          preferY: 1.15,
-        },
-      ],
+      // Look sheet: low hood scoop between grille and windshield (not roof turret).
+      anchors: [{ x: 0, y: 1.02, z: 1.32, yaw: 0, scale: 1.25, snap: false }],
       build: () => buildHoodScoop("block"),
       preferGlb: true,
     },
@@ -465,14 +455,16 @@ function layoutBunker(): CarVisualLayout {
       preferGlb: true,
     },
     reinforced_frame: {
-      anchors: [{ x: 0, y: 0.35, z: -0.05, yaw: 0, scale: 1.05, snap: false }],
+      // Look sheet rocker rails — long Z kit between arches; scale out past the sill.
+      anchors: [{ x: 0, y: 0.42, z: 0.05, yaw: 0, scale: 1.18, snap: false }],
       build: () => buildReinforcedFrame("armor"),
       preferGlb: true,
     },
     lightweight_body: {
-      anchors: [{ x: 0, y: 0.95, z: -0.15, yaw: 0, scale: 1.2, snap: false }],
+      // U-shaped door panels — slightly oversized so cutouts read on the flanks.
+      anchors: [{ x: 0, y: 0.48, z: 0.05, yaw: 0, scale: 1.08, snap: false }],
       build: () => buildLightweightBody("tri_cutouts"),
-      preferGlb: false,
+      preferGlb: true,
     },
     nitro_kit: {
       anchors: [{ x: -0.98, y: 1.05, z: -1.15, yaw: -Math.PI / 2, scale: 1.15, snap: false }],
@@ -480,18 +472,8 @@ function layoutBunker(): CarVisualLayout {
       preferGlb: true,
     },
     rear_spoiler: {
-      anchors: [
-        {
-          x: 0,
-          y: 1.85,
-          z: -1.7,
-          yaw: 0,
-          scale: 1.1,
-          sitGap: 0.02,
-          snapRadius: 0.35,
-          preferY: 1.85,
-        },
-      ],
+      // Compromise height: bar stays above roof, feet close to the rear deck.
+      anchors: [{ x: 0, y: 1.72, z: -1.5, yaw: 0, scale: 1.12, snap: false }],
       build: () => buildRearSpoiler("roof"),
       preferGlb: true,
     },
