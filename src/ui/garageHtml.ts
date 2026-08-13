@@ -44,6 +44,7 @@ export function renderGarageHtml(opts: {
   activeCar: CarId;
   ownedCars: CarId[];
   kit: CarKit;
+  muted?: boolean;
   previewCar?: CarId | null;
   previewPaint?: string | null;
   previewSticker?: StickerId | null;
@@ -233,6 +234,11 @@ export function renderGarageHtml(opts: {
     }
 
     <p class="help">Tastatur · Controller · Tablet · Dev F1/F2/F3</p>
-    <button data-nav data-act="menu" class="garage-help-link">Hilfe</button>
+    <div class="garage-footer-row">
+      <button data-nav data-act="toggle-mute" class="garage-mute" aria-pressed="${opts.muted ? "true" : "false"}">${
+        opts.muted ? "Ton aus" : "Ton an"
+      }</button>
+      <button data-nav data-act="menu" class="garage-help-link">Hilfe</button>
+    </div>
   `;
 }

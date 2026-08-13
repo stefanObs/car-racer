@@ -408,11 +408,11 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch** frei drehen, **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
-4. **Renn-HUD** — Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt  
+4. **Renn-HUD** — Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**  
 5. **Ergebnis** — Zielbanner/-linie; **~15 s 2D-Comic-Film** bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation**; dann Podium-Landung / CHF; weiter / Garage  
-6. **Hilfe** — Steuerungshinweise (optional); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse  
+6. **Hilfe** — Steuerungshinweise (optional); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**  
 
-Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
+**Audio (SFX):** Arcade-Effekte (Motor-Loop, Nitro, Mauer/Kontakt, Runde/Schild, K.O., Ziel, UI-Klicks) — **CC0**-Samples, Web Audio, Mute speichert lokal. Keine Pflicht-Musik im MVP.
 
 **Eingabe-UX:** alle Screens und die Garage müssen mit **Controller** (Fokus-Navigation) und **Tablet-Touch** vollständig bedienbar sein — nicht nur das Rennen.
 
@@ -508,8 +508,9 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 | Modi | Cup + **Freier Modus** + **Ad-hoc-generierte Strecken** |
 | Eingabe / Plattform | **Tastatur + Controller + Tablet (Touch)** — gleichwertig spielbar |
 | Tech (Empfehlung) | **TS + Vite + three.js + HTML-UI** übernommen; nur Free/OSS — siehe `TECH.md` |
+| Audio | **SFX** (CC0) via Web Audio; Mute; Motor/Nitro/Treffer/Runde/UI — Musik später optional |
 | Delivery | Jeder Schritt: Version → Commit auf `master` → Push; **keine Branches** |
 
 ---
 
-*Dokumentstand: Konzept v3.54 — Podest-2D-Filme (15 s) + enttäuschte Feld-Animation.*
+*Dokumentstand: Konzept v3.55 — Arcade-SFX (CC0) + Mute.*

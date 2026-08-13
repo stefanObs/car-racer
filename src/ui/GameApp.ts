@@ -1,4 +1,6 @@
 import { type CarId } from "../data/cars";
+import { gameAudio } from "../audio/GameAudio";
+import { playRaceAudioEvent } from "../audio/raceEvents";
 import { APP_CREDIT, APP_VERSION } from "../core/version";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
 import { type PartId } from "../data/parts";
@@ -173,23 +175,31 @@ export class GameApp {
                 drift: actions.drift,
               },
         );
+        for (const ev of this.race.consumeAudioEvents()) {
+          playRaceAudioEvent(gameAudio, ev);
+        }
+        const player = this.race.player();
+        gameAudio.syncEngine(!player.finished && player.koTimer <= 0, player.speed, player.nitroHeld);
         this.renderer.sync(this.race);
         this.updateHud();
         if (this.race.done) {
+          gameAudio.stopEngine();
           this.finishCelebrate = createFinishCelebrate(this.race.result().place, now);
           this.updateFinishOverlay();
         }
       }
-    } else {
-      if (this.screen === "garage") this.syncGarageLook();
-      this.renderer.renderIdle();
-    }
+      } else {
+        if (this.screen === "garage") this.syncGarageLook();
+        gameAudio.stopEngine();
+        this.renderer.renderIdle();
+      }
   }
 
   private moveFocus(dir: UiNavDir): void {
     const buttons = this.navButtons();
     if (buttons.length === 0) return;
     this.applyFocus(nextFocusIndex(buttons, this.focusIndex, dir));
+    gameAudio.playUiNav();
   }
 
   private onMenuKeyDown(e: KeyboardEvent): void {
@@ -320,7 +330,7 @@ export class GameApp {
       playerSticker: kit.sticker,
     });
     const modelIds = [...new Set(this.race.cars.map((c) => c.modelId))];
-    for (const id of modelIds) void ensureCarPartTemplates(id);
+    for (const id of modelIds) void ensureCarPartTemplates(id as CarId);
     this.renderer.buildTrack(this.race);
     this.screen = "race";
     this.renderUi();
@@ -432,6 +442,7 @@ export class GameApp {
         <p class="credit">${APP_CREDIT}</p>
         <p class="help">Tastatur: WASD / Pfeile, Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LB Drift, A/RB Nitro · Tablet: Touch</p>
         <div class="stack">
+          <button data-nav data-act="toggle-mute">${gameAudio.muted ? "Ton aus" : "Ton an"}</button>
           <button data-nav data-act="garage">Zur Garage</button>
         </div>
       `;
@@ -497,6 +508,7 @@ export class GameApp {
         activeCar: this.save.activeCar,
         ownedCars: this.save.ownedCars,
         kit: activeKit(this.save),
+        muted: gameAudio.muted,
         previewCar: this.previewCar,
         previewPaint: this.previewPaint,
         previewSticker: this.previewSticker,
@@ -506,6 +518,9 @@ export class GameApp {
     } else if (this.screen === "race") {
       body = `
         <div id="race-hud" class="race-hud"></div>
+        <button type="button" data-act="toggle-mute" class="race-mute" aria-pressed="${
+          gameAudio.muted ? "true" : "false"
+        }">${gameAudio.muted ? "Ton aus" : "Ton an"}</button>
         <div class="touch-controls" aria-label="Touch-Steuerung">
           <button type="button" data-touch="left">◀</button>
           <button type="button" data-touch="brake">Bremse</button>
@@ -598,6 +613,28 @@ export class GameApp {
 
   private onAction(btn: HTMLButtonElement): void {
     const act = btn.dataset.act;
+    if (act === "toggle-mute") {
+      gameAudio.toggleMute();
+      gameAudio.playUiClick();
+      if (this.screen === "race") {
+        const muteBtn = this.uiRoot.querySelector<HTMLButtonElement>("[data-act='toggle-mute']");
+        if (muteBtn) {
+          muteBtn.textContent = gameAudio.muted ? "Ton aus" : "Ton an";
+          muteBtn.setAttribute("aria-pressed", gameAudio.muted ? "true" : "false");
+        }
+        return;
+      }
+      this.renderUi();
+      return;
+    }
+
+    const isBuy = act === "buy-car" || act === "buy-paint" || act === "buy-sticker" || act === "buy-part";
+    const isConfirm =
+      act === "race" || act === "adhoc-start" || act === "cup" || act === "free" || act === "adhoc";
+    if (isBuy) gameAudio.playUiBuy();
+    else if (isConfirm) gameAudio.playUiConfirm();
+    else gameAudio.playUiClick();
+
     if (act === "menu") this.screen = "menu";
     if (act === "cup") this.screen = "cup";
     if (act === "free") this.screen = "free";

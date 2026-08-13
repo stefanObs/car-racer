@@ -1,3 +1,4 @@
+import type { RaceAudioEvent } from "../audio/raceEvents";
 import { CARS, type CarId } from "../data/cars";
 import { mergeStats, type PartId } from "../data/parts";
 import { buildTrackFromLevel, sampleCenterline } from "../track/buildTrack";
@@ -36,11 +37,16 @@ export class RaceSession {
   private prevProgress = new Map<string, number>();
   private prevPlace = new Map<string, number>();
   private styleEvents: StyleEvent[] = [];
+  private audioEvents: RaceAudioEvent[] = [];
   private readonly config: RaceConfig;
   private elapsed = 0;
   private wrongWayHold = 0;
   private prevPlayerDrift = 0;
   private driftStyleCooldown = 0;
+  private prevPlayerNitro = false;
+  private prevPlayerFinished = false;
+  private prevWrongWayWarn = false;
+  private styleAudioCooldown = 0;
 
   constructor(config: RaceConfig) {
     this.config = config;
@@ -135,9 +141,21 @@ export class RaceSession {
     return events;
   }
 
+  /** Drain race SFX cues for the audio bus. */
+  consumeAudioEvents(): RaceAudioEvent[] {
+    const events = this.audioEvents;
+    this.audioEvents = [];
+    return events;
+  }
+
+  private pushAudio(ev: RaceAudioEvent): void {
+    this.audioEvents.push(ev);
+  }
+
   step(dt: number, playerInput: DriverInput): void {
     if (this.done) return;
     this.elapsed += dt;
+    if (this.styleAudioCooldown > 0) this.styleAudioCooldown -= dt;
 
     // Places by progress
     const ordered = [...this.cars].sort((a, b) => b.progress - a.progress);
@@ -149,7 +167,14 @@ export class RaceSession {
       if (car.finished) continue;
       const input = car.isPlayer ? playerInput : this.aiInput(car);
       const catchUp = catchUpMultipliers(car.place, this.cars.length);
-      stepCar(car, input, this.track, dt, catchUp, this.level.obstacles);
+      const prevKo = car.koTimer > 0;
+      const stepped = stepCar(car, input, this.track, dt, catchUp, this.level.obstacles);
+      if (car.isPlayer && stepped.hitWall) {
+        this.pushAudio({ kind: "wall", hard: car.speed > 14 });
+      }
+      if (car.isPlayer && !prevKo && car.koTimer > 0) {
+        this.pushAudio({ kind: "ko" });
+      }
 
       // Lap / finish via crossing start line
       const prevAlong = this.prevProgress.get(car.id) ?? car.distanceAlong;
@@ -158,9 +183,15 @@ export class RaceSession {
         car.lap += 1;
         if (car.lap <= this.level.laps) {
           grantLapShield(car);
-          if (car.isPlayer) this.addStyle(15, "Schild!");
+          if (car.isPlayer) {
+            this.addStyle(15, "Schild!");
+            this.pushAudio({ kind: "shield" });
+          }
         }
-        if (car.isPlayer) this.addStyle(20, "Runde!");
+        if (car.isPlayer) {
+          this.addStyle(20, "Runde!");
+          this.pushAudio({ kind: "lap" });
+        }
       }
       car.progress = along + (car.lap - 1) * this.track.totalLength;
       if (car.lap > this.level.laps && !car.finished) {
@@ -223,9 +254,31 @@ export class RaceSession {
     if (this.elapsed > 1.5) {
       for (let i = 0; i < this.cars.length; i++) {
         for (let j = i + 1; j < this.cars.length; j++) {
-          resolveContact(this.cars[i]!, this.cars[j]!);
+          const a = this.cars[i]!;
+          const b = this.cars[j]!;
+          if (resolveContact(a, b) && (a.isPlayer || b.isPlayer)) {
+            this.pushAudio({ kind: "contact" });
+          }
         }
       }
+    }
+
+    // Rising-edge player cues (nitro / finish / wrong-way)
+    const boosting = player.nitroHeld;
+    if (boosting && !this.prevPlayerNitro) this.pushAudio({ kind: "nitro" });
+    this.prevPlayerNitro = boosting;
+
+    if (player.finished && !this.prevPlayerFinished) this.pushAudio({ kind: "finish" });
+    this.prevPlayerFinished = player.finished;
+
+    const wrongWarn = shouldShowWrongWayWarning(this.wrongWayHold);
+    if (wrongWarn && !this.prevWrongWayWarn) this.pushAudio({ kind: "wrongWay" });
+    this.prevWrongWayWarn = wrongWarn;
+
+    // Soft style chime when HUD pops gain (throttled)
+    if (this.styleEvents.length > 0 && this.styleAudioCooldown <= 0) {
+      this.pushAudio({ kind: "style" });
+      this.styleAudioCooldown = 0.35;
     }
 
     if (this.cars.every((c) => c.finished) || (this.cars.find((c) => c.isPlayer)?.finished && this.finishedCount >= 1)) {
@@ -276,6 +329,7 @@ export class RaceSession {
     }
     this.finishedCount = n;
     this.done = true;
+    this.pushAudio({ kind: "finish" });
   }
 
   player(): CarState {

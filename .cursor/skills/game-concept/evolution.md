@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.55 Arcade SFX (CC0) + mute
+- Trigger: user — add sound effects; search proper free SFX
+- Decision: ship curated **CC0** samples (Kenney UI + OGA engine loops + 100 CC0 / breaking hits); Web Audio bus (`src/audio/`); race emits player-centric cues; Mute in Garage/Hilfe/HUD (localStorage)
+- CONCEPT §9 / summary → v3.55
+
 ### 2026-08-13 — v3.54 Podium 2D movies + field disappointment
 - Trigger: user — 15s 2D movie for podium ranks (distinct 1/2/3) + disappointed driver when not top 3
 - Decision: Asphalt-Comic CSS/SVG reels — gold/silver/bronze ~15s; field ~5s sad driver; finish overlay hosts the movie before results

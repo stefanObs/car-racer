@@ -733,16 +733,17 @@ export function passableObstacleMods(
 /**
  * Car–car contact: mass + relative speed decide shove (CONCEPT §4.5).
  * Light cars get pushed farther; heavy cars hold the line.
+ * @returns true when a hard closing impulse was applied (for SFX).
  */
-export function resolveContact(a: CarState, b: CarState): void {
-  if (a.finished || b.finished || a.koTimer > 0 || b.koTimer > 0) return;
-  if (isAirborne(a) || isAirborne(b)) return;
+export function resolveContact(a: CarState, b: CarState): boolean {
+  if (a.finished || b.finished || a.koTimer > 0 || b.koTimer > 0) return false;
+  if (isAirborne(a) || isAirborne(b)) return false;
 
   const dx = b.x - a.x;
   const dz = b.z - a.z;
   const dist = Math.hypot(dx, dz);
   const minDist = collisionRadiusFor(a.modelId) + collisionRadiusFor(b.modelId);
-  if (dist >= minDist || dist < 1e-4) return;
+  if (dist >= minDist || dist < 1e-4) return false;
 
   const nx = dx / dist;
   const nz = dz / dist;
@@ -758,7 +759,7 @@ export function resolveContact(a: CarState, b: CarState): void {
   const closing = relVx * nx + relVz * nz;
   if (closing <= 0.4) {
     // Separating or soft jostle — separation only
-    return;
+    return false;
   }
 
   const restitution = 0.35;
@@ -777,4 +778,5 @@ export function resolveContact(a: CarState, b: CarState): void {
   const hit = 0.01 + closing * 0.0035 + (a.stats.ramBonus + b.stats.ramBonus) * 0.01;
   damageCar(a, (hit * b.stats.mass) / totalMass);
   damageCar(b, (hit * a.stats.mass) / totalMass);
+  return true;
 }

@@ -7,6 +7,7 @@ import { preloadGarageProps, preloadGarageShellMeshes } from "./render/loadGarag
 import { preloadGarageShellTextures } from "./render/garageTextures";
 import { preloadPanoramaTextures } from "./render/panoramaSurround";
 import { preloadFlameSticker, preloadFlameStickerGlb } from "./render/carStickers";
+import { gameAudio } from "./audio/GameAudio";
 import { GameApp } from "./ui/GameApp";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
@@ -31,6 +32,9 @@ async function boot(): Promise<void> {
     window.matchMedia("(pointer: coarse)").matches ||
     window.matchMedia("(hover: none)").matches;
   if (touchCapable) document.documentElement.dataset.touch = "1";
+
+  gameAudio.installGestureUnlock();
+  void gameAudio.preload();
 
   await preloadBuggyNoseTextures();
   await Promise.all([preloadFlameSticker(), preloadFlameStickerGlb()]);
