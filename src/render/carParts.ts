@@ -7,6 +7,9 @@
  */
 import {
   Box3,
+  BufferAttribute,
+  BufferGeometry,
+  Color,
   Group,
   Matrix4,
   Mesh,
@@ -172,7 +175,7 @@ function layoutBlitz(): CarVisualLayout {
     spike_bumper: {
       anchors: BLITZ_PART_PLACEMENT.spike_bumper,
       build: () => buildSpikeBumper(6, 1.2),
-      // Keep Tripo Spike materials (dark bar + chrome) — never paint-tint.
+      // Bar receives body paint at mount; chrome spikes stay un-tinted.
     },
     reinforced_frame: {
       anchors: BLITZ_PART_PLACEMENT.reinforced_frame,
@@ -635,6 +638,133 @@ function tintPartMeshes(root: Object3D, hex: number, solid = false): void {
   });
 }
 
+/** Forward tip of baked Blitz spike cones (local +Z after bake). */
+const BLITZ_SPIKE_TIP_Z = 0.15;
+
+type SpikeTri = { i0: number; i1: number; i2: number };
+
+/**
+ * Split a single Tripo spike bumper mesh into `SpikeBar` (paint) + `Spike` (chrome).
+ * Procedural kits already use those names and are left alone.
+ */
+export function separateSpikeBumperBarAndSpikes(root: Object3D): void {
+  if (root.userData.spikeBarSplit) return;
+  root.userData.spikeBarSplit = true;
+
+  const meshes: Mesh[] = [];
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (mesh.name === "SpikeBar" || mesh.name === "Spike") return;
+    meshes.push(mesh);
+  });
+
+  for (const mesh of meshes) {
+    splitSpikeMeshIntoBarAndTips(mesh);
+  }
+}
+
+function splitSpikeMeshIntoBarAndTips(mesh: Mesh): void {
+  const geo = mesh.geometry;
+  const pos = geo.attributes.position;
+  if (!pos || pos.count < 6) return;
+
+  const index = geo.index;
+  const triCount = index ? index.count / 3 : Math.floor(pos.count / 3);
+  const barTris: SpikeTri[] = [];
+  const tipTris: SpikeTri[] = [];
+
+  for (let t = 0; t < triCount; t++) {
+    let i0: number;
+    let i1: number;
+    let i2: number;
+    if (index) {
+      i0 = index.getX(t * 3);
+      i1 = index.getX(t * 3 + 1);
+      i2 = index.getX(t * 3 + 2);
+    } else {
+      i0 = t * 3;
+      i1 = t * 3 + 1;
+      i2 = t * 3 + 2;
+    }
+    const z0 = pos.getZ(i0);
+    const z1 = pos.getZ(i1);
+    const z2 = pos.getZ(i2);
+    const tri = { i0, i1, i2 };
+    if (Math.max(z0, z1, z2) > BLITZ_SPIKE_TIP_Z) tipTris.push(tri);
+    else barTris.push(tri);
+  }
+
+  if (barTris.length < 1 || tipTris.length < 1) return;
+
+  const parent = mesh.parent;
+  if (!parent) return;
+  const srcMat = mesh.material;
+  const cloneMat = () =>
+    Array.isArray(srcMat) ? srcMat.map((m) => m.clone()) : srcMat.clone();
+
+  const bar = new Mesh(geometryFromSpikeTris(geo, barTris), cloneMat());
+  bar.name = "SpikeBar";
+  bar.position.copy(mesh.position);
+  bar.quaternion.copy(mesh.quaternion);
+  bar.scale.copy(mesh.scale);
+  bar.castShadow = mesh.castShadow;
+  bar.receiveShadow = mesh.receiveShadow;
+
+  const tips = new Mesh(geometryFromSpikeTris(geo, tipTris), cloneMat());
+  tips.name = "Spike";
+  tips.position.copy(mesh.position);
+  tips.quaternion.copy(mesh.quaternion);
+  tips.scale.copy(mesh.scale);
+  tips.castShadow = mesh.castShadow;
+  tips.receiveShadow = mesh.receiveShadow;
+
+  parent.add(bar);
+  parent.add(tips);
+  parent.remove(mesh);
+  mesh.geometry.dispose();
+}
+
+function geometryFromSpikeTris(src: BufferGeometry, tris: SpikeTri[]): BufferGeometry {
+  const out = new BufferGeometry();
+  const pos = src.attributes.position;
+  const norm = src.attributes.normal;
+  const uv = src.attributes.uv;
+  const positions: number[] = [];
+  const normals: number[] = [];
+  const uvs: number[] = [];
+
+  const pushVert = (i: number) => {
+    positions.push(pos.getX(i), pos.getY(i), pos.getZ(i));
+    if (norm) normals.push(norm.getX(i), norm.getY(i), norm.getZ(i));
+    if (uv) uvs.push(uv.getX(i), uv.getY(i));
+  };
+
+  for (const t of tris) {
+    pushVert(t.i0);
+    pushVert(t.i1);
+    pushVert(t.i2);
+  }
+
+  out.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
+  if (normals.length) out.setAttribute("normal", new BufferAttribute(new Float32Array(normals), 3));
+  if (uvs.length) out.setAttribute("uv", new BufferAttribute(new Float32Array(uvs), 2));
+  out.computeVertexNormals();
+  out.computeBoundingBox();
+  out.computeBoundingSphere();
+  return out;
+}
+
+/** Paint only the bumper bar; leave chrome spike tips alone. */
+export function paintSpikeBumperBar(root: Object3D, paintCss: string): void {
+  separateSpikeBumperBarAndSpikes(root);
+  const hex = new Color(paintCss).getHex();
+  root.traverse((obj) => {
+    if (obj.name !== "SpikeBar") return;
+    tintPartMeshes(obj, hex, true);
+  });
+}
+
 function applyRideLift(root: Object3D, lift: number): void {
   const baseY =
     typeof root.userData.carPartsSitY === "number"
@@ -881,21 +1011,25 @@ export function applyEquippedPartVisuals(
     );
   }
   if (equipped.has("spike_bumper")) {
-    // Only layout-defined tints (Bison olive, etc.) — never fall back to body paint
-    // (that painted Blitz spikes solid red and killed the look-sheet chrome).
+    // Layout tints (Bison olive, etc.) still paint the whole kit.
+    // Blitz: body paint on the bar only — chrome tips stay.
     const spikeTint = layout.spike_bumper.tint;
-    mountGlbOrProc(
+    const blitzPaint = carId === "blitz" ? opts?.paint : undefined;
+    const template = layout.spike_bumper.preferGlb !== false
+      ? templates.get(partTemplateKey(carId, "spike_bumper"))
+      : undefined;
+    placeAnchored(
       group,
       root,
-      carId,
       "spike_bumper",
       layout.spike_bumper.anchors,
-      layout.spike_bumper.build,
+      () => {
+        const inst = template ? clonePartTemplate(template) : layout.spike_bumper.build();
+        if (blitzPaint) paintSpikeBumperBar(inst, blitzPaint);
+        else if (spikeTint != null) tintPartMeshes(inst, spikeTint, true);
+        return inst;
+      },
       false,
-      layout.spike_bumper.preferGlb !== false,
-      spikeTint ?? undefined,
-      // Solid tint — drop Tripo albedo so charcoal reads clean (Bison/Donner/Bunker).
-      spikeTint != null,
     );
   }
   if (equipped.has("reinforced_frame")) {

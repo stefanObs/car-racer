@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial } from "three";
+import { BoxGeometry, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMaterial } from "three";
 import { afterEach, describe, expect, it } from "vitest";
 import { CAR_IDS, CARS, type CarId } from "../src/data/cars";
 import { mergeStats, type PartId } from "../src/data/parts";
@@ -73,16 +73,32 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(vent!.position.z).toBeGreaterThan(0.7);
   });
 
-  it("keeps Blitz spike bumper Tripo/chrome materials (no body-paint tint)", () => {
+  it("paints Blitz spike bumper bar with body color and keeps chrome tips", () => {
     const g = new Group();
-    g.add(new Mesh(new BoxGeometry(0.3, 0.2, 0.4), new MeshBasicMaterial({ color: 0xffffff, name: "Spike" })));
+    // Fake Tripo single-mesh bumper spanning bar (−Z) and tips (+Z).
+    const geo = new BufferGeometry();
+    const positions = new Float32Array([
+      // bar triangle (z <= 0)
+      -0.2, 0.1, -0.1, 0.2, 0.1, -0.1, 0, 0.2, -0.05,
+      // tip triangle (z > 0.15)
+      -0.05, 0.1, 0.16, 0.05, 0.1, 0.16, 0, 0.15, 0.22,
+    ]);
+    geo.setAttribute("position", new BufferAttribute(positions, 3));
+    geo.computeVertexNormals();
+    const mat = new MeshBasicMaterial({ color: 0xffffff, name: "Spike" });
+    g.add(new Mesh(geo, mat));
     registerCarPartTemplate("blitz", "spike_bumper", g);
+
     const root = new Group();
     applyEquippedPartVisuals(root, "blitz", ["spike_bumper"], { paint: "#e03131" });
     const part = root.getObjectByName(blitzPartObjectName("spike_bumper"));
     expect(part).toBeTruthy();
-    const mesh = part!.children[0] as Mesh;
-    expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0xffffff);
+    const bar = part!.getObjectByName("SpikeBar") as Mesh;
+    const tip = part!.getObjectByName("Spike") as Mesh;
+    expect(bar).toBeTruthy();
+    expect(tip).toBeTruthy();
+    expect((bar.material as MeshBasicMaterial).color.getHex()).toBe(0xe03131);
+    expect((tip.material as MeshBasicMaterial).color.getHex()).toBe(0xffffff);
     expect(CAR_PART_LAYOUTS.blitz.spike_bumper.tint).toBeUndefined();
     expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeGreaterThan(1.75);
     expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeLessThan(2.05);
