@@ -219,12 +219,12 @@ function layoutBison(): CarVisualLayout {
       { x: -0.85, y: 0.48, z: -1.2, yaw: 0, scale: 1, snap: false },
     ],
     big_engine: {
-      // Mid-hood scoop (look sheet) — deck ~y1.03; keep scale modest so it does not read as cab roof.
+      // Mid-hood scoop (look sheet panel 1) — hood deck z~0.63…1.71, mid~1.17; clear gaps to grille + windshield.
       anchors: [
         {
           x: 0,
           y: 1.03,
-          z: 0.92,
+          z: 1.17,
           yaw: Math.PI,
           scale: 0.72,
           sitGap: 0.01,

@@ -342,8 +342,9 @@ describe("Equipped-part visuals (all cars)", () => {
   it("places Bison scoop on mid-hood and nitro on the bed", () => {
     const scoop = CAR_PART_LAYOUTS.bison.big_engine.anchors[0]!;
     const nitroZ = CAR_PART_LAYOUTS.bison.nitro_kit.anchors[0]!.z;
-    expect(scoop.z).toBeGreaterThan(0.8);
-    expect(scoop.z).toBeLessThan(1.15);
+    // Hood mid ~1.17 (not windshield ~0.92) — look sheet panel 1 balanced gaps.
+    expect(scoop.z).toBeGreaterThan(1.1);
+    expect(scoop.z).toBeLessThan(1.25);
     expect(scoop.scale).toBeLessThan(0.85);
     expect(scoop.preferY).toBeLessThan(1.15);
     expect(nitroZ).toBeLessThan(-0.6);
