@@ -78,6 +78,8 @@ export type PartAnchor = {
   z: number;
   yaw: number;
   scale: number;
+  /** Optional non-uniform Y scale (default = `scale`). */
+  scaleY?: number;
   /**
    * Sit part bottom on body surface at (x,z). Default depends on mount call.
    * Prefer false for bumpers / frames / wheel-well springs.
@@ -238,8 +240,18 @@ function layoutBison(): CarVisualLayout {
       preferGlb: true,
     },
     reinforced_frame: {
-      // Bed roll bar behind cab (Tripo cage), mounts on bed rails.
-      anchors: [{ x: 0, y: 0.62, z: -0.58, yaw: 0, scale: 1.0, snap: false }],
+      // Bed roll bar: plates on Ladefläche rails, arch against cabin rear; wider than tall.
+      anchors: [
+        {
+          x: 0,
+          y: 0.72,
+          z: -0.77,
+          yaw: Math.PI,
+          scale: 1.2,
+          scaleY: 0.72,
+          snap: false,
+        },
+      ],
       build: () => buildReinforcedFrame("pickup"),
       preferGlb: true,
     },
@@ -886,7 +898,8 @@ function placeAnchored(
     inst.name = blitzPartObjectName(partId, copy);
     markPartUserData(inst, partId);
     inst.rotation.y = anchor.yaw;
-    inst.scale.setScalar(anchor.scale);
+    const sy = anchor.scaleY ?? anchor.scale;
+    inst.scale.set(anchor.scale, sy, anchor.scale);
     inst.position.set(anchor.x, 0, anchor.z);
     group.add(inst);
 

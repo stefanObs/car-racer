@@ -367,8 +367,13 @@ describe("Equipped-part visuals (all cars)", () => {
 
   it("places Bison reinforced frame in the bed behind the cab", () => {
     const frame = CAR_PART_LAYOUTS.bison.reinforced_frame.anchors[0]!;
-    expect(frame.z).toBeLessThan(-0.45);
-    expect(frame.y).toBeGreaterThan(0.5);
+    expect(frame.z).toBeLessThan(-0.65);
+    expect(frame.z).toBeGreaterThan(-0.9);
+    expect(frame.y).toBeGreaterThan(0.65);
+    expect(frame.y).toBeLessThan(0.85);
+    expect(frame.scale).toBeGreaterThan(1.05);
+    expect(frame.scaleY ?? frame.scale).toBeLessThan(frame.scale);
+    expect(frame.yaw).toBeCloseTo(Math.PI);
   });
 
   it("places Bison lightweight vents on the hood deck", () => {
