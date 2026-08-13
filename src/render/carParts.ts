@@ -236,11 +236,10 @@ function layoutBison(): CarVisualLayout {
       preferGlb: true,
     },
     spike_bumper: {
-      // Flush-ish to the grille; olive-charcoal tint vs washed grey map.
-      anchors: [{ x: 0, y: 0.22, z: 1.32, yaw: 0, scale: 0.68, snap: false }],
+      // Tripo spiked bar (`bison-spike_bumper.glb`) on the stock bumper face — tips outside the nose.
+      anchors: [{ x: 0, y: 0.24, z: 2.28, yaw: 0, scale: 0.95, snap: false }],
       build: () => buildSpikeBumper(5, 1.15),
       preferGlb: true,
-      tint: 0x5c6a4a,
     },
     reinforced_frame: {
       // Bed roll bar behind cab (Tripo cage), mounts on bed rails.

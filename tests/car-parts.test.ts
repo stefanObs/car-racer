@@ -351,11 +351,15 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(nitroZ).toBeGreaterThan(-1.3);
   });
 
-  it("tucks Bison spike bumper and tints it olive-charcoal", () => {
+  it("places Bison Tripo spike on the front bumper (outside the nose)", () => {
     const spike = CAR_PART_LAYOUTS.bison.spike_bumper;
-    expect(spike.anchors[0]!.z).toBeLessThan(1.4);
-    expect(spike.anchors[0]!.scale).toBeLessThan(0.75);
-    expect(spike.tint).toBe(0x5c6a4a);
+    expect(spike.preferGlb).toBe(true);
+    expect(spike.tint).toBeUndefined();
+    expect(spike.anchors[0]!.z).toBeGreaterThan(2.1);
+    expect(spike.anchors[0]!.z).toBeLessThan(2.45);
+    expect(spike.anchors[0]!.scale).toBeGreaterThan(0.85);
+    expect(spike.anchors[0]!.y).toBeGreaterThan(0.15);
+    expect(spike.anchors[0]!.y).toBeLessThan(0.35);
   });
 
   it("places Bison reinforced frame in the bed behind the cab", () => {
@@ -464,7 +468,7 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(text).toContain("BodyPaint");
   });
 
-  it("applies Bison spike bumper tint on mount", () => {
+  it("mounts Bison spike from Tripo template without olive wash", () => {
     const g = new Group();
     g.add(new Mesh(new BoxGeometry(0.3, 0.2, 0.4), new MeshBasicMaterial({ color: 0xffffff, name: "Spike" })));
     registerCarPartTemplate("bison", "spike_bumper", g);
@@ -472,8 +476,9 @@ describe("Equipped-part visuals (all cars)", () => {
     applyEquippedPartVisuals(root, "bison", ["spike_bumper"]);
     const part = root.getObjectByName(blitzPartObjectName("spike_bumper"));
     expect(part).toBeTruthy();
+    expect(part!.position.z).toBeGreaterThan(2.1);
     const mesh = part!.children[0] as Mesh;
-    expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0x5c6a4a);
+    expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0xffffff);
   });
 
   it("snaps hood scoop onto body surface Y near preferY (not roof)", () => {
