@@ -14,6 +14,16 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.54 Podium 2D movies + field disappointment
+- Trigger: user — 15s 2D movie for podium ranks (distinct 1/2/3) + disappointed driver when not top 3
+- Decision: Asphalt-Comic CSS/SVG reels — gold/silver/bronze ~15s; field ~5s sad driver; finish overlay hosts the movie before results
+- CONCEPT §9 → v3.54
+
+### 2026-08-13 — v3.53 Player-visible AI credit
+- Trigger: user — common in-game credit that Crash Circuit was AI-created under human direction
+- Decision: short German line „Mit KI erstellt · menschliche Anleitung“ next to version on Hilfe and garage wallet; not a manifesto
+- CONCEPT §9 Hilfe → v3.53
+
 ### 2026-08-13 — v3.52 Five laps + start-line lap shield
 - Trigger: user — make races 5 laps; lap shield when going through start; Tripo mesh
 - Decision: all modes default **5 Runden**; crossing S/F grants ~2s damage immunity + Tripo comic shield FX + „Schild!“

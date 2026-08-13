@@ -1,5 +1,13 @@
 /** Finish-crossing celebration timing and UI copy (German, ages 10+). */
 
+import {
+  podiumMovieDuration,
+  podiumMovieHtml,
+  podiumMovieKind,
+  podiumMovieSub,
+  podiumMovieTitle,
+} from "./podiumMovie";
+
 export type FinishCelebrate = {
   /** Elapsed seconds (derived from wall clock). */
   t: number;
@@ -12,9 +20,9 @@ export function isPodiumPlace(place: number): boolean {
   return place >= 1 && place <= 3;
 }
 
-/** Podium finishes get a longer comic burst; mid/back pack a shorter “im Ziel”. */
+/** Podium: ~15s 2D movie; field: short disappointed beat. */
 export function finishCelebrateDuration(place: number): number {
-  return isPodiumPlace(place) ? 2.7 : 1.55;
+  return podiumMovieDuration(place);
 }
 
 export function createFinishCelebrate(place: number, startedAtMs = 0): FinishCelebrate {
@@ -37,25 +45,23 @@ export function finishCelebrateProgress(fx: FinishCelebrate): number {
 }
 
 export function finishOverlayHtml(fx: FinishCelebrate): string {
-  const podium = isPodiumPlace(fx.place);
+  const kind = podiumMovieKind(fx.place);
   const p = finishCelebrateProgress(fx);
-  const flash = p < 0.18 ? 1 - p / 0.18 : Math.max(0, 1 - (p - 0.18) / 0.25);
-  const title = podium ? podiumTitle(fx.place) : "IM ZIEL!";
-  const sub = podium ? `Platz ${fx.place} — Podest!` : `Platz ${fx.place}`;
-  const kind = podium ? "podium" : "field";
+  const flash = p < 0.12 ? 1 - p / 0.12 : Math.max(0, 1 - (p - 0.12) / 0.2);
+  const title = podiumMovieTitle(fx.place);
+  const sub = podiumMovieSub(fx.place);
   return `
-    <div class="finish-fx finish-fx--${kind}" data-dev-name="finish.overlay" style="--flash:${flash.toFixed(3)};--p:${p.toFixed(3)}">
+    <div
+      class="finish-fx finish-fx--movie finish-fx--${kind}"
+      data-dev-name="finish.overlay"
+      data-place="${fx.place}"
+      style="--flash:${flash.toFixed(3)};--p:${p.toFixed(3)}"
+    >
       <div class="finish-fx__burst" aria-hidden="true"></div>
-      <p class="finish-fx__title">${title}</p>
-      <p class="finish-fx__sub">${sub}</p>
+      ${podiumMovieHtml(fx.place)}
+      <p class="finish-fx__sr-only">${title} — ${sub}</p>
     </div>
   `;
-}
-
-function podiumTitle(place: number): string {
-  if (place === 1) return "SIEG!";
-  if (place === 2) return "PODEST!";
-  return "PODEST!";
 }
 
 /** Results screen podium stands with landing anim on the player's place. */
@@ -76,7 +82,7 @@ export function resultsPodiumHtml(place: number): string {
     return `
       <div class="results-podium results-podium--land" data-dev-name="results.podium" data-place="${place}">
         <div class="podium-stands">${stands}</div>
-        <p class="podium-caption">Platz ${place}</p>
+        <p class="podium-caption">${podiumMovieTitle(place)} · Platz ${place}</p>
       </div>
     `;
   }
@@ -84,7 +90,7 @@ export function resultsPodiumHtml(place: number): string {
   return `
     <div class="results-podium results-podium--field" data-dev-name="results.podium" data-place="${place}">
       <div class="podium-stands podium-stands--dim">${stands}</div>
-      <p class="podium-caption podium-caption--field land-field">Platz ${place}</p>
+      <p class="podium-caption podium-caption--field land-field">SCHADE! · Platz ${place}</p>
     </div>
   `;
 }

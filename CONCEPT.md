@@ -409,8 +409,8 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
 4. **Renn-HUD** — Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt  
-5. **Ergebnis** — Zielbanner/-linie; Ziel-Animation (Podest vs. Feld); Podium-Landung; CHF; weiter / Garage  
-6. **Hilfe** — Steuerungshinweise (optional)  
+5. **Ergebnis** — Zielbanner/-linie; **~15 s 2D-Comic-Film** bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation**; dann Podium-Landung / CHF; weiter / Garage  
+6. **Hilfe** — Steuerungshinweise (optional); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse  
 
 Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
@@ -512,4 +512,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.52 — 5 Runden + Runden-Schild an Start/Ziel.*
+*Dokumentstand: Konzept v3.54 — Podest-2D-Filme (15 s) + enttäuschte Feld-Animation.*

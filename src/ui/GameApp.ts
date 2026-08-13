@@ -1,5 +1,5 @@
 import { type CarId } from "../data/cars";
-import { APP_VERSION } from "../core/version";
+import { APP_CREDIT, APP_VERSION } from "../core/version";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
 import { type PartId } from "../data/parts";
 import { DevTools } from "../dev/DevTools";
@@ -399,12 +399,13 @@ export class GameApp {
     const existing = host.querySelector<HTMLElement>(".finish-fx");
     if (!existing) {
       host.innerHTML = finishOverlayHtml(this.finishCelebrate);
-      return;
     }
+    const fxEl = host.querySelector<HTMLElement>(".finish-fx");
+    if (!fxEl) return;
     const p = Math.min(1, this.finishCelebrate.t / Math.max(0.001, this.finishCelebrate.duration));
-    const flash = p < 0.18 ? 1 - p / 0.18 : Math.max(0, 1 - (p - 0.18) / 0.25);
-    existing.style.setProperty("--p", p.toFixed(3));
-    existing.style.setProperty("--flash", flash.toFixed(3));
+    const flash = p < 0.12 ? 1 - p / 0.12 : Math.max(0, 1 - (p - 0.12) / 0.2);
+    fxEl.style.setProperty("--p", p.toFixed(3));
+    fxEl.style.setProperty("--flash", flash.toFixed(3));
   }
 
   private syncGarageLook(): void {
@@ -428,6 +429,7 @@ export class GameApp {
         <h1 class="brand">Crash Circuit</h1>
         <p class="tag">Hilfe & Infos</p>
         <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}</p>
+        <p class="credit">${APP_CREDIT}</p>
         <p class="help">Tastatur: WASD / Pfeile, Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LB Drift, A/RB Nitro · Tablet: Touch</p>
         <div class="stack">
           <button data-nav data-act="garage">Zur Garage</button>

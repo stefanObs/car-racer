@@ -11,6 +11,14 @@ import {
   isPodiumPlace,
   resultsPodiumHtml,
 } from "../src/ui/finishCelebrate";
+import {
+  FIELD_MOVIE_SECONDS,
+  PODIUM_MOVIE_SECONDS,
+  podiumMovieDuration,
+  podiumMovieHtml,
+  podiumMovieKind,
+  podiumMovieTitle,
+} from "../src/ui/podiumMovie";
 
 describe("finish line and celebrate", () => {
   it("adds a named finish line group on every cup track", { timeout: 20_000 }, () => {
@@ -30,26 +38,62 @@ describe("finish line and celebrate", () => {
     expect(Math.hypot(finish.position.x, finish.position.z)).toBeLessThan(2);
   });
 
-  it("uses longer celebrate for podium places than field places", () => {
+  it("uses ~15s podium movies and a shorter field disappointment beat", () => {
     expect(isPodiumPlace(1)).toBe(true);
     expect(isPodiumPlace(3)).toBe(true);
     expect(isPodiumPlace(4)).toBe(false);
+    expect(finishCelebrateDuration(1)).toBe(PODIUM_MOVIE_SECONDS);
+    expect(finishCelebrateDuration(2)).toBe(PODIUM_MOVIE_SECONDS);
+    expect(finishCelebrateDuration(3)).toBe(PODIUM_MOVIE_SECONDS);
+    expect(finishCelebrateDuration(5)).toBe(FIELD_MOVIE_SECONDS);
     expect(finishCelebrateDuration(1)).toBeGreaterThan(finishCelebrateDuration(5));
-    expect(finishCelebrateDuration(2)).toBe(finishCelebrateDuration(3));
   });
 
-  it("renders distinct finish overlays for podium vs field", () => {
-    const podium = createFinishCelebrate(1);
-    podium.t = 0.4;
-    const field = createFinishCelebrate(5);
-    field.t = 0.4;
-    const podHtml = finishOverlayHtml(podium);
-    const fieldHtml = finishOverlayHtml(field);
-    expect(podHtml).toContain("finish-fx--podium");
-    expect(podHtml).toContain("SIEG!");
-    expect(fieldHtml).toContain("finish-fx--field");
-    expect(fieldHtml).toContain("IM ZIEL!");
-    expect(fieldHtml).not.toContain("SIEG!");
+  it("renders distinct 2D movies for 1st, 2nd, 3rd, and field", () => {
+    expect(podiumMovieKind(1)).toBe("gold");
+    expect(podiumMovieKind(2)).toBe("silver");
+    expect(podiumMovieKind(3)).toBe("bronze");
+    expect(podiumMovieKind(6)).toBe("field");
+
+    const gold = finishOverlayHtml(createFinishCelebrate(1));
+    const silver = finishOverlayHtml(createFinishCelebrate(2));
+    const bronze = finishOverlayHtml(createFinishCelebrate(3));
+    const field = finishOverlayHtml(createFinishCelebrate(5));
+
+    expect(gold).toContain("finish-fx--gold");
+    expect(gold).toContain("podium-movie--gold");
+    expect(gold).toContain("SIEGER!");
+    expect(gold).toContain('data-dev-name="finish.movie"');
+    expect(gold).toContain("pm-driver--cheer");
+
+    expect(silver).toContain("finish-fx--silver");
+    expect(silver).toContain("SILBER!");
+    expect(silver).toContain("pm-driver--wave");
+
+    expect(bronze).toContain("finish-fx--bronze");
+    expect(bronze).toContain("BRONZE!");
+    expect(bronze).toContain("pm-driver--fist");
+
+    expect(field).toContain("finish-fx--field");
+    expect(field).toContain("podium-movie--field");
+    expect(field).toContain("SCHADE!");
+    expect(field).toContain("pm-driver--sad");
+    expect(field).not.toContain("SIEGER!");
+  });
+
+  it("keeps gold/silver/bronze movie HTML structurally different", () => {
+    const g = podiumMovieHtml(1);
+    const s = podiumMovieHtml(2);
+    const b = podiumMovieHtml(3);
+    const f = podiumMovieHtml(4);
+    expect(g).toContain("pm-prop--trophy");
+    expect(s).toContain("pm-prop--silver");
+    expect(b).toContain("pm-prop--bronze");
+    expect(f).toContain("pm-scene--sad");
+    expect(g).not.toContain("pm-scene--sad");
+    expect(podiumMovieDuration(1)).toBe(15);
+    expect(podiumMovieDuration(4)).toBe(5);
+    expect(podiumMovieTitle(2)).toBe("SILBER!");
   });
 
   it("animates podium landing for top-3 and field slide otherwise", () => {
@@ -57,19 +101,22 @@ describe("finish line and celebrate", () => {
     expect(p1).toContain("results-podium--land");
     expect(p1).toContain("podium-stand--you");
     expect(p1).toContain('data-place="1"');
+    expect(p1).toContain("SIEGER!");
 
     const p5 = resultsPodiumHtml(5);
     expect(p5).toContain("results-podium--field");
     expect(p5).toContain("land-field");
+    expect(p5).toContain("SCHADE!");
     expect(p5).toContain("Platz 5");
     expect(p5).not.toContain("podium-stand--you");
   });
 
-  it("advances celebrate time from wall clock", () => {
+  it("advances celebrate time from wall clock through the full movie", () => {
     const fx = createFinishCelebrate(1, 1000);
     advanceFinishCelebrate(fx, 2500);
     expect(fx.t).toBeCloseTo(1.5, 5);
-    advanceFinishCelebrate(fx, 4000);
+    expect(fx.t).toBeLessThan(fx.duration);
+    advanceFinishCelebrate(fx, 1000 + PODIUM_MOVIE_SECONDS * 1000);
     expect(fx.t).toBeGreaterThanOrEqual(fx.duration);
   });
 });
