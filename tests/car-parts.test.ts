@@ -317,9 +317,13 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(nitro.y).toBeGreaterThan(1.3);
 
     const wing = L.rear_spoiler.anchors[0]!;
-    expect(wing.x).toBeLessThan(0.55);
-    expect(wing.y).toBeGreaterThan(1.4);
-    expect(wing.y).toBeLessThan(1.65);
+    // Aft cage top (past mid-cabin ~0.4), raised so the wing clears the tubes.
+    expect(wing.x).toBeGreaterThan(0.8);
+    expect(wing.x).toBeLessThan(1.15);
+    expect(wing.y).toBeGreaterThan(1.6);
+    expect(wing.y).toBeLessThan(1.85);
+    expect(wing.yaw).toBeCloseTo(-Math.PI / 2);
+    expect(wing.scale).toBeGreaterThan(0.95);
 
     const frame = L.reinforced_frame.anchors[0]!;
     expect(frame.scale).toBeGreaterThan(1.3);

@@ -327,8 +327,8 @@ function layoutKaeferkraft(): CarVisualLayout {
       preferGlb: true,
     },
     rear_spoiler: {
-      // Clamp onto highest rear cage tube.
-      anchors: [{ x: 0.4, y: 1.52, z: 0, yaw: -Math.PI / 2, scale: 0.88, snap: false }],
+      // Heckspoiler on rearmost top cage tube (look sheet panel 9) — aft of cabin, above cage.
+      anchors: [{ x: 0.95, y: 1.7, z: 0, yaw: -Math.PI / 2, scale: 1.05, snap: false }],
       build: () => buildRearSpoiler("tall"),
       preferGlb: true,
     },
