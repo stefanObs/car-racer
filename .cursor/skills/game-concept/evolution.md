@@ -117,6 +117,12 @@ Append newest first.
 - Decision: Tripo albedo UV stamps miss doors (chaotic atlases). Project sticker-v5 comic plates with `DecalGeometry` onto BodyPaint (Seite/Haube/Tür). Käferkraft stays nose GLBs. No Tripo bake required for flat decals.
 - CONCEPT §§ touched: §6.2 Aufkleber-Details → v3.29
 
+### 2026-08-13 — v3.49 Stickers: Stern trail + Blitz bolt, side only
+
+- Trigger: user — “Bolt sticker” is actually star vinyl (good on side); remove from front; make new Bolt sticker
+- Decision: Reassign shooting-star trail art to `star` (Stern); new comic lightning zigzag for `bolt` (Blitz). Drop hood/front decal anchors (Bison side-only like other cars). Texture cache `sticker-v12`.
+- CONCEPT §§ touched: §6.2 Aufkleber-Details → v3.49
+
 ### 2026-08-13 — v3.48 Removable wheels + brakes + offroad catalog
 
 - Trigger: user — make wheels removable; fix bigger wheels / brakes / offroad suspension across cars

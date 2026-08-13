@@ -266,7 +266,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 2. **Neues Auto kaufen** — andere Klasse oder Variante innerhalb der Klasse. Antippen zeigt eine **klar markierte Vorschau** (3D-Bay + Eigenschaften, ohne Tuning). **Kaufen** bucht CHF und macht das Auto aktiv. Rennen starten weiter mit dem bereits besessenen Auto, bis der Kauf durch ist.
 3. **Teile tunen** — echte Stats, immer mit Trade-off. Antippen im Laden zeigt eine **Vorschau** (Mesh + Eigenschaften); **Kaufen** bucht CHF und rüstet das Teil **pro Auto** aus. Bereits gekaufte Teile lassen sich an-/ablegen.
 
-**Aufkleber-Details:** Lesbare Decals auf Lack (Seite / Motorhaube / Tür je nach Auto; Tripo-UV-Stempel greifen bei chaotischen Atlanten nicht). Weitere Sets später über Cups oder CHF.
+**Aufkleber-Details:** Lesbare Decals auf Lack (nur Seite / Tür; kein Front/Motorhaube; Tripo-UV-Stempel greifen bei chaotischen Atlanten nicht). **Stern** = Sternen-Spur-Vinyl; **Blitz** = Blitz-Zickzack. Weitere Sets später über Cups oder CHF.
 
 ### 6.3 Teile (Beispiele, alle mit Vor- & Nachteil)
 
@@ -504,4 +504,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.48 — Removable stock wheels; Blitz wider / others bigger; offroad only with kit.*
+*Dokumentstand: Konzept v3.49 — Stickers side-only; Stern = star trail; Blitz = lightning zigzag.*

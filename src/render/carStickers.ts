@@ -1,7 +1,7 @@
 /**
  * Garage stickers as Asphalt-Comic decals projected onto the body (CONCEPT §6.2).
  * Tripo atlases pack chaotically — UV stamps miss doors. DecalGeometry lands on
- * Seite / Motorhaube / Tür. Käferkraft uses nose variants instead.
+ * Seite / Tür (no hood/front). Käferkraft uses nose variants instead.
  */
 import {
   CanvasTexture,
@@ -83,7 +83,6 @@ export const STICKER_DECALS: Record<Exclude<CarId, "kaeferkraft">, DecalAnchor[]
   bison: [
     { slot: "side", x: 0.74, y: 0.78, z: 0.25, yaw: Math.PI / 2, width: 1.25, height: 0.48, depth: 0.42, mirrorU: true },
     { slot: "side", x: -0.74, y: 0.78, z: 0.25, yaw: -Math.PI / 2, width: 1.25, height: 0.48, depth: 0.42 },
-    { slot: "hood", x: 0, y: 1.08, z: 0.65, yaw: 0, pitch: -Math.PI / 2, width: 0.75, height: 0.34, depth: 0.35 },
   ],
   donnerbuechse: [
     // 3-window coupe door — between engine (+Z) and rear wheel (−Z), above side pipes.
@@ -102,7 +101,7 @@ export function stickerSlotsForCar(id: CarId): StickerSlot[] {
     case "blitz":
       return ["side"];
     case "bison":
-      return ["side", "hood"];
+      return ["side"];
     case "donnerbuechse":
       return ["side"];
     case "bunker":
@@ -157,9 +156,6 @@ function canvasTex(key: string, w: number, h: number, draw: (ctx: CanvasRenderin
   return tex;
 }
 
-/** Racepool99 brand red — track outlines / logo accent on racepool99.de. */
-const RACEPOOL_RED = "#E63212";
-
 /** Donnerbüchse concept flame orange (sampled from donnerbuechse-concept-3q). */
 const DONNER_FLAME_ORANGE = "#CB4C01";
 
@@ -199,11 +195,10 @@ function drawHotRodFlames(ctx: CanvasRenderingContext2D, _carId: CarId, w: numbe
 }
 
 /**
- * Garage “Blitz” decal: shooting-star trail like classic side vinyl
- * (small stars toward the nose → large cutout-star cluster aft).
- * White fill + comic ink outline for Asphalt-Comic readability.
+ * Stern / shooting-star side vinyl (was wrongly wired as “Blitz”).
+ * Small stars toward the nose → large cutout-star cluster aft.
  */
-function drawPowerBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
+function drawStarTrailVinyl(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
   const inkCol = ink();
   const fillCol = "#F8F9FA";
 
@@ -224,7 +219,6 @@ function drawPowerBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, 
     ctx.stroke();
   };
 
-  // Sparse trail — nose / left (matches vinyl: tiny stars leading into the cluster).
   const trail: Array<[number, number, number]> = [
     [0.06, 0.42, 0.028],
     [0.1, 0.58, 0.022],
@@ -251,7 +245,6 @@ function drawPowerBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, 
     paintStar(w * nx, h * ny, Math.min(w, h) * nr, Math.max(1.5, Math.min(w, h) * nr * 0.2));
   }
 
-  // Aft cluster — overlapping medium stars around the hero cutout star.
   const cluster: Array<[number, number, number]> = [
     [0.7, 0.28, 0.09],
     [0.68, 0.72, 0.08],
@@ -264,7 +257,6 @@ function drawPowerBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, 
     paintStar(w * nx, h * ny, Math.min(w, h) * nr, Math.max(2.5, Math.min(w, h) * nr * 0.16));
   }
 
-  // Hero star with smaller star cut-out (vinyl look).
   const hx = w * 0.8;
   const hy = h * 0.48;
   const outer = Math.min(w, h) * 0.22;
@@ -281,7 +273,6 @@ function drawPowerBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, 
     ctx.lineTo(hx + Math.cos(b) * outer * 0.42, hy + Math.sin(b) * outer * 0.42);
   }
   ctx.closePath();
-  // Inner hole (same orientation, slightly smaller).
   for (let i = 0; i < 5; i++) {
     const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
     const b = a + Math.PI / 5;
@@ -313,29 +304,35 @@ function drawPowerBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, 
   ctx.stroke();
 }
 
-function starMark(ctx: CanvasRenderingContext2D, cx: number, cy: number, r: number): void {
+/** Comic lightning bolt (Blitz Aufkleber) — zigzag silhouette, not stars. */
+function drawLightningBolt(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
+  ctx.fillStyle = "#FFE066";
+  ctx.strokeStyle = ink();
+  ctx.lineWidth = Math.max(3.5, Math.min(w, h) * 0.045);
   ctx.beginPath();
-  for (let i = 0; i < 5; i++) {
-    const a = -Math.PI / 2 + (i * 2 * Math.PI) / 5;
-    const b = a + Math.PI / 5;
-    if (i === 0) ctx.moveTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-    else ctx.lineTo(cx + Math.cos(a) * r, cy + Math.sin(a) * r);
-    ctx.lineTo(cx + Math.cos(b) * r * 0.42, cy + Math.sin(b) * r * 0.42);
-  }
+  // Classic bolt: top-left → zig → bottom tip, then back up the thick edge.
+  ctx.moveTo(w * 0.42, h * 0.06);
+  ctx.lineTo(w * 0.62, h * 0.06);
+  ctx.lineTo(w * 0.48, h * 0.38);
+  ctx.lineTo(w * 0.72, h * 0.38);
+  ctx.lineTo(w * 0.28, h * 0.94);
+  ctx.lineTo(w * 0.4, h * 0.52);
+  ctx.lineTo(w * 0.22, h * 0.52);
   ctx.closePath();
   ctx.fill();
   ctx.stroke();
-}
-
-/** Racepool99 flat vector look (#E63212 track-outline red) as racing stars. */
-function drawRacingStar(ctx: CanvasRenderingContext2D, _carId: CarId, w: number, h: number): void {
-  ctx.fillStyle = RACEPOOL_RED;
-  ctx.strokeStyle = ink();
-  ctx.lineWidth = Math.max(4, Math.min(w, h) * 0.055);
-  starMark(ctx, w * 0.42, h * 0.52, Math.min(w, h) * 0.4);
-  ctx.lineWidth = Math.max(3, Math.min(w, h) * 0.04);
-  starMark(ctx, w * 0.78, h * 0.32, Math.min(w, h) * 0.16);
-  starMark(ctx, w * 0.82, h * 0.72, Math.min(w, h) * 0.11);
+  // Inner highlight wedge for cel depth.
+  ctx.fillStyle = "#FFF3BF";
+  ctx.beginPath();
+  ctx.moveTo(w * 0.46, h * 0.12);
+  ctx.lineTo(w * 0.56, h * 0.12);
+  ctx.lineTo(w * 0.46, h * 0.34);
+  ctx.lineTo(w * 0.58, h * 0.34);
+  ctx.lineTo(w * 0.38, h * 0.7);
+  ctx.lineTo(w * 0.42, h * 0.46);
+  ctx.lineTo(w * 0.3, h * 0.46);
+  ctx.closePath();
+  ctx.fill();
 }
 
 /** Draw sticker art into a rect (transparent outside). Car-themed colors. */
@@ -359,17 +356,20 @@ export function drawStickerArt(
   }
 
   if (sticker === "bolt" || sticker === "lightning") {
-    drawPowerBolt(ctx, carId, w, h);
+    drawLightningBolt(ctx, carId, w, h);
     return;
   }
 
-  drawRacingStar(ctx, carId, w, h);
+  if (sticker === "star") {
+    drawStarTrailVinyl(ctx, carId, w, h);
+    return;
+  }
 }
 
 /** Standalone sticker texture (tests / previews / decals). */
 export function stickerTexture(sticker: string, carId: CarId = "blitz"): Texture | null {
   if (!sticker || sticker === "none" || sticker === "ironClad") return null;
-  return canvasTex(`sticker-v11:${carId}:${sticker}`, 512, 256, (ctx) => {
+  return canvasTex(`sticker-v12:${carId}:${sticker}`, 512, 256, (ctx) => {
     ctx.clearRect(0, 0, 512, 256);
     drawStickerArt(ctx, sticker, carId, 512, 256);
   });

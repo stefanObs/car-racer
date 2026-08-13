@@ -41,17 +41,19 @@ describe("car sticker decals", () => {
     expect(emptyKit("blitz").sticker).toBe("none");
   });
 
-  it("ships sticker-v10 Donner concept Flammen sprite + shooting-star Blitz + Racepool Stern", () => {
+  it("ships sticker-v12 Flammen + lightning Blitz + shooting-star Stern (side only)", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain("sticker-v11:");
+    expect(src).toContain("sticker-v12:");
     expect(src).toContain("DONNER_FLAME_ORANGE");
     expect(src).toContain("drawHotRodFlames");
+    expect(src).toContain("drawLightningBolt");
+    expect(src).toContain("drawStarTrailVinyl");
     expect(src).toContain("preloadFlameSticker");
     expect(src).toContain("/stickers/flames-donner.png");
     expect(src).toContain("donnerbuechse-concept-3q");
-    expect(src).toContain("RACEPOOL_RED");
     expect(src).toContain("shooting-star");
     expect(src).toContain("mountDonnerDoorPlanes");
+    expect(src).not.toContain('slot: "hood"');
     expect(existsSync("public/stickers/flames-donner.png")).toBe(true);
     expect(existsSync("assets/tripo-concepts/donnerbuechse-concept-3q.png")).toBe(true);
     const main = readFileSync("src/main.ts", "utf8");
@@ -95,12 +97,17 @@ describe("car sticker decals", () => {
     }
   });
 
-  it("places stickers per car (no buggy stickers)", () => {
-    expect(stickerSlotsForCar("blitz")).toEqual(["side"]);
-    expect(stickerSlotsForCar("bison")).toEqual(["side", "hood"]);
-    expect(stickerSlotsForCar("donnerbuechse")).toEqual(["side"]);
-    expect(stickerSlotsForCar("bunker")).toEqual(["side"]);
-    expect(stickerSlotsForCar("kaeferkraft")).toEqual([]);
+  it("keeps Bison stickers on the doors only (no hood/front)", () => {
+    expect(STICKER_DECALS.bison.every((a) => a.slot === "side")).toBe(true);
+    expect(STICKER_DECALS.bison.some((a) => a.slot === "hood")).toBe(false);
+  });
+
+  it("maps bolt to lightning art and star to shooting-star trail", () => {
+    const src = readFileSync("src/render/carStickers.ts", "utf8");
+    const boltBranch = src.slice(src.indexOf('if (sticker === "bolt"'), src.indexOf('if (sticker === "star"'));
+    const starBranch = src.slice(src.indexOf('if (sticker === "star"'), src.indexOf("/** Standalone sticker"));
+    expect(boltBranch).toContain("drawLightningBolt");
+    expect(starBranch).toContain("drawStarTrailVinyl");
   });
 
   it("maps buggy stickers to nose variants", () => {
