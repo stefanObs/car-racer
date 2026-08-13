@@ -7,6 +7,13 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-14 — Kart outside-drift (natural slip pose)
+- Trigger: user — drifting still feels unnatural; research Kart/outside-drift sources
+- Sources: Mario Kart Wii TAS (IV can lag facing ~45° on outside-drift); MK outside- vs inside-drift guides (nose leads, path outside)
+- RCA: outward lateral velocity feed *plus* pull-to-heading fought each other → chaotic slip; path yaw matched nose → grass/wall; MT snap + grass clamp ate exit pace
+- Decision: `driftTargetSlip` / `integrateVelocityFacing` seek nose-inside / path-outside slip (cap ~40°); remove raw outward feed; near-zero grip pull while drifting; MT blends toward nose + `miniTurboGrace` top headroom; oversteer needs near-full stick
+- CONCEPT §4.2 → outside-drift; dokumentstand v3.58
+
 ### 2026-08-13 — Softer post-drift slowdown
 - Trigger: user — exit slowdown after drifting feels harsh
 - RCA: slip scrub ramped up as `drift` fell (exit felt like a brake); exit lerp snapped grip back; drag relief ended too early

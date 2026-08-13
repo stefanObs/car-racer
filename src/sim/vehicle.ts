@@ -46,6 +46,8 @@ export interface CarState {
   drift: number;
   /** Seconds continuously in a meaningful drift (for mini-turbo). */
   driftTime: number;
+  /** Brief top-speed grace after mini-turbo so grass doesn't eat the kick. */
+  miniTurboGrace: number;
   /** Rising-edge latch for nitro kick. */
   nitroHeld: boolean;
   hp: number;
@@ -90,6 +92,10 @@ const DRIFT_MIN_SPEED = 11;
 const OVERSTEER_MIN_SPEED = 17;
 const MINI_TURBO_TIME = 0.45;
 const MINI_TURBO_KICK = 8.5;
+/** Kart outside-drift target slip (radians, ~26°). Nose leads; velocity lags outside. */
+export const DRIFT_TARGET_SLIP = 0.45;
+/** Hard cap ~40° (MKWii outside-drift IV offset ~45°). */
+export const DRIFT_MAX_SLIP = 0.7;
 
 export function createCarState(
   partial: Omit<
@@ -101,6 +107,7 @@ export function createCarState(
     | "y"
     | "drift"
     | "driftTime"
+    | "miniTurboGrace"
     | "nitroHeld"
     | "hp"
     | "nitro"
@@ -128,6 +135,7 @@ export function createCarState(
     y: 0,
     drift: 0,
     driftTime: 0,
+    miniTurboGrace: 0,
     nitroHeld: false,
     hp: 1,
     nitro: 1,
@@ -154,6 +162,7 @@ export function createCarState(
   if (partial.vy === undefined) car.vy = 0;
   if (partial.drift === undefined) car.drift = 0;
   if (partial.driftTime === undefined) car.driftTime = 0;
+  if (partial.miniTurboGrace === undefined) car.miniTurboGrace = 0;
   if (partial.nitroHeld === undefined) car.nitroHeld = false;
   if (partial.lapShield === undefined) car.lapShield = 0;
   return car;
@@ -182,7 +191,7 @@ export function damageCar(car: CarState, amount: number): boolean {
 /**
  * Arcade yaw: responsive at low/mid speed, settles at high speed (racing feel).
  * Turning circle from Handling (+ Masse widens it). Grip is for slide, not yaw.
- * During powerslide, yaw opens up (Kart-style swing).
+ * During powerslide, nose yaws into the turn (Kart outside-drift silhouette).
  * CONCEPT §4.2 — Gewicht + Grip + Impuls, kein Drift-Sim.
  */
 export function yawRateFor(opts: {
@@ -198,8 +207,8 @@ export function yawRateFor(opts: {
   const massCut = 1 / (0.82 + 0.18 * opts.mass);
   const surfaceSteer = 0.55 + 0.45 * opts.gripFactor;
   const drift = opts.drift ?? 0;
-  // Mild extra yaw while sliding — huge multipliers made the nose whip wrong vs motion
-  const driftYaw = 1 + drift * 0.55;
+  // Modest nose lead — path lag comes from slip seek, not extreme yaw
+  const driftYaw = 1 + drift * 0.5;
   const auth =
     opts.steer *
     (1.9 + opts.handling * 1.2) *
@@ -230,6 +239,24 @@ export function nitroKickFor(nitroBonus: number, nitroMult: number): number {
   return (NITRO_KICK + nitroBonus * 8) * nitroMult;
 }
 
+/** Signed slip: heading − move angle, wrapped to (−π, π]. */
+export function slipAngle(heading: number, vx: number, vz: number): number {
+  if (vx * vx + vz * vz < 1e-8) return 0;
+  const moveAng = Math.atan2(vz, vx);
+  return Math.atan2(Math.sin(heading - moveAng), Math.cos(heading - moveAng));
+}
+
+/**
+ * Kart outside-drift target slip (radians).
+ * Steer+ → positive slip: nose leads into the turn, velocity stays outside.
+ */
+export function driftTargetSlip(drift: number, steer: number): number {
+  if (drift < 0.05 || Math.abs(steer) < 0.08) return 0;
+  const steerT = Math.min(1, Math.abs(steer) / 0.85);
+  const mag = Math.min(DRIFT_MAX_SLIP, DRIFT_TARGET_SLIP * drift * (0.55 + 0.45 * steerT));
+  return Math.sign(steer) * mag;
+}
+
 /**
  * How committed the car is to an arcade powerslide (0..1).
  * Drift button → intentional slide; high speed + hard steer → forced oversteer.
@@ -255,8 +282,8 @@ export function driftIntent(opts: {
     return Math.max(0, Math.min(1, raw));
   }
 
-  // Forced oversteer: full gas + hard turn at high speed (Grip resists)
-  if (opts.throttle < 0.45 || steerAmt < 0.55 || opts.speed < OVERSTEER_MIN_SPEED) return 0;
+  // Forced oversteer: full gas + near-full stick at high speed (Grip resists)
+  if (opts.throttle < 0.45 || steerAmt < 0.72 || opts.speed < OVERSTEER_MIN_SPEED) return 0;
   const overT = Math.min(1, (opts.speed - OVERSTEER_MIN_SPEED) / 10);
   const raw = (0.28 + steerT * 0.6 * overT) * gripEase;
   return Math.max(0, Math.min(0.92, raw));
@@ -274,8 +301,52 @@ export function gripPullRate(opts: {
   if (opts.airborne) return 0.35;
   const gripStat = opts.grip * opts.gripFactor * opts.damageGrip;
   const base = (3.4 + gripStat * 6.2) * (1 - opts.steerLoad * 0.55);
-  const driftCut = 1 - Math.min(0.95, (opts.drift ?? 0) * 0.98);
-  return Math.max(0.15, base * driftCut);
+  // Near-zero pull while drifting — slip is owned by driftTargetSlip seek
+  const driftCut = 1 - Math.min(0.97, (opts.drift ?? 0) * 1.05);
+  return Math.max(0.08, base * driftCut);
+}
+
+/**
+ * Integrate facing vs motion (Kart outside-drift).
+ * Sources: MKWii TAS (IV can lag facing ~45° on outside-drift); MK outside-drift guides.
+ * While drifting: seek a stable slip (nose inside, path outside). Else: pull velocity to nose.
+ */
+export function integrateVelocityFacing(opts: {
+  heading: number;
+  vx: number;
+  vz: number;
+  drift: number;
+  steer: number;
+  gripPull: number;
+  dt: number;
+}): { vx: number; vz: number } {
+  const spd = Math.hypot(opts.vx, opts.vz);
+  if (spd < 1e-4) return { vx: opts.vx, vz: opts.vz };
+  const moveAng = Math.atan2(opts.vz, opts.vx);
+  const wrap = (a: number) => Math.atan2(Math.sin(a), Math.cos(a));
+
+  if (opts.drift > 0.15 && Math.abs(opts.steer) > 0.08) {
+    const target = driftTargetSlip(opts.drift, opts.steer);
+    const slip = wrap(opts.heading - moveAng);
+    const steerSign = Math.sign(opts.steer) || 1;
+    const underTarget = slip * steerSign < target * steerSign;
+    // Under target: path lags slowly (wider radius). Over: pull in to the ~45° cap.
+    const seekRate = underTarget ? 2.6 + opts.drift * 2.4 : 6.2 + opts.drift * 3;
+    const wantMove = opts.heading - target;
+    const dAng = wrap(wantMove - moveAng);
+    const seek = 1 - Math.exp(-seekRate * opts.dt);
+    let newMove = moveAng + dAng * seek;
+    const newSlip = wrap(opts.heading - newMove);
+    if (Math.abs(newSlip) > DRIFT_MAX_SLIP) {
+      newMove = opts.heading - Math.sign(newSlip) * DRIFT_MAX_SLIP;
+    }
+    return { vx: Math.cos(newMove) * spd, vz: Math.sin(newMove) * spd };
+  }
+
+  const pull = 1 - Math.exp(-Math.max(0.25, opts.gripPull) * opts.dt);
+  const dAng = wrap(opts.heading - moveAng);
+  const newAng = moveAng + dAng * pull;
+  return { vx: Math.cos(newAng) * spd, vz: Math.sin(newAng) * spd };
 }
 
 function syncSpeedFromVelocity(car: CarState): void {
@@ -303,6 +374,7 @@ export function stepCar(
     car.y = 0;
     car.drift = 0;
     car.driftTime = 0;
+    car.miniTurboGrace = 0;
     car.nitroHeld = false;
     if (car.koTimer <= 0) {
       car.hp = 1;
@@ -340,23 +412,38 @@ export function stepCar(
   const prevDrift = car.drift;
   const prevDriftTime = car.driftTime;
   car.drift = car.drift + (intent - car.drift) * driftLerp;
+  // Charge while sliding; decay slowly so a brief scrub doesn't wipe the mini-turbo
   if (car.drift > 0.25) car.driftTime += dt;
-  else car.driftTime = Math.max(0, car.driftTime - dt * 2);
+  else car.driftTime = Math.max(0, car.driftTime - dt * 0.85);
 
   // Mini-turbo when a charged slide ends (button release or easing out of oversteer)
   if (prevDrift > 0.35 && intent < 0.15 && prevDriftTime >= MINI_TURBO_TIME && !airborne) {
-    const hxKick = Math.cos(car.heading);
-    const hzKick = Math.sin(car.heading);
     const spd = Math.hypot(car.vx, car.vz);
     const kick = MINI_TURBO_KICK * (0.85 + 0.2 * Math.min(1, prevDriftTime));
-    // Realign onto nose so exit keeps the slide speed + boost
-    car.vx = hxKick * (spd + kick);
-    car.vz = hzKick * (spd + kick);
+    if (spd > 1e-4) {
+      // Mostly along nose (Kart MT) with a little path memory — avoids grass dive + harsh snap
+      const fx = car.vx / spd;
+      const fz = car.vz / spd;
+      const hxKick = Math.cos(car.heading);
+      const hzKick = Math.sin(car.heading);
+      const blend = 0.68;
+      let bx = fx * (1 - blend) + hxKick * blend;
+      let bz = fz * (1 - blend) + hzKick * blend;
+      const bl = Math.hypot(bx, bz) || 1;
+      car.vx = (bx / bl) * (spd + kick);
+      car.vz = (bz / bl) * (spd + kick);
+    }
     car.driftTime = 0;
+    car.miniTurboGrace = 0.45;
   }
+
+  if (car.miniTurboGrace > 0) car.miniTurboGrace = Math.max(0, car.miniTurboGrace - dt);
 
   const boosting = input.nitro && car.nitro > 0 && stage < 4;
   const nitroHeadroom = boosting ? 1.42 + car.stats.nitroBonus * 0.5 : 1;
+  // Mini-turbo punches through grass briefly (Kart boost), without removing the grass rule
+  const mtGrace =
+    car.miniTurboGrace > 0 ? Math.min(1.35, Math.max(1, 1 / Math.max(0.62, surface.speedFactor))) : 1;
   const top =
     BASE_TOP *
     car.stats.topSpeed *
@@ -364,7 +451,8 @@ export function stepCar(
     (airborne ? 1 : surface.speedFactor) *
     catchUp.topSpeed *
     nitroHeadroom *
-    (airborne ? 1 : 1 - surface.bump * 0.22);
+    (airborne ? 1 : 1 - surface.bump * 0.22) *
+    (airborne ? 1 : mtGrace);
 
   const throttle = airborne ? input.throttle * 0.55 : input.throttle;
   const accel =
@@ -444,33 +532,24 @@ export function stepCar(
     airborne,
     drift: car.drift,
   });
-  const pull = 1 - Math.exp(-Math.max(0.25, gripPull) * dt);
-  // Rotate velocity toward the nose (preserve pace) — killing lateral dumped speed on exit
-  const spdBefore = Math.hypot(car.vx, car.vz);
-  if (spdBefore > 1e-4) {
-    const moveAng = Math.atan2(car.vz, car.vx);
-    const dAng = Math.atan2(Math.sin(car.heading - moveAng), Math.cos(car.heading - moveAng));
-    const newAng = moveAng + dAng * pull;
-    car.vx = Math.cos(newAng) * spdBefore;
-    car.vz = Math.sin(newAng) * spdBefore;
-  }
+  // Kart outside-drift: seek target slip while sliding; otherwise pull to nose
+  const faced = integrateVelocityFacing({
+    heading: car.heading,
+    vx: car.vx,
+    vz: car.vz,
+    drift: car.drift,
+    steer: input.steer,
+    gripPull,
+    dt,
+  });
+  car.vx = faced.vx;
+  car.vz = faced.vz;
 
-  // Feed the slide OUTWARD (rear kicks to the outside of the turn)
-  if (car.drift > 0.15 && !airborne && Math.abs(input.steer) > 0.1) {
-    const side = Math.sign(input.steer) || 1;
-    // Right of heading when turning left (steer+), and vice versa
-    const lx = hz2 * side;
-    const lz = -hx2 * side;
-    const feed = car.speed * car.drift * 4.2 * dt;
-    car.vx += lx * feed;
-    car.vz += lz * feed;
-  }
-
-  // Very mild pace cost from slip — exit must not feel like a brake tap
+  // Tiny scrub only when not in a controlled drift (keeps Kart pace)
   const forward = car.vx * hx2 + car.vz * hz2;
   const latMag = Math.hypot(car.vx - hx2 * forward, car.vz - hz2 * forward);
-  if (!airborne && latMag > 0.8) {
-    const scrub = 1 - Math.min(0.028, latMag * 0.0012) * (1 - car.drift * 0.9);
+  if (!airborne && car.drift < 0.2 && latMag > 1.2) {
+    const scrub = 1 - Math.min(0.02, latMag * 0.0008);
     car.vx *= scrub;
     car.vz *= scrub;
   }
@@ -539,6 +618,7 @@ export function stepCar(
     car.y = 0;
     car.drift = 0;
     car.driftTime = 0;
+    car.miniTurboGrace = 0;
     car.nitroHeld = false;
   }
 

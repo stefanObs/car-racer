@@ -81,9 +81,9 @@ describe("arcade racing feel", () => {
     expect(t2).toBeLessThan(BASE_TOP * blitzStats.topSpeed);
   });
 
-  it("allows a slip angle under hard steer at speed (grip, not tank controls)", () => {
+  it("allows a controlled outside-drift slip under hard steer at speed", () => {
     const { track, car } = onTrackCar(24);
-    for (let i = 0; i < 20; i++) {
+    for (let i = 0; i < 30; i++) {
       stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, track, 1 / 60, catchUp);
     }
     const moveAng = Math.atan2(car.vz, car.vx);
@@ -91,6 +91,6 @@ describe("arcade racing feel", () => {
     while (slip > Math.PI) slip -= Math.PI * 2;
     slip = Math.abs(slip);
     expect(slip).toBeGreaterThan(0.25);
-    expect(slip).toBeLessThan(1.6);
+    expect(slip).toBeLessThan(0.9);
   });
 });

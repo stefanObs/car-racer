@@ -10,6 +10,7 @@ import {
   isAirborne,
   nitroForceFor,
   resolveContact,
+  slipAngle,
   stepCar,
   stepJump,
   yawRateFor,
@@ -177,18 +178,28 @@ describe("arcade physics — Eigenschaften scaling", () => {
     expect(hard.car.drift).toBeGreaterThan(0.35);
   });
 
-  it("Drift button + steer at speed creates a readable arcade powerslide", () => {
+  it("Drift button + steer builds Kart outside-drift slip (nose leads, capped ~45°)", () => {
     const { track, car } = onTrackCar(merged("blitz"), 24);
-    for (let i = 0; i < 30; i++) {
+    for (let i = 0; i < 40; i++) {
       stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, track, 1 / 60, catchUp);
     }
-    const moveAng = Math.atan2(car.vz, car.vx);
-    let slip = car.heading - moveAng;
-    while (slip > Math.PI) slip -= Math.PI * 2;
-    while (slip < -Math.PI) slip += Math.PI * 2;
+    const slip = slipAngle(car.heading, car.vx, car.vz);
     expect(car.drift).toBeGreaterThan(0.45);
-    // Outward kick: velocity lags behind nose into the turn (steer+ → slip > 0)
+    // Outside drift: nose into the turn, velocity lags outside (steer+ → slip > 0)
     expect(slip).toBeGreaterThan(0.28);
+    expect(slip).toBeLessThan(0.85);
+  });
+
+  it("soft steer while drifting seeks a smaller slip than hard steer", () => {
+    const soft = onTrackCar(merged("blitz"), 24);
+    const hard = onTrackCar(merged("blitz"), 24);
+    for (let i = 0; i < 40; i++) {
+      stepCar(soft.car, { throttle: 1, brake: 0, steer: 0.45, nitro: false, drift: true }, soft.track, 1 / 60, catchUp);
+      stepCar(hard.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, hard.track, 1 / 60, catchUp);
+    }
+    const softSlip = Math.abs(slipAngle(soft.car.heading, soft.car.vx, soft.car.vz));
+    const hardSlip = Math.abs(slipAngle(hard.car.heading, hard.car.vx, hard.car.vz));
+    expect(hardSlip).toBeGreaterThan(softSlip + 0.06);
   });
 
   it("low Grip drifts harder than high Grip; mini-boost can fire after a held drift", () => {
@@ -203,7 +214,7 @@ describe("arcade physics — Eigenschaften scaling", () => {
     expect(hot.car.drift).toBeGreaterThan(buggy.car.drift + 0.05);
 
     const drifter = onTrackCar(merged("blitz"), 22);
-    for (let i = 0; i < 50; i++) {
+    for (let i = 0; i < 32; i++) {
       stepCar(drifter.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, drifter.track, 1 / 60, catchUp);
     }
     expect(drifter.car.driftTime).toBeGreaterThan(0.45);
@@ -220,13 +231,14 @@ describe("arcade physics — Eigenschaften scaling", () => {
 
   it("keeps most pace when exiting a drift while still steering through the corner", () => {
     const { track, car } = onTrackCar(merged("blitz"), 24);
-    for (let i = 0; i < 45; i++) {
+    for (let i = 0; i < 24; i++) {
       stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, track, 1 / 60, catchUp);
     }
     expect(car.drift).toBeGreaterThan(0.45);
     const heldSpeed = car.speed;
+    // Mid steer: exit the slide without re-triggering oversteer
     for (let i = 0; i < 12; i++) {
-      stepCar(car, { throttle: 1, brake: 0, steer: 0.55, nitro: false, drift: false }, track, 1 / 60, catchUp);
+      stepCar(car, { throttle: 1, brake: 0, steer: 0.45, nitro: false, drift: false }, track, 1 / 60, catchUp);
     }
     expect(car.speed).toBeGreaterThan(heldSpeed * 0.9);
   });

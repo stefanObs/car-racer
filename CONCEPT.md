@@ -76,7 +76,7 @@ Gleiche Aktionen auf allen Eingabegeräten; kein Feature nur auf einer Plattform
 - **Tablet:** Touch-Steuerung im Rennen + alle Menüs/Garage bedienbar; große Hit-Targets; HUD und kritische Infos ohne Hover; Landscape-first, nutzbar in typischen Tablet-Auflösungen; kein „nur mit Tastatur“-Schritt.
 - Eingabe jederzeit wechselbar (z. B. Controller anschließen mid-session), wo die Plattform das erlaubt.
 
-Kein realistisches Drift-Physik-Sim (keine Reifenkurven) — Arcade-Fahrgefühl wie Kart-/Action-Racer: Gas baut Tempo auf (nicht instant), Loslassen lässt ausrollen, Lenkung wird bei Tempo ruhiger. **Drift** = Taste halten + Lenken **oder** zu hart in die Kurve bei hohem Tempo (Oversteer) → Heck bricht nach außen aus; Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben. **Nitro** ist ein starker Boost-Kick mit klarer Speed über dem Cap. **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. Kontakt schiebt nach **Masse**.
+Kein realistisches Drift-Physik-Sim (keine Reifenkurven) — Arcade-Fahrgefühl wie Kart-/Action-Racer: Gas baut Tempo auf (nicht instant), Loslassen lässt ausrollen, Lenkung wird bei Tempo ruhiger. **Drift** = Taste halten + Lenken **oder** zu hart in die Kurve bei hohem Tempo (Oversteer) → **Outside-Drift** (Nase schwenkt in die Kurve, Tempo-Vektor bleibt außen, Ziel-Schlupfwinkel bis ca. 40° wie Kart); Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben. **Nitro** ist ein starker Boost-Kick mit klarer Speed über dem Cap. **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. Kontakt schiebt nach **Masse**.
 
 **Physik-Autorenschaft:** Skill `.cursor/skills/arcade-physics/` (Stat-Map + Evolution-Log) — Änderungen an Fahrgefühl/Eigenschaften-Skalierung immer dort entlang evolvieren.
 
@@ -96,7 +96,7 @@ Zusätzlich (Teile / Klassen-Bonus, sichtbar in der Garage als Nitro-Balken bzw.
 
 - **Nitro** — Boost-Kick beim Drücken + starker Schub + klarer Speed-Headroom; stärkerer Bonus = knackigerer Boost  
 - **Bremsen** (Teil *Bessere Bremsen*) — schärferes Verzögern ohne eigenen Level-Balken  
-- **Arcade-Drift** — Taste/Bumper/Touch **oder** Oversteer (hartes Lenken bei hohem Tempo); Mini-Boost nach gehaltenem Drift  
+- **Arcade-Drift** — Taste/Bumper/Touch **oder** Oversteer; Outside-Drift mit Ziel-Schlupfwinkel; Mini-Boost nach gehaltenem Drift  
 
 **Design-Regel:** Es gibt kein reines „bestes Auto“. Starke Stats erzeugen immer Gegenkosten — außer durch **gute Teile-Kombos** (siehe Kap. 6.4).
 
@@ -513,4 +513,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.57 — Drop Bessere Bremsen on Bison.*
+*Dokumentstand: Konzept v3.58 — Outside-Drift (Kart-Ziel-Schlupf).*

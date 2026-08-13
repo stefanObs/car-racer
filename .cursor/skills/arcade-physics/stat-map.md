@@ -22,7 +22,7 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 | Bremsen | `better_brakes` → `brakeBonus` | Multiplies `brakeForceFor` |
 | Ram | `spike_bumper` → `ramBonus` | Stronger contact impulse + damage share |
 | Gras | class / synergy `grassMitigation` | `surfaceAt` grass speed/grip soften (never full remove) |
-| Arcade-Drift | Drift hold **or** hard steer at high speed (oversteer) | `driftIntent` → outward rear kick; mini-turbo on exit |
+| Arcade-Drift | Drift hold **or** hard steer at high speed (oversteer) | Outside-drift: `driftTargetSlip` + `integrateVelocityFacing`; mini-turbo + brief grass top grace |
 
 ## Surfaces & air
 
