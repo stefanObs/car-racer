@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.60 Käferkraft wheels detached + scaled for Große Räder
+- Trigger: user — buggy: detach wheels; bigger wheels = upscaled normal wheels
+- Decision: Bake `StockWheel_FL/FR/RL/RR` out of Käferkraft BodyPaint (recentered). Runtime skips re-extract when authored. Große Räder scales those meshes (~1.35×) instead of procedural UpgradeTire; other cars keep hide+procedural.
+- CONCEPT §6.3 Sichtbarkeit → v3.60
+
 ### 2026-08-14 — v3.59 Drop Bessere Bremsen on Käferkraft
 - Trigger: user — buggy: remove the better brakes item art
 - Decision: `better_brakes` also dropped for Käferkraft (like Blitz/Bison): shop/kits strip via `carSupportsPart`; empty brake anchors / no caliper meshes. Donnerbüchse and Bunker keep the part.

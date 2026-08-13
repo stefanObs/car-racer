@@ -11,9 +11,19 @@ import {
   BLITZ_WHEEL_LIFT,
   CAR_PART_LAYOUTS,
   carStanceLift,
+  KAEFERKRAFT_BIG_WHEEL_SCALE,
 } from "../src/render/carParts";
 import { shouldApplyGaragePaint } from "../src/render/loadCarGltf";
-import { groundContactMinY, stockWheelName } from "../src/render/stockWheels";
+import {
+  applyStockWheelScale,
+  extractStockWheels,
+  groundContactMinY,
+  hasAuthoredStockWheels,
+  stockWheelName,
+} from "../src/render/stockWheels";
+import { resolve } from "node:path";
+import { NodeIO } from "@gltf-transform/core";
+import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 
 describe("parts catalog (per-car)", () => {
   it("keeps Gelände-Federung only on Blitz (has Tripo spring kit)", () => {
@@ -153,5 +163,61 @@ describe("stock wheels + Große Räder", () => {
     expect(stock.visible).toBe(false);
     applyStockPartVisibility(root, "blitz", []);
     expect(stock.visible).toBe(true);
+  });
+
+  it("Käferkraft ships baked StockWheel_* and skips re-extract", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/kaeferkraft.glb"),
+    );
+    const names = doc
+      .getRoot()
+      .listNodes()
+      .map((n) => n.getName())
+      .filter((n) => n?.startsWith("StockWheel_"));
+    expect(names.sort()).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
+
+    const root = new Group();
+    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
+      const m = new Mesh(new BoxGeometry(0.3, 0.3, 0.3), new MeshBasicMaterial());
+      m.name = stockWheelName(corner);
+      root.add(m);
+    }
+    expect(hasAuthoredStockWheels(root)).toBe(true);
+    extractStockWheels(root);
+    expect(root.userData.stockWheelsExtracted).toBe(true);
+    // Still exactly four authored wheels — no runtime split extras.
+    let count = 0;
+    root.traverse((o) => {
+      if (o.name.startsWith("StockWheel_")) count++;
+    });
+    expect(count).toBe(4);
+  });
+
+  it("Käferkraft Große Räder scales stock wheels instead of UpgradeTire", () => {
+    const root = new Group();
+    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
+    stock.name = stockWheelName("FL");
+    root.add(stock);
+
+    applyEquippedPartVisuals(root, "kaeferkraft", ["big_wheels"]);
+    expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(KAEFERKRAFT_BIG_WHEEL_SCALE);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
+
+    applyEquippedPartVisuals(root, "kaeferkraft", []);
+    expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(1);
+  });
+
+  it("applyStockWheelScale is uniform on StockWheel meshes", () => {
+    const root = new Group();
+    const stock = new Mesh(new BoxGeometry(0.2, 0.2, 0.2), new MeshBasicMaterial());
+    stock.name = stockWheelName("RL");
+    root.add(stock);
+    applyStockWheelScale(root, 1.5);
+    expect(stock.scale.x).toBeCloseTo(1.5);
+    expect(stock.scale.y).toBeCloseTo(1.5);
+    expect(stock.scale.z).toBeCloseTo(1.5);
   });
 });

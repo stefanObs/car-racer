@@ -48,13 +48,27 @@ function isWheelishCentroid(
 
 type Tri = { i0: number; i1: number; i2: number };
 
+/** Authored / previously extracted tire meshes already present on the car. */
+export function hasAuthoredStockWheels(root: Object3D): boolean {
+  let found = false;
+  root.traverse((obj) => {
+    if (found) return;
+    if (isStockWheelObject(obj)) found = true;
+  });
+  return found;
+}
+
+const SKIP_WHEEL_EXTRACT = new Set(["StockEngine", "StockCage"]);
+
 /**
  * Split low outboard wheel-arch triangles off each mesh into `StockWheel_*` children
  * so big_wheels can hide stock tires and mount replacements.
+ * Skips when the GLB already ships StockWheel_* (e.g. Käferkraft bake).
  */
 export function extractStockWheels(root: Object3D): void {
   if (root.userData.stockWheelsExtracted) return;
   root.userData.stockWheelsExtracted = true;
+  if (hasAuthoredStockWheels(root)) return;
 
   root.updateMatrixWorld(true);
   const meshes: Mesh[] = [];
@@ -62,13 +76,21 @@ export function extractStockWheels(root: Object3D): void {
     const mesh = obj as Mesh;
     if (!mesh.isMesh || !mesh.geometry) return;
     if (isStockWheelObject(mesh)) return;
-    if (mesh.name === "StockEngine") return;
+    if (SKIP_WHEEL_EXTRACT.has(mesh.name)) return;
     meshes.push(mesh);
   });
 
   for (const mesh of meshes) {
     splitOneMesh(mesh, root);
   }
+}
+
+/** Uniform scale about each tire's local origin (bake recenters geometry). */
+export function applyStockWheelScale(root: Object3D, scale: number): void {
+  root.traverse((obj) => {
+    if (!isStockWheelObject(obj)) return;
+    obj.scale.setScalar(scale);
+  });
 }
 
 function splitOneMesh(mesh: Mesh, root: Object3D): void {

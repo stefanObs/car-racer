@@ -292,7 +292,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 **Design-Regel für jedes Teil:**  
 Kind muss in **einem Satz** Vor- und Nachteil verstehen. UI zeigt immer beides + kurze Empfehlung („Gut mit großen Rädern“).
 
-**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. **Bessere Bremsen** = prozedurale Bremssättel/Scheiben — **nicht für Blitz, Bison und Käferkraft** (Sättel passen nicht; Teil fehlt im Shop, Saves strippen es). **Große Räder** = Stock-Reifen werden aus dem Auto-Mesh gelöst und ausgeblendet, Ersatzräder (prozedural) montiert — Blitz **breiter**, andere Klassen **größer**; leichter Stance-Lift. **Gelände-Federung** nur wenn ein Federungs-Kit existiert (aktuell Blitz Tripo-Federn); sonst nicht im Shop, Stance über Große Räder. Ablegen blendet Add-ons aus / zeigt Stock-Räder wieder. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
+**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. **Bessere Bremsen** = prozedurale Bremssättel/Scheiben — **nicht für Blitz, Bison und Käferkraft** (Sättel passen nicht; Teil fehlt im Shop, Saves strippen es). **Große Räder** = Stock-Reifen werden aus dem Auto-Mesh gelöst; Blitz/andere Klassen blenden Stock aus und montieren Ersatzräder (prozedural — Blitz **breiter**, andere **größer**); **Käferkraft** skaliert die gelösten Stock-Räder selbst (kein Ersatz-Mesh). Leichter Stance-Lift. **Gelände-Federung** nur wenn ein Federungs-Kit existiert (aktuell Blitz Tripo-Federn); sonst nicht im Shop, Stance über Große Räder. Ablegen blendet Add-ons aus / setzt Stock-Räder zurück. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
 
 ### 6.4 Synergie-System („gute Kombinationen“)
 
@@ -513,4 +513,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.59 — Bessere Bremsen auch nicht für Käferkraft.*
+*Dokumentstand: Konzept v3.60 — Käferkraft Große Räder = skalierte Stock-Räder.*

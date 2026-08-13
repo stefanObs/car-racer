@@ -148,7 +148,11 @@ describe("Equipped-part visuals (all cars)", () => {
       expect(root.getObjectByName(blitzPartObjectName("spike_bumper")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("rear_spoiler")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("big_engine")), id).toBeTruthy();
-      expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeTruthy();
+      if (id === "kaeferkraft") {
+        expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeFalsy();
+      } else {
+        expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeTruthy();
+      }
       expect(carStanceLift(id, ["big_wheels"])).toBeGreaterThan(0);
       if (id === "blitz") {
         expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeFalsy();
@@ -242,6 +246,8 @@ describe("Equipped-part visuals (all cars)", () => {
       if (id === "blitz" || id === "bison" || id === "kaeferkraft") {
         expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(0);
       } else expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(4);
+      if (id === "kaeferkraft") expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(0);
+      else expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(4);
     }
   });
 
@@ -347,6 +353,7 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(frame.yaw).toBeCloseTo(Math.PI / 2);
     expect(L.reinforced_frame.preferGlb).toBe(true);
     expect(existsSync("scripts/extract-kaeferkraft-stock-cage.mjs")).toBe(true);
+    expect(existsSync("scripts/extract-kaeferkraft-stock-wheels.mjs")).toBe(true);
 
     const light = L.lightweight_body.anchors[0]!;
     // Mirrored hole flank on blue rails; chunky Tripo half removed in fix script.

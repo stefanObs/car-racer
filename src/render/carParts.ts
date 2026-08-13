@@ -2,7 +2,7 @@
  * Equipped-Teile visuals for every car (CONCEPT §6.3 + parts-look sheets).
  * Silhouette Teile (engine/scoop, spike, nitro, spoiler, frame, lightweight)
  * use per-car Tripo/extracted GLBs (`preferGlb: true`). Procedural: better_brakes
- * calipers + big_wheels replacement tires (stock wheels extracted/hidden).
+ * calipers + big_wheels (procedural tires, or Käferkraft upscaled StockWheel_*).
  * Hood/deck parts surface-snap. Meshes are cosmetic — stats stay in mergeStats.
  */
 import {
@@ -36,7 +36,7 @@ import {
   springColorFor,
 } from "./carPartBuilders";
 import { comicToon } from "./comicMaterials";
-import { applyStockWheelVisibility, isStockWheelObject } from "./stockWheels";
+import { applyStockWheelScale, applyStockWheelVisibility, isStockWheelObject } from "./stockWheels";
 import { carSupportsPart } from "../data/partsCatalog";
 
 export const CAR_PARTS_GROUP = "carParts";
@@ -51,6 +51,8 @@ export const STOCK_CAGE_MESH = "StockCage";
 export const WHEEL_LIFT = 0.1;
 /** Blitz goes wider, not taller — tiny ride lift only. */
 export const BLITZ_WHEEL_LIFT = 0.02;
+/** Käferkraft Große Räder = uniform scale of baked StockWheel_* (not procedural). */
+export const KAEFERKRAFT_BIG_WHEEL_SCALE = 1.35;
 export const SUSPENSION_LIFT = 0.06;
 export const BLITZ_SUSPENSION_LIFT = SUSPENSION_LIFT;
 
@@ -282,17 +284,11 @@ function layoutBison(): CarVisualLayout {
 function layoutKaeferkraft(): CarVisualLayout {
   // Hull child yaw π/2; mesh local nose −X, width ±Z. Cage roof ~y1.65 near x0.3–0.6.
   return {
-    wheelLift: 0.12,
-    suspensionLift: 0,
-    // Käferkraft drops Bessere Bremsen from the shop — no caliper anchors.
+    wheelLift: 0.14,
     brakes: [],
     springs: [],
-    wheelHints: [
-      { x: -1.22, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
-      { x: -1.22, y: 0.5, z: -0.82, yaw: Math.PI / 2, scale: 1, snap: false },
-      { x: 1.18, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
-      { x: 1.18, y: 0.5, z: -0.82, yaw: Math.PI / 2, scale: 1, snap: false },
-    ],
+    // Große Räder scales baked StockWheel_* — no procedural anchor tires.
+    wheelHints: [],
     big_engine: {
       // Exhaust / block in the open rear bay (nose −X → rear +X).
       anchors: [{ x: 1.05, y: 0.55, z: 0, yaw: 0, scale: 0.95, snap: false }],
@@ -931,7 +927,21 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
     if (obj.name === STOCK_ENGINE_MESH) obj.visible = !hideEngine;
     if (obj.name === STOCK_CAGE_MESH) obj.visible = !hideCage;
   });
-  applyStockWheelVisibility(root, equippedParts.includes("big_wheels"));
+  if (usesScaledStockWheels(carId)) {
+    // Keep StockWheel_* visible; Große Räder only changes their scale.
+    applyStockWheelVisibility(root, false);
+    applyStockWheelScale(
+      root,
+      equippedParts.includes("big_wheels") ? KAEFERKRAFT_BIG_WHEEL_SCALE : 1,
+    );
+  } else {
+    applyStockWheelScale(root, 1);
+    applyStockWheelVisibility(root, equippedParts.includes("big_wheels"));
+  }
+}
+
+function usesScaledStockWheels(carId: CarId): boolean {
+  return carId === "kaeferkraft";
 }
 
 function upgradeWheelFor(carId: CarId) {
@@ -942,10 +952,8 @@ function upgradeWheelFor(carId: CarId) {
   if (carId === "bunker" || carId === "bison") {
     return () => buildUpgradeWheel({ radius: 0.46, width: 0.34 });
   }
-  if (carId === "kaeferkraft") {
-    return () => buildUpgradeWheel({ radius: 0.42, width: 0.32 });
-  }
   // donnerbuechse — fat rear-bias street meats, still “bigger”
+  // kaeferkraft uses scaled StockWheel_* instead (see applyStockPartVisibility).
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 
@@ -1102,7 +1110,9 @@ export function applyEquippedPartVisuals(
     placeAnchored(group, root, "better_brakes", layout.brakes, () => buildBrakeUnit(col), false);
   }
   if (equipped.has("big_wheels")) {
-    placeAnchored(group, root, "big_wheels", layout.wheelHints, upgradeWheelFor(carId), false);
+    if (!usesScaledStockWheels(carId)) {
+      placeAnchored(group, root, "big_wheels", layout.wheelHints, upgradeWheelFor(carId), false);
+    }
   }
 
   if (group.children.length > 0) root.add(group);
