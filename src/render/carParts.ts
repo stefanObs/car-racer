@@ -115,8 +115,8 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
   ],
   // Twin bottles on the rear bumper — tucked to the diffuser, not floating aft.
   nitro_kit: [{ x: 0, y: 0.22, z: -1.72, yaw: 0, scale: 0.82, snap: false }],
-  // Black bar + chrome spikes — keep Tripo materials (no paint tint).
-  spike_bumper: [{ x: 0, y: 0.08, z: 1.52, yaw: 0, scale: 0.92, snap: false }],
+  // Black bar + chrome spikes outside the nose (not buried in the bumper).
+  spike_bumper: [{ x: 0, y: 0.1, z: 1.88, yaw: 0, scale: 0.98, snap: false }],
   offroad_suspension: [
     { x: 0.7, y: 0.06, z: 1.05, yaw: 0, scale: 0.7, snap: false },
     { x: -0.7, y: 0.06, z: 1.05, yaw: Math.PI, scale: 0.7, snap: false },

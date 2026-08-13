@@ -84,8 +84,9 @@ describe("Equipped-part visuals (all cars)", () => {
     const mesh = part!.children[0] as Mesh;
     expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0xffffff);
     expect(CAR_PART_LAYOUTS.blitz.spike_bumper.tint).toBeUndefined();
-    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.scale).toBeLessThan(1.0);
-    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeLessThan(1.6);
+    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeGreaterThan(1.75);
+    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeLessThan(2.05);
+    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.scale).toBeGreaterThan(0.9);
   });
 
   it("tucks Blitz nitro onto the rear bumper under the deck spoiler", () => {
