@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CARS } from "../src/data/cars";
 import { CUP_LEVELS } from "../src/data/levels";
-import { createCarState, stepCar, yawRateFor } from "../src/sim/vehicle";
+import { createCarState, stepCar, yawRateFor, BASE_TOP } from "../src/sim/vehicle";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
 
 const blitzStats = {
@@ -63,12 +63,22 @@ describe("arcade racing feel", () => {
     expect(car.speed).toBeGreaterThan(14);
   });
 
-  it("builds pace quickly toward top speed under full throttle", () => {
+  it("builds pace gradually under full throttle (not instant)", () => {
     const { track, car } = onTrackCar(0);
-    for (let i = 0; i < 60; i++) {
-      stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false, drift: false }, track, 1 / 60, catchUp);
-    }
-    expect(car.speed).toBeGreaterThan(22);
+    const at = (frames: number) => {
+      for (let i = 0; i < frames; i++) {
+        stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false, drift: false }, track, 1 / 60, catchUp);
+      }
+      return car.speed;
+    };
+    const t0_5 = at(30);
+    const t1 = at(30);
+    const t2 = at(60);
+    expect(t0_5).toBeGreaterThan(4);
+    expect(t0_5).toBeLessThan(14);
+    expect(t1).toBeGreaterThan(t0_5 + 1.5);
+    expect(t2).toBeGreaterThan(t1 + 1.5);
+    expect(t2).toBeLessThan(BASE_TOP * blitzStats.topSpeed);
   });
 
   it("allows a slip angle under hard steer at speed (grip, not tank controls)", () => {

@@ -18,11 +18,11 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 
 | Bonus | Source | Effect |
 |-------|--------|--------|
-| Nitro | class `nitroBonus` + `nitro_kit` | Rising-edge `nitroKickFor` + strong `nitroForceFor` + ~32%+ headroom; reduced drag while boosting |
+| Nitro | class `nitroBonus` + `nitro_kit` | Rising-edge `nitroKickFor` + strong `nitroForceFor` + ~42%+ headroom; reduced drag while boosting |
 | Bremsen | `better_brakes` → `brakeBonus` | Multiplies `brakeForceFor` |
 | Ram | `spike_bumper` → `ramBonus` | Stronger contact impulse + damage share |
 | Gras | class / synergy `grassMitigation` | `surfaceAt` grass speed/grip soften (never full remove) |
-| Arcade-Drift | hold Drift + steer + tempo | `driftIntent` → `car.drift`; yaw opens, grip pull drops, lateral feed; mini-turbo on exit after ~0.55s |
+| Arcade-Drift | Drift hold **or** hard steer at high speed (oversteer) | `driftIntent` → outward rear kick; mini-turbo on exit |
 
 ## Surfaces & air
 

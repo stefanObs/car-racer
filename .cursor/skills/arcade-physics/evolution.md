@@ -7,6 +7,12 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-13 — v3.46 Oversteer auto-drift + accel/nitro retune
+- Trigger: user — drift into hard corners; wrong drift pose; slower accel; stronger nitro
+- RCA: lateral feed pushed inward (wrong side of heading); pose lean ignored real slip; BASE_ACCEL too snappy; nitro still mild; grip *deleted* lateral on exit → pace dump + wrong feel
+- Decision: outward rear kick; lean from slip angle; auto-oversteer at high speed; BASE_ACCEL 15; BASE_NITRO 125 / kick 14; grip rotates velocity toward nose (preserve pace); mini-turbo realigns onto heading
+- CONCEPT §4.2–4.3 → v3.46
+
 ### 2026-08-12 — v3.42 Dedicated Drift control
 - Trigger: user — still no drifting after implicit powerslide
 - RCA: drift was only hard-steer auto; no discoverable control like Kart R

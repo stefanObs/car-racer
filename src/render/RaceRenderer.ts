@@ -414,15 +414,17 @@ export class RaceRenderer {
         (car.y > 0.05 ? 0 : bump * 0.14) +
         car.drift * 0.28;
       const pitch = car.y > 0.05 ? Math.min(0.35, car.vy * 0.03) : 0;
+      const moveAng = Math.atan2(car.vz, car.vx);
+      let slip = car.heading - moveAng;
+      while (slip > Math.PI) slip -= Math.PI * 2;
+      while (slip < -Math.PI) slip += Math.PI * 2;
+      // Nose follows control heading; body leans with slip (Kart powerslide pose)
       root.position.set(car.x, car.y + (car.healFx > 0.2 ? 0.05 : 0) + hop, car.z);
       root.rotation.y = Math.PI / 2 - car.heading;
       root.rotation.x = pitch;
-      // Drift leans into the slide; damage wobble still reads when not sliding hard
       root.rotation.z =
         car.drift > 0.2
-          ? -Math.sign(Math.sin(car.heading - Math.atan2(car.vz, car.vx) || 0.001) || 1) *
-              car.drift *
-              0.22
+          ? Math.max(-0.42, Math.min(0.42, -slip * 0.55 - Math.sign(slip || 1) * car.drift * 0.12))
           : lean * Math.sin(this.fxTime * 10);
 
       visual.lastHeading = car.heading;

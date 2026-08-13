@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.46 Oversteer auto-drift + accel/nitro retune
+- Trigger: user — drift into hard corners; wrong drift pose; slower accel; stronger nitro
+- Decision: CONCEPT §4.2–4.3 — Drift = Taste **oder** Oversteer; langsameres Gas; knackigeres Nitro
+- Impl: outward rear kick; slip-angle lean; BASE_ACCEL 15; BASE_NITRO 125 / kick 14
+- CONCEPT dokumentstand → v3.46
+
 ### 2026-08-13 — v3.45 Parts preview then buy
 - Trigger: user — parts should preview first, buy in a second step
 - Decision: Shop Teile: tap = bay + Eigenschaften Vorschau; Kaufen spends part price and equips; owned parts still toggle An/Aus

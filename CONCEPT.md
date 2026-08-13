@@ -76,7 +76,7 @@ Gleiche Aktionen auf allen Eingabegeräten; kein Feature nur auf einer Plattform
 - **Tablet:** Touch-Steuerung im Rennen + alle Menüs/Garage bedienbar; große Hit-Targets; HUD und kritische Infos ohne Hover; Landscape-first, nutzbar in typischen Tablet-Auflösungen; kein „nur mit Tastatur“-Schritt.
 - Eingabe jederzeit wechselbar (z. B. Controller anschließen mid-session), wo die Plattform das erlaubt.
 
-Kein realistisches Drift-Physik-Sim (keine Reifenkurven) — Arcade-Fahrgefühl wie Kart-/Action-Racer: Gas baut Tempo knackig auf, Loslassen lässt ausrollen, Lenkung wird bei Tempo ruhiger. **Drift** ist eine eigene Aktion (Taste / Bumper / Touch): halten + Lenken bei Tempo → Heck bricht aus (Powerslide), Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben. **Nitro** ist ein spürbarer Boost-Kick mit klarer Speed über dem Cap (kurz). **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. Kontakt schiebt nach **Masse**.
+Kein realistisches Drift-Physik-Sim (keine Reifenkurven) — Arcade-Fahrgefühl wie Kart-/Action-Racer: Gas baut Tempo auf (nicht instant), Loslassen lässt ausrollen, Lenkung wird bei Tempo ruhiger. **Drift** = Taste halten + Lenken **oder** zu hart in die Kurve bei hohem Tempo (Oversteer) → Heck bricht nach außen aus; Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben. **Nitro** ist ein starker Boost-Kick mit klarer Speed über dem Cap. **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. Kontakt schiebt nach **Masse**.
 
 **Physik-Autorenschaft:** Skill `.cursor/skills/arcade-physics/` (Stat-Map + Evolution-Log) — Änderungen an Fahrgefühl/Eigenschaften-Skalierung immer dort entlang evolvieren.
 
@@ -96,7 +96,7 @@ Zusätzlich (Teile / Klassen-Bonus, sichtbar in der Garage als Nitro-Balken bzw.
 
 - **Nitro** — Boost-Kick beim Drücken + starker Schub + klarer Speed-Headroom; stärkerer Bonus = knackigerer Boost  
 - **Bremsen** (Teil *Bessere Bremsen*) — schärferes Verzögern ohne eigenen Level-Balken  
-- **Arcade-Drift** — eigene Taste/Bumper/Touch-Button; halten + Lenken bei Tempo; kurzer Mini-Boost nach gehaltenem Drift  
+- **Arcade-Drift** — Taste/Bumper/Touch **oder** Oversteer (hartes Lenken bei hohem Tempo); Mini-Boost nach gehaltenem Drift  
 
 **Design-Regel:** Es gibt kein reines „bestes Auto“. Starke Stats erzeugen immer Gegenkosten — außer durch **gute Teile-Kombos** (siehe Kap. 6.4).
 
@@ -504,4 +504,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.45 — Teile ebenfalls Vorschau dann Kauf (wie Lack/Aufkleber).*
+*Dokumentstand: Konzept v3.46 — Oversteer-Auto-Drift + langsameres Gas / stärkeres Nitro.*

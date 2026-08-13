@@ -144,31 +144,37 @@ describe("arcade physics — Eigenschaften scaling", () => {
   });
 
   it("Nitro adds a punchy kick and clear speed over throttle-only", () => {
-    expect(nitroForceFor(0, 1)).toBeGreaterThan(70);
+    expect(nitroForceFor(0, 1)).toBeGreaterThan(110);
     expect(nitroForceFor(CARS.donnerbuechse.stats.nitroBonus ?? 0, 1)).toBeGreaterThan(nitroForceFor(0, 1) + 12);
 
     const stock = onTrackCar(merged("blitz"), 18);
     const nitro = onTrackCar(merged("blitz"), 18);
     // One-frame kick must already jump speed
     stepCar(nitro.car, { throttle: 1, brake: 0, steer: 0, nitro: true }, nitro.track, 1 / 60, catchUp);
-    expect(nitro.car.speed).toBeGreaterThan(18 + 4);
+    expect(nitro.car.speed).toBeGreaterThan(18 + 6);
 
     for (let i = 0; i < 50; i++) {
       stepCar(stock.car, { throttle: 1, brake: 0, steer: 0, nitro: false }, stock.track, 1 / 60, catchUp);
       stepCar(nitro.car, { throttle: 1, brake: 0, steer: 0, nitro: true }, nitro.track, 1 / 60, catchUp);
     }
     const stockTop = BASE_TOP * merged("blitz").topSpeed;
-    expect(nitro.car.speed).toBeGreaterThan(stock.car.speed + 6);
-    expect(nitro.car.speed).toBeGreaterThan(stockTop * 1.15);
+    expect(nitro.car.speed).toBeGreaterThan(stock.car.speed + 8);
+    expect(nitro.car.speed).toBeGreaterThan(stockTop * 1.2);
     expect(nitro.car.nitro).toBeLessThan(0.85);
   });
 
-  it("requires Drift button — steer alone does not powerslide", () => {
-    const { track, car } = onTrackCar(merged("blitz"), 24);
+  it("mild steer at speed does not auto-drift; hard full-speed corners do", () => {
+    const mild = onTrackCar(merged("blitz"), 24);
     for (let i = 0; i < 30; i++) {
-      stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: false }, track, 1 / 60, catchUp);
+      stepCar(mild.car, { throttle: 1, brake: 0, steer: 0.35, nitro: false, drift: false }, mild.track, 1 / 60, catchUp);
     }
-    expect(car.drift).toBeLessThan(0.15);
+    expect(mild.car.drift).toBeLessThan(0.15);
+
+    const hard = onTrackCar(merged("blitz"), 26);
+    for (let i = 0; i < 35; i++) {
+      stepCar(hard.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: false }, hard.track, 1 / 60, catchUp);
+    }
+    expect(hard.car.drift).toBeGreaterThan(0.35);
   });
 
   it("Drift button + steer at speed creates a readable arcade powerslide", () => {
@@ -177,11 +183,12 @@ describe("arcade physics — Eigenschaften scaling", () => {
       stepCar(car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, track, 1 / 60, catchUp);
     }
     const moveAng = Math.atan2(car.vz, car.vx);
-    let slip = Math.abs(moveAng - car.heading);
+    let slip = car.heading - moveAng;
     while (slip > Math.PI) slip -= Math.PI * 2;
-    slip = Math.abs(slip);
+    while (slip < -Math.PI) slip += Math.PI * 2;
     expect(car.drift).toBeGreaterThan(0.45);
-    expect(slip).toBeGreaterThan(0.35);
+    // Outward kick: velocity lags behind nose into the turn (steer+ → slip > 0)
+    expect(slip).toBeGreaterThan(0.28);
   });
 
   it("low Grip drifts harder than high Grip; mini-boost can fire after a held drift", () => {

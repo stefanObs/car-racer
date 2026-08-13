@@ -24,7 +24,7 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 1. **Arcade, not sim** — Gewicht + Grip + Impuls; no realistic tire/drift model
 2. **Eigenschaften drive forces** — Beschleunigung, Tempo, Grip, Handling, Masse, Federung, Panzerung, Nitro (+ `brakeBonus` from Teile) scale behavior; cosmetics grant **no** stats
 3. **Coast on lift** — releasing throttle rolls out; no abrupt dump
-4. **Slide when grip is short** — yaw from Handling; lateral pull from Grip; **arcade powerslide** via dedicated Drift hold + steer at speed (Kart-style, not tire sim)
+4. **Slide when grip is short** — yaw from Handling; lateral pull from Grip; **arcade powerslide** via Drift hold **or** high-speed oversteer (outward rear kick)
 5. **Mass decides shove** — light cars get pushed / rebound more; heavy hold the line
 6. **Schanzen = real airtime** — `y`/`vy`; landing needs Grip + Federung
 7. **Grass penalty never removed** — Federung / grassMitigation only mitigate (`zones.ts`)
