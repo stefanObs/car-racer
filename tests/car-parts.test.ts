@@ -338,10 +338,15 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(L.reinforced_frame.preferGlb).toBe(true);
 
     const light = L.lightweight_body.anchors[0]!;
-    expect(light.y).toBeLessThan(0.25);
-    expect(light.scale).toBeGreaterThan(1.0);
+    // Mirrored hole flank on blue rails; chunky Tripo half removed in fix script.
+    expect(light.y).toBeGreaterThan(0.75);
+    expect(light.y).toBeLessThan(1.0);
+    expect(light.x).toBeCloseTo(0, 1);
+    expect(light.scale).toBeGreaterThan(1.25);
+    expect(L.lightweight_body.tint).toBe(0x22b8cf);
     expect(L.lightweight_body.preferGlb).toBe(true);
     expect(existsSync("public/models/parts/kaeferkraft-lightweight_body.glb")).toBe(true);
+    expect(existsSync("scripts/fix-kaeferkraft-lightweight.mjs")).toBe(true);
   });
 
   it("lazy-loads per-car kits via ensureCarPartTemplates", () => {

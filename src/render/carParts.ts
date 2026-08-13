@@ -315,10 +315,11 @@ function layoutKaeferkraft(): CarVisualLayout {
       preferGlb: true,
     },
     lightweight_body: {
-      // Tripo hood/side panels — scale to cover look-sheet panel area.
-      anchors: [{ x: -0.35, y: 0.15, z: 0, yaw: Math.PI / 2, scale: 1.2, snap: false }],
+      // Single hole flank mirrored onto both blue rails (fix-kaeferkraft-lightweight).
+      anchors: [{ x: 0, y: 0.88, z: 0, yaw: Math.PI / 2, scale: 1.35, snap: false }],
       build: () => buildLightweightBody("holes"),
       preferGlb: true,
+      tint: 0x22b8cf,
     },
     nitro_kit: {
       // Look sheet panel 7: upright tanks on rear deck behind seats, under Heckspoiler.
