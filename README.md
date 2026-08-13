@@ -2,6 +2,27 @@
 
 Arcade-Racer — Konzept: `CONCEPT.md`, Stack: `TECH.md`.
 
+## License
+
+**Project source and original assets** are under the
+[PolyForm Noncommercial License 1.0.0](https://polyformproject.org/licenses/noncommercial/1.0.0)
+(`LICENSE`). That means you may use, study, modify, and share them for
+**non-commercial** purposes only — **not** for commercial use of the source or
+of modified / derived versions, without a separate permission from the
+copyright holders.
+
+Why PolyForm NC: it is a clear, SPDX-listed license written for **software**
+(not only media), with an explicit non-commercial purpose limit that covers
+distribution of modified copies. See `NOTICE` for what is covered (`src/`,
+`levels/`, original Tripo/art) vs third-party material.
+
+**Third-party dependencies** (three.js, Vite, TypeScript, …) keep **their**
+licenses — typically MIT / Apache-2.0. The free OSS stack in `TECH.md` is about
+*dependencies*, not a grant to commercialize Crash Circuit itself.
+
+Third-party assets listed in `public/models/*/SOURCES.md` (e.g. CC0 Kenney)
+remain under those terms; we do not re-license them as proprietary.
+
 ## Start (ohne vorinstalliertes Node)
 
 | OS | Befehl |

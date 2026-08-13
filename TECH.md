@@ -2,6 +2,11 @@
 
 **Constraint:** only **free-to-use** technology (no paid engines, no paid SaaS required to build/ship/play, no revenue-gated “free” tiers as a dependency). Prefer **OSI-approved / permissive OSS** (MIT, Apache-2.0, BSD, zlib, OFL, CC0).
 
+This free/OSS policy applies to **dependencies and tools**, not to a commercial
+reuse grant for Crash Circuit itself. **Project source and original assets** are
+**PolyForm Noncommercial 1.0.0** — see `LICENSE` and `NOTICE`. Third-party
+packages keep their own licenses.
+
 **Aligned with:** `CONCEPT.md` v3 — browser game; keyboard + **controller** + **tablet**; Asphalt-Comic; JSON levels; German UI; clean tests.
 
 ---
@@ -136,7 +141,8 @@ Pick **Godot** if the team wants editor-driven iteration over web-native UI. Pic
 - Assets/plugins that require purchase to build
 - Fonts/music you cannot legally redistribute
 
-Document third-party licenses in a `NOTICE` or `licenses/` folder when shipping.
+Document third-party licenses in `NOTICE` (and `public/models/*/SOURCES.md` for
+assets) when shipping. Project license: `LICENSE` (PolyForm Noncommercial 1.0.0).
 
 ---
 

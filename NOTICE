@@ -1,0 +1,47 @@
+Required Notice: Copyright (c) 2026 Crash Circuit contributors.
+Crash Circuit source and original assets are licensed under the
+PolyForm Noncommercial License 1.0.0 — see LICENSE.
+
+================================================================================
+What this covers
+================================================================================
+
+Covered by PolyForm Noncommercial 1.0.0 (project license):
+
+- `src/` — game code
+- `levels/` — track / cup / free / ad-hoc level data authored for this game
+- `scripts/` — project tooling (except where a file states otherwise)
+- Original art, concept images, and Tripo-baked meshes created for Crash Circuit
+  (e.g. under `assets/tripo-concepts/`, `public/models/**` Tripo bakes)
+- Project docs (`CONCEPT.md`, `TECH.md`, README, skills) as project materials
+
+Commercial use of the above (including modified / derived versions) is
+**not** permitted under this license. Contact the copyright holders for a
+separate commercial license if needed.
+
+================================================================================
+What this does NOT cover
+================================================================================
+
+Third-party dependencies keep their own licenses (MIT, Apache-2.0, etc.).
+See `package.json` / `package-lock.json` and `TECH.md`. Examples: three.js
+(MIT), Vite (MIT), TypeScript (Apache-2.0).
+
+Third-party assets remain under the licenses named in their provenance files,
+for example:
+
+- `public/models/*/SOURCES.md`
+- Any CC0 / CC-BY / Kenney (or similar) assets listed there
+
+Do **not** treat third-party CC0 (or similarly permissive) material as
+proprietary Crash Circuit content. Redistribute those pieces under their
+original terms; the project license applies to original Crash Circuit work
+and to the combined work as a whole where copyright attaches.
+
+================================================================================
+SPDX
+================================================================================
+
+Package SPDX expression: PolyForm-Noncommercial-1.0.0
+Full text: LICENSE
+Canonical URL: https://polyformproject.org/licenses/noncommercial/1.0.0

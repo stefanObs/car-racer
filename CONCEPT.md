@@ -459,7 +459,9 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ## 12. Tech-Stack & offene Design-Entscheidungen
 
-**Lizenz-Regel:** Nur **kostenlos nutzbare** Technik (bevorzugt permissive OSS). Keine bezahlten Engines / keine runtime-Pflicht-SaaS. Details: [`TECH.md`](TECH.md).
+**Lizenz-Regel (Abhängigkeiten):** Nur **kostenlos nutzbare** Technik (bevorzugt permissive OSS). Keine bezahlten Engines / keine runtime-Pflicht-SaaS. Details: [`TECH.md`](TECH.md).
+
+**Projekt-Lizenz:** Eigenes Spiel (Quellcode + Original-Assets) unter **PolyForm Noncommercial 1.0.0** — keine kommerzielle Nutzung von Source oder abgeleiteten Versionen ohne Erlaubnis; siehe `LICENSE` / `NOTICE`. Drittanbieter-Libs behalten ihre Lizenzen.
 
 ### Empfohlener Stack (primär) — **übernommen**
 
