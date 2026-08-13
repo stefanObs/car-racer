@@ -35,7 +35,6 @@ const OWNED_BLITZ = [
   "big_engine",
   "nitro_kit",
   "spike_bumper",
-  "better_brakes",
   "offroad_suspension",
 ] as const;
 
@@ -104,11 +103,10 @@ test.describe("Equipped part meshes (all cars)", () => {
     const spoiler = page.locator('[data-part="rear_spoiler"]');
     const spike = page.locator('[data-part="spike_bumper"]');
     const nitro = page.locator('[data-part="nitro_kit"]');
-    const brakes = page.locator('[data-part="better_brakes"]');
+    await expect(page.locator('[data-part="better_brakes"]')).toHaveCount(0);
     await spoiler.click();
     await spike.click();
     await nitro.click();
-    await brakes.click();
     await expect(spoiler).toContainText("Ablegen");
     await page.waitForTimeout(800);
 
@@ -117,7 +115,6 @@ test.describe("Equipped part meshes (all cars)", () => {
         "carPart-rear_spoiler",
         "carPart-spike_bumper",
         "carPart-nitro_kit",
-        "carPart-better_brakes",
       ]),
     );
 
@@ -129,7 +126,7 @@ test.describe("Equipped part meshes (all cars)", () => {
     const afterUnequip = await idlePartNames(page);
     expect(afterUnequip).not.toContain("carPart-rear_spoiler");
     expect(afterUnequip).toEqual(
-      expect.arrayContaining(["carPart-spike_bumper", "carPart-nitro_kit", "carPart-better_brakes"]),
+      expect.arrayContaining(["carPart-spike_bumper", "carPart-nitro_kit"]),
     );
 
     await page.getByRole("button", { name: /^Bison/ }).click();

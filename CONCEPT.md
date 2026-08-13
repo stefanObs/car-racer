@@ -286,7 +286,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 **Design-Regel für jedes Teil:**  
 Kind muss in **einem Satz** Vor- und Nachteil verstehen. UI zeigt immer beides + kurze Empfehlung („Gut mit großen Rädern“).
 
-**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. **Bessere Bremsen** = prozedurale Bremssättel/Scheiben. **Große Räder** = Stock-Reifen werden aus dem Auto-Mesh gelöst und ausgeblendet, Ersatzräder (prozedural) montiert — Blitz **breiter**, andere Klassen **größer**; leichter Stance-Lift. **Gelände-Federung** nur wenn ein Federungs-Kit existiert (aktuell Blitz Tripo-Federn); sonst nicht im Shop, Stance über Große Räder. Ablegen blendet Add-ons aus / zeigt Stock-Räder wieder. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
+**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. **Bessere Bremsen** = prozedurale Bremssättel/Scheiben — **nicht für Blitz** (Sättel passen nicht in die Coupe-Kästen; Teil fehlt im Blitz-Shop, Saves strippen es). **Große Räder** = Stock-Reifen werden aus dem Auto-Mesh gelöst und ausgeblendet, Ersatzräder (prozedural) montiert — Blitz **breiter**, andere Klassen **größer**; leichter Stance-Lift. **Gelände-Federung** nur wenn ein Federungs-Kit existiert (aktuell Blitz Tripo-Federn); sonst nicht im Shop, Stance über Große Räder. Ablegen blendet Add-ons aus / zeigt Stock-Räder wieder. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
 
 ### 6.4 Synergie-System („gute Kombinationen“)
 
@@ -504,4 +504,4 @@ Sprache durchgängig Deutsch; kurze Sätze; Icons + Text.
 
 ---
 
-*Dokumentstand: Konzept v3.50 — Flammen Aufkleber via Tripo relief plaque.*
+*Dokumentstand: Konzept v3.51 — Blitz ohne Bessere Bremsen.*

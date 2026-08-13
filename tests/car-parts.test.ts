@@ -128,15 +128,16 @@ describe("Equipped-part visuals (all cars)", () => {
       applyEquippedPartVisuals(root, id, ALL_VISUAL_PARTS);
       const group = root.getObjectByName(CAR_PARTS_GROUP) ?? root.getObjectByName(BLITZ_PARTS_GROUP);
       expect(group, id).toBeTruthy();
-      expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("spike_bumper")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("rear_spoiler")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("big_engine")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeTruthy();
       expect(carStanceLift(id, ["big_wheels"])).toBeGreaterThan(0);
       if (id === "blitz") {
+        expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeFalsy();
         expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeTruthy();
       } else {
+        expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeTruthy();
         expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeFalsy();
       }
     }
@@ -218,7 +219,8 @@ describe("Equipped-part visuals (all cars)", () => {
   it("has a layout for every CarId", () => {
     for (const id of CAR_IDS as CarId[]) {
       expect(CAR_PART_LAYOUTS[id].big_engine.anchors.length).toBeGreaterThan(0);
-      expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(4);
+      if (id === "blitz") expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(0);
+      else expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(4);
     }
   });
 

@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.51 Drop Bessere Bremsen on Blitz
+
+- Trigger: user — remove improved brakes from Blitz (yellow caliper blocks clipping the coupe)
+- Decision: `better_brakes` stay on other classes; Blitz shop/kits strip the part (`carSupportsPart`); no brake anchors / meshes on Blitz until a fitting kit exists.
+- CONCEPT §§ touched: §6.3 Sichtbarkeit → v3.51
+
 ### 2026-08-13 — v3.47 Tripo-only silhouette Teile on cars
 - Trigger: user — Käferkraft mounts wrong; cars must use Tripo3D art only for Teile
 - Decision: CONCEPT §6.3 — silhouette Teile = per-car Tripo/extract GLBs only; procedural only for brakes/wheels hints (+ temporary Blitz frame/lightweight allowlist until rematched). Käferkraft mounts retuned to parts-look; lightweight Tripo kit shipped.

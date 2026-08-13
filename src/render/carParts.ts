@@ -155,12 +155,8 @@ function layoutBlitz(): CarVisualLayout {
   return {
     wheelLift: BLITZ_WHEEL_LIFT,
     suspensionLift: BLITZ_SUSPENSION_LIFT,
-    brakes: [
-      { x: 0.62, y: 0.3, z: 1.15, yaw: 0, scale: 0.9, snap: false },
-      { x: -0.62, y: 0.3, z: 1.15, yaw: Math.PI, scale: 0.9, snap: false },
-      { x: 0.62, y: 0.3, z: -1.15, yaw: 0, scale: 0.9, snap: false },
-      { x: -0.62, y: 0.3, z: -1.15, yaw: Math.PI, scale: 0.9, snap: false },
-    ],
+    // Blitz drops Bessere Bremsen from the shop — no caliper anchors.
+    brakes: [],
     springs: BLITZ_PART_PLACEMENT.offroad_suspension,
     // Wider tires (builder width), slight outboard so they fill the arches.
     wheelHints: [
@@ -959,7 +955,7 @@ export function applyEquippedPartVisuals(
       true,
     );
   }
-  if (equipped.has("better_brakes")) {
+  if (equipped.has("better_brakes") && carSupportsPart(carId, "better_brakes")) {
     const col = caliperColorFor(carId);
     placeAnchored(group, root, "better_brakes", layout.brakes, () => buildBrakeUnit(col), false);
   }
