@@ -39,7 +39,7 @@ Each **implementation step**:
 | Track / zones | Own code + existing `levels/**/*.json` | — | Matches level-editor skill; asphalt/grass/wall as volumes or materials |
 | UI (menus/garage/HUD) | **HTML + CSS** overlay on the canvas | — | Best for **tablet hit targets**, focus rings for **gamepad**, German copy, CHF formatting |
 | Input | **Keyboard** + **Gamepad API** + **Touch** layer (one action map) | Web standards | Concept §4.2 — one logical actions → three devices |
-| Audio | **Howler.js** or Web Audio directly | MIT | Free SFX/music playback |
+| Audio | **Web Audio** (native; Howler optional) | MIT / web platform | Free SFX/music playback |
 | State / save | Modules + **localStorage** (optional later: file export) | — | No backend required for MVP |
 | Tests | **Vitest** (unit) + **Playwright** (smoke/e2e, free) | MIT | Always-test + review-testing automation |
 | Lint/format | **ESLint** + **Prettier** | MIT | Clarity/maintainability |

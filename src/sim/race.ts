@@ -131,7 +131,12 @@ export class RaceSession {
     const before = this.styleBonus;
     this.styleBonus = Math.min(STYLE_CAP, this.styleBonus + amount);
     const gained = this.styleBonus - before;
-    if (gained > 0) this.styleEvents.push({ amount: gained, reason });
+    if (gained <= 0) return;
+    this.styleEvents.push({ amount: gained, reason });
+    if (this.styleAudioCooldown <= 0) {
+      this.pushAudio({ kind: "style" });
+      this.styleAudioCooldown = 0.35;
+    }
   }
 
   /** Drain style events for HUD popups (CONCEPT §9). */
@@ -186,11 +191,9 @@ export class RaceSession {
           if (car.isPlayer) {
             this.addStyle(15, "Schild!");
             this.pushAudio({ kind: "shield" });
+            this.addStyle(20, "Runde!");
+            this.pushAudio({ kind: "lap" });
           }
-        }
-        if (car.isPlayer) {
-          this.addStyle(20, "Runde!");
-          this.pushAudio({ kind: "lap" });
         }
       }
       car.progress = along + (car.lap - 1) * this.track.totalLength;
@@ -274,12 +277,6 @@ export class RaceSession {
     const wrongWarn = shouldShowWrongWayWarning(this.wrongWayHold);
     if (wrongWarn && !this.prevWrongWayWarn) this.pushAudio({ kind: "wrongWay" });
     this.prevWrongWayWarn = wrongWarn;
-
-    // Soft style chime when HUD pops gain (throttled)
-    if (this.styleEvents.length > 0 && this.styleAudioCooldown <= 0) {
-      this.pushAudio({ kind: "style" });
-      this.styleAudioCooldown = 0.35;
-    }
 
     if (this.cars.every((c) => c.finished) || (this.cars.find((c) => c.isPlayer)?.finished && this.finishedCount >= 1)) {
       // End when player finished (others may still run briefly)

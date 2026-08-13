@@ -255,6 +255,7 @@ button:disabled {
 }
 
 .race-mute {
+  pointer-events: auto;
   position: absolute;
   top: 12px;
   right: 12px;

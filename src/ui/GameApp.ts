@@ -188,11 +188,11 @@ export class GameApp {
           this.updateFinishOverlay();
         }
       }
-      } else {
-        if (this.screen === "garage") this.syncGarageLook();
-        gameAudio.stopEngine();
-        this.renderer.renderIdle();
-      }
+    } else {
+      if (this.screen === "garage") this.syncGarageLook();
+      gameAudio.stopEngine();
+      this.renderer.renderIdle();
+    }
   }
 
   private moveFocus(dir: UiNavDir): void {
@@ -614,8 +614,10 @@ export class GameApp {
   private onAction(btn: HTMLButtonElement): void {
     const act = btn.dataset.act;
     if (act === "toggle-mute") {
+      const wasMuted = gameAudio.muted;
+      if (!wasMuted) gameAudio.playUiClick();
       gameAudio.toggleMute();
-      gameAudio.playUiClick();
+      if (wasMuted) gameAudio.playUiClick();
       if (this.screen === "race") {
         const muteBtn = this.uiRoot.querySelector<HTMLButtonElement>("[data-act='toggle-mute']");
         if (muteBtn) {
@@ -631,9 +633,10 @@ export class GameApp {
     const isBuy = act === "buy-car" || act === "buy-paint" || act === "buy-sticker" || act === "buy-part";
     const isConfirm =
       act === "race" || act === "adhoc-start" || act === "cup" || act === "free" || act === "adhoc";
-    if (isBuy) gameAudio.playUiBuy();
-    else if (isConfirm) gameAudio.playUiConfirm();
-    else gameAudio.playUiClick();
+    if (!isBuy) {
+      if (isConfirm) gameAudio.playUiConfirm();
+      else gameAudio.playUiClick();
+    }
 
     if (act === "menu") this.screen = "menu";
     if (act === "cup") this.screen = "cup";
@@ -672,6 +675,7 @@ export class GameApp {
     if (act === "buy-car" && btn.dataset.car) {
       const id = btn.dataset.car as CarId;
       if (buyCar(this.save, id)) {
+        gameAudio.playUiBuy();
         this.previewCar = null;
         this.previewPaint = null;
         this.previewSticker = null;
@@ -689,6 +693,7 @@ export class GameApp {
     if (act === "buy-paint" && btn.dataset.color) {
       const kit = activeKit(this.save);
       if (buyPaint(this.save, kit, btn.dataset.color)) {
+        gameAudio.playUiBuy();
         this.previewPaint = null;
         writeSave(this.save);
       }
@@ -703,6 +708,7 @@ export class GameApp {
     if (act === "buy-sticker" && btn.dataset.sticker) {
       const kit = activeKit(this.save);
       if (buySticker(this.save, kit, btn.dataset.sticker)) {
+        gameAudio.playUiBuy();
         this.previewSticker = null;
         writeSave(this.save);
       }
@@ -719,6 +725,7 @@ export class GameApp {
       const id = btn.dataset.part as PartId;
       const kit = activeKit(this.save);
       if (buyPart(this.save, kit, id, this.save.activeCar)) {
+        gameAudio.playUiBuy();
         this.previewPart = null;
         writeSave(this.save);
       }
