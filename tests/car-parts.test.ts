@@ -50,10 +50,10 @@ describe("Equipped-part visuals (all cars)", () => {
   });
 
   it("mounts Blitz Großer Motor on the hood facing the nose", () => {
-    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.z).toBeGreaterThan(1.15);
-    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.y).toBeLessThan(0.6);
+    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.z).toBeGreaterThan(1.05);
+    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.y).toBeLessThan(0.55);
     expect(BLITZ_PART_PLACEMENT.big_engine[0]!.yaw).toBeCloseTo(Math.PI);
-    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.preferY).toBeLessThan(0.7);
+    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.preferY).toBeLessThan(0.55);
   });
 
   it("places Blitz Leichtbau louvers on the hood (not cabin roof triples)", () => {
@@ -69,11 +69,11 @@ describe("Equipped-part visuals (all cars)", () => {
     const vent = root.getObjectByName(blitzPartObjectName("lightweight_body"));
     expect(vent).toBeTruthy();
     expect(root.getObjectByName(blitzPartObjectName("lightweight_body", 1))).toBeUndefined();
-    expect(vent!.position.y).toBeCloseTo(0.52, 2);
+    expect(vent!.position.y).toBeCloseTo(0.5, 2);
     expect(vent!.position.z).toBeGreaterThan(0.7);
   });
 
-  it("tints Blitz spike bumper from car paint", () => {
+  it("keeps Blitz spike bumper Tripo/chrome materials (no body-paint tint)", () => {
     const g = new Group();
     g.add(new Mesh(new BoxGeometry(0.3, 0.2, 0.4), new MeshBasicMaterial({ color: 0xffffff, name: "Spike" })));
     registerCarPartTemplate("blitz", "spike_bumper", g);
@@ -82,14 +82,18 @@ describe("Equipped-part visuals (all cars)", () => {
     const part = root.getObjectByName(blitzPartObjectName("spike_bumper"));
     expect(part).toBeTruthy();
     const mesh = part!.children[0] as Mesh;
-    expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0xe03131);
+    expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0xffffff);
+    expect(CAR_PART_LAYOUTS.blitz.spike_bumper.tint).toBeUndefined();
+    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.scale).toBeLessThan(1.0);
+    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeLessThan(1.6);
   });
 
-  it("keeps Blitz nitro below the deck spoiler and smaller", () => {
+  it("tucks Blitz nitro onto the rear bumper under the deck spoiler", () => {
     const nitro = BLITZ_PART_PLACEMENT.nitro_kit[0]!;
     const wing = BLITZ_PART_PLACEMENT.rear_spoiler[0]!;
-    expect(nitro.z).toBeLessThan(-1.6);
-    expect(nitro.scale).toBeLessThan(0.85);
+    expect(nitro.z).toBeGreaterThan(-1.9);
+    expect(nitro.z).toBeLessThan(-1.55);
+    expect(nitro.scale).toBeLessThanOrEqual(0.85);
     expect(nitro.z).toBeLessThan(wing.z);
     expect(nitro.y + 0.42 * nitro.scale).toBeLessThan(wing.y);
   });

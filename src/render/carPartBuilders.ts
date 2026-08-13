@@ -250,30 +250,35 @@ export function buildReinforcedFrame(
     g.add(hoopTop);
     return g;
   }
-  // sport: bolted side skirts + compact rear hoop (fits Blitz roof ~y1.03).
+  // sport: bolted carbon side skirts + compact rear hoop (Blitz look sheet).
   for (const side of [-1, 1] as const) {
-    const sill = box(0.14, 0.12, 1.7, GREY, "SillPlate");
-    sill.position.set(side * 0.82, 0.12, -0.05);
+    const sill = box(0.11, 0.1, 1.55, CARBON, "SillPlate");
+    sill.position.set(side * 0.78, 0.14, -0.02);
     g.add(sill);
-    for (let i = 0; i < 3; i++) {
-      const gusset = box(0.07, 0.1, 0.12, GREY, "SillGusset");
-      gusset.position.set(side * 0.82, 0.18, 0.5 - i * 0.5);
-      g.add(gusset);
+    for (let i = 0; i < 5; i++) {
+      const bolt = cyl(0.025, 0.025, 0.04, SILVER, "SillBolt", 6);
+      bolt.rotation.z = Math.PI / 2;
+      bolt.position.set(side * 0.84, 0.14, 0.55 - i * 0.28);
+      g.add(bolt);
     }
   }
   for (const side of [-1, 1] as const) {
-    const upright = cyl(0.04, 0.04, 0.55, CARBON, "CageUpright", 6);
-    upright.position.set(side * 0.42, 0.72, -1.15);
+    const upright = cyl(0.045, 0.045, 0.62, CARBON, "CageUpright", 6);
+    upright.position.set(side * 0.38, 0.78, -1.12);
     g.add(upright);
-    const diag = cyl(0.035, 0.035, 0.48, CARBON, "CageDiag", 6);
-    diag.rotation.x = 0.7;
-    diag.position.set(side * 0.28, 0.58, -1.35);
+    const diag = cyl(0.038, 0.038, 0.52, CARBON, "CageDiag", 6);
+    diag.rotation.x = 0.65;
+    diag.position.set(side * 0.26, 0.62, -1.32);
     g.add(diag);
   }
-  const hoopTop = cyl(0.04, 0.04, 0.9, CARBON, "CageTop", 6);
+  const hoopTop = cyl(0.045, 0.045, 0.82, CARBON, "CageTop", 6);
   hoopTop.rotation.z = Math.PI / 2;
-  hoopTop.position.set(0, 0.95, -1.15);
+  hoopTop.position.set(0, 1.05, -1.12);
   g.add(hoopTop);
+  const hoopCross = cyl(0.035, 0.035, 0.55, CARBON, "CageCross", 6);
+  hoopCross.rotation.z = Math.PI / 2;
+  hoopCross.position.set(0, 0.72, -1.12);
+  g.add(hoopCross);
   return g;
 }
 
@@ -359,13 +364,22 @@ export function buildLightweightBody(style: LightweightStyle = "vents"): Group {
     }
     return g;
   }
-  // hood louvers only (Blitz look sheet) — fender panels floated off the body.
+  // hood louvers only (Blitz look sheet) — raised carbon plates, readable on red paint.
   for (let row = 0; row < 4; row++) {
     for (const side of [-1, 1] as const) {
-      const vent = box(0.18, 0.03, 0.22, CARBON, "HoodLouver");
-      vent.position.set(side * 0.26, 0.02, 0.22 - row * 0.18);
+      const vent = box(0.2, 0.055, 0.24, CARBON, "HoodLouver");
+      vent.position.set(side * 0.28, 0.035, 0.28 - row * 0.2);
       g.add(vent);
+      const slot = box(0.14, 0.02, 0.04, 0x111114, "LouverSlot");
+      slot.position.set(side * 0.28, 0.06, 0.34 - row * 0.2);
+      g.add(slot);
     }
+  }
+  // Center forward pair (look sheet dual intake hint).
+  for (const x of [-0.12, 0.12] as const) {
+    const center = box(0.16, 0.05, 0.2, CARBON, "HoodCenterVent");
+    center.position.set(x, 0.04, 0.42);
+    g.add(center);
   }
   return g;
 }

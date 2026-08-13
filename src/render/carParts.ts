@@ -99,23 +99,24 @@ export type BlitzPartAnchor = PartAnchor;
  */
 export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
   // Extracted wing sits flush on the stock lip (body keeps the full coupe).
-  rear_spoiler: [{ x: 0, y: 0.8, z: -1.52, yaw: 0, scale: 1.0, snap: false }],
-  // Hood scoop — prefer hood height so cabin roof does not win the surface sample.
+  rear_spoiler: [{ x: 0, y: 0.78, z: -1.48, yaw: 0, scale: 0.92, snap: false }],
+  // Hood scoop — prefer hood deck (not cabin roof); sit flush.
   big_engine: [
     {
       x: 0,
-      y: 0.52,
-      z: 1.22,
+      y: 0.5,
+      z: 1.15,
       yaw: Math.PI,
-      scale: 0.9,
-      sitGap: 0.01,
-      preferY: 0.55,
-      snapRadius: 0.35,
+      scale: 0.95,
+      sitGap: -0.02,
+      preferY: 0.5,
+      snapRadius: 0.32,
     },
   ],
-  // Twin bottles on the rear bumper — low/small so they clear the deck spoiler.
-  nitro_kit: [{ x: 0, y: 0.16, z: -1.95, yaw: 0, scale: 0.72, snap: false }],
-  spike_bumper: [{ x: 0, y: 0.06, z: 1.7, yaw: 0, scale: 1.12, snap: false }],
+  // Twin bottles on the rear bumper — tucked to the diffuser, not floating aft.
+  nitro_kit: [{ x: 0, y: 0.22, z: -1.72, yaw: 0, scale: 0.82, snap: false }],
+  // Black bar + chrome spikes — keep Tripo materials (no paint tint).
+  spike_bumper: [{ x: 0, y: 0.08, z: 1.52, yaw: 0, scale: 0.92, snap: false }],
   offroad_suspension: [
     { x: 0.7, y: 0.06, z: 1.05, yaw: 0, scale: 0.7, snap: false },
     { x: -0.7, y: 0.06, z: 1.05, yaw: Math.PI, scale: 0.7, snap: false },
@@ -125,7 +126,7 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
   // Origin-centered sport cage+skirts (procedural) — not the thin Tripo slab.
   reinforced_frame: [{ x: 0, y: 0, z: 0, yaw: 0, scale: 1, snap: false }],
   // Hood louvers — fixed Y (no roof snap).
-  lightweight_body: [{ x: 0, y: 0.52, z: 1.0, yaw: 0, scale: 1.0, snap: false }],
+  lightweight_body: [{ x: 0, y: 0.5, z: 1.05, yaw: 0, scale: 1.05, snap: false }],
 };
 
 type PartVisual = {
@@ -174,7 +175,8 @@ function layoutBlitz(): CarVisualLayout {
     },
     spike_bumper: {
       anchors: BLITZ_PART_PLACEMENT.spike_bumper,
-      build: () => buildSpikeBumper(6, 1.25),
+      build: () => buildSpikeBumper(6, 1.2),
+      // Keep Tripo Spike materials (dark bar + chrome) — never paint-tint.
     },
     reinforced_frame: {
       anchors: BLITZ_PART_PLACEMENT.reinforced_frame,
@@ -637,11 +639,6 @@ function tintPartMeshes(root: Object3D, hex: number, solid = false): void {
   });
 }
 
-function paintHexToNumber(paint: string): number | null {
-  const m = /^#?([0-9a-fA-F]{6})$/.exec(paint.trim());
-  return m ? Number.parseInt(m[1]!, 16) : null;
-}
-
 function applyRideLift(root: Object3D, lift: number): void {
   const baseY =
     typeof root.userData.carPartsSitY === "number"
@@ -861,7 +858,6 @@ export function applyEquippedPartVisuals(
   const equipped = new Set(equippedParts);
   applyRideLift(root, carStanceLift(carId, equippedParts));
   applyStockPartVisibility(root, carId, equippedParts);
-  const paintTint = opts?.paint ? paintHexToNumber(opts.paint) : undefined;
 
   const group = new Group();
   group.name = CAR_PARTS_GROUP;
@@ -881,7 +877,9 @@ export function applyEquippedPartVisuals(
     );
   }
   if (equipped.has("spike_bumper")) {
-    const spikeTint = layout.spike_bumper.tint ?? paintTint ?? undefined;
+    // Only layout-defined tints (Bison olive, etc.) — never fall back to body paint
+    // (that painted Blitz spikes solid red and killed the look-sheet chrome).
+    const spikeTint = layout.spike_bumper.tint;
     mountGlbOrProc(
       group,
       root,
@@ -892,7 +890,7 @@ export function applyEquippedPartVisuals(
       false,
       layout.spike_bumper.preferGlb !== false,
       spikeTint ?? undefined,
-      // Solid tint — drop Tripo albedo so charcoal/paint reads clean.
+      // Solid tint — drop Tripo albedo so charcoal reads clean (Bison/Donner/Bunker).
       spikeTint != null,
     );
   }
