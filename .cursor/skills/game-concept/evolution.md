@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-13 — v3.57 Drop Bessere Bremsen on Bison
+- Trigger: user — remove improved brakes items from Bison
+- Decision: `better_brakes` also dropped for Bison (like Blitz): shop/kits strip via `carSupportsPart`; empty brake anchors / no caliper meshes until a fitting kit exists. Other classes keep the part.
+- CONCEPT §6.3 Sichtbarkeit → v3.57
+
 ### 2026-08-13 — v3.55 Arcade SFX (CC0) + mute
 - Trigger: user — add sound effects; search proper free SFX
 - Decision: ship curated **CC0** samples (Kenney UI + OGA engine loops + 100 CC0 / breaking hits); Web Audio bus (`src/audio/`); race emits player-centric cues; Mute in Garage/Hilfe/HUD (localStorage)

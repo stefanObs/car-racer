@@ -152,6 +152,9 @@ describe("Equipped-part visuals (all cars)", () => {
       if (id === "blitz") {
         expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeFalsy();
         expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeTruthy();
+      } else if (id === "bison") {
+        expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeFalsy();
+        expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeFalsy();
       } else {
         expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeTruthy();
         expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeFalsy();
@@ -235,7 +238,7 @@ describe("Equipped-part visuals (all cars)", () => {
   it("has a layout for every CarId", () => {
     for (const id of CAR_IDS as CarId[]) {
       expect(CAR_PART_LAYOUTS[id].big_engine.anchors.length).toBeGreaterThan(0);
-      if (id === "blitz") expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(0);
+      if (id === "blitz" || id === "bison") expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(0);
       else expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(4);
     }
   });

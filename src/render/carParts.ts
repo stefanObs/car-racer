@@ -205,12 +205,8 @@ function layoutBison(): CarVisualLayout {
   return {
     wheelLift: 0.12,
     suspensionLift: 0,
-    brakes: [
-      { x: 0.72, y: 0.4, z: 1.2, yaw: 0, scale: 1, snap: false },
-      { x: -0.72, y: 0.4, z: 1.2, yaw: Math.PI, scale: 1, snap: false },
-      { x: 0.72, y: 0.4, z: -1.2, yaw: 0, scale: 1, snap: false },
-      { x: -0.72, y: 0.4, z: -1.2, yaw: Math.PI, scale: 1, snap: false },
-    ],
+    // Bison drops Bessere Bremsen — no caliper anchors.
+    brakes: [],
     springs: [],
     wheelHints: [
       { x: 0.85, y: 0.48, z: 1.2, yaw: 0, scale: 1, snap: false },
