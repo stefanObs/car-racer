@@ -482,8 +482,11 @@ describe("Equipped-part visuals (all cars)", () => {
     const spike = L.spike_bumper.anchors[0]!;
     expect(spike.y).toBeLessThan(0.12);
     expect(spike.z).toBeGreaterThan(1.65);
-    expect(spike.scale).toBeLessThan(0.65);
-    expect(L.spike_bumper.tint).toBe(0x2c3136);
+    expect(spike.scale).toBeGreaterThan(0.9);
+    expect(spike.scale).toBeLessThan(1.1);
+    // Keep Tripo chrome albedo — solid tint was washing the 5-spike kit to a dark plate.
+    expect(L.spike_bumper.tint).toBeUndefined();
+    expect(existsSync("public/models/parts/donnerbuechse-spike_bumper.glb")).toBe(true);
 
     const wing = L.rear_spoiler.anchors[0]!;
     expect(wing.z).toBeLessThan(-1.2);

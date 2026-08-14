@@ -355,11 +355,10 @@ function layoutDonner(): CarVisualLayout {
       preferGlb: true,
     },
     spike_bumper: {
-      // Low front frame crossbar under the grille.
-      anchors: [{ x: 0, y: 0.06, z: 1.82, yaw: 0, scale: 0.5, snap: false }],
+      // Tripo 5-spike chrome bar on the front crossbar (look sheet / part concept).
+      anchors: [{ x: 0, y: 0.06, z: 1.82, yaw: 0, scale: 0.98, snap: false }],
       build: () => buildSpikeBumper(5, 1.45),
       preferGlb: true,
-      tint: 0x2c3136,
     },
     reinforced_frame: {
       // Tripo = rail + roll hoop (hoop at +X in bake → yaw −π/2 puts hoop over cabin).
