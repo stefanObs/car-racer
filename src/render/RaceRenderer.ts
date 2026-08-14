@@ -246,9 +246,9 @@ export class RaceRenderer {
     this.garageDragging = dragging;
   }
 
-  /** Pointer drag in CSS pixels — yaw (dx) + pitch (dy), mouse / touch. */
-  addGarageOrbitFromDrag(deltaXPx: number, deltaYPx: number): void {
-    const next = applyGarageDragOrbit(this.garageYaw, this.garagePitch, deltaXPx, deltaYPx);
+  /** Pointer drag — LMB yaw, RMB pitch; touch keeps both (CONCEPT tablet). */
+  addGarageOrbitFromDrag(deltaXPx: number, deltaYPx: number, axes?: { yaw: boolean; pitch: boolean }): void {
+    const next = applyGarageDragOrbit(this.garageYaw, this.garagePitch, deltaXPx, deltaYPx, axes);
     this.garageYaw = next.yaw;
     this.garagePitch = next.pitch;
   }

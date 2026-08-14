@@ -27,6 +27,7 @@ import { renderTrackPlanSvg } from "./trackPlan";
 import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
 import type { LevelDefinition } from "../track/types";
 import { renderGarageHtml } from "./garageHtml";
+import { garageOrbitAxesForPointer } from "./garageOrbit";
 import { renderCarStatsPopup } from "./carStatsPopup";
 import { renderLapCounterHtml } from "./lapHud";
 import { renderMiniMapSvg } from "./miniMap";
@@ -105,11 +106,12 @@ export class GameApp {
     this.renderUi();
   }
 
-  /** LMB / touch drag on the canvas spins the garage showcase car (yaw + pitch). */
+  /** LMB yaw / RMB pitch on canvas; touch keeps both axes. */
   private bindGarageOrbit(canvas: HTMLCanvasElement): void {
     let dragging = false;
     let lastX = 0;
     let lastY = 0;
+    let axes = { yaw: true, pitch: false };
 
     const endDrag = (e: PointerEvent): void => {
       if (!dragging) return;
@@ -123,10 +125,17 @@ export class GameApp {
       }
     };
 
+    canvas.addEventListener("contextmenu", (e) => {
+      if (this.screen !== "garage") return;
+      e.preventDefault();
+    });
+
     canvas.addEventListener("pointerdown", (e) => {
       if (this.screen !== "garage") return;
-      if (e.button !== 0) return;
+      const next = garageOrbitAxesForPointer(e.button, e.pointerType);
+      if (!next.yaw && !next.pitch) return;
       dragging = true;
+      axes = next;
       lastX = e.clientX;
       lastY = e.clientY;
       this.renderer.setGarageDragging(true);
@@ -141,7 +150,7 @@ export class GameApp {
       const dy = e.clientY - lastY;
       lastX = e.clientX;
       lastY = e.clientY;
-      if (dx !== 0 || dy !== 0) this.renderer.addGarageOrbitFromDrag(dx, dy);
+      if (dx !== 0 || dy !== 0) this.renderer.addGarageOrbitFromDrag(dx, dy, axes);
     });
 
     canvas.addEventListener("pointerup", endDrag);

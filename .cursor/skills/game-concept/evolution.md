@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.64 Garage pitch on right-click
+- Trigger: user — vertical pitch only with right click
+- Decision: Mouse LMB = yaw only, RMB = pitch only (context menu suppressed on canvas). Touch/pen keep both axes (no secondary button).
+- CONCEPT §9 → v3.64
+
 ### 2026-08-14 — v3.63 Garage free yaw + pitch orbit
 - Trigger: user — cars should turn in all directions; code only yawed
 - Decision: CONCEPT §9 „frei drehen“ = horizontal drag yaw + vertical drag pitch (clamp ±π). Wire `applyGarageDragOrbit` through GameApp → RaceRenderer (Euler YXZ).

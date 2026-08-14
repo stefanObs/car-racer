@@ -9,6 +9,19 @@ export const GARAGE_ORBIT_SENSITIVITY = 0.0075;
 /** Full tumble allowed; keep pitch in ±π so Euler YXZ stays readable. */
 export const GARAGE_PITCH_LIMIT = Math.PI;
 
+export type GarageOrbitAxes = { yaw: boolean; pitch: boolean };
+
+/**
+ * Mouse: LMB = yaw only, RMB = pitch only.
+ * Touch / pen: both axes (no secondary button on tablet).
+ */
+export function garageOrbitAxesForPointer(button: number, pointerType: string): GarageOrbitAxes {
+  if (pointerType === "touch" || pointerType === "pen") return { yaw: true, pitch: true };
+  if (button === 2) return { yaw: false, pitch: true };
+  if (button === 0) return { yaw: true, pitch: false };
+  return { yaw: false, pitch: false };
+}
+
 /**
  * Drag right → show the car's left side (clockwise yaw when Y is up).
  * Works for mouse and touch (pointer deltaX).
@@ -34,17 +47,18 @@ export function applyGarageDragPitch(
   return Math.max(-limit, Math.min(limit, pitch + deltaYPx * sensitivity));
 }
 
-/** Apply both axes from one pointer move. */
+/** Apply selected axes from one pointer move. */
 export function applyGarageDragOrbit(
   yaw: number,
   pitch: number,
   deltaXPx: number,
   deltaYPx: number,
+  axes: GarageOrbitAxes = { yaw: true, pitch: true },
   sensitivity = GARAGE_ORBIT_SENSITIVITY,
 ): { yaw: number; pitch: number } {
   return {
-    yaw: applyGarageDragYaw(yaw, deltaXPx, sensitivity),
-    pitch: applyGarageDragPitch(pitch, deltaYPx, sensitivity),
+    yaw: axes.yaw ? applyGarageDragYaw(yaw, deltaXPx, sensitivity) : yaw,
+    pitch: axes.pitch ? applyGarageDragPitch(pitch, deltaYPx, sensitivity) : pitch,
   };
 }
 

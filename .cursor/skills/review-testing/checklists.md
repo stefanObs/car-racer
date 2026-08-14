@@ -33,7 +33,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 ## B. UX by screen
 
 ### Garage (Start-Hub)
-- [ ] Canvas drag: horizontal yaws car, vertical pitches (can flip)
+- [ ] Canvas drag: LMB yaws; RMB pitches (flip); touch both axes
 - [ ] Boots here by default (not a separate Hauptmenü)
 - [ ] Cup / Freier Modus / Ad-hoc CTAs present; focus defaults to Cup
 - [ ] Ausrüsten / Laden clearly above Schmücken
