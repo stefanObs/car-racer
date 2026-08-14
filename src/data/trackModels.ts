@@ -28,9 +28,22 @@ export const THEME_TRACK_PROP_IDS = [
   "scrub",
 ] as const;
 
+/**
+ * On-track obstacles (Schanze, Rüttelstreifen, Öl, Reifenstapel, Betonsperre).
+ * Distinct from tiled outer walls — compact props for `levelObstacles`.
+ */
+export const OBSTACLE_TRACK_PROP_IDS = [
+  "ramp",
+  "rumble",
+  "oil",
+  "tire-stack",
+  "barrier",
+] as const;
+
 export const OPTIONAL_ALL_TRACK_PROP_IDS = [
   ...OPTIONAL_TRACK_PROP_IDS,
   ...THEME_TRACK_PROP_IDS,
+  ...OBSTACLE_TRACK_PROP_IDS,
 ] as const;
 
 export const TRACK_PROP_IDS = [...REQUIRED_TRACK_PROP_IDS, ...OPTIONAL_ALL_TRACK_PROP_IDS] as const;
@@ -164,7 +177,52 @@ export const TRACK_PROPS: Record<TrackPropId, TrackPropSpec> = {
     scale: 1,
     tileAlong: 2.5,
   },
+  ramp: {
+    id: "ramp",
+    url: "/models/track/ramp.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 5,
+  },
+  rumble: {
+    id: "rumble",
+    url: "/models/track/rumble.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 6,
+  },
+  oil: {
+    id: "oil",
+    url: "/models/track/oil.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 4,
+  },
+  "tire-stack": {
+    id: "tire-stack",
+    url: "/models/track/tire-stack.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 1.4,
+  },
+  barrier: {
+    id: "barrier",
+    url: "/models/track/barrier.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 2.4,
+  },
 };
+
+/** Obstacle type → Tripo kit id + bake reference radius for runtime scale. */
+export const OBSTACLE_PROP_BY_TYPE = {
+  // refRadius ≈ half primary span of the baked GLB so default level radii size correctly.
+  ramp: { id: "ramp" as const, refRadius: 2.0 },
+  uneven: { id: "rumble" as const, refRadius: 2.3 },
+  oil: { id: "oil" as const, refRadius: 1.65 },
+  tire_stack: { id: "tire-stack" as const, refRadius: 1 },
+  concrete_barrier: { id: "barrier" as const, refRadius: 1.1 },
+} as const;
 
 /** Jersey top ≈ 1.5 m — fence modules sit here. */
 export const CONCRETE_WALL_HEIGHT = 1.5;

@@ -20,6 +20,11 @@ All modules are Tripo3D image-to-mesh from Asphalt-Comic concepts in `assets/tri
 | Tree | `track-tree.png` | same |
 | Warehouse | `track-warehouse.png` | same |
 | Scrub | `track-scrub.png` | same |
+| Ramp (Schanze) | `track-ramp.png` | same |
+| Rumble (Rüttelstreifen) | `track-rumble.png` | same |
+| Oil | `track-oil.png` | same |
+| Tire stack | `track-tire-stack.png` | same |
+| Barrier (Betonsperre) | `track-barrier.png` | same |
 
 Style lock: `.cursor/skills/asphalt-comic-art/reference.png`.
 Track proposals (layout reference): `assets/tripo-concepts/track-proposals/`.

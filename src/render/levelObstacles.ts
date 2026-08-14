@@ -1,18 +1,26 @@
 import { Group, Mesh } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { OBSTACLE_PROP_BY_TYPE } from "../data/trackModels";
 import type { LevelDefinition } from "../track/types";
 import { comicToon, withOutline } from "./comicMaterials";
+import { cloneTrackProp, hasTrackProp } from "./loadTrackGltf";
 import { ComicPalette } from "./palette";
 
 /**
  * On-track props.
  * Solid (bounce): concrete_barrier, tire_stack — tall, clearly blocking.
  * Passable (drive over): uneven rumble strips, oil, ramp (Schanze) — low + high-contrast.
+ * Prefer Tripo kit GLBs when preloaded; procedural boxes remain for unit tests without boot.
  */
 export function buildLevelObstacles(level: LevelDefinition): Group {
   const root = new Group();
   for (const o of level.obstacles) {
     const [x, z] = o.position;
+    const kit = tryTripoObstacle(o.type, x, z, o.radius);
+    if (kit) {
+      root.add(kit);
+      continue;
+    }
     switch (o.type) {
       case "concrete_barrier":
         root.add(makeBarrier(x, z, o.radius ?? 1.2));
@@ -34,6 +42,19 @@ export function buildLevelObstacles(level: LevelDefinition): Group {
     }
   }
   return root;
+}
+
+function tryTripoObstacle(type: string, x: number, z: number, radius?: number): Group | null {
+  const map = OBSTACLE_PROP_BY_TYPE[type as keyof typeof OBSTACLE_PROP_BY_TYPE];
+  if (!map || !hasTrackProp(map.id)) return null;
+  const g = cloneTrackProp(map.id);
+  if (!g) return null;
+  const r = radius ?? map.refRadius;
+  const s = Math.max(0.35, r / map.refRadius);
+  g.scale.multiplyScalar(s);
+  g.position.set(x, 0, z);
+  g.userData.obstacle = type;
+  return g;
 }
 
 function makeBarrier(x: number, z: number, radius: number): Group {

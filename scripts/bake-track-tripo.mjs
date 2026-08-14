@@ -47,6 +47,12 @@ const PROPS = [
   { id: "tree", along: "x", primary: "y", meters: 9, maxX: 5, maxZ: 5, simplify: 0.5 },
   { id: "warehouse", along: "z", primary: "z", meters: 14, maxY: 8, simplify: 0.38 },
   { id: "scrub", along: "x", primary: "y", meters: 1.8, maxX: 3.5, maxZ: 3.5, simplify: 0.6 },
+  // On-track obstacles (compact — not tiled outer walls)
+  { id: "rumble", along: "x", primary: "x", meters: 8.5, maxY: 0.45, maxZ: 5.5, simplify: 0.55 },
+  { id: "oil", along: "x", primary: "x", meters: 4.2, maxY: 0.28, maxZ: 3.2, simplify: 0.65 },
+  { id: "tire-stack", along: "x", primary: "y", meters: 1.35, maxX: 1.6, maxZ: 1.6, simplify: 0.5 },
+  { id: "barrier", along: "x", primary: "y", meters: 1.15, maxX: 2.6, maxZ: 1.1, simplify: 0.48 },
+  { id: "ramp", along: "z", primary: "z", meters: 5.2, maxY: 1.05, maxX: 4.5, maxZ: 5.2, simplify: 0.45 },
 ];
 
 function bakeNodeTree(node) {
@@ -134,12 +140,18 @@ function centerSitScale(doc, spec) {
   const dim =
     spec.primary === "x" ? s0.size[0] : spec.primary === "y" ? s0.size[1] : s0.size[2];
   let scale = spec.meters / Math.max(dim, 1e-6);
-  const y = s0.size[1] * scale;
-  const x = s0.size[0] * scale;
-  const z = s0.size[2] * scale;
-  if (spec.maxY && y > spec.maxY) scale *= spec.maxY / y;
-  if (spec.maxX && x > spec.maxX) scale *= spec.maxX / (s0.size[0] * scale);
-  if (spec.maxZ && z > spec.maxZ) scale *= spec.maxZ / (s0.size[2] * scale);
+  // Apply all span caps against the *current* scale so a later max* cannot undo maxY.
+  for (let i = 0; i < 4; i++) {
+    const y = s0.size[1] * scale;
+    const x = s0.size[0] * scale;
+    const z = s0.size[2] * scale;
+    let next = scale;
+    if (spec.maxY && y > spec.maxY) next = Math.min(next, scale * (spec.maxY / y));
+    if (spec.maxX && x > spec.maxX) next = Math.min(next, scale * (spec.maxX / x));
+    if (spec.maxZ && z > spec.maxZ) next = Math.min(next, scale * (spec.maxZ / z));
+    if (Math.abs(next - scale) < 1e-9) break;
+    scale = next;
+  }
   const minY = s0.min[1];
   forEachPosition(doc, (v) => {
     v[0] = (v[0] - s0.cx) * scale;
