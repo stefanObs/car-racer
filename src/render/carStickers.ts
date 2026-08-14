@@ -133,6 +133,18 @@ export const STICKER_DECALS: Record<Exclude<CarId, "kaeferkraft">, DecalAnchor[]
   ],
 };
 
+/** Per-car anchors; Bunker Stern sits farther aft than Flammen/Blitz. */
+export function stickerDecalsFor(
+  carId: Exclude<CarId, "kaeferkraft">,
+  sticker: string,
+): DecalAnchor[] {
+  const base = STICKER_DECALS[carId];
+  if (carId === "bunker" && sticker === "star") {
+    return base.map((a) => ({ ...a, z: -0.32 }));
+  }
+  return base;
+}
+
 /** Where stickers land per car (Käferkraft uses nose variants instead). */
 export function stickerSlotsForCar(id: CarId): StickerSlot[] {
   switch (id) {
@@ -511,7 +523,7 @@ function mountFlameTripoPlates(root: Object3D, carId: Exclude<CarId, "kaeferkraf
   group.userData.carStickers = "flames";
   group.userData.flameTripo = true;
 
-  for (const [i, anchor] of STICKER_DECALS[carId].entries()) {
+  for (const [i, anchor] of stickerDecalsFor(carId, "flames").entries()) {
     const plaque = cloneFlamePlaque();
     if (!plaque) continue;
     plaque.name = `stickerDecal-${anchor.slot}-${i}`;
@@ -577,7 +589,7 @@ function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">
   group.name = CAR_STICKERS_GROUP;
   group.userData.carStickers = sticker;
 
-  const anchors = STICKER_DECALS[carId];
+  const anchors = stickerDecalsFor(carId, sticker);
   const invRoot = root.matrixWorld.clone().invert();
 
   anchors.forEach((anchor, i) => {
@@ -643,7 +655,7 @@ function mountFlushDoorPlanes(
   group.name = CAR_STICKERS_GROUP;
   group.userData.carStickers = sticker;
 
-  STICKER_DECALS[carId].forEach((anchor, i) => {
+  stickerDecalsFor(carId, sticker).forEach((anchor, i) => {
     const map = tex.clone();
     map.needsUpdate = true;
     if (anchor.mirrorU) {

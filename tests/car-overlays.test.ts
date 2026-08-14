@@ -10,6 +10,7 @@ import {
   findBodyMeshForStickers,
   overlayTextureCacheSize,
   STICKER_DECALS,
+  stickerDecalsFor,
   stickerSlotsForCar,
   stickerTexture,
 } from "../src/render/carStickers";
@@ -145,6 +146,14 @@ describe("car sticker decals", () => {
     }
   });
 
+  it("places Bunker Stern farther aft than Flammen", () => {
+    const flame = stickerDecalsFor("bunker", "flames");
+    const star = stickerDecalsFor("bunker", "star");
+    expect(star[0]!.z).toBeLessThan(flame[0]!.z);
+    expect(star[0]!.z).toBeLessThan(-0.2);
+    expect(star[0]!.z).toBeGreaterThan(-0.55);
+  });
+
   it("mounts two flush door stickers on Bunker (no Tripo flame plaques)", () => {
     const root = fakeCarRoot(2.0, 1.8, 3.8);
     applyCarStickers(root, "bunker", "flames");
@@ -154,6 +163,16 @@ describe("car sticker decals", () => {
     for (const child of g!.children) {
       expect(child.name.startsWith("stickerDecal-side")).toBe(true);
       expect(Math.abs(child.position.z)).toBeLessThan(0.25);
+    }
+  });
+
+  it("mounts Bunker Stern flush planes farther aft", () => {
+    const root = fakeCarRoot(2.0, 1.8, 3.8);
+    applyCarStickers(root, "bunker", "star");
+    const g = root.getObjectByName(CAR_STICKERS_GROUP);
+    expect(g?.children.length).toBe(2);
+    for (const child of g!.children) {
+      expect(child.position.z).toBeLessThan(-0.2);
     }
   });
 
