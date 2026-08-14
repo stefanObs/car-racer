@@ -159,34 +159,34 @@ export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnc
       push(kind, s, out, 2 + (i % 3) * 3, kind === "crane" ? 4.5 : 5);
     }
   } else if (t === "beach") {
-    // Parabolbogen: palms, dunes, water, yellow grandstands — no harbor cranes on the ribbon.
+    // Parabolbogen: palms + yellow grandstands / huts — water patches stay flat discs.
     for (let i = 0; i < 14; i++) {
       const s = sample(track, i, 14);
       const out = outerSide(track, s);
       push("palm", s, out, (i % 3) * 2, 3.5);
       if (i % 2 === 0) push("water", s, out, 14, 11);
-      push("dune", s, out, 5 + (i % 2) * 3, 4.5);
+      if (i % 3 === 0) push("scrub", s, out, 5 + (i % 2) * 3, 2.2);
       if (i % 3 === 0) push("hut", s, out, 8, 4.5);
       if (i % 4 === 0) push("grandstand", s, out, 10, 7);
     }
   } else if (t === "city") {
-    // Schikanenring: buildings / control towers off the corridor; sparse Baustelle kits outer-only.
+    // Schikanenring: buildings / towers only (Tripo) — no procedural lamps.
     for (let i = 0; i < 14; i++) {
       const s = sample(track, i, 14);
       const out = outerSide(track, s);
       push(i % 3 === 0 ? "tower" : "building", s, out, 3 + (i % 3) * 2, 6);
-      if (i % 2 === 0) push("lamp", s, out, 2, 1.5);
+      if (i % 4 === 0) push("scrub", s, out, 2, 2.2);
       if (i % 5 === 0) push("container", s, out, 8, 4.5);
     }
   } else if (t === "factory") {
-    // Kuppenfinale: forest hills + sparse warehouse sheds (proposal look).
+    // Kuppenfinale: forest + warehouses; spires stand in for smokestacks (Tripo).
     for (let i = 0; i < 14; i++) {
       const s = sample(track, i, 14);
       const out = outerSide(track, s);
       push("tree", s, out, (i % 3) * 2, 3.5);
       if (i % 2 === 0) push("scrub", s, out, 3, 2.2);
       if (i % 4 === 0) push("warehouse", s, out, 9, 7);
-      if (i % 5 === 0) push("stack", s, out, 11, 4);
+      if (i % 5 === 0) push("spire", s, out, 11, 4);
     }
   } else {
     // Omegatal canyon: cliffs / spires / scrub well outside the ribbon.

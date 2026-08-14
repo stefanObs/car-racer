@@ -40,9 +40,9 @@ describe("cup track variance", () => {
 
     const expectedKinds: Record<string, string[]> = {
       harbor: ["crane", "container", "warehouse", "tank"],
-      beach: ["palm", "water", "dune", "hut", "grandstand"],
-      city: ["building", "tower", "lamp"],
-      factory: ["warehouse", "tree", "scrub", "stack"],
+      beach: ["palm", "water", "scrub", "hut", "grandstand"],
+      city: ["building", "tower", "scrub"],
+      factory: ["warehouse", "tree", "scrub", "spire"],
       canyon: ["cliff", "spire", "scrub"],
     };
 

@@ -95,5 +95,17 @@ describe("theme track Tripo kit (cups 2–5)", () => {
     expect(kinds.has("crane")).toBe(false);
     expect(kinds.has("grandstand")).toBe(true);
     expect(kinds.has("palm")).toBe(true);
+    expect(kinds.has("dune")).toBe(false);
+  });
+
+  it("drops procedural lamp/stack/dune from cup scenery plans", () => {
+    for (const level of CUP_LEVELS) {
+      const kinds = new Set(
+        planSceneryAnchors(buildTrackFromLevel(level), level.theme).map((a) => a.kind),
+      );
+      expect(kinds.has("lamp"), level.id).toBe(false);
+      expect(kinds.has("stack"), level.id).toBe(false);
+      expect(kinds.has("dune"), level.id).toBe(false);
+    }
   });
 });

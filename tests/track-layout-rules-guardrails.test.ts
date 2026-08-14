@@ -167,8 +167,9 @@ describe("track layoutRules (ribbon separation + scenery allowlist)", () => {
   });
 
   it("allows only the documented non-Tripo scenery kinds on cups + ad-hoc", () => {
-    expect(ALLOWED_NON_TRIPO_SCENERY).toEqual(["water", "dune", "lamp", "stack"]);
-    expect(isAllowedNonTripoScenery("lamp")).toBe(true);
+    expect(ALLOWED_NON_TRIPO_SCENERY).toEqual(["water"]);
+    expect(isAllowedNonTripoScenery("lamp")).toBe(false);
+    expect(isAllowedNonTripoScenery("water")).toBe(true);
     expect(isAllowedNonTripoScenery("crane")).toBe(false);
 
     const check = (track: BuiltTrack, theme: string, label: string) => {

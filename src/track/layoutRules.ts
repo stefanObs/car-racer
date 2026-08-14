@@ -9,10 +9,10 @@ export const RIBBON_MEDIAN_MARGIN_M = 4;
 export const RIBBON_PINCH_MIN_ALONG_GAP_M = 40;
 
 /**
- * Procedural scenery kinds still allowed until Tripo replacements ship (Phase D).
- * Everything else must map to `isTripoSceneryKind`.
+ * Only flat water discs remain procedural (readable beach basins; not a Tripo mesh).
+ * dune / lamp / stack were replaced by scrub / towers / spires from the shipped kit.
  */
-export const ALLOWED_NON_TRIPO_SCENERY = ["water", "dune", "lamp", "stack"] as const;
+export const ALLOWED_NON_TRIPO_SCENERY = ["water"] as const;
 
 export type AllowedNonTripoScenery = (typeof ALLOWED_NON_TRIPO_SCENERY)[number];
 
