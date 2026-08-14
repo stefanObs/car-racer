@@ -443,14 +443,15 @@ describe("Equipped-part visuals (all cars)", () => {
     const frame = CAR_PART_LAYOUTS.bison.reinforced_frame.anchors[0]!;
     // Bake arch faces local +Z; yaw 0 keeps braces leaning aft (−Z), not into the cabin.
     expect(frame.yaw).toBeCloseTo(0);
-    expect(frame.z).toBeLessThan(-0.95);
-    expect(frame.z).toBeGreaterThan(-1.2);
+    expect(frame.z).toBeLessThan(-0.7);
+    expect(frame.z).toBeGreaterThan(-0.95);
     expect(frame.y).toBeGreaterThan(0.55);
     expect(frame.y).toBeLessThan(0.75);
     // Bed rails are ~|x|≤0.70 — keep scaled width inside.
     expect(frame.scale).toBeGreaterThan(0.8);
     expect(frame.scale).toBeLessThanOrEqual(0.95);
-    expect(frame.scaleY ?? frame.scale).toBeCloseTo(frame.scale);
+    // Deep Tripo feet are squashed so the arch can sit near the cab without cabin punch-through.
+    expect(frame.scaleZ ?? frame.scale).toBeLessThan(frame.scale);
 
     const { NodeIO } = await import("@gltf-transform/core");
     const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
@@ -460,8 +461,9 @@ describe("Equipped-part visuals (all cars)", () => {
     );
     const b = getBounds(doc.getRoot().listScenes()[0]!);
     const sx = frame.scale;
-    // yaw 0: forward extent = anchor.z + local max Z * scale — stay aft of cab rear (~−0.55).
-    expect(frame.z + b.max[2]! * sx).toBeLessThan(-0.55);
+    const sz = frame.scaleZ ?? frame.scale;
+    // yaw 0: forward extent = anchor.z + local max Z * scaleZ — stay aft of cab rear (~−0.55).
+    expect(frame.z + b.max[2]! * sz).toBeLessThan(-0.55);
     expect(Math.max(Math.abs(b.min[0]! * sx), Math.abs(b.max[0]! * sx))).toBeLessThanOrEqual(0.7);
 
     // Straightened bake: mid-height left/right Z means must agree (no ¾ skew).

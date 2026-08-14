@@ -250,8 +250,18 @@ function layoutBison(): CarVisualLayout {
       preferGlb: true,
     },
     reinforced_frame: {
-      // Bed roll bar: bake arch at local +Z; yaw 0; aft of cab rear (~z−0.55); inside rails.
-      anchors: [{ x: 0, y: 0.62, z: -1.05, yaw: 0, scale: 0.88, snap: false }],
+      // Bed roll bar: arch toward cab (+Z bake), scaleZ thins deep Tripo feet so plates clear cabin.
+      anchors: [
+        {
+          x: 0,
+          y: 0.64,
+          z: -0.82,
+          yaw: 0,
+          scale: 0.9,
+          scaleZ: 0.5,
+          snap: false,
+        },
+      ],
       build: () => buildReinforcedFrame("pickup"),
       preferGlb: true,
     },
@@ -1004,7 +1014,8 @@ function placeAnchored(
     inst.rotation.x = anchor.pitch ?? 0;
     inst.rotation.y = anchor.yaw;
     const sy = anchor.scaleY ?? anchor.scale;
-    inst.scale.set(anchor.scale, sy, anchor.scale);
+    const sz = anchor.scaleZ ?? anchor.scale;
+    inst.scale.set(anchor.scale, sy, sz);
     inst.position.set(anchor.x, 0, anchor.z);
     group.add(inst);
 
