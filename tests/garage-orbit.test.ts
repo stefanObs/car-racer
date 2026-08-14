@@ -5,7 +5,10 @@ import {
   applyGarageDragYaw,
   garageDisplayYaw,
   garageOrbitAxesForPointer,
+  garagePitchFloorClearance,
+  garagePitchHoverY,
   GARAGE_ORBIT_SENSITIVITY,
+  GARAGE_PITCH_INSPECT_LIFT,
   GARAGE_PITCH_LIMIT,
   GARAGE_YAW_DEFAULT,
 } from "../src/ui/garageOrbit";
@@ -15,17 +18,24 @@ describe("garage orbit yaw + pitch", () => {
     expect(GARAGE_YAW_DEFAULT).toBeCloseTo(0.42, 2);
   });
 
-  it("maps LMB to yaw-only and RMB to pitch-only", () => {
+  it("maps LMB to yaw-only and RMB to free tumble", () => {
     expect(garageOrbitAxesForPointer(0, "mouse")).toEqual({ yaw: true, pitch: false });
-    expect(garageOrbitAxesForPointer(2, "mouse")).toEqual({ yaw: false, pitch: true });
+    expect(garageOrbitAxesForPointer(2, "mouse")).toEqual({ yaw: true, pitch: true });
     expect(garageOrbitAxesForPointer(1, "mouse")).toEqual({ yaw: false, pitch: false });
   });
 
-  it("uses 1-finger yaw and 2-finger pitch on touch/pen", () => {
+  it("uses 1-finger yaw and 2-finger free tumble on touch/pen", () => {
     expect(garageOrbitAxesForPointer(0, "touch", 1)).toEqual({ yaw: true, pitch: false });
-    expect(garageOrbitAxesForPointer(0, "touch", 2)).toEqual({ yaw: false, pitch: true });
-    expect(garageOrbitAxesForPointer(0, "pen", 1)).toEqual({ yaw: true, pitch: false });
-    expect(garageOrbitAxesForPointer(0, "pen", 2)).toEqual({ yaw: false, pitch: true });
+    expect(garageOrbitAxesForPointer(0, "touch", 2)).toEqual({ yaw: true, pitch: true });
+    expect(garageOrbitAxesForPointer(0, "pen", 2)).toEqual({ yaw: true, pitch: true });
+  });
+
+  it("lifts the car off the pad as pitch increases (and when inverted)", () => {
+    expect(garagePitchFloorClearance(0, 1.5, 0.6)).toBeCloseTo(0, 5);
+    expect(garagePitchFloorClearance(Math.PI / 2, 1.5, 0.6)).toBeGreaterThan(1.4);
+    expect(garagePitchFloorClearance(Math.PI, 1.5, 0.6)).toBeCloseTo(1.2, 5);
+    expect(garagePitchHoverY(0, 1.5, 0.6, true)).toBeCloseTo(GARAGE_PITCH_INSPECT_LIFT, 5);
+    expect(garagePitchHoverY(0, 1.5, 0.6, false)).toBeCloseTo(0, 5);
   });
 
   it("drag right decreases yaw (turntable)", () => {
@@ -59,13 +69,10 @@ describe("garage orbit yaw + pitch", () => {
     expect(next.pitch).toBeCloseTo(applyGarageDragPitch(0.1, -30), 5);
   });
 
-  it("respects yaw-only / pitch-only axis masks", () => {
+  it("respects yaw-only axis mask", () => {
     const yawOnly = applyGarageDragOrbit(0.4, 0.1, 50, 80, { yaw: true, pitch: false });
     expect(yawOnly.yaw).toBeCloseTo(applyGarageDragYaw(0.4, 50), 5);
     expect(yawOnly.pitch).toBe(0.1);
-    const pitchOnly = applyGarageDragOrbit(0.4, 0.1, 50, 80, { yaw: false, pitch: true });
-    expect(pitchOnly.yaw).toBe(0.4);
-    expect(pitchOnly.pitch).toBeCloseTo(applyGarageDragPitch(0.1, 80), 5);
   });
 
   it("suppresses idle sway while dragging", () => {

@@ -106,7 +106,7 @@ export class GameApp {
     this.renderUi();
   }
 
-  /** LMB/1-finger yaw; RMB/2-finger pitch on the garage canvas. */
+  /** LMB/1-finger yaw; RMB/2-finger free tumble (with pad hover). */
   private bindGarageOrbit(canvas: HTMLCanvasElement): void {
     const pointers = new Map<number, { x: number; y: number; type: string; button: number }>();
 
@@ -117,6 +117,17 @@ export class GameApp {
       const on = pointers.size > 0;
       this.renderer.setGarageDragging(on);
       canvas.classList.toggle("is-orbiting", on);
+      let inspect = false;
+      for (const p of pointers.values()) {
+        const count =
+          p.type === "touch" || p.type === "pen" ? Math.max(1, touchLikeCount()) : 1;
+        const axes = garageOrbitAxesForPointer(p.button, p.type, count);
+        if (axes.pitch) {
+          inspect = true;
+          break;
+        }
+      }
+      this.renderer.setGaragePitchInspect(inspect);
     };
 
     const release = (pointerId: number): void => {

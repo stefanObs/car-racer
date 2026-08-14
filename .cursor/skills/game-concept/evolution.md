@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.66 Garage RMB free tumble + pad hover
+- Trigger: user — right click pitches all directions; lift car so it does not clip the floor
+- Decision: RMB / 2-finger = yaw+pitch; hover lift while inspect held + pitch-based floor clearance from half-extents
+- CONCEPT §9 → v3.66
+
 ### 2026-08-14 — v3.65 Garage pitch via two-finger touch
 - Trigger: user — two finger touch for vertical pitch on tablets
 - Decision: Touch/pen 1 finger = yaw only; 2+ fingers = pitch only. Mouse unchanged (LMB yaw / RMB pitch).

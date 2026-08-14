@@ -33,7 +33,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 ## B. UX by screen
 
 ### Garage (Start-Hub)
-- [ ] Canvas drag: LMB/1-finger yaws; RMB/2-finger pitches
+- [ ] Canvas drag: LMB/1-finger yaws; RMB/2-finger free tumble with hover lift
 - [ ] Boots here by default (not a separate Hauptmenü)
 - [ ] Cup / Freier Modus / Ad-hoc CTAs present; focus defaults to Cup
 - [ ] Ausrüsten / Laden clearly above Schmücken

@@ -9,11 +9,14 @@ export const GARAGE_ORBIT_SENSITIVITY = 0.0075;
 /** Full tumble allowed; keep pitch in ±π so Euler YXZ stays readable. */
 export const GARAGE_PITCH_LIMIT = Math.PI;
 
+/** Extra pad clearance while RMB / 2-finger inspect is held. */
+export const GARAGE_PITCH_INSPECT_LIFT = 0.35;
+
 export type GarageOrbitAxes = { yaw: boolean; pitch: boolean };
 
 /**
- * Mouse: LMB = yaw only, RMB = pitch only.
- * Touch / pen: 1 finger = yaw, 2+ fingers = pitch.
+ * Mouse: LMB = yaw only; RMB = free tumble (yaw + pitch).
+ * Touch / pen: 1 finger = yaw; 2+ fingers = free tumble.
  */
 export function garageOrbitAxesForPointer(
   button: number,
@@ -21,12 +24,42 @@ export function garageOrbitAxesForPointer(
   activeTouchCount = 1,
 ): GarageOrbitAxes {
   if (pointerType === "touch" || pointerType === "pen") {
-    if (activeTouchCount >= 2) return { yaw: false, pitch: true };
+    if (activeTouchCount >= 2) return { yaw: true, pitch: true };
     return { yaw: true, pitch: false };
   }
-  if (button === 2) return { yaw: false, pitch: true };
+  if (button === 2) return { yaw: true, pitch: true };
   if (button === 0) return { yaw: true, pitch: false };
   return { yaw: false, pitch: false };
+}
+
+/** True when this pointer mode can pitch (and should hover the car). */
+export function garageOrbitPitchCapable(axes: GarageOrbitAxes): boolean {
+  return axes.pitch;
+}
+
+/**
+ * Lift so pitched/tumbled mesh clears the pad.
+ * halfLen / halfHeight are world half-extents of the sitting car.
+ */
+export function garagePitchFloorClearance(
+  pitch: number,
+  halfLen: number,
+  halfHeight: number,
+): number {
+  const p = Math.abs(pitch);
+  return halfLen * Math.abs(Math.sin(p)) + halfHeight * (1 - Math.cos(p));
+}
+
+/** Total hover above sit Y: pitch clearance + optional inspect lift while pitching. */
+export function garagePitchHoverY(
+  pitch: number,
+  halfLen: number,
+  halfHeight: number,
+  inspectActive: boolean,
+): number {
+  const clearance = garagePitchFloorClearance(pitch, halfLen, halfHeight);
+  const inspect = inspectActive ? GARAGE_PITCH_INSPECT_LIFT : 0;
+  return clearance + inspect;
 }
 
 /**
