@@ -15,7 +15,7 @@ export function renderSettingsPanelHtml(settings: GameSettings, muted: boolean):
           <strong>Einfacher Modus</strong>
           <span class="settings-toggle__state">${easyOn ? "AN" : "AUS"}</span>
         </button>
-        <p class="dim settings-desc">Immer Vollgas — du musst nicht Gas halten. Bremse hebt das auf.</p>
+        <p class="dim settings-desc">Immer Vollgas — du musst nicht Gas halten. Bremse hebt das auf; halten nach Stopp = Rückwärts.</p>
       </div>
       <div class="settings-row">
         <button type="button" data-nav data-act="toggle-mute" class="settings-toggle" aria-pressed="${

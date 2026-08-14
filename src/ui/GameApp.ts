@@ -598,7 +598,7 @@ export class GameApp {
         <p class="tag">Hilfe & Infos</p>
         <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}</p>
         <p class="credit">${APP_CREDIT}</p>
-        <p class="help">Tastatur: WASD / Pfeile, Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LB Drift, A/RB Nitro · Tablet: Touch</p>
+        <p class="help">Tastatur: WASD / Pfeile (S halten = Rückwärts), Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LT Bremse/Rückwärts, LB Drift, A/RB Nitro · Tablet: Touch</p>
         <div class="stack">
           <button data-nav data-act="open-settings">Einstellungen</button>
           <button data-nav data-act="toggle-mute">${gameAudio.muted ? "Ton aus" : "Ton an"}</button>
@@ -683,7 +683,7 @@ export class GameApp {
         }">${gameAudio.muted ? "Ton aus" : "Ton an"}</button>
         <div class="touch-controls" aria-label="Touch-Steuerung">
           <button type="button" data-touch="left">◀</button>
-          <button type="button" data-touch="brake">Bremse</button>
+          <button type="button" data-touch="brake">Bremse / R</button>
           <button type="button" data-touch="throttle">Gas</button>
           <button type="button" data-touch="right">▶</button>
           <button type="button" data-touch="drift">Drift</button>

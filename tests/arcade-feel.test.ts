@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { CARS } from "../src/data/cars";
 import { CUP_LEVELS } from "../src/data/levels";
-import { createCarState, stepCar, yawRateFor, BASE_TOP } from "../src/sim/vehicle";
+import {
+  createCarState,
+  forwardSpeedAlongHeading,
+  reverseTopFor,
+  stepCar,
+  wantsReverse,
+  yawRateFor,
+  BASE_TOP,
+} from "../src/sim/vehicle";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
 
 const blitzStats = {
@@ -92,5 +100,53 @@ describe("arcade racing feel", () => {
     slip = Math.abs(slip);
     expect(slip).toBeGreaterThan(0.25);
     expect(slip).toBeLessThan(0.9);
+  });
+
+  it("hold brake from speed stops then drives reverse along -heading", () => {
+    const { track, car } = onTrackCar(18);
+    const hx = Math.cos(car.heading);
+    const hz = Math.sin(car.heading);
+    for (let i = 0; i < 180; i++) {
+      stepCar(car, { throttle: 0, brake: 1, steer: 0, nitro: false, drift: false }, track, 1 / 60, catchUp);
+    }
+    const fwd = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
+    expect(fwd).toBeLessThan(-2);
+    expect(car.speed).toBeGreaterThan(2);
+    // Mostly along -nose
+    expect(car.vx * -hx + car.vz * -hz).toBeGreaterThan(car.speed * 0.85);
+    const rTop = reverseTopFor(BASE_TOP * blitzStats.topSpeed);
+    expect(car.speed).toBeLessThanOrEqual(rTop + 0.5);
+  });
+
+  it("throttle exits reverse and builds forward again", () => {
+    const { track, car } = onTrackCar(0);
+    for (let i = 0; i < 90; i++) {
+      stepCar(car, { throttle: 0, brake: 1, steer: 0, nitro: false, drift: false }, track, 1 / 60, catchUp);
+    }
+    expect(forwardSpeedAlongHeading(car.heading, car.vx, car.vz)).toBeLessThan(-1);
+    for (let i = 0; i < 60; i++) {
+      stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false, drift: false }, track, 1 / 60, catchUp);
+    }
+    expect(forwardSpeedAlongHeading(car.heading, car.vx, car.vz)).toBeGreaterThan(4);
+  });
+
+  it("nitro does not shove while reversing on held brake", () => {
+    const { track, car } = onTrackCar(0);
+    car.nitro = 1;
+    for (let i = 0; i < 60; i++) {
+      stepCar(car, { throttle: 0, brake: 1, steer: 0, nitro: true, drift: false }, track, 1 / 60, catchUp);
+    }
+    const fwd = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
+    expect(fwd).toBeLessThan(0);
+    expect(Math.abs(fwd)).toBeLessThan(reverseTopFor(BASE_TOP * blitzStats.topSpeed) + 1);
+    // Nitro meter should not be drained hard by reverse (forward-only boost)
+    expect(car.nitro).toBeGreaterThan(0.85);
+  });
+
+  it("wantsReverse only after near-stop with brake and no gas", () => {
+    expect(wantsReverse({ brake: 1, throttle: 0, forward: 8, airborne: false })).toBe(false);
+    expect(wantsReverse({ brake: 1, throttle: 0, forward: 0.2, airborne: false })).toBe(true);
+    expect(wantsReverse({ brake: 1, throttle: 1, forward: 0, airborne: false })).toBe(false);
+    expect(wantsReverse({ brake: 0, throttle: 0, forward: 0, airborne: false })).toBe(false);
   });
 });

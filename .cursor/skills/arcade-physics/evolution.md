@@ -7,6 +7,17 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-14 — v0.3.144 Phase A: Bremse→Rückwärts
+- Trigger: CONCEPT v3.74 impl
+- RCA (prior): brake only scrubbed inside `speed > ε`; grip pull to nose flipped any reverse velocity forward
+- Decision: `wantsReverse` / `reverseAccelFor` / reverse top ~42%; face −heading while reversing; nitro forward-only; Hilfe + touch hint
+- Tests: arcade-feel reverse cases
+
+### 2026-08-14 — v3.74 Arcade Front-Steer + Bremse→Rückwärts
+- Trigger: user — more realistic driving feel; front wheels turn / rear stable; hold brake → reverse after stop
+- Decision: CONCEPT §4.2–4.3 — bicycle-lite front-steer (no tank pivot); brake scrubs then held brake reverses (~35–50% reverse cap); nitro forward-only; Kart outside-drift kept. No Pacejka. Impl follow-up: `yawRateFor` + reverse in `stepCar`.
+- CONCEPT dokumentstand → v3.74
+
 ### 2026-08-14 — Kart outside-drift (natural slip pose)
 - Trigger: user — drifting still feels unnatural; research Kart/outside-drift sources
 - Sources: Mario Kart Wii TAS (IV can lag facing ~45° on outside-drift); MK outside- vs inside-drift guides (nose leads, path outside)

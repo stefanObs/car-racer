@@ -64,7 +64,8 @@ Gleiche Aktionen auf allen Eingabegeräten; kein Feature nur auf einer Plattform
 
 | Aktion | Tastatur | Controller | Tablet (Touch) |
 |--------|----------|------------|----------------|
-| Gas / Bremse | Tasten | Trigger (RT/LT o. ä.) | Virtuelle Pedale / rechter Stick-Zone |
+| Gas | Taste (W / ↑) | Gas-Trigger (RT o. ä.) | Gas-Pedal / rechte Stick-Zone |
+| Bremse / Rückwärts | Taste (S / ↓) — erst bremsen, gehalten nach Stillstand = Rückwärts | Brems-Trigger (LT o. ä.) — gleiches Verhalten | Brems-Pedal — gleiches Verhalten |
 | Lenken | Pfeile / A–D | Linker Stick (oder D-Pad) | Virtuelles Lenkrad / linker Stick-Zone |
 | **Drift** | Strg / E | LB / L1 (Bumper) | Drift-Button |
 | Nitro | Taste | Face-Button / Bumper (RB/R1) | Nitro-Button (Daumen-Erreichbarkeit) |
@@ -73,10 +74,18 @@ Gleiche Aktionen auf allen Eingabegeräten; kein Feature nur auf einer Plattform
 **Pflichten:**
 
 - **Controller:** vollständige Menü- und Rennsteuerung; Plug-and-play; UI-Fokus sichtbar; keine Mauspflicht.
-- **Tablet:** Touch-Steuerung im Rennen + alle Menüs/Garage bedienbar; große Hit-Targets; HUD und kritische Infos ohne Hover; Landscape-first, nutzbar in typischen Tablet-Auflösungen; kein „nur mit Tastatur“-Schritt.
+- **Tablet:** Touch-Steuerung im Rennen + alle Menüs/Garage bedienbar; große Hit-Targets; HUD und kritische Infos ohne Hover; Landscape-first, nutzbar in typischen Tablet-Auflösungen; kein „nur mit Tastatur“-Zugriff.
 - Eingabe jederzeit wechselbar (z. B. Controller anschließen mid-session), wo die Plattform das erlaubt.
 
-Kein realistisches Drift-Physik-Sim (keine Reifenkurven) — Arcade-Fahrgefühl wie Kart-/Action-Racer: Gas baut Tempo auf (nicht instant), Loslassen lässt ausrollen, Lenkung wird bei Tempo ruhiger. **Drift** = Taste halten + Lenken **oder** zu hart in die Kurve bei hohem Tempo (Oversteer) → **Outside-Drift** (Nase schwenkt in die Kurve, Tempo-Vektor bleibt außen, Ziel-Schlupfwinkel bis ca. 40° wie Kart); Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben. **Nitro** ist ein starker Boost-Kick mit klarer Speed über dem Cap. **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. Kontakt schiebt nach **Masse**.
+Kein realistisches Drift-/Reifen-Physik-Sim (keine Pacejka-Kurven) — Arcade-Fahrgefühl wie Kart-/Action-Racer, aber **wie ein Auto mit Lenkung vorne**:
+
+- **Gas** baut Tempo auf (nicht instant); Loslassen lässt ausrollen (Coast).
+- **Lenkung (Front-Steer):** Die Nase folgt dem Lenkeinschlag; der Tempo-Vektor folgt hinterher (Heck bleibt stabil, solange Grip reicht). Wendekreis hängt an Handling + Tempo: engerer Bogen bei niedriger Speed, ruhigere Lenkung bei hoher Speed. **Kein Drehen auf der Stelle** bei Stillstand (kein Tank-Pivot).
+- **Bremse → Rückwärts:** Bremse verzögert vorwärts; sobald Vorwärts-Tempo praktisch null ist und Bremse weiter gehalten wird, fährt das Auto **rückwärts** (entlang der Nase rückwärts). Gas bricht Rückwärts ab und beschleunigt wieder vorwärts. Rückwärts-Cap deutlich unter Vorwärts-Tempo (~35–50 %). Keine eigene Rückwärts-Taste — dieselbe Bremse-/Rückwärts-Aktion auf allen Plattformen.
+- **Nitro** nur sinnvoll vorwärts (starker Boost-Kick + Speed über Cap); in Rückwärts kein / vernachlässigbarer Nitro-Schub.
+- **Drift** = Taste halten + Lenken **oder** zu hart in die Kurve bei hohem Tempo (Oversteer) → **Outside-Drift** (Nase schwenkt in die Kurve, Tempo-Vektor bleibt außen, Ziel-Schlupfwinkel bis ca. 40° wie Kart); Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben.
+- **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. Kontakt schiebt nach **Masse**.
+- **Falsche Richtung:** Anhaltendes Fahren gegen die Streckenrichtung (auch Rückwärts) bleibt als Wrong-Way erkennbar (HUD/Warnung).
 
 **Physik-Autorenschaft:** Skill `.cursor/skills/arcade-physics/` (Stat-Map + Evolution-Log) — Änderungen an Fahrgefühl/Eigenschaften-Skalierung immer dort entlang evolvieren.
 
@@ -84,19 +93,20 @@ Kein realistisches Drift-Physik-Sim (keine Reifenkurven) — Arcade-Fahrgefühl 
 
 Jedes Auto hat (Basis + Teile) — die **Eigenschaften** skalieren die Arcade-Physik direkt:
 
-1. **Beschleunigung** — wie schnell Tempo aufgebaut wird  
-2. **Höchstgeschwindigkeit** — Cap (**Nitro** darf deutlich und spürbar darüber für den Boost)  
-3. **Grip / Schleuderresistenz** — wie stark das Auto bei Kurven/Drift/Treffern/Landungen ausbricht (niedriger Grip = leichteres Powerslide)  
-4. **Masse / Schubkraft** — wer wen bei Kontakt verschiebt; leichte Autos prallen stärker von Hindernissen  
+1. **Beschleunigung** — wie schnell Tempo aufgebaut wird (vorwärts; Rückwärts nutzt dieselbe Säule abgeschwächt)  
+2. **Höchstgeschwindigkeit** — Cap vorwärts (**Nitro** darf deutlich und spürbar darüber für den Boost); Rückwärts-Cap separat und niedriger  
+3. **Grip / Schleuderresistenz** — wie stark das Auto bei Kurven/Drift/Treffern/Landungen ausbricht (niedriger Grip = leichteres Powerslide); hält das Heck hinter der Nase auf dem Bogen  
+4. **Masse / Schubkraft** — wer wen bei Kontakt verschiebt; leichte Autos prallen stärker von Hindernissen; Masse weitet den Wendekreis etwas  
 5. **Panzerung** — wie viel Schaden ein Treffer / Aufprall macht  
-6. **Handling-Präzision** — Lenkansprechen (Wendekreis) und Basis-Bremsgefühl bei niedrigem Schaden  
+6. **Handling-Präzision** — Lenkansprechen / Wendekreis (Front-Steer) und Basis-Bremsgefühl bei niedrigem Schaden  
 7. **Federung** — dämpft Unebenheiten, mildert Gras-Malus, stabilisiert Landungen / mildert Schanzen-Hop  
 
 Zusätzlich (Teile / Klassen-Bonus, sichtbar in der Garage als Nitro-Balken bzw. Bremsen-Teil):
 
-- **Nitro** — Boost-Kick beim Drücken + starker Schub + klarer Speed-Headroom; stärkerer Bonus = knackigerer Boost  
-- **Bremsen** (Teil *Bessere Bremsen*) — schärferes Verzögern ohne eigenen Level-Balken  
+- **Nitro** — Boost-Kick beim Drücken + starker Schub + klarer Speed-Headroom; stärkerer Bonus = knackigerer Boost; vorwärts-only  
+- **Bremsen** (Teil *Bessere Bremsen*) — schärferes Verzögern ohne eigenen Level-Balken (beeinflusst den Brems-Anteil vor dem Rückwärts-Übergang)  
 - **Arcade-Drift** — Taste/Bumper/Touch **oder** Oversteer; Outside-Drift mit Ziel-Schlupfwinkel; Mini-Boost nach gehaltenem Drift  
+- **Rückwärts** — kein eigener Stat; folgt aus gehaltener Bremse nach Stillstand (siehe §4.2)  
 
 **Design-Regel:** Es gibt kein reines „bestes Auto“. Starke Stats erzeugen immer Gegenkosten — außer durch **gute Teile-Kombos** (siehe Kap. 6.4).
 
@@ -342,7 +352,7 @@ Kids lesen Gegner und passen Taktik an — Fokus bleibt Tempo und Linie.
 ### 7.4 Assistenz (Accessibility für 10+)
 
 - Optional: Lenkhilfe, Absolvieren-Bremse vor engen Kurven, klarere Damage-/Heil-Farben.
-- **Einfacher Modus** (Einstellungen, Standard aus): immer Vollgas ohne Gas-Taste; Bremse hebt das auf — Hilfe zum Lernen von Lenken/Bremsen, kein Unbesiegbar-Modus.
+- **Einfacher Modus** (Einstellungen, Standard aus): immer Vollgas ohne Gas-Taste; Bremse hebt das auf (gehalten nach Stillstand weiterhin Rückwärts wie §4.2) — Hilfe zum Lernen von Lenken/Bremsen/Rückwärts, kein Unbesiegbar-Modus.
 - Hilfen, die Können aufbauen — kein Default-Unbesiegbar-Modus.
 - Touch: etwas großzügigere Lenk-Deadzone optional; Controller: stick sensitivity einstellbar.
 
@@ -411,7 +421,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
 4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Rechtsklick oder Button)
 5. **Ergebnis** — Zielbanner/-linie; **~15 s 2D-Comic-Film** bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation**; dann Podium-Landung / CHF; weiter / Garage  
-6. **Hilfe** — Steuerungshinweise (optional); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
+6. **Hilfe** — Steuerungshinweise (optional; inkl. Bremse halten = Rückwärts); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
 7. **Einstellungen** — per **Rechtsklick** (außer Garage-Canvas-Orbit) oder Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste)  
 
 **Audio (SFX):** Arcade-Effekte (Motor-Loop, Nitro, Mauer/Kontakt, Runde/Schild, K.O., Ziel, UI-Klicks) — **CC0**-Samples, Web Audio, Mute speichert lokal. Keine Pflicht-Musik im MVP.
@@ -497,6 +507,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 | Thema | Stand |
 |-------|--------|
 | Kerndynamik | Getunte Autos möglichst schnell fahren |
+| Fahrphysik | Arcade Front-Steer (kein Tank-Pivot); Bremse → Rückwärts nach Stillstand; Kart-Drift bleibt Würze |
 | Rammen | Nebeneffekt / Würze, keine Rammtaste, kein Rampunkte-Fokus |
 | Schaden | Regeneriert über Zeit mit sichtbarem Heil-Effekt; K.O. mit Comeback |
 | Unebene Piste | Hüpf-/Wackleffekt; Federung dämpft |
@@ -515,4 +526,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.73 — Bison Gelände-Federung mit Blitz-Stoßdämpfern.*
+*Dokumentstand: Konzept v3.74 — Arcade Front-Steer + Bremse→Rückwärts.*

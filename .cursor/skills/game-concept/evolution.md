@@ -14,6 +14,17 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.74 Arcade Front-Steer + Bremse→Rückwärts
+- Trigger: user — plan for more realistic driving; front-steer path; hold brake → reverse after stop
+- Impact: CONCEPT §4.2–4.3, §7.4 Easy Mode note, §9 Hilfe hint, summary; arcade-physics invariants/stat-map
+- Decision: Arcade stays (no tire sim). Front-steer = nose leads, velocity follows, no standstill pivot. Same brake action → reverse after near-stop; reverse cap ~35–50%; nitro forward-only. Impl not in this step.
+- CONCEPT dokumentstand → v3.74
+
+### 2026-08-14 — garage sit flush on pad (v0.3.145)
+- Trigger: user — car still floating in normal garage pose
+- RCA: orbit pivot used full `Box3.setFromObject` (FX skewed center); sit clearance 2 cm still read as a gap
+- Fix: body-only bounds for pivot; snap contact to deck after attach/yaw; zero pad clearance
+
 ### 2026-08-14 — garage sit: orbit pivot via attach (v0.3.141)
 - Trigger: user — car always in the air; should sit on the floor
 - RCA: parenting scaled showcase car with `worldToLocal` → position offset ignored scale → tires floated ~0.4 above pad

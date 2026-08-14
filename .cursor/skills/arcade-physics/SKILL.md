@@ -21,27 +21,29 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 
 ## Hard invariants (change only with explicit user OK + CONCEPT bump)
 
-1. **Arcade, not sim** — Gewicht + Grip + Impuls; no realistic tire/drift model
+1. **Arcade, not sim** — Gewicht + Grip + Impuls; no realistic tire/drift model (no Pacejka)
 2. **Eigenschaften drive forces** — Beschleunigung, Tempo, Grip, Handling, Masse, Federung, Panzerung, Nitro (+ `brakeBonus` from Teile) scale behavior; cosmetics grant **no** stats
 3. **Coast on lift** — releasing throttle rolls out; no abrupt dump
-4. **Slide when grip is short** — yaw from Handling; lateral pull from Grip; **arcade outside-drift** (nose leads, velocity seeks ~26–40° slip) via Drift hold **or** high-speed oversteer
-5. **Mass decides shove** — light cars get pushed / rebound more; heavy hold the line
-6. **Schanzen = real airtime** — `y`/`vy`; landing needs Grip + Federung
-7. **Grass penalty never removed** — Federung / grassMitigation only mitigate (`zones.ts`)
-8. **Walls bounce + cooldown damage** — no grind-KO spam (`IMPACT_DAMAGE_COOLDOWN`)
-9. **Ramming is spice** — contact impulse + light damage; no ram-primary scoring
-10. **Nitro punches** — rising-edge kick + strong continuous shove + clear speed headroom
-11. **Delivery** — version → commit `master` → push
+4. **Front-steer path** — nose yaws with Handling; velocity follows behind (rear stable under grip); **no tank pivot at standstill**; turn authority scales with forward speed
+5. **Brake → reverse** — brake scrub to stop, then held brake drives reverse along −heading (lower reverse cap); throttle exits reverse; nitro forward-only
+6. **Slide when grip is short** — yaw from Handling; lateral pull from Grip; **arcade outside-drift** (nose leads, velocity seeks ~26–40° slip) via Drift hold **or** high-speed oversteer
+7. **Mass decides shove** — light cars get pushed / rebound more; heavy hold the line
+8. **Schanzen = real airtime** — `y`/`vy`; landing needs Grip + Federung
+9. **Grass penalty never removed** — Federung / grassMitigation only mitigate (`zones.ts`)
+10. **Walls bounce + cooldown damage** — no grind-KO spam (`IMPACT_DAMAGE_COOLDOWN`)
+11. **Ramming is spice** — contact impulse + light damage; no ram-primary scoring
+12. **Nitro punches** — rising-edge kick + strong continuous shove + clear speed headroom (forward)
+13. **Delivery** — version → commit `master` → push
 
 ## Module map
 
 | Concern | File / symbol |
 |---------|----------------|
 | Step integration | `stepCar` in `src/sim/vehicle.ts` |
-| Turn circle | `yawRateFor` (Handling, Masse, surface mush) |
-| Brake force | `brakeForceFor` (Handling, Masse, `brakeBonus`) |
-| Nitro force | `nitroForceFor` (`nitroBonus`, damage mult) |
-| Lateral grip | `gripPullRate` → slide (cut by `drift`) |
+| Turn circle / front-steer | `yawRateFor` (Handling, Masse, forward speed; no standstill pivot) |
+| Brake / reverse | `brakeForceFor` + reverse thrust after stop (held brake) |
+| Nitro force | `nitroForceFor` (`nitroBonus`, damage mult; forward-only) |
+| Lateral grip | `gripPullRate` → slide (cut by `drift`); rear follows nose |
 | Arcade drift | `driftIntent` → `car.drift`; mini-turbo on exit |
 | Nitro | `nitroKickFor` (edge) + `nitroForceFor` + headroom |
 | Jump / land | `stepJump`, `isAirborne`, ramp via `passableObstacleMods` |
@@ -100,12 +102,12 @@ Task Progress:
 
 ## Anti-patterns
 
-- Tank controls (velocity glued to heading) or full tire sim
+- Tank controls (velocity glued to heading / spot-turn at rest) or full tire sim
 - Ignoring Masse on contact / obstacle bounce
 - Fake jump via render hop only (must be `y`/`vy`)
 - Silent CONCEPT drift (“code feels better” without evolution step)
 - Mixing large unrelated refactors into a physics feel change
-- Breaking coast / wall cooldown / grass-never-removed invariants
+- Breaking coast / wall cooldown / grass-never-removed / front-steer / brake→reverse invariants
 
 ## Parent agent / Task delegation
 

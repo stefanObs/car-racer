@@ -96,6 +96,41 @@ const MINI_TURBO_KICK = 8.5;
 export const DRIFT_TARGET_SLIP = 0.45;
 /** Hard cap ~40° (MKWii outside-drift IV offset ~45°). */
 export const DRIFT_MAX_SLIP = 0.7;
+/** Forward speed at/below this + held brake → reverse thrust (CONCEPT §4.2). */
+export const REVERSE_ENGAGE_SPEED = 0.7;
+/** Reverse top as fraction of forward cruise top (~35–50%). */
+export const REVERSE_TOP_FRAC = 0.42;
+
+/** Signed speed along nose (+ forward, − reverse). */
+export function forwardSpeedAlongHeading(heading: number, vx: number, vz: number): number {
+  return vx * Math.cos(heading) + vz * Math.sin(heading);
+}
+
+export function reverseTopFor(forwardTop: number): number {
+  return Math.max(4, forwardTop * REVERSE_TOP_FRAC);
+}
+
+/** Held brake after near-stop with no throttle → reverse (CONCEPT §4.2). */
+export function wantsReverse(opts: {
+  brake: number;
+  throttle: number;
+  forward: number;
+  airborne?: boolean;
+}): boolean {
+  if (opts.airborne) return false;
+  if (opts.brake < 0.05) return false;
+  if (opts.throttle > 0.05) return false;
+  return opts.forward <= REVERSE_ENGAGE_SPEED;
+}
+
+/** Reverse accel — same Säule as forward, softened. */
+export function reverseAccelFor(
+  stats: Pick<MergedVehicleStats, "accel">,
+  catchUpAccel: number,
+  brake: number,
+): number {
+  return BASE_ACCEL * stats.accel * catchUpAccel * 0.75 * Math.min(1, Math.max(0, brake));
+}
 
 export function createCarState(
   partial: Omit<
@@ -455,16 +490,26 @@ export function stepCar(
     (airborne ? 1 : mtGrace);
 
   const throttle = airborne ? input.throttle * 0.55 : input.throttle;
-  const accel =
-    BASE_ACCEL * car.stats.accel * catchUp.accel * (throttle > 0 ? throttle : 0);
-
+  const brakeIn = airborne ? input.brake * 0.25 : input.brake;
   const hx = Math.cos(car.heading);
   const hz = Math.sin(car.heading);
+  let forward = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
+  const reversing = wantsReverse({
+    brake: brakeIn,
+    throttle,
+    forward,
+    airborne,
+  });
 
-  // Drive / nitro along nose
+  // Forward drive along nose (also cancels reverse when gas is pressed)
+  const accel =
+    BASE_ACCEL * car.stats.accel * catchUp.accel * (throttle > 0 ? throttle : 0);
   car.vx += hx * accel * dt;
   car.vz += hz * accel * dt;
-  if (boosting) {
+
+  // Nitro only forward (CONCEPT §4.2) — skip while reverse engage / traveling reverse on brake
+  const allowNitro = !reversing && forward >= -REVERSE_ENGAGE_SPEED;
+  if (boosting && allowNitro) {
     const justPressed = !car.nitroHeld;
     if (justPressed) {
       const kick = nitroKickFor(car.stats.nitroBonus, dmg.nitro);
@@ -479,18 +524,40 @@ export function stepCar(
   } else {
     car.nitro = Math.min(1, car.nitro + 0.1 * dt);
   }
-  car.nitroHeld = boosting;
+  car.nitroHeld = boosting && allowNitro;
 
   syncSpeedFromVelocity(car);
-  if (car.speed > 1e-4) {
+  forward = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
+
+  const cruiseTop =
+    BASE_TOP *
+    car.stats.topSpeed *
+    dmg.topSpeed *
+    (airborne ? 1 : surface.speedFactor) *
+    catchUp.topSpeed *
+    (airborne ? 1 : 1 - surface.bump * 0.22);
+  const rTop = reverseTopFor(cruiseTop);
+
+  if (reversing) {
+    const rAcc = reverseAccelFor(car.stats, catchUp.accel, brakeIn);
+    car.vx -= hx * rAcc * dt;
+    car.vz -= hz * rAcc * dt;
+    syncSpeedFromVelocity(car);
+    forward = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
+    if (forward < -rTop) {
+      // Clamp reverse pace along nose; drop stray lateral
+      car.vx = -hx * rTop;
+      car.vz = -hz * rTop;
+      car.speed = rTop;
+    }
+  } else if (car.speed > 1e-4) {
     const fx = car.vx / car.speed;
     const fz = car.vz / car.speed;
-    const brake = airborne ? input.brake * 0.25 : input.brake;
     // Light brake while drifting is for slide initiation, not full stop
-    const brakeEff = car.drift > 0.35 ? brake * 0.35 : brake;
-    let scrub = car.speed * DRAG * (boosting ? 0.35 : 1) * dt;
+    const brakeEff = car.drift > 0.35 ? brakeIn * 0.35 : brakeIn;
+    let scrub = car.speed * DRAG * (boosting && allowNitro ? 0.35 : 1) * dt;
     if (brakeEff > 0) scrub += brakeEff * brakeForceFor(car.stats) * dt;
-    if (input.throttle < 0.05 && !boosting && !airborne && car.drift < 0.25) {
+    if (throttle < 0.05 && !(boosting && allowNitro) && !airborne && car.drift < 0.25) {
       scrub += COAST_BRAKE * dt;
     }
     // Powerslide / exit keep more pace (Kart) — mild scrub only
@@ -501,15 +568,32 @@ export function stepCar(
     car.speed = next;
   }
 
+  // Deadband so reverse engage is crisp at rest
   syncSpeedFromVelocity(car);
-  if (car.speed > top && car.speed > 1e-6) {
+  if (car.speed < 0.12 && !reversing && throttle < 0.05) {
+    car.vx = 0;
+    car.vz = 0;
+    car.speed = 0;
+  }
+
+  syncSpeedFromVelocity(car);
+  forward = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
+  if (forward >= 0 && car.speed > top && car.speed > 1e-6) {
     const s = top / car.speed;
     car.vx *= s;
     car.vz *= s;
     car.speed = top;
+  } else if (forward < 0 && car.speed > rTop) {
+    const s = rTop / car.speed;
+    car.vx *= s;
+    car.vz *= s;
+    car.speed = rTop;
   }
 
   // Steering + lateral grip (velocity can slip vs heading)
+  syncSpeedFromVelocity(car);
+  forward = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
+  const travelingReverse = forward < -0.05;
   const turnRate = yawRateFor({
     steer: input.steer,
     speed: car.speed,
@@ -518,7 +602,7 @@ export function stepCar(
     gripFactor: airborne ? 0.7 : surface.gripFactor,
     handlingMult: dmg.handling,
     airborne,
-    drift: car.drift,
+    drift: travelingReverse ? 0 : car.drift,
   });
   car.heading += turnRate * dt;
   const hx2 = Math.cos(car.heading);
@@ -530,15 +614,18 @@ export function stepCar(
     damageGrip: dmg.grip,
     steerLoad,
     airborne,
-    drift: car.drift,
+    drift: travelingReverse ? 0 : car.drift,
   });
-  // Kart outside-drift: seek target slip while sliding; otherwise pull to nose
+  // Pull velocity toward travel nose — reverse uses −heading so grip does not flip reverse→forward.
+  // Gas exits reverse: always face the true nose while throttle is applied.
+  const useReverseFace = (travelingReverse || reversing) && throttle < 0.05;
+  const faceHeading = useReverseFace ? car.heading + Math.PI : car.heading;
   const faced = integrateVelocityFacing({
-    heading: car.heading,
+    heading: faceHeading,
     vx: car.vx,
     vz: car.vz,
-    drift: car.drift,
-    steer: input.steer,
+    drift: useReverseFace ? 0 : car.drift,
+    steer: useReverseFace ? 0 : input.steer,
     gripPull,
     dt,
   });
@@ -546,8 +633,8 @@ export function stepCar(
   car.vz = faced.vz;
 
   // Tiny scrub only when not in a controlled drift (keeps Kart pace)
-  const forward = car.vx * hx2 + car.vz * hz2;
-  const latMag = Math.hypot(car.vx - hx2 * forward, car.vz - hz2 * forward);
+  const alongNose = car.vx * hx2 + car.vz * hz2;
+  const latMag = Math.hypot(car.vx - hx2 * alongNose, car.vz - hz2 * alongNose);
   if (!airborne && car.drift < 0.2 && latMag > 1.2) {
     const scrub = 1 - Math.min(0.02, latMag * 0.0008);
     car.vx *= scrub;

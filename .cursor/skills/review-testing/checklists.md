@@ -19,6 +19,8 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] German labels make sense without slang walls of text
 - [ ] Can start a race from cold boot in ≤3 clicks/keys after first tutorial moment
 - [ ] Steering/gas/brake/nitro discovered without a manual
+- [ ] Hold brake: slows → stops → reverses (no separate reverse key); gas exits reverse
+- [ ] At standstill, steering does not spin the car in place (front-steer / no tank pivot)
 - [ ] Knows why they got slower (grass / uneven / damage) from visuals alone
 - [ ] Heal-over-time is noticeable
 - [ ] After K.O., understands they are back and can still place
@@ -120,3 +122,4 @@ Result: pass / fail — notes:
 - [ ] Cosmetics ≠ stats
 - [ ] Core loop still “fast tuned racing”
 - [ ] Controller + tablet supported for race and menus (not deferred)
+- [ ] Front-steer path (no standstill tank pivot); held brake → reverse after stop (CONCEPT §4.2)
