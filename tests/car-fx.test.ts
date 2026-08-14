@@ -37,7 +37,6 @@ describe("shared comic car FX", () => {
       "fx-nitroCyan",
       "fx-nitroOrange",
       "fx-nitroCyan",
-      "fx-nitroOrange",
     ]);
     expect(fx.shield.children).toHaveLength(0);
   });
@@ -46,20 +45,21 @@ describe("shared comic car FX", () => {
     const fx = makeFxGroups(-1.6, stubChunk);
     expect(fx.smoke.children).toHaveLength(4);
     expect(fx.sparks.children).toHaveLength(8);
-    expect(fx.nitro.children).toHaveLength(5);
+    expect(fx.nitro.children).toHaveLength(4);
     expect(fx.shield.children).toHaveLength(0);
     expect(fx.smoke.children.every((c) => !c.visible)).toBe(true);
     expect(fx.sparks.children.every((c) => !c.visible)).toBe(true);
     expect(fx.nitro.children.every((c) => !c.visible)).toBe(true);
   });
 
-  it("places nitro chunks behind the rear, not a Blitz-only offset", () => {
+  it("places twin exhaust nitro jets behind the rear bumper", () => {
     const bison = makeFxGroups(-2.05, stubChunk);
     const blitz = makeFxGroups(-1.55, stubChunk);
-    expect(bison.nitro.children[0]!.position.z).toBeLessThan(-2.05);
-    expect(blitz.nitro.children[0]!.position.z).toBeLessThan(-1.55);
-    expect(bison.nitro.children[0]!.position.z).toBeLessThan(blitz.nitro.children[0]!.position.z);
-    expect(bison.nitro.children[4]!.position.z).toBeLessThan(bison.nitro.children[0]!.position.z);
+    expect(bison.nitro.children[0]!.position.z).toBeCloseTo(-2.03, 2);
+    expect(blitz.nitro.children[0]!.position.z).toBeCloseTo(-1.53, 2);
+    expect(bison.nitro.children[0]!.position.x).toBeLessThan(0);
+    expect(bison.nitro.children[1]!.position.x).toBeGreaterThan(0);
+    expect(bison.nitro.children[2]!.position.z).toBeLessThan(bison.nitro.children[0]!.position.z);
   });
 
   it("hides nitro when not boosting and shows smoke when damaged", () => {

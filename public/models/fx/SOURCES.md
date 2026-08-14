@@ -7,8 +7,8 @@ Tripo3D image-to-mesh from Asphalt-Comic concepts in `assets/tripo-concepts/fx-*
 | Light smoke | `fx-smoke-puff.png` | `npm run fx:bake-tripo` |
 | Heavy smoke | `fx-smoke-heavy.png` | same |
 | Repair spark | `fx-repair-spark.png` | same |
-| Nitro orange | `fx-nitro-orange.png` | same |
-| Nitro cyan | `fx-nitro-cyan.png` (mesh may reuse orange bake, tinted `#3DB9C7` at runtime) | same |
+| Nitro orange | `fx-nitro-orange.png` (exhaust pipe + flame jet) | same |
+| Nitro cyan | `fx-nitro-cyan.png` (exhaust pipe + cyan flame jet) | same |
 | Lap shield | `fx-lap-shield.png` | same |
 
 Style lock: `.cursor/skills/asphalt-comic-art/reference.png`. Nitro colors `#FF7A18` / `#3DB9C7` — no purple bloom.

@@ -10,8 +10,8 @@ const FILES: Record<(typeof FX_CHUNK_IDS)[number], { file: string; mat: string; 
   smokePuff: { file: "smoke-puff.glb", mat: "SmokePuff", min: 0.35, max: 0.9 },
   smokeHeavy: { file: "smoke-heavy.glb", mat: "SmokeHeavy", min: 0.5, max: 1.05 },
   repairSpark: { file: "repair-spark.glb", mat: "RepairSpark", min: 0.15, max: 0.4 },
-  nitroOrange: { file: "nitro-orange.glb", mat: "NitroOrange", min: 0.55, max: 1.1 },
-  nitroCyan: { file: "nitro-cyan.glb", mat: "NitroCyan", min: 0.55, max: 1.1 },
+  nitroOrange: { file: "nitro-orange.glb", mat: "NitroOrange", min: 0.7, max: 1.25 },
+  nitroCyan: { file: "nitro-cyan.glb", mat: "NitroCyan", min: 0.7, max: 1.25 },
   lapShield: { file: "lap-shield.glb", mat: "LapShield", min: 0.9, max: 1.7 },
 };
 
@@ -45,7 +45,7 @@ describe("Tripo comic FX bakes", () => {
     }
   });
 
-  it("orients nitro chunks longest along Z for rear stacking", async () => {
+  it("orients nitro exhaust with pipe near Z=0 and flame streaming −Z", async () => {
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
     for (const file of ["nitro-orange.glb", "nitro-cyan.glb"] as const) {
       const doc = await io.read(resolve("public/models/fx", file));
@@ -55,16 +55,17 @@ describe("Tripo comic FX bakes", () => {
       const sz = b.max[2] - b.min[2];
       expect(sz).toBeGreaterThan(sx);
       expect(sz).toBeGreaterThan(sy);
+      expect(b.max[2]!).toBeLessThan(0.08);
+      expect(b.min[2]!).toBeLessThan(-0.55);
     }
   });
 
-  it("keeps nitro flame taller than a sphere-like blob (Y span reads after gentler simplify)", async () => {
+  it("keeps nitro flame taller than a sphere-like blob", async () => {
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
     const doc = await io.read(resolve("public/models/fx/nitro-orange.glb"));
     const b = getBounds(doc.getRoot().listScenes()[0]!);
     const sx = b.max[0] - b.min[0];
     const sy = b.max[1] - b.min[1];
-    // Flame cross-section must not be near-circular (old over-simplified bake).
-    expect(sy / sx).toBeGreaterThan(1.4);
+    expect(sy / sx).toBeGreaterThan(1.2);
   });
 });

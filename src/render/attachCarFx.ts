@@ -42,10 +42,19 @@ export function makeFxGroups(
 
   const nitro = new Group();
   nitro.name = "fx-nitro";
-  for (let i = 0; i < 5; i++) {
-    const id: FxChunkId = i % 2 === 0 ? "nitroOrange" : "nitroCyan";
-    const trail = cloneChunk(id);
-    trail.position.set((i - 2) * 0.12, 0.34, nitroZ - 0.2 - i * 0.28);
+  // Twin exhaust jets: pipe stubs sit at the bumper, flames stream −Z.
+  const jets: Array<{ id: FxChunkId; x: number; y: number; zOff: number; scale: number }> = [
+    { id: "nitroOrange", x: -0.32, y: 0.22, zOff: 0.02, scale: 0.92 },
+    { id: "nitroCyan", x: 0.32, y: 0.22, zOff: 0.02, scale: 0.92 },
+    { id: "nitroOrange", x: -0.22, y: 0.3, zOff: -0.42, scale: 1.05 },
+    { id: "nitroCyan", x: 0.22, y: 0.3, zOff: -0.42, scale: 1.05 },
+  ];
+  for (const jet of jets) {
+    const trail = cloneChunk(jet.id);
+    trail.position.set(jet.x, jet.y, nitroZ + jet.zOff);
+    trail.scale.setScalar(jet.scale);
+    trail.userData.nitroBaseZ = trail.position.z;
+    trail.userData.nitroBaseScale = jet.scale;
     trail.visible = false;
     nitro.add(trail);
   }
@@ -68,9 +77,18 @@ export function upgradeCarFx(visual: ComicCarParts): void {
   const rearZ = carMeshRearZ(visual.root);
   visual.root.userData.fxRearZ = rearZ;
   if (visual.smoke.userData.tripoFx) {
-    // Already Tripo — refresh nitro sit to current hull rear.
+    // Already Tripo — refresh nitro sit to current hull rear (twin exhaust).
+    const jets = [
+      { x: -0.32, y: 0.22, zOff: 0.02 },
+      { x: 0.32, y: 0.22, zOff: 0.02 },
+      { x: -0.22, y: 0.3, zOff: -0.42 },
+      { x: 0.22, y: 0.3, zOff: -0.42 },
+    ];
     visual.nitro.children.forEach((trail, i) => {
-      trail.position.set((i - 2) * 0.12, 0.34, rearZ - 0.2 - i * 0.28);
+      const jet = jets[i];
+      if (!jet) return;
+      trail.position.set(jet.x, jet.y, rearZ + jet.zOff);
+      trail.userData.nitroBaseZ = trail.position.z;
     });
     return;
   }

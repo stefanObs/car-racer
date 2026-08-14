@@ -63,12 +63,13 @@ export function applyCarFx(
     child.visible = opts.boosting;
     if (!child.visible) return;
     const baseZ = (child.userData.nitroBaseZ as number | undefined) ?? child.position.z;
+    const baseScale = (child.userData.nitroBaseScale as number | undefined) ?? 1;
     child.userData.nitroBaseZ = baseZ;
-    // Stretch rearward + width so chase-cam reads flame teeth, not a paper card.
-    const stretch = 1.45 + (i % 3) * 0.2 + Math.sin(fxTime * 22 + i) * 0.1;
-    const pulse = 1 + Math.sin(fxTime * 28 + i * 0.7) * 0.07;
-    child.scale.set(pulse * 1.15, pulse * 1.25, stretch);
-    child.position.z = baseZ - Math.abs(Math.sin(fxTime * 18 + i)) * 0.14;
+    // Exhaust jet flicker — stretch rearward from the pipe.
+    const stretch = 1.15 + (i % 2) * 0.12 + Math.sin(fxTime * 26 + i) * 0.08;
+    const pulse = 1 + Math.sin(fxTime * 32 + i * 0.9) * 0.06;
+    child.scale.set(baseScale * pulse * 0.95, baseScale * pulse * 1.05, baseScale * stretch);
+    child.position.z = baseZ - Math.abs(Math.sin(fxTime * 20 + i)) * 0.08;
   });
 
   // Lap immunity is gameplay + Style-Popup only — never show an on-car shield mesh.

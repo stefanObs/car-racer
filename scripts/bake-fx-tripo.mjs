@@ -30,9 +30,9 @@ const JOBS = [
   { id: "smoke-puff", mat: "SmokePuff", longest: 0.55, sit: true, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   { id: "smoke-heavy", mat: "SmokeHeavy", longest: 0.75, sit: true, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   { id: "repair-spark", mat: "RepairSpark", longest: 0.25, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
-  // Keep flame teeth — over-simplify collapsed the Tripo mesh into a soft blob.
-  { id: "nitro-orange", mat: "NitroOrange", longest: 0.95, sit: false, alignLongZ: true, bluntPosZ: true, minWidthX: 0.28, ratio: 0.12, error: 0.0018, baseColor: [1, 0.478, 0.094, 1] },
-  { id: "nitro-cyan", mat: "NitroCyan", longest: 0.95, sit: false, alignLongZ: true, bluntPosZ: true, minWidthX: 0.28, ratio: 0.12, error: 0.0018, baseColor: [0.239, 0.725, 0.78, 1] },
+  // Exhaust flame jets — keep teeth; pipe stub at +Z, flames stream −Z.
+  { id: "nitro-orange", mat: "NitroOrange", longest: 1.05, sit: false, alignLongZ: true, bluntPosZ: true, pipeAtOrigin: true, minWidthX: 0.32, ratio: 0.18, error: 0.0015, baseColor: [1, 0.478, 0.094, 1] },
+  { id: "nitro-cyan", mat: "NitroCyan", longest: 1.05, sit: false, alignLongZ: true, bluntPosZ: true, pipeAtOrigin: true, minWidthX: 0.32, ratio: 0.18, error: 0.0015, baseColor: [0.239, 0.725, 0.78, 1] },
   { id: "lap-shield", mat: "LapShield", longest: 1.4, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.4, error: 0.0015 },
 ];
 
@@ -159,6 +159,15 @@ function bluntTowardPosZ(doc) {
   if (negR > posR + 0.001) rotateY180(doc);
 }
 
+/** Exhaust pipe at Z≈0 (bumper); flame tips stream toward −Z. */
+function pipeStubAtOrigin(doc) {
+  const s = sceneSize(doc);
+  const shiftZ = -s.max[2];
+  forEachPosition(doc, (v) => {
+    v[2] += shiftZ;
+  });
+}
+
 function centerScale(doc, { longest, sit }) {
   const s0 = sceneSize(doc);
   const span = Math.max(s0.size[0], s0.size[1], s0.size[2]);
@@ -262,7 +271,8 @@ async function bakeOne(job) {
   if (job.bluntPosZ) bluntTowardPosZ(doc);
   const sized = centerScale(doc, { longest: job.longest, sit: job.sit });
   ensureMinWidthX(doc, job.minWidthX);
-  const finalSize = job.minWidthX ? sceneSize(doc) : sized;
+  if (job.pipeAtOrigin) pipeStubAtOrigin(doc);
+  const finalSize = sceneSize(doc);
   comicMaterial(doc, job.mat, job.baseColor ?? [1, 1, 1, 1]);
   await simplifyDoc(doc, job.ratio, job.error);
   mkdirSync(outDir, { recursive: true });
@@ -273,6 +283,7 @@ async function bakeOne(job) {
     src,
     bytes: bytes.byteLength,
     size: finalSize.size.map((v) => +v.toFixed(3)),
+    z: [finalSize.min[2], finalSize.max[2]].map((v) => +v.toFixed(3)),
   });
 }
 
