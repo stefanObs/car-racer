@@ -21,7 +21,9 @@ export const FX_CHUNK_IDS = [
   "smokeHeavy",
   "repairSpark",
   "nitroOrange",
+  "nitroOrangeB",
   "nitroCyan",
+  "nitroCyanB",
   "lapShield",
 ] as const;
 
@@ -32,8 +34,16 @@ export const FX_URLS: Record<FxChunkId, string> = {
   smokeHeavy: "/models/fx/smoke-heavy.glb",
   repairSpark: "/models/fx/repair-spark.glb",
   nitroOrange: "/models/fx/nitro-orange.glb",
+  nitroOrangeB: "/models/fx/nitro-orange-b.glb",
   nitroCyan: "/models/fx/nitro-cyan.glb",
+  nitroCyanB: "/models/fx/nitro-cyan-b.glb",
   lapShield: "/models/fx/lap-shield.glb",
+};
+
+/** A/B flicker pairs for exhaust jets (swap while boosting). */
+export const NITRO_FLAME_FRAMES = {
+  orange: ["nitroOrange", "nitroOrangeB"] as const satisfies readonly FxChunkId[],
+  cyan: ["nitroCyan", "nitroCyanB"] as const satisfies readonly FxChunkId[],
 };
 
 /** Outline thickness so Tripo FX silhouettes read vs old sphere blobs. */
@@ -59,12 +69,22 @@ const FX_LOOK: Record<FxChunkId, FxLook> = {
   nitroOrange: {
     color: ComicPalette.nitroOrange,
     emissive: ComicPalette.nitroOrange,
-    emissiveIntensity: 0.85,
+    emissiveIntensity: 0.95,
+  },
+  nitroOrangeB: {
+    color: ComicPalette.nitroOrange,
+    emissive: ComicPalette.nitroOrange,
+    emissiveIntensity: 0.95,
   },
   nitroCyan: {
     color: ComicPalette.nitroCyan,
     emissive: ComicPalette.nitroCyan,
-    emissiveIntensity: 0.85,
+    emissiveIntensity: 0.95,
+  },
+  nitroCyanB: {
+    color: ComicPalette.nitroCyan,
+    emissive: ComicPalette.nitroCyan,
+    emissiveIntensity: 0.95,
   },
   lapShield: {
     color: ComicPalette.nitroCyan,

@@ -61,15 +61,24 @@ export function applyCarFx(
 
   nitro.children.forEach((child, i) => {
     child.visible = opts.boosting;
-    if (!child.visible) return;
+    if (!opts.boosting) return;
     const baseZ = (child.userData.nitroBaseZ as number | undefined) ?? child.position.z;
     const baseScale = (child.userData.nitroBaseScale as number | undefined) ?? 1;
     child.userData.nitroBaseZ = baseZ;
-    // Exhaust jet flicker — stretch rearward from the pipe.
-    const stretch = 1.15 + (i % 2) * 0.12 + Math.sin(fxTime * 26 + i) * 0.08;
-    const pulse = 1 + Math.sin(fxTime * 32 + i * 0.9) * 0.06;
-    child.scale.set(baseScale * pulse * 0.95, baseScale * pulse * 1.05, baseScale * stretch);
-    child.position.z = baseZ - Math.abs(Math.sin(fxTime * 20 + i)) * 0.08;
+    // Exhaust jet flicker — stretch rearward from the pipe + A/B frame swap.
+    const stretch = 1.12 + (i % 2) * 0.1 + Math.sin(fxTime * 28 + i) * 0.1;
+    const pulse = 1 + Math.sin(fxTime * 34 + i * 0.9) * 0.07;
+    child.scale.set(baseScale * pulse * 0.92, baseScale * pulse * 1.08, baseScale * stretch);
+    child.position.z = baseZ - Math.abs(Math.sin(fxTime * 22 + i)) * 0.1;
+
+    // Tripo flame animation: alternate A/B meshes (~12 fps) with slight per-jet phase.
+    const frame = Math.floor(fxTime * 12 + i * 0.37) % 2;
+    for (const pose of child.children) {
+      const poseFrame = pose.userData.nitroFrame;
+      if (typeof poseFrame === "number") {
+        pose.visible = poseFrame === frame;
+      }
+    }
   });
 
   // Lap immunity is gameplay + Style-Popup only — never show an on-car shield mesh.

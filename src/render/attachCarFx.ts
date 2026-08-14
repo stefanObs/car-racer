@@ -4,7 +4,7 @@
  */
 import { Box3, Group, Object3D } from "three";
 import type { ComicCarParts } from "./comicCarMesh";
-import { cloneFxChunk, hasFxModels, type FxChunkId } from "./loadFxGltf";
+import { cloneFxChunk, hasFxModels, NITRO_FLAME_FRAMES, type FxChunkId } from "./loadFxGltf";
 
 export function carMeshRearZ(root: Object3D): number {
   const car = root.children.find((c) => c.name.startsWith("gltf-")) ?? root;
@@ -17,6 +17,22 @@ export function carMeshRearZ(root: Object3D): number {
 function clearGroup(group: Group): void {
   while (group.children.length) group.remove(group.children[0]!);
 }
+
+/** Twin exhaust jets: each jet holds A/B Tripo flame frames for flicker. */
+const NITRO_JET_LAYOUT: Array<{
+  color: "orange" | "cyan";
+  x: number;
+  y: number;
+  zOff: number;
+  scale: number;
+}> = [
+  { color: "orange", x: -0.32, y: 0.22, zOff: 0.02, scale: 0.92 },
+  { color: "cyan", x: 0.32, y: 0.22, zOff: 0.02, scale: 0.92 },
+  { color: "orange", x: -0.22, y: 0.3, zOff: -0.42, scale: 1.05 },
+  { color: "cyan", x: 0.22, y: 0.3, zOff: -0.42, scale: 1.05 },
+];
+
+const FRAME_IDS = NITRO_FLAME_FRAMES;
 
 /** Shared comic FX for every car. `cloneChunk` is injectable for unit tests. */
 export function makeFxGroups(
@@ -42,21 +58,27 @@ export function makeFxGroups(
 
   const nitro = new Group();
   nitro.name = "fx-nitro";
-  // Twin exhaust jets: pipe stubs sit at the bumper, flames stream −Z.
-  const jets: Array<{ id: FxChunkId; x: number; y: number; zOff: number; scale: number }> = [
-    { id: "nitroOrange", x: -0.32, y: 0.22, zOff: 0.02, scale: 0.92 },
-    { id: "nitroCyan", x: 0.32, y: 0.22, zOff: 0.02, scale: 0.92 },
-    { id: "nitroOrange", x: -0.22, y: 0.3, zOff: -0.42, scale: 1.05 },
-    { id: "nitroCyan", x: 0.22, y: 0.3, zOff: -0.42, scale: 1.05 },
-  ];
-  for (const jet of jets) {
-    const trail = cloneChunk(jet.id);
-    trail.position.set(jet.x, jet.y, nitroZ + jet.zOff);
-    trail.scale.setScalar(jet.scale);
-    trail.userData.nitroBaseZ = trail.position.z;
-    trail.userData.nitroBaseScale = jet.scale;
-    trail.visible = false;
-    nitro.add(trail);
+  for (const jet of NITRO_JET_LAYOUT) {
+    const jetRoot = new Group();
+    jetRoot.name = `fx-nitroJet-${jet.color}`;
+    jetRoot.position.set(jet.x, jet.y, nitroZ + jet.zOff);
+    jetRoot.scale.setScalar(jet.scale);
+    jetRoot.userData.nitroBaseZ = jetRoot.position.z;
+    jetRoot.userData.nitroBaseScale = jet.scale;
+    jetRoot.userData.nitroJet = true;
+    jetRoot.visible = false;
+
+    const [idA, idB] = FRAME_IDS[jet.color];
+    const frameA = cloneChunk(idA);
+    const frameB = cloneChunk(idB);
+    frameA.name = `fx-${idA}`;
+    frameB.name = `fx-${idB}`;
+    frameA.userData.nitroFrame = 0;
+    frameB.userData.nitroFrame = 1;
+    frameA.visible = true;
+    frameB.visible = false;
+    jetRoot.add(frameA, frameB);
+    nitro.add(jetRoot);
   }
 
   // Empty — no on-car shield mesh (Tripo plaque is overhead round flash only).
@@ -64,6 +86,15 @@ export function makeFxGroups(
   shield.name = "fx-shield";
   shield.visible = false;
   return { smoke, sparks, nitro, shield };
+}
+
+function placeNitroJets(nitro: Group, rearZ: number): void {
+  nitro.children.forEach((trail, i) => {
+    const jet = NITRO_JET_LAYOUT[i];
+    if (!jet) return;
+    trail.position.set(jet.x, jet.y, rearZ + jet.zOff);
+    trail.userData.nitroBaseZ = trail.position.z;
+  });
 }
 
 /** Ensure Tripo FX chunks are mounted (smoke / sparks / nitro). Strips any on-car shield mesh. */
@@ -77,19 +108,7 @@ export function upgradeCarFx(visual: ComicCarParts): void {
   const rearZ = carMeshRearZ(visual.root);
   visual.root.userData.fxRearZ = rearZ;
   if (visual.smoke.userData.tripoFx) {
-    // Already Tripo — refresh nitro sit to current hull rear (twin exhaust).
-    const jets = [
-      { x: -0.32, y: 0.22, zOff: 0.02 },
-      { x: 0.32, y: 0.22, zOff: 0.02 },
-      { x: -0.22, y: 0.3, zOff: -0.42 },
-      { x: 0.22, y: 0.3, zOff: -0.42 },
-    ];
-    visual.nitro.children.forEach((trail, i) => {
-      const jet = jets[i];
-      if (!jet) return;
-      trail.position.set(jet.x, jet.y, rearZ + jet.zOff);
-      trail.userData.nitroBaseZ = trail.position.z;
-    });
+    placeNitroJets(visual.nitro, rearZ);
     return;
   }
   const fx = makeFxGroups(rearZ);

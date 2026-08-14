@@ -11,7 +11,9 @@ const FILES: Record<(typeof FX_CHUNK_IDS)[number], { file: string; mat: string; 
   smokeHeavy: { file: "smoke-heavy.glb", mat: "SmokeHeavy", min: 0.5, max: 1.05 },
   repairSpark: { file: "repair-spark.glb", mat: "RepairSpark", min: 0.15, max: 0.4 },
   nitroOrange: { file: "nitro-orange.glb", mat: "NitroOrange", min: 0.7, max: 1.25 },
+  nitroOrangeB: { file: "nitro-orange-b.glb", mat: "NitroOrange", min: 0.7, max: 1.25 },
   nitroCyan: { file: "nitro-cyan.glb", mat: "NitroCyan", min: 0.7, max: 1.25 },
+  nitroCyanB: { file: "nitro-cyan-b.glb", mat: "NitroCyan", min: 0.7, max: 1.25 },
   lapShield: { file: "lap-shield.glb", mat: "LapShield", min: 0.9, max: 1.7 },
 };
 
@@ -47,7 +49,7 @@ describe("Tripo comic FX bakes", () => {
 
   it("orients nitro exhaust with pipe near Z=0 and flame streaming −Z", async () => {
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
-    for (const file of ["nitro-orange.glb", "nitro-cyan.glb"] as const) {
+    for (const file of ["nitro-orange.glb", "nitro-orange-b.glb", "nitro-cyan.glb", "nitro-cyan-b.glb"] as const) {
       const doc = await io.read(resolve("public/models/fx", file));
       const b = getBounds(doc.getRoot().listScenes()[0]!);
       const sx = b.max[0] - b.min[0];
@@ -60,12 +62,14 @@ describe("Tripo comic FX bakes", () => {
     }
   });
 
-  it("keeps nitro flame taller than a sphere-like blob", async () => {
+  it("keeps nitro flame elongated as a jet (not a sphere-like blob)", async () => {
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
     const doc = await io.read(resolve("public/models/fx/nitro-orange.glb"));
     const b = getBounds(doc.getRoot().listScenes()[0]!);
     const sx = b.max[0] - b.min[0];
     const sy = b.max[1] - b.min[1];
-    expect(sy / sx).toBeGreaterThan(1.2);
+    const sz = b.max[2] - b.min[2];
+    expect(sz / Math.max(sx, sy)).toBeGreaterThan(1.5);
+    expect(sy / sx).toBeGreaterThan(0.9);
   });
 });

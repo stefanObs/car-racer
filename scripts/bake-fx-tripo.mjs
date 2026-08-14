@@ -31,8 +31,11 @@ const JOBS = [
   { id: "smoke-heavy", mat: "SmokeHeavy", longest: 0.75, sit: true, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   { id: "repair-spark", mat: "RepairSpark", longest: 0.25, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   // Exhaust flame jets — keep teeth; pipe stub at +Z, flames stream −Z.
+  // A/B pairs are flicker animation frames (swap in applyCarFx).
   { id: "nitro-orange", mat: "NitroOrange", longest: 1.05, sit: false, alignLongZ: true, bluntPosZ: true, pipeAtOrigin: true, minWidthX: 0.32, ratio: 0.18, error: 0.0015, baseColor: [1, 0.478, 0.094, 1] },
+  { id: "nitro-orange-b", mat: "NitroOrange", longest: 1.05, sit: false, alignLongZ: true, bluntPosZ: true, pipeAtOrigin: true, minWidthX: 0.32, ratio: 0.18, error: 0.0015, baseColor: [1, 0.478, 0.094, 1] },
   { id: "nitro-cyan", mat: "NitroCyan", longest: 1.05, sit: false, alignLongZ: true, bluntPosZ: true, pipeAtOrigin: true, minWidthX: 0.32, ratio: 0.18, error: 0.0015, baseColor: [0.239, 0.725, 0.78, 1] },
+  { id: "nitro-cyan-b", mat: "NitroCyan", longest: 1.05, sit: false, alignLongZ: true, bluntPosZ: true, pipeAtOrigin: true, minWidthX: 0.32, ratio: 0.18, error: 0.0015, baseColor: [0.239, 0.725, 0.78, 1] },
   { id: "lap-shield", mat: "LapShield", longest: 1.4, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.4, error: 0.0015 },
 ];
 
@@ -263,7 +266,13 @@ async function loadPrepared(path) {
 
 async function bakeOne(job) {
   const srcDir = join(tripoFx, job.id);
-  const fallbackDir = job.id === "nitro-cyan" ? join(tripoFx, "nitro-orange") : null;
+  /** @type {Record<string, string>} */
+  const fallbackById = {
+    "nitro-cyan": "nitro-orange",
+    "nitro-orange-b": "nitro-orange",
+    "nitro-cyan-b": "nitro-cyan",
+  };
+  const fallbackDir = fallbackById[job.id] ? join(tripoFx, fallbackById[job.id]) : null;
   const src = findSourceGlb(srcDir) ?? (fallbackDir ? findSourceGlb(fallbackDir) : null);
   if (!src) throw new Error(`No GLB under ${srcDir}`);
   const doc = await loadPrepared(src);

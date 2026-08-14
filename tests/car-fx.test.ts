@@ -33,10 +33,18 @@ describe("shared comic car FX", () => {
     ]);
     expect(fx.sparks.children.every((c) => c.name === "fx-repairSpark")).toBe(true);
     expect(fx.nitro.children.map((c) => c.name)).toEqual([
+      "fx-nitroJet-orange",
+      "fx-nitroJet-cyan",
+      "fx-nitroJet-orange",
+      "fx-nitroJet-cyan",
+    ]);
+    expect(fx.nitro.children[0]!.children.map((c) => c.name)).toEqual([
       "fx-nitroOrange",
+      "fx-nitroOrangeB",
+    ]);
+    expect(fx.nitro.children[1]!.children.map((c) => c.name)).toEqual([
       "fx-nitroCyan",
-      "fx-nitroOrange",
-      "fx-nitroCyan",
+      "fx-nitroCyanB",
     ]);
     expect(fx.shield.children).toHaveLength(0);
   });
@@ -86,6 +94,17 @@ describe("shared comic car FX", () => {
     applyCarFx(visual, { stage: 0, healFx: 0, boosting: true, lapShield: 0 }, 1);
     expect(fx.smoke.children.every((c) => !c.visible)).toBe(true);
     expect(fx.nitro.children.every((c) => c.visible)).toBe(true);
+    // Frame A/B swap — exactly one pose visible per jet.
+    for (const jet of fx.nitro.children) {
+      expect(jet.children.filter((c) => c.visible)).toHaveLength(1);
+    }
+    const framesAt1 = fx.nitro.children.map((jet) => jet.children.findIndex((c) => c.visible));
+    applyCarFx(visual, { stage: 0, healFx: 0, boosting: true, lapShield: 0 }, 1 + 1 / 12);
+    const framesNext = fx.nitro.children.map((jet) => jet.children.findIndex((c) => c.visible));
+    expect(framesNext.some((f, i) => f !== framesAt1[i])).toBe(true);
+    for (const jet of fx.nitro.children) {
+      expect(jet.children.filter((c) => c.visible)).toHaveLength(1);
+    }
 
     applyCarFx(visual, { stage: 0, healFx: 0, boosting: false, lapShield: 1.5 }, 1);
     expect(fx.shield.visible).toBe(false);
