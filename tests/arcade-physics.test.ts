@@ -55,6 +55,14 @@ describe("arcade physics — Eigenschaften scaling", () => {
     expect(blitz.car.speed).toBeGreaterThan(bunker.car.speed * 1.2);
   });
 
+  it("records driver steer on the car for front-wheel visuals", () => {
+    const { car, track } = onTrackCar(merged("bison"), 8, "bison");
+    stepCar(car, { throttle: 0.5, brake: 0, steer: -0.75, nitro: false }, track, 1 / 60, catchUp);
+    expect(car.steer).toBeCloseTo(-0.75);
+    stepCar(car, { throttle: 0.5, brake: 0, steer: 0.4, nitro: false }, track, 1 / 60, catchUp);
+    expect(car.steer).toBeCloseTo(0.4);
+  });
+
   it("brakes harder with better_brakes / higher Handling", () => {
     const stock = brakeForceFor(merged("blitz"));
     const tuned = brakeForceFor(merged("blitz", ["better_brakes"]));

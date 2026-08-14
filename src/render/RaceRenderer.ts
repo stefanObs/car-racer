@@ -18,7 +18,7 @@ import {
 } from "three";
 import { stageFromHp } from "../sim/damage";
 import type { RaceSession } from "../sim/race";
-import { createCarState } from "../sim/vehicle";
+import { createCarState, forwardSpeedAlongHeading } from "../sim/vehicle";
 import { surfaceAt } from "../sim/zones";
 import { sampleCenterline } from "../track/buildTrack";
 import { CARS, type CarId } from "../data/cars";
@@ -30,6 +30,7 @@ import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
+import { GARAGE_IDLE_WHEEL_SPEED, spinCarWheels } from "./carWheels";
 import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
 import { carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
@@ -79,6 +80,7 @@ export class RaceRenderer {
   private celebrateSeed = -1;
   private idleGroup = new Group();
   private idleCar: Group | null = null;
+  private idleWheels: ComicCarParts["wheels"] = [];
   /** Pivot at car geometric center — yaw/pitch rotate here so tumble stays on the spot. */
   private idleOrbit: Group | null = null;
   private idleLookKey = "";
@@ -156,6 +158,7 @@ export class RaceRenderer {
     this.idleGroup = buildGarageBay();
     this.idleCar = null;
     this.idleOrbit = null;
+    this.idleWheels = [];
 
     const paint = look?.paint ?? "#E03131";
     const sticker = look?.sticker ?? "none";
@@ -205,6 +208,7 @@ export class RaceRenderer {
     const pivot = mountGarageOrbitPivot(this.idleGroup, visual.root, center);
     this.idleOrbit = pivot;
     this.idleCar = visual.root;
+    this.idleWheels = visual.wheels ?? [];
     this.applyGarageOrbitPose();
     // Re-plant after attach + default yaw so tires meet the deck exactly.
     pivot.position.y += garagePadContactSnapDelta(visual.root, deckY);
@@ -330,6 +334,7 @@ export class RaceRenderer {
     this.fxTime += 1 / 60;
     this.idleGroup.visible = true;
     this.applyGarageOrbitPose();
+    spinCarWheels(this.idleWheels, GARAGE_IDLE_WHEEL_SPEED, 1 / 60, 0);
     // Slightly right of the pad so left heroes and right stock both read
     this.camera.position.set(3.4, 2.7, 9.2);
     const lookY = this.garagePitchInspect
@@ -500,6 +505,8 @@ export class RaceRenderer {
           ? Math.max(-0.42, Math.min(0.42, -slip * 0.55 - Math.sign(slip || 1) * car.drift * 0.12))
           : lean * Math.sin(this.fxTime * 10);
 
+      const rollSpeed = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
+      spinCarWheels(visual.wheels ?? [], rollSpeed, 1 / 60, car.steer);
       visual.lastHeading = car.heading;
 
       const prevNitro = this.lastNitro.get(car.id) ?? car.nitro;

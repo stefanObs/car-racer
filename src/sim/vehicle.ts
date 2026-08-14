@@ -37,6 +37,8 @@ export interface CarState {
   y: number;
   heading: number;
   speed: number;
+  /** Last driver steer (−1..1) — front-wheel visuals follow this. */
+  steer: number;
   /** World-space velocity — can slip vs heading (arcade grip). */
   vx: number;
   vz: number;
@@ -138,6 +140,7 @@ export function createCarState(
   partial: Omit<
     CarState,
     | "speed"
+    | "steer"
     | "vx"
     | "vz"
     | "vy"
@@ -166,6 +169,7 @@ export function createCarState(
   const speed = partial.speed ?? 0;
   const car: CarState = {
     speed,
+    steer: 0,
     vx: Math.cos(heading) * speed,
     vz: Math.sin(heading) * speed,
     vy: 0,
@@ -407,6 +411,7 @@ export function stepCar(
   if (car.koTimer > 0) {
     car.koTimer -= dt;
     car.speed = 0;
+    car.steer = 0;
     car.vx = 0;
     car.vz = 0;
     car.vy = 0;
@@ -436,6 +441,8 @@ export function stepCar(
   const passable = passableObstacleMods(car.x, car.z, obstacles);
   surface.gripFactor *= passable.gripMul;
   surface.bump = Math.min(1, surface.bump + passable.bumpAdd);
+
+  car.steer = input.steer;
 
   const intent = driftIntent({
     driftHeld: Boolean(input.drift),

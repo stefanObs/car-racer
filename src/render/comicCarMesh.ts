@@ -7,6 +7,7 @@ import { CARS, type CarId, type GearClass } from "../data/cars";
 import type { CarState } from "../sim/vehicle";
 import { applyEquippedPartVisuals } from "./carParts";
 import { carMeshRearZ, makeFxGroups, upgradeCarFx } from "./attachCarFx";
+import { mountCarWheels, type WheelMount } from "./carWheels";
 import { cloneGltfCar, hasGltfCar } from "./loadCarGltf";
 import { hasFxModels } from "./loadFxGltf";
 
@@ -17,6 +18,7 @@ export type ComicCarParts = {
   sparks: Group;
   nitro: Group;
   shield: Group;
+  wheels: WheelMount[];
   lastHeading: number;
 };
 
@@ -46,6 +48,9 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
   const gltf = cloneGltfCar(id, car.paint, car.sticker || "none")!;
   const hull = gltf.children[0] ?? gltf;
   applyEquippedPartVisuals(hull, id, parts, { paint: car.paint });
+  // After parts (Große Räder drop) so hubs bake into WheelSteer_* pivots.
+  // Mount on the full gltf wrap so StockWheel_* under the Scene root are found.
+  const wheels = mountCarWheels(gltf);
   root.add(gltf);
 
   const body = new Mesh();
@@ -57,7 +62,7 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
   const fx = makeFxGroups(rearZ);
   fx.smoke.userData.tripoFx = true;
   root.add(groundBlob(1.4), fx.smoke, fx.sparks, fx.nitro, fx.shield);
-  const visual = { root, body, ...fx, lastHeading: car.heading };
+  const visual = { root, body, ...fx, wheels, lastHeading: car.heading };
   upgradeCarFx(visual);
   return visual;
 }
