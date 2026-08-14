@@ -376,6 +376,7 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(existsSync("scripts/extract-kaeferkraft-stock-wheels.mjs")).toBe(true);
     expect(existsSync("scripts/extract-donner-stock-wheels.mjs")).toBe(true);
     expect(existsSync("scripts/extract-bunker-stock-wheels.mjs")).toBe(true);
+    expect(existsSync("scripts/extract-blitz-stock-wheels.mjs")).toBe(true);
 
     const light = L.lightweight_body.anchors[0]!;
     // Mirrored hole flank on blue rails; chunky Tripo half removed in fix script.

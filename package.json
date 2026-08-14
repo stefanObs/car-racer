@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.104",
+  "version": "0.3.105",
   "private": true,
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -35,6 +35,7 @@
     "fx:bake-tripo": "node scripts/bake-fx-tripo.mjs",
     "stickers:bake-flames-tripo": "node scripts/bake-sticker-flames-tripo.mjs",
     "cars:extract-blitz-spoiler": "node scripts/extract-blitz-stock-and-spoiler.mjs",
+    "cars:extract-blitz-stock-wheels": "node scripts/extract-blitz-stock-wheels.mjs",
     "cars:extract-donner-stock-engine": "node scripts/extract-donner-stock-engine.mjs",
     "cars:extract-kaeferkraft-stock-cage": "node scripts/extract-kaeferkraft-stock-cage.mjs",
     "cars:extract-kaeferkraft-stock-wheels": "node scripts/extract-kaeferkraft-stock-wheels.mjs",

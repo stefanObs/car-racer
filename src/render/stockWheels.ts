@@ -39,11 +39,12 @@ function isWheelishCentroid(
   maxAbsX: number,
 ): boolean {
   const height = Math.max(0.01, maxY - minY);
-  const low = y <= minY + height * 0.42;
-  const outboard = Math.abs(x) >= maxAbsX * 0.52;
-  // Keep mid-body skirts / doors out — wheels sit near front/rear arches.
-  const nearArch = Math.abs(z) >= 0.55;
-  return low && outboard && nearArch && y >= minY - 0.02;
+  // Tight band: only low outboard axle pockets — not door / rocker panels.
+  const low = y <= minY + height * 0.28;
+  const outboard = Math.abs(x) >= maxAbsX * 0.68;
+  const front = z >= 0.85;
+  const rear = z <= -0.85;
+  return low && outboard && (front || rear) && y >= minY - 0.02;
 }
 
 type Tri = { i0: number; i1: number; i2: number };
