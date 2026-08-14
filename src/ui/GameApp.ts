@@ -106,23 +106,27 @@ export class GameApp {
     this.renderUi();
   }
 
-  /** LMB yaw / RMB pitch on canvas; touch keeps both axes. */
+  /** LMB/1-finger yaw; RMB/2-finger pitch on the garage canvas. */
   private bindGarageOrbit(canvas: HTMLCanvasElement): void {
-    let dragging = false;
-    let lastX = 0;
-    let lastY = 0;
-    let axes = { yaw: true, pitch: false };
+    const pointers = new Map<number, { x: number; y: number; type: string; button: number }>();
 
-    const endDrag = (e: PointerEvent): void => {
-      if (!dragging) return;
-      dragging = false;
-      this.renderer.setGarageDragging(false);
-      canvas.classList.remove("is-orbiting");
+    const touchLikeCount = (): number =>
+      [...pointers.values()].filter((p) => p.type === "touch" || p.type === "pen").length;
+
+    const syncOrbitClass = (): void => {
+      const on = pointers.size > 0;
+      this.renderer.setGarageDragging(on);
+      canvas.classList.toggle("is-orbiting", on);
+    };
+
+    const release = (pointerId: number): void => {
+      if (!pointers.delete(pointerId)) return;
       try {
-        canvas.releasePointerCapture(e.pointerId);
+        canvas.releasePointerCapture(pointerId);
       } catch {
         /* already released */
       }
+      syncOrbitClass();
     };
 
     canvas.addEventListener("contextmenu", (e) => {
@@ -132,29 +136,37 @@ export class GameApp {
 
     canvas.addEventListener("pointerdown", (e) => {
       if (this.screen !== "garage") return;
-      const next = garageOrbitAxesForPointer(e.button, e.pointerType);
-      if (!next.yaw && !next.pitch) return;
-      dragging = true;
-      axes = next;
-      lastX = e.clientX;
-      lastY = e.clientY;
-      this.renderer.setGarageDragging(true);
-      canvas.classList.add("is-orbiting");
+      const touchish = e.pointerType === "touch" || e.pointerType === "pen";
+      const nextCount = touchish ? touchLikeCount() + 1 : 1;
+      const axes = garageOrbitAxesForPointer(e.button, e.pointerType, nextCount);
+      if (!touchish && !axes.yaw && !axes.pitch) return;
+
+      pointers.set(e.pointerId, {
+        x: e.clientX,
+        y: e.clientY,
+        type: e.pointerType,
+        button: e.button,
+      });
       canvas.setPointerCapture(e.pointerId);
+      syncOrbitClass();
       e.preventDefault();
     });
 
     canvas.addEventListener("pointermove", (e) => {
-      if (!dragging || this.screen !== "garage") return;
-      const dx = e.clientX - lastX;
-      const dy = e.clientY - lastY;
-      lastX = e.clientX;
-      lastY = e.clientY;
+      if (this.screen !== "garage") return;
+      const prev = pointers.get(e.pointerId);
+      if (!prev) return;
+      const dx = e.clientX - prev.x;
+      const dy = e.clientY - prev.y;
+      prev.x = e.clientX;
+      prev.y = e.clientY;
+
+      const axes = garageOrbitAxesForPointer(prev.button, prev.type, Math.max(1, touchLikeCount()));
       if (dx !== 0 || dy !== 0) this.renderer.addGarageOrbitFromDrag(dx, dy, axes);
     });
 
-    canvas.addEventListener("pointerup", endDrag);
-    canvas.addEventListener("pointercancel", endDrag);
+    canvas.addEventListener("pointerup", (e) => release(e.pointerId));
+    canvas.addEventListener("pointercancel", (e) => release(e.pointerId));
   }
 
   tick(now: number, dt: number): void {

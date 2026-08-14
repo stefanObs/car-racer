@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.65 Garage pitch via two-finger touch
+- Trigger: user — two finger touch for vertical pitch on tablets
+- Decision: Touch/pen 1 finger = yaw only; 2+ fingers = pitch only. Mouse unchanged (LMB yaw / RMB pitch).
+- CONCEPT §9 → v3.65
+
 ### 2026-08-14 — v3.64 Garage pitch on right-click
 - Trigger: user — vertical pitch only with right click
 - Decision: Mouse LMB = yaw only, RMB = pitch only (context menu suppressed on canvas). Touch/pen keep both axes (no secondary button).

@@ -13,10 +13,17 @@ export type GarageOrbitAxes = { yaw: boolean; pitch: boolean };
 
 /**
  * Mouse: LMB = yaw only, RMB = pitch only.
- * Touch / pen: both axes (no secondary button on tablet).
+ * Touch / pen: 1 finger = yaw, 2+ fingers = pitch.
  */
-export function garageOrbitAxesForPointer(button: number, pointerType: string): GarageOrbitAxes {
-  if (pointerType === "touch" || pointerType === "pen") return { yaw: true, pitch: true };
+export function garageOrbitAxesForPointer(
+  button: number,
+  pointerType: string,
+  activeTouchCount = 1,
+): GarageOrbitAxes {
+  if (pointerType === "touch" || pointerType === "pen") {
+    if (activeTouchCount >= 2) return { yaw: false, pitch: true };
+    return { yaw: true, pitch: false };
+  }
   if (button === 2) return { yaw: false, pitch: true };
   if (button === 0) return { yaw: true, pitch: false };
   return { yaw: false, pitch: false };

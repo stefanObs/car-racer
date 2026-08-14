@@ -21,9 +21,11 @@ describe("garage orbit yaw + pitch", () => {
     expect(garageOrbitAxesForPointer(1, "mouse")).toEqual({ yaw: false, pitch: false });
   });
 
-  it("keeps both axes on touch/pen (no RMB)", () => {
-    expect(garageOrbitAxesForPointer(0, "touch")).toEqual({ yaw: true, pitch: true });
-    expect(garageOrbitAxesForPointer(0, "pen")).toEqual({ yaw: true, pitch: true });
+  it("uses 1-finger yaw and 2-finger pitch on touch/pen", () => {
+    expect(garageOrbitAxesForPointer(0, "touch", 1)).toEqual({ yaw: true, pitch: false });
+    expect(garageOrbitAxesForPointer(0, "touch", 2)).toEqual({ yaw: false, pitch: true });
+    expect(garageOrbitAxesForPointer(0, "pen", 1)).toEqual({ yaw: true, pitch: false });
+    expect(garageOrbitAxesForPointer(0, "pen", 2)).toEqual({ yaw: false, pitch: true });
   });
 
   it("drag right decreases yaw (turntable)", () => {
