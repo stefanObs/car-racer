@@ -168,7 +168,7 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
       snap: false,
     },
   ],
-  // Hood louvers — Blitz has no Leichtbau mesh (dropped from shop); keep empty anchors.
+  // Hood louvers — Blitz Leichtbau is stats-only (no mesh); keep empty anchors.
   lightweight_body: [],
 };
 
@@ -223,7 +223,7 @@ function layoutBlitz(): CarVisualLayout {
     lightweight_body: {
       anchors: BLITZ_PART_PLACEMENT.lightweight_body,
       build: () => buildLightweightBody("vents"),
-      // No Blitz hood-vent GLB — part dropped from shop via carSupportsPart.
+      // Stats-only on Blitz — no hood-vent GLB / empty anchors (shop still offers the Teil).
       preferGlb: false,
     },
     nitro_kit: {

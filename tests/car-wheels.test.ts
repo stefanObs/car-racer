@@ -52,11 +52,8 @@ describe("parts catalog (per-car)", () => {
     }
   });
 
-  it("drops Leichtbau-Karosserie on Blitz; keeps it on other classes", () => {
-    expect(carSupportsPart("blitz", "lightweight_body")).toBe(false);
-    expect(partsForCar("blitz")).not.toContain("lightweight_body");
+  it("offers Leichtbau-Karosserie on every class including Blitz", () => {
     for (const id of CAR_IDS as CarId[]) {
-      if (id === "blitz") continue;
       expect(carSupportsPart(id, "lightweight_body")).toBe(true);
       expect(partsForCar(id)).toContain("lightweight_body");
     }
@@ -122,8 +119,40 @@ describe("stock wheels + Große Räder", () => {
     expect(names).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
   });
 
+  it("ships Käferkraft with Tripo-segmented StockWheel_* + StockCage (authored maps)", async () => {
+    expect(existsSync("scripts/bake-kaeferkraft-segmented-parts.mjs")).toBe(true);
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/kaeferkraft.glb"),
+    );
+    const names = doc
+      .getRoot()
+      .listNodes()
+      .map((n) => n.getName())
+      .filter((n) => n?.startsWith("StockWheel_") || n === "StockCage")
+      .sort();
+    expect(names).toEqual([
+      "StockCage",
+      "StockWheel_FL",
+      "StockWheel_FR",
+      "StockWheel_RL",
+      "StockWheel_RR",
+    ]);
+    // Remount must keep Tripo segment albedo + UVs (not bison comic / flat grey).
+    for (const mesh of doc.getRoot().listMeshes()) {
+      const name = mesh.getName() ?? "";
+      if (!name.startsWith("StockWheel_") && name !== "StockCage") continue;
+      for (const prim of mesh.listPrimitives()) {
+        const mat = prim.getMaterial();
+        expect(mat?.getBaseColorTexture(), name).toBeTruthy();
+        expect(prim.getAttribute("TEXCOORD_0"), name).toBeTruthy();
+        if (name.startsWith("StockWheel_")) expect(mat?.getName()).toBe("Tire");
+        else expect(mat?.getName()).toBe("StockCage");
+      }
+    }
+  });
+
   it("ships other cars without StockWheel_* (tires still welded)", async () => {
-    for (const id of ["blitz", "kaeferkraft", "donnerbuechse", "bunker"] as const) {
+    for (const id of ["blitz", "donnerbuechse", "bunker"] as const) {
       const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
         resolve(`public/models/cars/${id}.glb`),
       );
@@ -152,7 +181,7 @@ describe("stock wheels + Große Räder", () => {
 
   it("Bison Große Räder scales StockWheel_* instead of procedural tires", () => {
     expect(CAR_PART_LAYOUTS.bison.wheelHints).toHaveLength(0);
-    expect(BISON_BIG_WHEEL_SCALE).toBeCloseTo(1.2);
+    expect(BISON_BIG_WHEEL_SCALE).toBeCloseTo(1.35);
     const root = new Group();
     for (const corner of ["FL", "FR", "RL", "RR"] as const) {
       const stock = new Mesh(new BoxGeometry(0.4, 0.5, 0.4), new MeshBasicMaterial());
@@ -180,7 +209,7 @@ describe("stock wheels + Große Räder", () => {
     expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
   });
 
-  it("Bison hub drop clears the wheel arch under scale", () => {
+  it("Bison hub drop keeps ground contact when arch clearance is zero", () => {
     const drop = bisonBigWheelHubDrop();
     expect(drop).toBeCloseTo(
       BISON_STOCK_WHEEL_RADIUS * (BISON_BIG_WHEEL_SCALE - 1) + BISON_BIG_WHEEL_ARCH_CLEARANCE,
@@ -188,8 +217,7 @@ describe("stock wheels + Große Räder", () => {
     const stockTop = BISON_STOCK_WHEEL_RADIUS * 2;
     const scaledTop =
       BISON_STOCK_WHEEL_RADIUS - drop + BISON_STOCK_WHEEL_RADIUS * BISON_BIG_WHEEL_SCALE;
-    expect(scaledTop).toBeLessThan(stockTop);
-    expect(stockTop - scaledTop).toBeCloseTo(BISON_BIG_WHEEL_ARCH_CLEARANCE);
+    expect(scaledTop).toBeCloseTo(stockTop - BISON_BIG_WHEEL_ARCH_CLEARANCE);
     expect(CAR_PART_LAYOUTS.bison.wheelLift).toBeCloseTo(
       drop + BISON_STOCK_WHEEL_RADIUS * (BISON_BIG_WHEEL_SCALE - 1),
     );
@@ -223,15 +251,17 @@ describe("stock wheels + Große Räder", () => {
     expect(w.getObjectByName("UpgradeTire")).toBeTruthy();
   });
 
-  it("non-Blitz cars get no offroad suspension lift except Bison (shares wheel drop)", () => {
+  it("Bison Gelände-Federung lifts stance without enlarging StockWheel_*", () => {
     expect(carStanceLift("bunker", ["offroad_suspension"])).toBe(0);
-    expect(carStanceLift("bison", ["offroad_suspension"])).toBeCloseTo(CAR_PART_LAYOUTS.bison.wheelLift);
+    expect(carStanceLift("bison", ["offroad_suspension"])).toBeCloseTo(
+      CAR_PART_LAYOUTS.bison.suspensionLift,
+    );
     expect(carStanceLift("bison", ["big_wheels", "offroad_suspension"])).toBeCloseTo(
-      CAR_PART_LAYOUTS.bison.wheelLift,
+      CAR_PART_LAYOUTS.bison.wheelLift + CAR_PART_LAYOUTS.bison.suspensionLift,
     );
   });
 
-  it("Bison Gelände-Federung drops StockWheel_* like Große Räder and mounts Blitz springs", () => {
+  it("Bison Gelände-Federung mounts Blitz springs without scaling StockWheel_*", () => {
     const root = new Group();
     for (const corner of ["FL", "FR", "RL", "RR"] as const) {
       const stock = new Mesh(new BoxGeometry(0.4, 0.5, 0.4), new MeshBasicMaterial());
@@ -250,23 +280,21 @@ describe("stock wheels + Große Räder", () => {
       })(),
     );
     applyStockPartVisibility(root, "bison", ["offroad_suspension"]);
-    expect(root.children[0]!.scale.x).toBeCloseTo(BISON_BIG_WHEEL_SCALE);
-    expect(root.children[0]!.position.y).toBeCloseTo(
-      BISON_STOCK_WHEEL_RADIUS - bisonBigWheelHubDrop(),
-    );
+    expect(root.children[0]!.scale.x).toBeCloseTo(1);
+    expect(root.children[0]!.position.y).toBeCloseTo(BISON_STOCK_WHEEL_RADIUS);
     applyEquippedPartVisuals(root, "bison", ["offroad_suspension"]);
     expect(root.getObjectByName(blitzPartObjectName("offroad_suspension"))).toBeTruthy();
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
   });
 
-  it("places Bison shocks behind the outer rim on the hub centers", () => {
+  it("places Bison shocks inboard of the tire face at stock hub height", () => {
     const hubs = [
       { x: 0.669, z: 1.13 },
       { x: -0.669, z: 1.13 },
       { x: 0.669, z: -1.052 },
       { x: -0.669, z: -1.052 },
     ];
-    const hubY = BISON_STOCK_WHEEL_RADIUS - bisonBigWheelHubDrop();
+    const hubY = BISON_STOCK_WHEEL_RADIUS;
     // Inner tire face ~|x|0.55 — keep coils inside so they are not seen through the rim.
     const innerTireFace = 0.55;
     const springs = CAR_PART_LAYOUTS.bison.springs;

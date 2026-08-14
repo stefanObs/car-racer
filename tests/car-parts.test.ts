@@ -3,6 +3,7 @@ import { BoxGeometry, BufferAttribute, BufferGeometry, Group, Mesh, MeshBasicMat
 import { afterEach, describe, expect, it } from "vitest";
 import { CAR_IDS, CARS, type CarId } from "../src/data/cars";
 import { mergeStats, type PartId } from "../src/data/parts";
+import { carSupportsPart, partsForCar } from "../src/data/partsCatalog";
 import {
   applyEquippedPartVisuals,
   applyBlitzParts,
@@ -100,7 +101,9 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(mounted!.position.y).toBeCloseTo(scoop.y, 2);
   });
 
-  it("drops Blitz Leichtbau from shop and mounts no hood-vent mesh", () => {
+  it("keeps Blitz Leichtbau in shop for stats but mounts no hood-vent mesh", () => {
+    expect(carSupportsPart("blitz", "lightweight_body")).toBe(true);
+    expect(partsForCar("blitz")).toContain("lightweight_body");
     expect(CAR_PART_LAYOUTS.blitz.lightweight_body.preferGlb).toBe(false);
     expect(BLITZ_PART_PLACEMENT.lightweight_body).toHaveLength(0);
     expect(existsSync("public/models/parts/blitz-lightweight_body.glb")).toBe(false);
@@ -108,6 +111,12 @@ describe("Equipped-part visuals (all cars)", () => {
     const root = new Group();
     applyEquippedPartVisuals(root, "blitz", ["lightweight_body"]);
     expect(root.getObjectByName(blitzPartObjectName("lightweight_body"))).toBeUndefined();
+
+    const base = CARS.blitz.stats;
+    const tuned = mergeStats(base, ["lightweight_body"]);
+    expect(tuned.accel).toBeGreaterThan(base.accel);
+    expect(tuned.handling).toBeGreaterThan(base.handling);
+    expect(tuned.armor).toBeLessThan(base.armor);
   });
 
   it("paints Blitz spike bumper bar with body color and keeps chrome tips", () => {

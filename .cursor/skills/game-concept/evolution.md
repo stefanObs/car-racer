@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — Blitz Leichtbau stats-only (v0.3.166 / CONCEPT v3.85)
+- Trigger: user — add lightweight item to Blitz again, but not the art
+- Decision: Restore shop/equip for Blitz `lightweight_body` (stats via mergeStats); keep empty mounts / no `blitz-lightweight_body.glb`. Other classes keep Tripo Leichtbau meshes.
+- CONCEPT dokumentstand → v3.85
+
 ### 2026-08-14 — Blitz drops Leichtbau mesh (v0.3.163)
 - Trigger: user — remove lightweight body art from Blitz
 - Decision: No Blitz hood-vent GLB; empty mounts; `carSupportsPart("blitz","lightweight_body")` false (same pattern as Bessere Bremsen). Other classes keep Tripo Leichtbau kits.

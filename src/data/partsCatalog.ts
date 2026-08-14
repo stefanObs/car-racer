@@ -5,15 +5,12 @@ import { PARTS, type PartId } from "./parts";
  * Per-car shop/equip allowlist.
  * Gelände-Federung: Blitz Tripo springs; Bison reuses that kit + dropped StockWheel_*.
  * Bessere Bremsen is dropped on Blitz, Bison, Käferkraft, and Bunker (procedural calipers don't fit).
- * Leichtbau-Karosserie is dropped on Blitz (no hood-vent mesh; other classes keep Tripo kits).
+ * Blitz Leichtbau stays in the shop for stats but has no hood-vent mesh (empty mounts).
  */
 export function carSupportsPart(carId: CarId, partId: PartId): boolean {
   if (partId === "offroad_suspension") return carId === "blitz" || carId === "bison";
   if (partId === "better_brakes") {
     return carId === "donnerbuechse";
-  }
-  if (partId === "lightweight_body") {
-    return carId !== "blitz";
   }
   return partId in PARTS;
 }
