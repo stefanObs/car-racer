@@ -423,8 +423,9 @@ function layoutBunker(): CarVisualLayout {
       preferGlb: true,
     },
     reinforced_frame: {
-      // Look sheet rocker rails — long Z kit between arches; scale out past the sill.
-      anchors: [{ x: 0, y: 0.42, z: 0.05, yaw: 0, scale: 1.18, snap: false }],
+      // Look sheet panel 5: full external cage — roof rails, pillars, rockers over the body.
+      // Bake long axis is X; yaw π/2 aligns length with car +Z.
+      anchors: [{ x: 0, y: 0.28, z: 0.0, yaw: Math.PI / 2, scale: 1.02, scaleY: 1.18, snap: false }],
       build: () => buildReinforcedFrame("armor"),
       preferGlb: true,
     },

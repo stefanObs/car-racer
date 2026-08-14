@@ -454,8 +454,14 @@ describe("Equipped-part visuals (all cars)", () => {
 
     const frame = L.reinforced_frame.anchors[0]!;
     expect(frame.snap).toBe(false);
-    expect(frame.y).toBeGreaterThan(0.35);
-    expect(frame.y).toBeLessThan(0.6);
+    // Full cage sits from rockers up toward the roof (look sheet panel 5).
+    expect(frame.y).toBeGreaterThan(0.15);
+    expect(frame.y).toBeLessThan(0.4);
+    expect(frame.scale).toBeGreaterThan(0.95);
+    expect(frame.scale).toBeLessThan(1.1);
+    expect(frame.scaleY ?? frame.scale).toBeGreaterThan(1.1);
+    expect(frame.yaw).toBeCloseTo(Math.PI / 2);
+    expect(L.reinforced_frame.preferGlb).toBe(true);
 
     const light = L.lightweight_body;
     expect(light.preferGlb).toBe(true);
