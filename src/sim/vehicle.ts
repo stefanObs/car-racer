@@ -224,10 +224,10 @@ export function damageCar(car: CarState, amount: number): boolean {
 }
 
 /**
- * Arcade yaw: responsive at low/mid speed, settles at high speed (racing feel).
- * Turning circle from Handling (+ Masse widens it). Grip is for slide, not yaw.
+ * Arcade yaw (CONCEPT §4.2 Front-Steer): bicycle-lite — turn rate scales with
+ * forward speed so standstill does not tank-pivot. Responsive at low/mid pace,
+ * settles at high speed. Handling + Masse set the circle; Grip is for slide.
  * During powerslide, nose yaws into the turn (Kart outside-drift silhouette).
- * CONCEPT §4.2 — Gewicht + Grip + Impuls, kein Drift-Sim.
  */
 export function yawRateFor(opts: {
   steer: number;
@@ -251,10 +251,12 @@ export function yawRateFor(opts: {
     surfaceSteer *
     massCut *
     driftYaw;
-  const speedBuild = 0.4 + 0.6 * Math.min(1, opts.speed / 7);
-  const highSpeedCut = 1 / (1 + (opts.speed / 24) ** 2.15);
+  // Bicycle-lite: yaw ∝ speed (no standstill pivot). Cap 1 matches prior mid-speed authority.
+  const speedAbs = Math.max(0, opts.speed);
+  const bicycle = Math.min(1, speedAbs / 6.2);
+  const highSpeedCut = 1 / (1 + (speedAbs / 24) ** 2.15);
   const air = opts.airborne ? AIR_STEER_SCALE : 1;
-  return auth * speedBuild * highSpeedCut * air;
+  return auth * bicycle * highSpeedCut * air;
 }
 
 /** Brake force from Handling + brakeBonus; heavier cars stop a bit slower. */
@@ -594,8 +596,9 @@ export function stepCar(
   syncSpeedFromVelocity(car);
   forward = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
   const travelingReverse = forward < -0.05;
+  const steerForYaw = travelingReverse ? -input.steer : input.steer;
   const turnRate = yawRateFor({
-    steer: input.steer,
+    steer: steerForYaw,
     speed: car.speed,
     handling: car.stats.handling,
     mass: car.stats.mass,

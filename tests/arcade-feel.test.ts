@@ -62,6 +62,46 @@ describe("arcade racing feel", () => {
     expect(fast).toBeGreaterThan(0.2);
   });
 
+  it("does not tank-pivot at standstill (front-steer needs forward speed)", () => {
+    const stopped = yawRateFor({
+      steer: 1,
+      speed: 0,
+      handling: blitzStats.handling,
+      mass: blitzStats.mass,
+      gripFactor: 1,
+      handlingMult: 1,
+    });
+    expect(Math.abs(stopped)).toBeLessThan(0.05);
+
+    const { track, car } = onTrackCar(0);
+    const h0 = car.heading;
+    for (let i = 0; i < 60; i++) {
+      stepCar(car, { throttle: 0, brake: 0, steer: 1, nitro: false, drift: false }, track, 1 / 60, catchUp);
+    }
+    expect(Math.abs(car.heading - h0)).toBeLessThan(0.08);
+    expect(car.speed).toBeLessThan(0.2);
+  });
+
+  it("low crawl speed still arcs more than standstill", () => {
+    const crawl = yawRateFor({
+      steer: 1,
+      speed: 4,
+      handling: blitzStats.handling,
+      mass: blitzStats.mass,
+      gripFactor: 1,
+      handlingMult: 1,
+    });
+    const stopped = yawRateFor({
+      steer: 1,
+      speed: 0,
+      handling: blitzStats.handling,
+      mass: blitzStats.mass,
+      gripFactor: 1,
+      handlingMult: 1,
+    });
+    expect(Math.abs(crawl)).toBeGreaterThan(Math.abs(stopped) + 0.35);
+  });
+
   it("coasts instead of dumping speed when throttle is released", () => {
     const { track, car } = onTrackCar(20);
     for (let i = 0; i < 30; i++) {
@@ -148,5 +188,26 @@ describe("arcade racing feel", () => {
     expect(wantsReverse({ brake: 1, throttle: 0, forward: 0.2, airborne: false })).toBe(true);
     expect(wantsReverse({ brake: 1, throttle: 1, forward: 0, airborne: false })).toBe(false);
     expect(wantsReverse({ brake: 0, throttle: 0, forward: 0, airborne: false })).toBe(false);
+  });
+
+  it("inverts steer sense while reversing so backing feels natural", () => {
+    const { track, car } = onTrackCar(0);
+    for (let i = 0; i < 90; i++) {
+      stepCar(car, { throttle: 0, brake: 1, steer: 0, nitro: false, drift: false }, track, 1 / 60, catchUp);
+    }
+    expect(forwardSpeedAlongHeading(car.heading, car.vx, car.vz)).toBeLessThan(-2);
+    const h0 = car.heading;
+    for (let i = 0; i < 45; i++) {
+      stepCar(car, { throttle: 0, brake: 1, steer: 1, nitro: false, drift: false }, track, 1 / 60, catchUp);
+    }
+    const reverseDelta = car.heading - h0;
+    const { track: t2, car: c2 } = onTrackCar(10);
+    const h1 = c2.heading;
+    for (let i = 0; i < 45; i++) {
+      stepCar(c2, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: false }, t2, 1 / 60, catchUp);
+    }
+    const forwardDelta = c2.heading - h1;
+    expect(Math.sign(reverseDelta)).toBe(-Math.sign(forwardDelta));
+    expect(Math.abs(reverseDelta)).toBeGreaterThan(0.15);
   });
 });

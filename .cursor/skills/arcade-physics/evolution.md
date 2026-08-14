@@ -7,6 +7,12 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-14 — v0.3.146 Phase B: Front-Steer (no tank pivot)
+- Trigger: CONCEPT v3.74 Front-Steer
+- RCA: `yawRateFor` had `speedBuild` floor 0.4 → standstill spin-in-place
+- Decision: bicycle-lite `min(1, speed/6.2)` (zero at rest); invert steer while reverse; mid/high-speed cut unchanged so drift paths stay stable
+- Tests: standstill yaw≈0; crawl > stopped; reverse steer sign flips
+
 ### 2026-08-14 — v0.3.144 Phase A: Bremse→Rückwärts
 - Trigger: CONCEPT v3.74 impl
 - RCA (prior): brake only scrubbed inside `speed > ε`; grip pull to nose flipped any reverse velocity forward
