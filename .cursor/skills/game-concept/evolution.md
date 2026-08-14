@@ -14,6 +14,18 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — Milder body bank + comic Schanze hops
+
+- Trigger: user — less hard side tilt now wheels steer; jumps more comic than real
+- Decision: Visual bank capped ~0.18; Schanzen launch/hang punched up (arcade-exaggerated, still real Y airtime)
+- CONCEPT dokumentstand → v3.86
+
+### 2026-08-14 — Wheel spin: real StockWheels, correct axle/steer, no garage roll
+
+- Trigger: user — garage tires still; turn yaw mirrored; Käferkraft wrong axis / fake UpgradeTires
+- Decision: No garage idle spin. Steer yaw negated vs stick. Roll axis = thinnest AABB (Bison X, Käferkraft Z). Käferkraft Große Räder scales Tripo `StockWheel_*` like Bison.
+- CONCEPT §6.3 Sichtbarkeit synced
+
 ### 2026-08-14 — Blitz Leichtbau stats-only (v0.3.166 / CONCEPT v3.85)
 - Trigger: user — add lightweight item to Blitz again, but not the art
 - Decision: Restore shop/equip for Blitz `lightweight_body` (stats via mergeStats); keep empty mounts / no `blitz-lightweight_body.glb`. Other classes keep Tripo Leichtbau meshes.

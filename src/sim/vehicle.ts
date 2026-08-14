@@ -85,7 +85,7 @@ export const BASE_BRAKE = 48;
 export const BASE_NITRO = 125;
 /** Instant kick when nitro is pressed (Split/Second-style burst). */
 export const NITRO_KICK = 14;
-export const GRAVITY = 38;
+export const GRAVITY = 30;
 const DRAG = 0.14;
 /** Extra coast when throttle lifted — scales up a bit at high pace (engine brake). */
 const COAST_BRAKE = 3.5;
@@ -749,9 +749,9 @@ export function stepJump(car: CarState, rampLaunch: number, dt: number): void {
   const grounded = !isAirborne(car);
 
   if (grounded && rampLaunch > 0.12 && car.speed > 8) {
-    // Suspension softens launch a bit (less wild hop); speed & ramp intensity dominate.
-    const suspEase = Math.min(0.25, Math.max(0, (car.stats.suspension - 0.7) * 0.2));
-    const launch = (6.5 + car.speed * 0.22) * rampLaunch * (1 - suspEase);
+    // Comic hop: punchy launch; Federung only softens a little.
+    const suspEase = Math.min(0.22, Math.max(0, (car.stats.suspension - 0.7) * 0.18));
+    const launch = (10.5 + car.speed * 0.38) * rampLaunch * (1 - suspEase);
     car.vy = Math.max(car.vy, launch);
     car.y = Math.max(car.y, AIRBORNE_EPS + 0.02);
   }
@@ -766,7 +766,7 @@ export function stepJump(car: CarState, rampLaunch: number, dt: number): void {
       // Hard landing → slip; grip + Federung stabilize (CONCEPT §4.6)
       const soft = Math.min(0.75, Math.max(0, (car.stats.suspension - 0.6) * 0.45));
       const gripHold = Math.min(1, car.stats.grip * 0.55);
-      const slip = Math.max(0, (impact / 18) * (1 - soft) * (1.15 - gripHold));
+      const slip = Math.max(0, (impact / 22) * (1 - soft) * (1.15 - gripHold));
       if (slip > 0.02) {
         const side = Math.sign(Math.sin(car.heading * 3.1)) || 1;
         const lx = -Math.sin(car.heading) * side;

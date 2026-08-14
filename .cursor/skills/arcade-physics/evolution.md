@@ -7,6 +7,12 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-14 — Comic Schanze launch + float
+
+- Trigger: user — jumps more extreme / comic
+- Decision: launch `(10.5 + speed×0.38)×ramp`; `GRAVITY` 38→30; landing impact divisor 18→22 (less harsh slip for higher hops)
+- Tests: arcade-physics ramp `vy>8` and peakY>2.2
+
 ### 2026-08-14 — v0.3.172 stronger trailing catch-up
 - Trigger: user — cars behind P1 a bit faster so they can keep up
 - Decision: `catchUpMultipliers` last-of-6 accel 1.18→1.30, topSpeed 1.06→1.12 (still linear by place; leader unchanged; ceiling < magnet)

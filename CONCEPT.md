@@ -86,7 +86,7 @@ Kein realistisches Drift-/Reifen-Physik-Sim (keine Pacejka-Kurven) — Arcade-Fa
 - **Bremse → Rückwärts:** Bremse verzögert vorwärts; sobald Vorwärts-Tempo praktisch null ist und Bremse weiter gehalten wird, fährt das Auto **rückwärts** (entlang der Nase rückwärts). Gas bricht Rückwärts ab und beschleunigt wieder vorwärts. Rückwärts-Cap deutlich unter Vorwärts-Tempo (~35–50 %). Keine eigene Rückwärts-Taste — dieselbe Bremse-/Rückwärts-Aktion auf allen Plattformen.
 - **Nitro** nur sinnvoll vorwärts (starker Boost-Kick + Speed über Cap); in Rückwärts kein / vernachlässigbarer Nitro-Schub.
 - **Drift** = Taste halten + Lenken **oder** zu hart in die Kurve bei hohem Tempo (Oversteer) → **Outside-Drift** (Nase schwenkt in die Kurve, Tempo-Vektor bleibt außen, Ziel-Schlupfwinkel bis ca. 40° wie Kart); Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben.
-- **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. **Auto↔Auto-Kontakt** schiebt nach Masse, Schließspeed, Richtung und Trefferort (Bug/Flanke/Heck) — siehe §4.5.
+- **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. **Hop ist arcade-übertrieben** (Asphalt-Comic), nicht realistisch flach. **Auto↔Auto-Kontakt** schiebt nach Masse, Schließspeed, Richtung und Trefferort (Bug/Flanke/Heck) — siehe §4.5.
 - **Falsche Richtung:** Anhaltendes Fahren gegen die Streckenrichtung (auch Rückwärts) bleibt als Wrong-Way erkennbar (HUD/Warnung).
 
 **Physik-Autorenschaft:** Skill `.cursor/skills/arcade-physics/` (Stat-Map + Evolution-Log) — Änderungen an Fahrgefühl/Eigenschaften-Skalierung immer dort entlang evolvieren.
@@ -260,7 +260,7 @@ Hindernisse ergänzen Tempo-Fahren; sie sind lesbar und build-relevant:
 | **Reifenstapel** | Bounce + leichter Schaden — **nicht** passierbar | Orange/schwarz, hoch | Leicht |
 | **Betonsperren** | Harter Bounce — **nicht** passierbar | Grau + gelber Streifen, hoch | Kaum |
 | Rollende Fässer | Bewegliche Gefahr | Metallglanz | — |
-| Sprungschanzen | Echte Luftzeit (Y); Landung braucht Grip/Federung | Rampe | Federung stabilisiert Landung |
+| Sprungschanzen | Echte Luftzeit (Y); comic-hohe Bögen; Landung braucht Grip/Federung | Rampe | Federung stabilisiert Landung |
 
 KI nutzt Layout: bremst vor Buckeln, drängt dich bei Fehlern Richtung Gras/Mauer.
 
@@ -596,4 +596,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.85 — Blitz Leichtbau stats-only ohne Hood-Vent-Mesh.*
+*Dokumentstand: Konzept v3.86 — Schanzen arcade-übertrieben; Lenkräder statt hartem Karosserie-Lean.*

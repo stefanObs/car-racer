@@ -267,14 +267,19 @@ describe("arcade physics — Eigenschaften scaling", () => {
     });
     stepJump(car, 0.95, 1 / 60);
     expect(isAirborne(car)).toBe(true);
-    expect(car.vy).toBeGreaterThan(5);
+    expect(car.vy).toBeGreaterThan(8);
+    const peakVy = car.vy;
 
-    for (let i = 0; i < 180; i++) {
+    let peakY = 0;
+    for (let i = 0; i < 240; i++) {
       stepJump(car, 0, 1 / 60);
+      peakY = Math.max(peakY, car.y);
     }
+    expect(peakY).toBeGreaterThan(2.2);
     expect(car.y).toBe(0);
     expect(car.vy).toBe(0);
     expect(isAirborne(car)).toBe(false);
+    expect(peakVy).toBeGreaterThan(8);
   });
 
   it("driving onto a Schanze obstacle launches via stepCar", () => {

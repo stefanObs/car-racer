@@ -31,6 +31,7 @@ import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { spinCarWheels } from "./carWheels";
+import { bodyBaseLean, bodyRollZ } from "./carBodyPose";
 import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
 import { carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
@@ -483,23 +484,21 @@ export class RaceRenderer {
           ? 0
           : bump * 0.25 * Math.sin(this.fxTime * 22 + car.progress * 3) +
             (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.05 : 0);
-      const lean =
-        (stage >= 2 ? 0.1 : 0) +
-        (car.y > 0.05 ? 0 : bump * 0.14) +
-        car.drift * 0.28;
-      const pitch = car.y > 0.05 ? Math.min(0.35, car.vy * 0.03) : 0;
+      const pitch = car.y > 0.05 ? Math.min(0.55, car.vy * 0.045) : 0;
       const moveAng = Math.atan2(car.vz, car.vx);
       let slip = car.heading - moveAng;
       while (slip > Math.PI) slip -= Math.PI * 2;
       while (slip < -Math.PI) slip += Math.PI * 2;
-      // Nose follows control heading; body leans with slip (Kart powerslide pose)
+      // Nose follows control heading; mild bank only — steered wheels carry the turn read
       root.position.set(car.x, car.y + (car.healFx > 0.2 ? 0.05 : 0) + hop, car.z);
       root.rotation.y = Math.PI / 2 - car.heading;
       root.rotation.x = pitch;
-      root.rotation.z =
-        car.drift > 0.2
-          ? Math.max(-0.42, Math.min(0.42, -slip * 0.55 - Math.sign(slip || 1) * car.drift * 0.12))
-          : lean * Math.sin(this.fxTime * 10);
+      root.rotation.z = bodyRollZ({
+        drift: car.drift,
+        slip,
+        baseLean: bodyBaseLean(stage, car.y > 0.05, bump),
+        wobble: Math.sin(this.fxTime * 10),
+      });
 
       const rollSpeed = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
       spinCarWheels(visual.wheels ?? [], rollSpeed, 1 / 60, car.steer);
