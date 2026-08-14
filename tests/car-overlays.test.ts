@@ -56,7 +56,7 @@ describe("car sticker decals", () => {
     expect(src).toContain("/models/stickers/flames.glb");
     expect(src).toContain("three sharp tongues");
     expect(src).toContain("shooting-star");
-    expect(src).toContain("mountDonnerDoorPlanes");
+    expect(src).toContain("mountFlushDoorPlanes");
     expect(src).not.toContain('slot: "hood"');
     expect(existsSync("public/stickers/flames-donner.png")).toBe(true);
     expect(existsSync("public/models/stickers/flames.glb")).toBe(true);
@@ -126,7 +126,35 @@ describe("car sticker decals", () => {
 
   it("uses flush door planes for Donner flames (not floating Tripo plaques)", () => {
     const src = readFileSync("src/render/carStickers.ts", "utf8");
-    expect(src).toContain('carId !== "donnerbuechse" && mountFlameTripoPlates');
+    expect(src).toContain('carId !== "donnerbuechse"');
+    expect(src).toContain("mountFlushDoorPlanes");
+  });
+
+  it("anchors Bunker Flammen on the door panel (clear of the front tire)", () => {
+    const anchors = STICKER_DECALS.bunker;
+    expect(anchors.length).toBe(2);
+    expect(anchors.every((a) => a.slot === "side")).toBe(true);
+    for (const a of anchors) {
+      expect(Math.abs(a.x)).toBeGreaterThan(0.85);
+      expect(Math.abs(a.x)).toBeLessThan(0.98);
+      expect(a.z).toBeLessThan(0.2);
+      expect(a.z).toBeGreaterThan(-0.3);
+      expect(a.width).toBeLessThanOrEqual(0.95);
+      expect(a.y).toBeGreaterThan(1.0);
+      expect(a.y).toBeLessThan(1.25);
+    }
+  });
+
+  it("mounts two flush door stickers on Bunker (no Tripo flame plaques)", () => {
+    const root = fakeCarRoot(2.0, 1.8, 3.8);
+    applyCarStickers(root, "bunker", "flames");
+    const g = root.getObjectByName(CAR_STICKERS_GROUP);
+    expect(g?.children.length).toBe(2);
+    expect(g?.userData.flameTripo).toBeFalsy();
+    for (const child of g!.children) {
+      expect(child.name.startsWith("stickerDecal-side")).toBe(true);
+      expect(Math.abs(child.position.z)).toBeLessThan(0.25);
+    }
   });
 
   it("keeps Bison stickers on the doors only (no hood/front)", () => {

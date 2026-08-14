@@ -127,8 +127,9 @@ export const STICKER_DECALS: Record<Exclude<CarId, "kaeferkraft">, DecalAnchor[]
     { slot: "side", x: -0.705, y: 0.92, z: -0.22, yaw: -Math.PI / 2, width: 1.0, height: 0.4, depth: 0.35 },
   ],
   bunker: [
-    { slot: "door", x: 0.95, y: 1.05, z: 0.45, yaw: Math.PI / 2, width: 1.15, height: 0.48, depth: 0.42, mirrorU: true },
-    { slot: "door", x: -0.95, y: 1.05, z: 0.45, yaw: -Math.PI / 2, width: 1.15, height: 0.48, depth: 0.42 },
+    // Door panel between arches — above yellow stripe, clear of the front tire.
+    { slot: "side", x: 0.91, y: 1.12, z: 0.05, yaw: Math.PI / 2, width: 0.88, height: 0.38, depth: 0.38, mirrorU: true },
+    { slot: "side", x: -0.91, y: 1.12, z: 0.05, yaw: -Math.PI / 2, width: 0.88, height: 0.38, depth: 0.38 },
   ],
 };
 
@@ -537,7 +538,15 @@ function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">
   clearStickerDecals(root);
   if (sticker === "none") return;
 
-  if (sticker === "flames" && carId !== "donnerbuechse" && mountFlameTripoPlates(root, carId)) return;
+  // Tripo plaques float off flat APC doors / hot-rod curves — project or door-plane instead.
+  if (
+    sticker === "flames" &&
+    carId !== "donnerbuechse" &&
+    carId !== "bunker" &&
+    mountFlameTripoPlates(root, carId)
+  ) {
+    return;
+  }
 
   const tex = stickerTexture(sticker, carId);
   if (!tex) return;
@@ -547,7 +556,13 @@ function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">
   // Hot-rod coupe doors are too curved/chaotic for DecalGeometry — flat door
   // planes sit flush on the panel and keep Asphalt-Comic stickers readable.
   if (carId === "donnerbuechse") {
-    mountDonnerDoorPlanes(root, sticker, tex);
+    mountFlushDoorPlanes(root, carId, sticker, tex);
+    return;
+  }
+
+  // Boxy Bunker doors: flush planes read cleaner than DecalGeometry on the atlas shell.
+  if (carId === "bunker") {
+    mountFlushDoorPlanes(root, carId, sticker, tex);
     return;
   }
 
@@ -617,13 +632,18 @@ function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">
   if (group.children.length > 0) root.add(group);
 }
 
-/** Flush comic door stickers for Donnerbüchse (local space, nose +Z). */
-function mountDonnerDoorPlanes(root: Object3D, sticker: string, tex: Texture): void {
+/** Flush comic door stickers in local space (nose +Z) — Bunker / Donnerbüchse. */
+function mountFlushDoorPlanes(
+  root: Object3D,
+  carId: Exclude<CarId, "kaeferkraft">,
+  sticker: string,
+  tex: Texture,
+): void {
   const group = new Group();
   group.name = CAR_STICKERS_GROUP;
   group.userData.carStickers = sticker;
 
-  STICKER_DECALS.donnerbuechse.forEach((anchor, i) => {
+  STICKER_DECALS[carId].forEach((anchor, i) => {
     const map = tex.clone();
     map.needsUpdate = true;
     if (anchor.mirrorU) {
@@ -648,8 +668,8 @@ function mountDonnerDoorPlanes(root: Object3D, sticker: string, tex: Texture): v
     const mesh = new Mesh(new PlaneGeometry(anchor.width, anchor.height), mat);
     mesh.position.set(anchor.x, anchor.y, anchor.z);
     mesh.rotation.y = anchor.yaw;
-    // Sit just outside the door skin so the plane is not buried in BodyPaint.
-    mesh.position.x += Math.sign(anchor.x) * 0.012;
+    // Hairline outside the door skin — avoid burying in BodyPaint or floating off.
+    mesh.position.x += Math.sign(anchor.x || 1) * 0.006;
     mesh.name = `stickerDecal-${anchor.slot}-${i}`;
     mesh.userData.stickerDecal = sticker;
     mesh.userData.stickerSlot = anchor.slot;
