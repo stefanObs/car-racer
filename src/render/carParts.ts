@@ -9,13 +9,17 @@ import {
   Box3,
   BufferAttribute,
   BufferGeometry,
+  CanvasTexture,
   Color,
   Group,
   Matrix4,
   Mesh,
+  NearestFilter,
   Object3D,
+  SRGBColorSpace,
   Vector3,
   type MeshToonMaterial,
+  type Texture,
 } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { CarId } from "../data/cars";
@@ -36,6 +40,7 @@ import {
   springColorFor,
 } from "./carPartBuilders";
 import { comicToon } from "./comicMaterials";
+import { paintSrgb01 } from "./paintAuthoredWhite";
 import { applyStockWheelScale, applyStockWheelVisibility, isStockWheelObject } from "./stockWheels";
 import { carSupportsPart } from "../data/partsCatalog";
 
@@ -752,13 +757,131 @@ function geometryFromSpikeTris(src: BufferGeometry, tris: SpikeTri[]): BufferGeo
   return out;
 }
 
-/** Paint only the bumper bar; leave chrome spike tips alone. */
+/** Yellow / near-black hazard bands on Tripo spike-bar albedo — keep when painting. */
+export function isSpikeHazardStripePixel(r: number, g: number, b: number): boolean {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  if (r > 130 && g > 90 && b < 130 && r + g > b * 2.1 && r - b > 40) return true;
+  if (max < 48 && max - min < 28) return true;
+  return false;
+}
+
+/** Recolor dark metal bar texels to garage paint; leave hazard yellow/black alone. */
+export function recolorSpikeBarPixels(
+  data: Uint8ClampedArray | Uint8Array,
+  paintR: number,
+  paintG: number,
+  paintB: number,
+): number {
+  let changed = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i]!;
+    const g = data[i + 1]!;
+    const b = data[i + 2]!;
+    const a = data[i + 3]!;
+    if (a < 8) continue;
+    if (isSpikeHazardStripePixel(r, g, b)) continue;
+    // Bright chrome leftovers stay (tips are a separate mesh; bar may share atlas scraps).
+    if (min3(r, g, b) > 175 && max3(r, g, b) - min3(r, g, b) < 45) continue;
+    const lum = (r + g + b) / (3 * 255);
+    const shade = Math.pow(Math.min(1, Math.max(0.18, lum / 0.42)), 0.9);
+    data[i] = Math.round(paintR * 255 * shade);
+    data[i + 1] = Math.round(paintG * 255 * shade);
+    data[i + 2] = Math.round(paintB * 255 * shade);
+    changed++;
+  }
+  return changed;
+}
+
+function min3(a: number, b: number, c: number): number {
+  return Math.min(a, Math.min(b, c));
+}
+function max3(a: number, b: number, c: number): number {
+  return Math.max(a, Math.max(b, c));
+}
+
+const spikeBarPaintCache = new Map<string, Texture>();
+
+function spikeBarMapCacheKey(paint: string, base: Texture): string {
+  const img = base.image as { src?: string; width?: number } | undefined;
+  return `spike-bar:${paint}:${img?.src ?? base.uuid}:${img?.width ?? 0}`;
+}
+
+function bakeSpikeBarPaintMap(base: Texture, paint: string): Texture {
+  const key = spikeBarMapCacheKey(paint, base);
+  const hit = spikeBarPaintCache.get(key);
+  if (hit) return hit;
+
+  if (typeof document === "undefined" || !base.image) {
+    spikeBarPaintCache.set(key, base);
+    return base;
+  }
+
+  const img = base.image as { width?: number; height?: number; complete?: boolean; naturalWidth?: number };
+  const w = Number(img.width ?? img.naturalWidth ?? 0);
+  const h = Number(img.height ?? 0);
+  if (w < 8 || h < 8) {
+    spikeBarPaintCache.set(key, base);
+    return base;
+  }
+  if (typeof HTMLImageElement !== "undefined" && base.image instanceof HTMLImageElement) {
+    if (!base.image.complete || base.image.naturalWidth < 1) {
+      spikeBarPaintCache.set(key, base);
+      return base;
+    }
+  }
+
+  const c = document.createElement("canvas");
+  c.width = w;
+  c.height = h;
+  const ctx = c.getContext("2d");
+  if (!ctx) {
+    spikeBarPaintCache.set(key, base);
+    return base;
+  }
+  try {
+    ctx.drawImage(base.image as CanvasImageSource, 0, 0, w, h);
+  } catch {
+    spikeBarPaintCache.set(key, base);
+    return base;
+  }
+
+  const imageData = ctx.getImageData(0, 0, w, h);
+  const paintColor = paintSrgb01(paint);
+  recolorSpikeBarPixels(imageData.data, paintColor.r, paintColor.g, paintColor.b);
+  ctx.putImageData(imageData, 0, 0);
+
+  const tex = new CanvasTexture(c);
+  tex.colorSpace = SRGBColorSpace;
+  tex.minFilter = NearestFilter;
+  tex.magFilter = NearestFilter;
+  tex.generateMipmaps = false;
+  tex.flipY = base.flipY;
+  tex.needsUpdate = true;
+  spikeBarPaintCache.set(key, tex);
+  return tex;
+}
+
+/** Paint only the bumper bar; leave chrome spike tips alone. Keep hazard stripes on the albedo. */
 export function paintSpikeBumperBar(root: Object3D, paintCss: string): void {
   separateSpikeBumperBarAndSpikes(root);
-  const hex = new Color(paintCss).getHex();
+  const paint = new Color(paintCss);
   root.traverse((obj) => {
     if (obj.name !== "SpikeBar") return;
-    tintPartMeshes(obj, hex, true);
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh) return;
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    for (const m of mats) {
+      const toon = m as MeshToonMaterial & { map?: Texture | null };
+      if (!toon?.color) continue;
+      if (toon.map) {
+        toon.map = bakeSpikeBarPaintMap(toon.map, paintCss);
+        toon.color.setHex(0xffffff);
+      } else {
+        toon.color.copy(paint);
+      }
+      toon.needsUpdate = true;
+    }
   });
 }
 

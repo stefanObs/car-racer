@@ -18,7 +18,9 @@ import {
   carStanceLift,
   clearBlitzPartTemplates,
   garageLookCacheKey,
+  isSpikeHazardStripePixel,
   partGlbUrl,
+  recolorSpikeBarPixels,
   registerBlitzPartTemplate,
   registerCarPartTemplate,
   STOCK_ENGINE_MESH,
@@ -98,12 +100,31 @@ describe("Equipped-part visuals (all cars)", () => {
     const tip = part!.getObjectByName("Spike") as Mesh;
     expect(bar).toBeTruthy();
     expect(tip).toBeTruthy();
+    // No albedo in this fixture → solid paint fallback on the bar.
     expect((bar.material as MeshBasicMaterial).color.getHex()).toBe(0xe03131);
     expect((tip.material as MeshBasicMaterial).color.getHex()).toBe(0xffffff);
     expect(CAR_PART_LAYOUTS.blitz.spike_bumper.tint).toBeUndefined();
     expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeGreaterThan(1.75);
     expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeLessThan(2.05);
     expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.scale).toBeGreaterThan(0.9);
+  });
+
+  it("keeps yellow/dark hazard stripes when recoloring spike-bar albedo", () => {
+    expect(isSpikeHazardStripePixel(220, 180, 40)).toBe(true);
+    expect(isSpikeHazardStripePixel(28, 28, 30)).toBe(true);
+    expect(isSpikeHazardStripePixel(70, 72, 78)).toBe(false);
+
+    const data = new Uint8ClampedArray([
+      70, 72, 78, 255, // metal → paint
+      220, 180, 40, 255, // yellow stripe → keep
+      24, 24, 26, 255, // dark stripe → keep
+    ]);
+    const n = recolorSpikeBarPixels(data, 0xe0 / 255, 0x31 / 255, 0x31 / 255);
+    expect(n).toBe(1);
+    expect(data[0]).toBeGreaterThan(100);
+    expect(data[4]).toBe(220);
+    expect(data[5]).toBe(180);
+    expect(data[8]).toBe(24);
   });
 
   it("paints Bunker Leichtbau flank plates with garage body color on both sides", () => {
