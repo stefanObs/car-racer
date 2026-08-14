@@ -439,15 +439,59 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(spike.anchors[0]!.y).toBeLessThan(0.35);
   });
 
-  it("places Bison reinforced frame in the bed behind the cab", () => {
+  it("places Bison reinforced frame in the bed behind the cab", async () => {
     const frame = CAR_PART_LAYOUTS.bison.reinforced_frame.anchors[0]!;
-    expect(frame.z).toBeLessThan(-0.65);
-    expect(frame.z).toBeGreaterThan(-0.9);
-    expect(frame.y).toBeGreaterThan(0.65);
-    expect(frame.y).toBeLessThan(0.85);
-    expect(frame.scale).toBeGreaterThan(1.05);
-    expect(frame.scaleY ?? frame.scale).toBeLessThan(frame.scale);
-    expect(frame.yaw).toBeCloseTo(Math.PI);
+    // Bake arch faces local +Z; yaw 0 keeps braces leaning aft (−Z), not into the cabin.
+    expect(frame.yaw).toBeCloseTo(0);
+    expect(frame.z).toBeLessThan(-0.95);
+    expect(frame.z).toBeGreaterThan(-1.2);
+    expect(frame.y).toBeGreaterThan(0.55);
+    expect(frame.y).toBeLessThan(0.75);
+    // Bed rails are ~|x|≤0.70 — keep scaled width inside.
+    expect(frame.scale).toBeGreaterThan(0.8);
+    expect(frame.scale).toBeLessThanOrEqual(0.95);
+    expect(frame.scaleY ?? frame.scale).toBeCloseTo(frame.scale);
+
+    const { NodeIO } = await import("@gltf-transform/core");
+    const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
+    const { getBounds } = await import("@gltf-transform/functions");
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      "public/models/parts/bison-reinforced_frame.glb",
+    );
+    const b = getBounds(doc.getRoot().listScenes()[0]!);
+    const sx = frame.scale;
+    // yaw 0: forward extent = anchor.z + local max Z * scale — stay aft of cab rear (~−0.55).
+    expect(frame.z + b.max[2]! * sx).toBeLessThan(-0.55);
+    expect(Math.max(Math.abs(b.min[0]! * sx), Math.abs(b.max[0]! * sx))).toBeLessThanOrEqual(0.7);
+
+    // Straightened bake: mid-height left/right Z means must agree (no ¾ skew).
+    const y0 = b.min[1]!;
+    const y1 = b.max[1]!;
+    const ySpan = Math.max(y1 - y0, 1e-6);
+    const yLo = y0 + ySpan * 0.3;
+    const yHi = y0 + ySpan * 0.7;
+    const xAbs = Math.max(Math.abs(b.min[0]!), Math.abs(b.max[0]!), 1e-6);
+    const xCut = xAbs * 0.25;
+    const leftZ: number[] = [];
+    const rightZ: number[] = [];
+    for (const mesh of doc.getRoot().listMeshes()) {
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION");
+        if (!pos) continue;
+        for (let i = 0; i < pos.getCount(); i++) {
+          const v = pos.getElement(i, []);
+          const y = v[1] ?? 0;
+          const x = v[0] ?? 0;
+          if (y < yLo || y > yHi) continue;
+          if (x < -xCut) leftZ.push(v[2]!);
+          else if (x > xCut) rightZ.push(v[2]!);
+        }
+      }
+    }
+    expect(leftZ.length).toBeGreaterThan(8);
+    expect(rightZ.length).toBeGreaterThan(8);
+    const mean = (a: number[]) => a.reduce((s, n) => s + n, 0) / a.length;
+    expect(Math.abs(mean(leftZ) - mean(rightZ))).toBeLessThan(0.04);
   });
 
   it("places Bison lightweight vents on the hood deck", () => {

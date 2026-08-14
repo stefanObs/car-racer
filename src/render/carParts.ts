@@ -94,6 +94,8 @@ export type PartAnchor = {
   scale: number;
   /** Optional non-uniform Y scale (default = `scale`). */
   scaleY?: number;
+  /** Optional non-uniform Z scale (default = `scale`). */
+  scaleZ?: number;
   /** Optional pitch (rotation.x) in radians. */
   pitch?: number;
   /**
@@ -248,18 +250,8 @@ function layoutBison(): CarVisualLayout {
       preferGlb: true,
     },
     reinforced_frame: {
-      // Bed roll bar: plates on Ladefläche rails, arch against cabin rear; wider than tall.
-      anchors: [
-        {
-          x: 0,
-          y: 0.72,
-          z: -0.77,
-          yaw: Math.PI,
-          scale: 1.2,
-          scaleY: 0.72,
-          snap: false,
-        },
-      ],
+      // Bed roll bar: bake arch at local +Z; yaw 0; aft of cab rear (~z−0.55); inside rails.
+      anchors: [{ x: 0, y: 0.62, z: -1.05, yaw: 0, scale: 0.88, snap: false }],
       build: () => buildReinforcedFrame("pickup"),
       preferGlb: true,
     },

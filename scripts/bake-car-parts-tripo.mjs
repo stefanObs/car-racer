@@ -48,7 +48,15 @@ const CAR_JOBS = {
     { id: "spike_bumper", toward: "+z", targetSpan: 1.55, maxH: 0.4, simplify: 0.4 },
     { id: "nitro_kit", toward: "+z", targetSpan: 0.85, maxH: 0.7, simplify: 0.4 },
     { id: "rear_spoiler", toward: "-z", targetSpan: 1.2, maxH: 0.75, simplify: 0.4 },
-    { id: "reinforced_frame", toward: "+z", targetSpan: 1.4, maxH: 1.15, simplify: 0.35 },
+    // ¾ concept skews the rack; straightenXZ levels left/right before span fit.
+    {
+      id: "reinforced_frame",
+      toward: "+z",
+      targetSpan: 1.35,
+      maxH: 1.0,
+      simplify: 0.35,
+      straightenXZ: true,
+    },
   ],
   kaeferkraft: [
     { id: "big_engine", toward: "+z", targetSpan: 0.95, maxH: 0.75, simplify: 0.4 },
@@ -133,6 +141,54 @@ function rotateY180(doc) {
       n[2] = -n[2];
     }
   });
+}
+
+function rotateY(doc, yaw) {
+  const c = Math.cos(yaw);
+  const s = Math.sin(yaw);
+  forEachPosition(doc, (v, n) => {
+    const x = v[0];
+    const z = v[2];
+    v[0] = c * x + s * z;
+    v[2] = -s * x + c * z;
+    if (n) {
+      const nx = n[0];
+      const nz = n[2];
+      n[0] = c * nx + s * nz;
+      n[2] = -s * nx + c * nz;
+    }
+  });
+}
+
+/**
+ * Undo ¾-perspective skew on bed racks: yaw so mid-height left/right means share Z.
+ * Uses relative height so it works before or after span fit.
+ */
+function straightenXZ(doc) {
+  const b0 = sceneSize(doc);
+  const y0 = b0.min[1];
+  const y1 = b0.max[1];
+  const ySpan = Math.max(y1 - y0, 1e-6);
+  const yLo = y0 + ySpan * 0.3;
+  const yHi = y0 + ySpan * 0.7;
+  const xAbs = Math.max(Math.abs(b0.min[0]), Math.abs(b0.max[0]), 1e-6);
+  const xCut = xAbs * 0.25;
+  const left = [];
+  const right = [];
+  forEachPosition(doc, (v) => {
+    if (v[1] < yLo || v[1] > yHi) return;
+    if (v[0] < -xCut) left.push([v[0], v[2]]);
+    else if (v[0] > xCut) right.push([v[0], v[2]]);
+  });
+  if (left.length < 8 || right.length < 8) return;
+  const mean = (pts, i) => pts.reduce((s, p) => s + p[i], 0) / pts.length;
+  const lx = mean(left, 0);
+  const lz = mean(left, 1);
+  const rx = mean(right, 0);
+  const rz = mean(right, 1);
+  const yaw = Math.atan2(rz - lz, rx - lx);
+  if (!Number.isFinite(yaw) || Math.abs(yaw) < 1e-4) return;
+  rotateY(doc, yaw);
 }
 
 function facePosZFromTripoX(doc) {
@@ -230,7 +286,12 @@ async function bakeJob(carId, job) {
   const doc = await loadPrepared(src);
   facePosZFromTripoX(doc);
   if (job.toward === "-z") rotateY180(doc);
-  const sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
+  let sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
+  if (job.straightenXZ) {
+    straightenXZ(doc);
+    // Re-sit/center after yaw so the rack stays on the origin.
+    sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
+  }
   comicMaterial(doc, job.material ?? MAT[job.id] ?? "Carbon");
   await simplifyDoc(doc, job.simplify);
   mkdirSync(outDir, { recursive: true });
