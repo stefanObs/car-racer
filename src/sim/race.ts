@@ -5,6 +5,7 @@ import { buildTrackFromLevel, sampleCenterline } from "../track/buildTrack";
 import type { BuiltTrack, LevelDefinition } from "../track/types";
 import { catchUpMultipliers } from "./catchup";
 import { stageFromHp } from "./damage";
+import { finishLineCross } from "./finishLineCross";
 import { countdownPhase, START_COUNTDOWN_SEC, type CountdownPhase } from "./startCountdown";
 import { createCarState, grantLapShield, resolveContact, stepCar, type CarState, type DriverInput } from "./vehicle";
 import { isCarFacingWrongWay, shouldShowWrongWayWarning, tickWrongWayHold } from "./wrongWay";
@@ -210,10 +211,11 @@ export class RaceSession {
         this.pushAudio({ kind: "ko" });
       }
 
-      // Lap / finish via crossing start line
+      // Lap / finish via crossing start line (forward +1, wrong-way −1, may go negative)
       const prevAlong = this.prevProgress.get(car.id) ?? car.distanceAlong;
       const along = car.distanceAlong;
-      if (prevAlong > this.track.totalLength * 0.75 && along < this.track.totalLength * 0.25 && car.speed > 2) {
+      const cross = finishLineCross(prevAlong, along, this.track.totalLength, car.speed);
+      if (cross === "forward") {
         car.lap += 1;
         if (car.lap <= this.level.laps) {
           grantLapShield(car);
@@ -224,6 +226,8 @@ export class RaceSession {
             this.pushAudio({ kind: "lap" });
           }
         }
+      } else if (cross === "backward") {
+        car.lap -= 1;
       }
       car.progress = along + (car.lap - 1) * this.track.totalLength;
       if (car.lap > this.level.laps && !car.finished) {

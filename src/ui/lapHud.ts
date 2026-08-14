@@ -1,6 +1,8 @@
-/** Current lap for HUD — clamp so finish frame still reads as last lap. */
+/** Current lap for HUD — clamp only the finish overrun; negatives stay visible. */
 export function displayLap(lap: number, totalLaps: number): number {
-  return Math.max(1, Math.min(lap, Math.max(1, totalLaps)));
+  const total = Math.max(1, totalLaps);
+  if (lap > total) return total;
+  return lap;
 }
 
 /** Kid-readable lap line: current / total. */
