@@ -31,8 +31,8 @@ describe("Blitz Tripo part add-on bakes", () => {
     const sy = b.max[1] - b.min[1];
     const sz = b.max[2] - b.min[2];
     expect(Math.max(sx, sy, sz)).toBeLessThan(2.2);
-    expect(sy).toBeGreaterThan(0.04);
-    expect(sy).toBeLessThan(1.1);
+    expect(sy).toBeGreaterThan(id === "reinforced_frame" ? 0.5 : 0.04);
+    expect(sy).toBeLessThan(id === "reinforced_frame" ? 1.45 : 1.1);
     expect(BLITZ_PART_PLACEMENT[id].length).toBeGreaterThan(0);
   });
 });

@@ -32,7 +32,17 @@ const JOBS = [
   { id: "nitro_kit", material: "NitroKit", toward: "-z", targetSpan: 0.9, maxH: 0.42, simplify: 0.4 },
   { id: "spike_bumper", material: "Spike", toward: "+z", targetSpan: 1.68, maxH: 0.32, simplify: 0.4 },
   { id: "offroad_suspension", material: "Spring", toward: "+z", targetSpan: 0.5, maxH: 0.34, simplify: 0.45 },
-  { id: "reinforced_frame", material: "Grey", toward: "+z", targetSpan: 1.7, maxH: 0.85, simplify: 0.35 },
+  // Sill armor + rear V-cage; squeeze width; lift aft hoop onto rear deck.
+  {
+    id: "reinforced_frame",
+    material: "Grey",
+    toward: "+z",
+    targetSpan: 1.72,
+    targetWidth: 1.52,
+    maxH: 0.88,
+    simplify: 0.35,
+    liftAft: { fromZ: -0.2, lift: 0.55 },
+  },
   { id: "lightweight_body", material: "Carbon", toward: "+z", targetSpan: 0.85, maxH: 0.24, simplify: 0.4 },
 ];
 
@@ -107,7 +117,7 @@ function facePosZFromTripoX(doc) {
   });
 }
 
-function centerSitScale(doc, { targetSpan, maxH }) {
+function centerSitScale(doc, { targetSpan, maxH, targetWidth }) {
   const s0 = sceneSize(doc);
   const span0 = Math.max(s0.size[0], s0.size[2]);
   let scale = targetSpan / Math.max(span0, 1e-6);
@@ -119,6 +129,15 @@ function centerSitScale(doc, { targetSpan, maxH }) {
     v[1] = (v[1] - minY) * scale;
     v[2] = (v[2] - s0.cz) * scale;
   });
+  if (targetWidth) {
+    const s1 = sceneSize(doc);
+    const wScale = targetWidth / Math.max(s1.size[0], 1e-6);
+    if (Math.abs(wScale - 1) > 0.01) {
+      forEachPosition(doc, (v) => {
+        v[0] *= wScale;
+      });
+    }
+  }
   return sceneSize(doc);
 }
 
@@ -134,6 +153,14 @@ function comicMaterial(doc, name) {
     mat.setEmissiveTexture(null);
     for (const ext of [...mat.listExtensions()]) ext.dispose();
   }
+}
+
+function liftAftRegion(doc, { fromZ, lift }) {
+  forEachPosition(doc, (v) => {
+    if (v[2] >= fromZ) return;
+    const t = Math.min(1, (fromZ - v[2]) / Math.max(0.35, Math.abs(fromZ) + 0.01));
+    v[1] += lift * t;
+  });
 }
 
 async function simplifyDoc(doc, ratio) {
@@ -188,9 +215,15 @@ async function bakeJob(job) {
   const doc = await loadPrepared(src);
   facePosZFromTripoX(doc);
   if (job.toward === "-z") rotateY180(doc);
-  const sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
+  const sized = centerSitScale(doc, {
+    targetSpan: job.targetSpan,
+    maxH: job.maxH,
+    targetWidth: job.targetWidth,
+  });
+  if (job.liftAft) liftAftRegion(doc, job.liftAft);
   comicMaterial(doc, job.material);
   await simplifyDoc(doc, job.simplify);
+  const finalSize = sceneSize(doc);
   mkdirSync(outDir, { recursive: true });
   const bytes = await io.writeBinary(doc);
   const out = join(outDir, `blitz-${job.id}.glb`);
@@ -198,12 +231,19 @@ async function bakeJob(job) {
   console.log(`blitz-${job.id}.glb ← Tripo part`, {
     src,
     bytes: bytes.byteLength,
-    size: sized.size.map((v) => +v.toFixed(3)),
+    size: finalSize.size.map((v) => +v.toFixed(3)),
   });
 }
 
+const only = process.argv.find((a) => a.startsWith("--only="))?.slice(7);
+const jobs = only ? JOBS.filter((j) => j.id === only) : JOBS;
+if (only && !jobs.length) {
+  console.error(`Unknown --only=${only}`);
+  process.exit(1);
+}
+
 const missing = [];
-for (const job of JOBS) {
+for (const job of jobs) {
   try {
     await bakeJob(job);
   } catch (err) {

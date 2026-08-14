@@ -20,7 +20,7 @@ Full CLI / path cookbook: [pipeline.md](pipeline.md).
 1. **Concept first** — Asphalt-Comic PNG (GenerateImage + style lock + `reference.png`), then Tripo, then bake.
 2. **One mesh family per car class** — do **not** remount Blitz Tripo kits on Bison/Käferkraft/Donner/Bunker. Ship **per-car** part GLBs that match `assets/tripo-concepts/parts-look/`.
 3. **Cars use Tripo Teile only** — equipped silhouette Teile on every car must be Tripo (or extracted) GLBs under `public/models/parts/{carId}-{partId}.glb` with `preferGlb: true` in `src/render/carParts.ts`. Do **not** ship intentional procedural silhouette meshes on cars.
-   - **Temporary allowlist (must rematch Tripo ASAP):** `blitz` `reinforced_frame` + `lightweight_body` only (procedural until kits match look sheets). No new allowlist entries.
+   - **Temporary allowlist (must rematch Tripo ASAP):** `blitz` `lightweight_body` only (procedural until kit matches look sheet). No new allowlist entries.
 4. **Credits before generate** — `tripo doctor` / `tripo balance`. Stop and ask the user to top up if balance is 0.
 5. **Ship only baked outputs** — commit `public/models/**/*.glb` + bake scripts/tests; never commit `assets/tripo-out/` or `.tripo/`.
 6. **Visuals ≠ stats** — equipped Teile meshes are cosmetic; stats stay in `mergeStats`.

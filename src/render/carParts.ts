@@ -137,8 +137,8 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
     { x: 0.7, y: 0.06, z: -1.08, yaw: 0, scale: 0.7, snap: false },
     { x: -0.7, y: 0.06, z: -1.08, yaw: Math.PI, scale: 0.7, snap: false },
   ],
-  // Origin-centered sport cage+skirts (procedural) — not the thin Tripo slab.
-  reinforced_frame: [{ x: 0, y: 0, z: 0, yaw: 0, scale: 1, snap: false }],
+  // Sill armor between arches + rear V-cage on deck (Tripo).
+  reinforced_frame: [{ x: 0, y: 0.02, z: -0.55, yaw: 0, scale: 1, snap: false }],
   // Hood louvers — fixed Y (no roof snap).
   lightweight_body: [{ x: 0, y: 0.5, z: 1.05, yaw: 0, scale: 1.05, snap: false }],
 };
@@ -191,8 +191,6 @@ function layoutBlitz(): CarVisualLayout {
     reinforced_frame: {
       anchors: BLITZ_PART_PLACEMENT.reinforced_frame,
       build: () => buildReinforcedFrame("sport"),
-      // Temporary: Tripo slab is thin; sport cage+skirts procedural until rematched.
-      preferGlb: false,
     },
     lightweight_body: {
       anchors: BLITZ_PART_PLACEMENT.lightweight_body,

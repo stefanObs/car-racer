@@ -130,13 +130,12 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(nitro.y + 0.42 * nitro.scale).toBeLessThan(wing.y);
   });
 
-  it("places Blitz reinforced frame as sport cage+skirts (not thin Tripo slab)", () => {
-    expect(CAR_PART_LAYOUTS.blitz.reinforced_frame.preferGlb).toBe(false);
-    const root = new Group();
-    applyEquippedPartVisuals(root, "blitz", ["reinforced_frame"]);
-    const frame = root.getObjectByName(blitzPartObjectName("reinforced_frame"));
-    expect(frame).toBeTruthy();
-    expect(frame!.children.length).toBeGreaterThan(3);
+  it("ships Blitz reinforced frame as Tripo sill+cage GLB", () => {
+    expect(CAR_PART_LAYOUTS.blitz.reinforced_frame.preferGlb).not.toBe(false);
+    expect(existsSync("public/models/parts/blitz-reinforced_frame.glb")).toBe(true);
+    const a = BLITZ_PART_PLACEMENT.reinforced_frame[0]!;
+    expect(a.z).toBeLessThan(-0.2);
+    expect(a.scale).toBeCloseTo(1, 5);
   });
 
   it("does not seal Blitz cabin with opaque glass planes", () => {
@@ -312,7 +311,7 @@ describe("Equipped-part visuals (all cars)", () => {
       "lightweight_body",
     ] as const;
     /** Temporary Blitz allowlist until Tripo kits rematch look sheets — no new entries. */
-    const allowPreferFalse = new Set(["blitz:reinforced_frame", "blitz:lightweight_body"]);
+    const allowPreferFalse = new Set(["blitz:lightweight_body"]);
     for (const car of CAR_IDS as CarId[]) {
       for (const part of silhouette) {
         const path = `public/models/parts/${car}-${part}.glb`;

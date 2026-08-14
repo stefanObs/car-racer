@@ -45,7 +45,7 @@ Notes:
 | `nitro_kit` | NitroKit | −z | 0.9 | 0.42 |
 | `spike_bumper` | Spike | +z | 1.68 | 0.32 |
 | `offroad_suspension` | Spring | +z | 0.5 | 0.34 |
-| `reinforced_frame` | Grey | +z | 1.7 | 0.85 |
+| `reinforced_frame` | Grey | +z | 1.72 (width 1.52) + aft lift | 0.88 |
 | `lightweight_body` | Carbon | +z | 0.85 | 0.24 |
 
 Pipeline steps per job:
