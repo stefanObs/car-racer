@@ -4,6 +4,8 @@ import {
   isBlueBodyPixel,
   isHotRodFlamePixel,
   isBunkerCabinGlassTriangle,
+  isBunkerBumperTriangle,
+  isBunkerLightTriangle,
   isGreenBodyPixel,
   isNearWhitePaintPixel,
   isOrangeBodyPixel,
@@ -33,6 +35,38 @@ describe("bunker authored white → garage paint", () => {
     // Charcoal tires / grille
     expect(isNearWhitePaintPixel(30, 30, 32)).toBe(false);
     expect(isNearWhitePaintPixel(58, 58, 58)).toBe(false);
+  });
+
+  it("classifies bumper beams and headlamp / roof lights as non-paint trim", () => {
+    const bounds = { minY: 0, height: 2.1, maxAbsX: 1, maxAbsZ: 1.9 };
+    expect(
+      isBunkerBumperTriangle(0, 0.35, 1.7, 0.2, 0.35, 1.7, 0, 0.4, 1.65, 0, 0.1, 0.9, bounds),
+    ).toBe(true);
+    expect(
+      isBunkerBumperTriangle(0, 0.9, 1.7, 0.2, 0.9, 1.7, 0, 0.95, 1.65, 0, 0.1, 0.9, bounds),
+    ).toBe(false);
+    expect(
+      isBunkerLightTriangle(0.7, 0.7, 1.6, 0.75, 0.7, 1.6, 0.7, 0.75, 1.55, 0.9, 0.1, 0.3, bounds),
+    ).toBe(true);
+    expect(
+      isBunkerLightTriangle(0, 1.85, 0.2, 0.1, 1.85, 0.2, 0, 1.9, 0.25, 0, 1, 0, bounds),
+    ).toBe(true);
+    expect(
+      isBunkerLightTriangle(0, 1.0, 0, 0.1, 1.0, 0, 0, 1.05, 0.1, 0, 1, 0, bounds),
+    ).toBe(false);
+  });
+
+  it("skips bumper/light UV texels when they are in the paint skip mask", () => {
+    const data = new Uint8ClampedArray([
+      200, 200, 198, 255, // would paint
+      200, 200, 198, 255, // skipped trim
+    ]);
+    const skip = new Uint8Array([0, 1]);
+    const n = recolorNearWhitePixels(data, 0.88, 0.19, 0.19, skip);
+    expect(n).toBe(1);
+    expect(data[0]!).toBeGreaterThan(150);
+    expect(data[4]).toBe(200);
+    expect(data[5]).toBe(200);
   });
 
   it("classifies cabin glass faces (windshield / side / rear), not roof or rockers", () => {

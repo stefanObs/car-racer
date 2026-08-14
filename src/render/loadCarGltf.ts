@@ -30,6 +30,8 @@ import {
   bakeAuthoredRedToPaint,
   bakeAuthoredWhiteToPaint,
   isBunkerCabinGlassTriangle,
+  isBunkerBumperTriangle,
+  isBunkerLightTriangle,
   isWheelPaintVertex,
 } from "./paintAuthoredWhite";
 import { extractStockWheels, wheelContactMinY } from "./stockWheels";
@@ -441,10 +443,62 @@ function collectBunkerGlassUvTriangles(root: Object3D): number[] {
   return tris;
 }
 
+/** UV tris for Bunker bumper + lights — pale trim that must not bake to garage paint. */
+function collectBunkerTrimUvTriangles(root: Object3D): number[] {
+  const tris: number[] = [];
+  root.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(root);
+  const size = new Vector3();
+  box.getSize(size);
+  const bounds = {
+    minY: box.min.y,
+    height: size.y,
+    maxAbsX: Math.max(Math.abs(box.min.x), Math.abs(box.max.x)),
+    maxAbsZ: Math.max(Math.abs(box.min.z), Math.abs(box.max.z)),
+  };
+  const a = new Vector3();
+  const b = new Vector3();
+  const c = new Vector3();
+  const ab = new Vector3();
+  const ac = new Vector3();
+  const n = new Vector3();
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (mesh.name && !shouldApplyGaragePaint(mesh.name)) return;
+    const geo = mesh.geometry;
+    const pos = geo.attributes.position;
+    const uv = geo.attributes.uv;
+    if (!pos || !uv) return;
+    const index = geo.index;
+    const triCount = index ? index.count / 3 : Math.floor(pos.count / 3);
+    const vert = (t: number, k: number) => (index ? index.getX(t * 3 + k) : t * 3 + k);
+    for (let t = 0; t < triCount; t++) {
+      const i0 = vert(t, 0);
+      const i1 = vert(t, 1);
+      const i2 = vert(t, 2);
+      a.fromBufferAttribute(pos, i0).applyMatrix4(mesh.matrixWorld);
+      b.fromBufferAttribute(pos, i1).applyMatrix4(mesh.matrixWorld);
+      c.fromBufferAttribute(pos, i2).applyMatrix4(mesh.matrixWorld);
+      ab.subVectors(b, a);
+      ac.subVectors(c, a);
+      n.crossVectors(ab, ac).normalize();
+      const trim =
+        isBunkerBumperTriangle(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, n.x, n.y, n.z, bounds) ||
+        isBunkerLightTriangle(a.x, a.y, a.z, b.x, b.y, b.z, c.x, c.y, c.z, n.x, n.y, n.z, bounds);
+      if (!trim) continue;
+      tris.push(uv.getX(i0), uv.getY(i0), uv.getX(i1), uv.getY(i1), uv.getX(i2), uv.getY(i2));
+    }
+  });
+  return tris;
+}
+
 function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
   const paintColor = new Color(paint);
   const replaced = new Map<Texture, Texture>();
   const wheelUvTris = collectWheelUvTriangles(root);
+  const skipUvTris =
+    carId === "bunker" ? [...wheelUvTris, ...collectBunkerTrimUvTriangles(root)] : wheelUvTris;
   const glassUvTris = carId === "bunker" ? collectBunkerGlassUvTriangles(root) : undefined;
   root.traverse((obj) => {
     const mesh = obj as Mesh;
@@ -466,7 +520,7 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
           if (hit) {
             toon.map = hit;
           } else {
-            const next = baker(prev, paint, wheelUvTris, glassUvTris);
+            const next = baker(prev, paint, skipUvTris, glassUvTris);
             replaced.set(prev, next);
             toon.map = next;
           }

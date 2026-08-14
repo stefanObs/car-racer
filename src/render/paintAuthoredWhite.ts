@@ -129,6 +129,70 @@ export function isBunkerCabinGlassTriangle(
 }
 
 /**
+ * Bunker front/rear bumper beams + tow hooks — look sheet charcoal trim, not body paint.
+ */
+export function isBunkerBumperTriangle(
+  ax: number,
+  ay: number,
+  az: number,
+  bx: number,
+  by: number,
+  bz: number,
+  cx: number,
+  cy: number,
+  cz: number,
+  _nx: number,
+  _ny: number,
+  _nz: number,
+  bounds: BunkerGlassBounds,
+): boolean {
+  if (bounds.height < 0.05 || bounds.maxAbsZ < 0.05) return false;
+  const y = (ay + by + cy) / 3;
+  const z = (az + bz + cz) / 3;
+  const yHi = bounds.minY + bounds.height * 0.3;
+  if (y > yHi) return false;
+  if (z > bounds.maxAbsZ * 0.7) return true;
+  if (z < -bounds.maxAbsZ * 0.7) return true;
+  return false;
+}
+
+/**
+ * Bunker headlamp pockets + roof beacon — keep authored lens / housing colors.
+ */
+export function isBunkerLightTriangle(
+  ax: number,
+  ay: number,
+  az: number,
+  bx: number,
+  by: number,
+  bz: number,
+  cx: number,
+  cy: number,
+  cz: number,
+  _nx: number,
+  _ny: number,
+  _nz: number,
+  bounds: BunkerGlassBounds,
+): boolean {
+  if (bounds.height < 0.05 || bounds.maxAbsZ < 0.05 || bounds.maxAbsX < 0.05) return false;
+  const x = (ax + bx + cx) / 3;
+  const y = (ay + by + cy) / 3;
+  const z = (az + bz + cz) / 3;
+  // Roof spotlight
+  if (y > bounds.minY + bounds.height * 0.82 && Math.abs(x) < bounds.maxAbsX * 0.4) return true;
+  // Front headlamp housings / lenses (outboard nose)
+  if (
+    y > bounds.minY + bounds.height * 0.2 &&
+    y < bounds.minY + bounds.height * 0.48 &&
+    z > bounds.maxAbsZ * 0.72 &&
+    Math.abs(x) > bounds.maxAbsX * 0.38
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
  * Force cabin-glass texels to smoked light black (after body paint bake).
  * `source` is the pre-paint atlas — only pale/glass source texels are overwritten so
  * false-positive armor faces that share the geometric mask stay body-colored.
