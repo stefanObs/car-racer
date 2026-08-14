@@ -67,6 +67,7 @@ describe("race audio events", () => {
     player.vx = Math.cos(player.heading) * 8;
     player.vz = Math.sin(player.heading) * 8;
     race["prevProgress"].set(player.id, len * 0.92);
+    race.clearStartCountdown();
     race.step(1 / 60, { throttle: 0, brake: 0, steer: 0, nitro: false, drift: false });
     const kinds = race.consumeAudioEvents().map((e) => e.kind);
     expect(kinds).not.toContain("lap");
@@ -95,6 +96,7 @@ describe("race audio events", () => {
     player.vx = Math.cos(player.heading) * 8;
     player.vz = Math.sin(player.heading) * 8;
     race["prevProgress"].set(player.id, len * 0.92);
+    race.clearStartCountdown();
     race.step(1 / 60, { throttle: 0, brake: 0, steer: 0, nitro: false, drift: false });
     const kinds = race.consumeAudioEvents().map((e) => e.kind);
     expect(kinds).toContain("lap");
@@ -120,6 +122,8 @@ describe("race audio events", () => {
       { kind: "finish" },
       { kind: "style" },
       { kind: "wrongWay" },
+      { kind: "countdown", phase: "3" },
+      { kind: "countdown", phase: "GO" },
     ];
     for (const ev of events) playRaceAudioEvent(audio, ev);
     expect(played).toEqual([
@@ -133,6 +137,8 @@ describe("race audio events", () => {
       "finish",
       "style",
       "wrongWay",
+      "uiClick",
+      "uiConfirm",
     ]);
   });
 });

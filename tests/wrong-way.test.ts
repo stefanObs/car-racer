@@ -72,6 +72,7 @@ describe("wrong-way warning", () => {
     p.vx = Math.cos(p.heading) * p.speed;
     p.vz = Math.sin(p.heading) * p.speed;
 
+    race.clearStartCountdown();
     for (let i = 0; i < 40; i++) {
       race.step(1 / 60, { throttle: 1, brake: 0, steer: 0, nitro: false });
     }

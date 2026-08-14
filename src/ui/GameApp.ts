@@ -287,7 +287,8 @@ export class GameApp {
           playRaceAudioEvent(gameAudio, ev);
         }
         const player = this.race.player();
-        gameAudio.syncEngine(!player.finished && player.koTimer <= 0, player.speed, player.nitroHeld);
+        const racing = !this.race.isCountingDown() && !player.finished && player.koTimer <= 0;
+        gameAudio.syncEngine(racing, player.speed, player.nitroHeld);
         this.renderer.sync(this.race);
         this.updateHud();
         if (this.race.done) {
@@ -490,6 +491,7 @@ export class GameApp {
       this.stylePops.push(ev.amount, ev.reason, now);
     }
     const wrongWay = this.race.playerWrongWay();
+    const countdown = this.race.countdownLabel();
     hud.innerHTML = `
       <div class="hud-cluster" data-dev-name="hud.cluster">
         <div class="hud-stats">
@@ -516,6 +518,13 @@ export class GameApp {
         </div>
         <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>
       </div>
+      ${
+        countdown
+          ? `<div class="race-countdown${countdown === "GO" ? " race-countdown--go" : ""}" data-dev-name="hud.countdown" role="status" aria-live="assertive">
+              <span class="race-countdown__label">${countdown}</span>
+            </div>`
+          : ""
+      }
       ${
         wrongWay
           ? `<div class="wrong-way" data-dev-name="hud.wrong-way" role="alert">

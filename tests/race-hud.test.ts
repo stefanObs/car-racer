@@ -53,6 +53,7 @@ describe("race HUD UI (CONCEPT §9)", () => {
     const len = race.track.totalLength;
     placeCar(race, "player", 10);
     race.cars.filter((c) => !c.isPlayer).forEach((c, i) => placeCar(race, c.id, len * 0.35 + i * 3));
+    race.clearStartCountdown();
     race.step(0.016, { throttle: 0, brake: 0, steer: 0, nitro: false });
     race.consumeStyleEvents();
     expect(race.player().place).toBeGreaterThan(1);

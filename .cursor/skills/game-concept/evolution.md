@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.70 Race start countdown 3…2…1…GO
+- Trigger: user — countdown at race start, 4 seconds total
+- Decision: Hold field for 4 s with HUD phases 3 / 2 / 1 / GO (1 s each); cars frozen; SFX on phase change; then normal race
+- CONCEPT §9 → v3.70
+
 ### 2026-08-14 — v3.69 Settings + Easy Mode auto-throttle
 - Trigger: user — settings on right click; easy mode without holding up/gas for full speed
 - Decision: Einstellungen panel (RMB outside garage canvas / button); `easyMode` localStorage; force throttle=1 unless braking. Default off (CONCEPT §7.4).

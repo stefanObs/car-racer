@@ -39,6 +39,7 @@ describe("adhoc tracks", () => {
       playerPaint: "#e03131",
       playerSticker: "none",
     });
+    race.clearStartCountdown();
     for (let i = 0; i < 90; i++) {
       race.step(1 / 60, { throttle: 1, brake: 0, steer: 0, nitro: false });
     }

@@ -409,7 +409,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch frei drehen** (LMB / 1 Finger = gieren; **RMB** / **2 Finger** = anheben und um die **Auto-Mitte** drehen; Loslassen stellt flach auf den Boden), **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
-4. **Renn-HUD** — Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Rechtsklick oder Button)
+4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Rechtsklick oder Button)
 5. **Ergebnis** — Zielbanner/-linie; **~15 s 2D-Comic-Film** bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation**; dann Podium-Landung / CHF; weiter / Garage  
 6. **Hilfe** — Steuerungshinweise (optional); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
 7. **Einstellungen** — per **Rechtsklick** (außer Garage-Canvas-Orbit) oder Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste)  
@@ -515,4 +515,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.69 — Einstellungen + Einfacher Modus (Vollgas-Hilfe).*
+*Dokumentstand: Konzept v3.70 — Start-Countdown 3…2…1…GO (4 s).*

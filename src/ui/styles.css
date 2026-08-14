@@ -969,6 +969,36 @@ button[data-act="race"]:not(:disabled) {
   animation: wrong-way-pulse 0.55s ease-in-out infinite alternate;
 }
 
+.race-countdown {
+  position: absolute;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  background: radial-gradient(ellipse at center, rgba(27, 27, 31, 0.35), transparent 62%);
+}
+
+.race-countdown__label {
+  font-size: clamp(4.5rem, 18vw, 9rem);
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: #ffe066;
+  text-shadow:
+    0 0 0 #1b1b1f,
+    4px 4px 0 #1b1b1f,
+    -3px -3px 0 #1b1b1f,
+    3px -3px 0 #1b1b1f,
+    -3px 3px 0 #1b1b1f;
+}
+
+.race-countdown--go .race-countdown__label {
+  color: #51cf66;
+  letter-spacing: 0.08em;
+  transform: scale(1.08);
+}
+
 .wrong-way__arrow {
   font-size: 1.6rem;
   line-height: 1;

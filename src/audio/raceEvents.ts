@@ -8,7 +8,8 @@ export type RaceAudioEvent =
   | { kind: "shield" }
   | { kind: "nitro" }
   | { kind: "style" }
-  | { kind: "wrongWay" };
+  | { kind: "wrongWay" }
+  | { kind: "countdown"; phase: "3" | "2" | "1" | "GO" };
 
 export function playRaceAudioEvent(
   audio: { play: (id: import("./catalog").SfxId, opts?: { volume?: number; playbackRate?: number }) => void },
@@ -41,6 +42,10 @@ export function playRaceAudioEvent(
       break;
     case "wrongWay":
       audio.play("wrongWay", { volume: 0.55 });
+      break;
+    case "countdown":
+      if (ev.phase === "GO") audio.play("uiConfirm", { volume: 0.9 });
+      else audio.play("uiClick", { volume: 0.75, playbackRate: 0.9 + Number(ev.phase) * 0.05 });
       break;
   }
 }

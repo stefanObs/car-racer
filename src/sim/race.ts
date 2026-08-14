@@ -5,6 +5,7 @@ import { buildTrackFromLevel, sampleCenterline } from "../track/buildTrack";
 import type { BuiltTrack, LevelDefinition } from "../track/types";
 import { catchUpMultipliers } from "./catchup";
 import { stageFromHp } from "./damage";
+import { countdownPhase, START_COUNTDOWN_SEC, type CountdownPhase } from "./startCountdown";
 import { createCarState, grantLapShield, resolveContact, stepCar, type CarState, type DriverInput } from "./vehicle";
 import { isCarFacingWrongWay, shouldShowWrongWayWarning, tickWrongWayHold } from "./wrongWay";
 
@@ -47,6 +48,8 @@ export class RaceSession {
   private prevPlayerFinished = false;
   private prevWrongWayWarn = false;
   private styleAudioCooldown = 0;
+  private countdownLeft = START_COUNTDOWN_SEC;
+  private prevCountdownPhase: CountdownPhase | null = null;
 
   constructor(config: RaceConfig) {
     this.config = config;
@@ -157,8 +160,34 @@ export class RaceSession {
     this.audioEvents.push(ev);
   }
 
+  /** True while 3…2…1…GO hold is active (cars frozen). */
+  isCountingDown(): boolean {
+    return this.countdownLeft > 0;
+  }
+
+  /** Current big-HUD label, or `null` after GO finishes. */
+  countdownLabel(): CountdownPhase | null {
+    return countdownPhase(this.countdownLeft);
+  }
+
+  /** End the start hold immediately (tests / forced finish paths). */
+  clearStartCountdown(): void {
+    this.countdownLeft = 0;
+  }
+
   step(dt: number, playerInput: DriverInput): void {
     if (this.done) return;
+    if (this.countdownLeft > 0) {
+      this.countdownLeft = Math.max(0, this.countdownLeft - dt);
+      // After the final tick (left → 0), still fire GO if we never entered that second.
+      const phase: CountdownPhase | null =
+        this.countdownLeft > 0 ? countdownPhase(this.countdownLeft) : "GO";
+      if (phase && phase !== this.prevCountdownPhase) {
+        this.pushAudio({ kind: "countdown", phase });
+        this.prevCountdownPhase = phase;
+      }
+      return;
+    }
     this.elapsed += dt;
     if (this.styleAudioCooldown > 0) this.styleAudioCooldown -= dt;
 

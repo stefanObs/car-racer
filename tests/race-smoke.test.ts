@@ -13,6 +13,7 @@ describe("race smoke", () => {
     });
     expect(race.cars).toHaveLength(6);
     // Stay on the opening straight (Hafenstart ~62 m) — no wall-grind KO.
+    race.clearStartCountdown();
     for (let i = 0; i < 90; i++) {
       race.step(1 / 60, { throttle: 0.35, brake: 0, steer: 0, nitro: false });
     }
