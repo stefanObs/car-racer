@@ -7,6 +7,11 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-14 — v0.3.147 Phase C: pedal priority + high-speed coast
+- Trigger: CONCEPT v3.74 polish
+- Decision: brake wins over throttle when both pressed; mild extra coast above ~22 speed (still not abrupt dump)
+- Tests: brake+gas slows vs gas-only
+
 ### 2026-08-14 — v0.3.146 Phase B: Front-Steer (no tank pivot)
 - Trigger: CONCEPT v3.74 Front-Steer
 - RCA: `yawRateFor` had `speedBuild` floor 0.4 → standstill spin-in-place

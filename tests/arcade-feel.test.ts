@@ -190,6 +190,17 @@ describe("arcade racing feel", () => {
     expect(wantsReverse({ brake: 0, throttle: 0, forward: 0, airborne: false })).toBe(false);
   });
 
+  it("brake wins over throttle when both are pressed (no simultaneous fight)", () => {
+    const gas = onTrackCar(16);
+    const both = onTrackCar(16);
+    for (let i = 0; i < 45; i++) {
+      stepCar(gas.car, { throttle: 1, brake: 0, steer: 0, nitro: false, drift: false }, gas.track, 1 / 60, catchUp);
+      stepCar(both.car, { throttle: 1, brake: 1, steer: 0, nitro: false, drift: false }, both.track, 1 / 60, catchUp);
+    }
+    expect(both.car.speed).toBeLessThan(gas.car.speed - 4);
+    expect(both.car.speed).toBeLessThan(12);
+  });
+
   it("inverts steer sense while reversing so backing feels natural", () => {
     const { track, car } = onTrackCar(0);
     for (let i = 0; i < 90; i++) {

@@ -85,7 +85,9 @@ export const BASE_NITRO = 125;
 export const NITRO_KICK = 14;
 export const GRAVITY = 38;
 const DRAG = 0.14;
+/** Extra coast when throttle lifted — scales up a bit at high pace (engine brake). */
 const COAST_BRAKE = 3.5;
+const COAST_HIGH_SPEED = 22;
 const AIR_STEER_SCALE = 0.35;
 const AIRBORNE_EPS = 0.04;
 const DRIFT_MIN_SPEED = 11;
@@ -491,8 +493,10 @@ export function stepCar(
     (airborne ? 1 : 1 - surface.bump * 0.22) *
     (airborne ? 1 : mtGrace);
 
-  const throttle = airborne ? input.throttle * 0.55 : input.throttle;
+  const throttleRaw = airborne ? input.throttle * 0.55 : input.throttle;
   const brakeIn = airborne ? input.brake * 0.25 : input.brake;
+  // Pedal priority: brake wins over gas (CONCEPT §4.2 — clear stop / reverse path)
+  const throttle = brakeIn > 0.05 ? 0 : throttleRaw;
   const hx = Math.cos(car.heading);
   const hz = Math.sin(car.heading);
   let forward = forwardSpeedAlongHeading(car.heading, car.vx, car.vz);
@@ -560,7 +564,8 @@ export function stepCar(
     let scrub = car.speed * DRAG * (boosting && allowNitro ? 0.35 : 1) * dt;
     if (brakeEff > 0) scrub += brakeEff * brakeForceFor(car.stats) * dt;
     if (throttle < 0.05 && !(boosting && allowNitro) && !airborne && car.drift < 0.25) {
-      scrub += COAST_BRAKE * dt;
+      const coastBoost = car.speed > COAST_HIGH_SPEED ? 1 + Math.min(0.55, (car.speed - COAST_HIGH_SPEED) / 28) : 1;
+      scrub += COAST_BRAKE * coastBoost * dt;
     }
     // Powerslide / exit keep more pace (Kart) — mild scrub only
     if (car.drift > 0.12) scrub *= 1 - Math.min(0.45, car.drift * 0.4 + 0.08);
