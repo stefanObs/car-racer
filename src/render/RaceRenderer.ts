@@ -1,6 +1,5 @@
 import {
   AmbientLight,
-  Box3,
   Color,
   DirectionalLight,
   EquirectangularReflectionMapping,
@@ -15,7 +14,6 @@ import {
   Scene,
   SphereGeometry,
   SRGBColorSpace,
-  Vector3,
   WebGLRenderer,
 } from "three";
 import { stageFromHp } from "../sim/damage";
@@ -34,7 +32,7 @@ import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
-import { groundContactMinY } from "./stockWheels";
+import { carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
 import { buildLevelObstacles } from "./levelObstacles";
 import {
   buildPanoramaSurround,
@@ -183,14 +181,11 @@ export class RaceRenderer {
     this.idleGroup.add(visual.root);
     // Sit on tire contact — not full Box3 (invisible FX chunks under the origin sink the body).
     visual.root.updateMatrixWorld(true);
-    const carMinY = groundContactMinY(visual.root);
-    if (Number.isFinite(carMinY)) {
-      visual.root.position.y += deckY + 0.02 - carMinY;
-    }
+    visual.root.position.y += garagePadContactSnapDelta(visual.root, deckY);
     this.garageSitY = visual.root.position.y;
     visual.root.updateMatrixWorld(true);
-    const bounds = new Box3().setFromObject(visual.root);
-    const center = bounds.getCenter(new Vector3());
+    // Orbit pivot from body only — FX chunks must not skew the center (or sit reads as floating).
+    const center = carBodyWorldCenter(visual.root);
     this.garageInspectLift = garageInspectLiftAmount(center.y);
     this.garageSitCenterY = center.y;
     this.garageOrbitX = center.x;
@@ -200,6 +195,11 @@ export class RaceRenderer {
     this.idleOrbit = pivot;
     this.idleCar = visual.root;
     this.applyGarageOrbitPose();
+    // Re-plant after attach + default yaw so tires meet the deck exactly.
+    pivot.position.y += garagePadContactSnapDelta(visual.root, deckY);
+    this.garageSitCenterY = pivot.position.y;
+    this.garageInspectLift = garageInspectLiftAmount(this.garageSitCenterY);
+    seatGarageGroundBlob(visual.root, deckY);
     visual.root.userData.carPartsSitY = this.garageSitY;
     visual.root.userData.blitzSitY = this.garageSitY;
     this.scene.add(this.idleGroup);

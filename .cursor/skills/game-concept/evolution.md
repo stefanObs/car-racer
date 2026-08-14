@@ -20,6 +20,11 @@ Append newest first.
 - Decision: Arcade stays (no tire sim). Front-steer = nose leads, velocity follows, no standstill pivot. Same brake action → reverse after near-stop; reverse cap ~35–50%; nitro forward-only. Impl not in this step.
 - CONCEPT dokumentstand → v3.74
 
+### 2026-08-14 — garage sit: plant tire AABB (v0.3.148)
+- Trigger: user — car still floating in normal garage pose
+- RCA: `garageTireColumnContactMinY` missed Blitz treads (no StockWheels), hit a higher underbody, left true tire verts ~12cm under the opaque pad deck; cel outlines + hovering ground blob read as float
+- Fix: sit on StockWheels or body AABB min; pin `carGroundBlob` to deck; prefer named `garagePadDeck` for deck Y
+
 ### 2026-08-14 — garage sit flush on pad (v0.3.145)
 - Trigger: user — car still floating in normal garage pose
 - RCA: orbit pivot used full `Box3.setFromObject` (FX skewed center); sit clearance 2 cm still read as a gap

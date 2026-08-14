@@ -62,6 +62,7 @@ function groundBlob(radius: number): Mesh {
     new CircleGeometry(radius, 20),
     new MeshBasicMaterial({ color: 0x1b1b1f, transparent: true, opacity: 0.32 }),
   );
+  blob.name = "carGroundBlob";
   blob.rotation.x = -Math.PI / 2;
   blob.position.y = 0.03;
   return blob;

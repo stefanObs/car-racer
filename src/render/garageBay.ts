@@ -41,6 +41,12 @@ export const GARAGE_PAD_DECK_FALLBACK_Y = GARAGE_PAD_CENTER.y + 0.085;
 /** World Y of the turntable top (cars must sit on this, not the workshop floor). */
 export function garagePadDeckY(pad: Object3D): number {
   pad.updateMatrixWorld(true);
+  // Prefer the flat comic deck disc — Tripo shell AABB can include a taller rim.
+  const deck = pad.getObjectByName("garagePadDeck");
+  if (deck) {
+    const deckBox = new Box3().setFromObject(deck);
+    if (Number.isFinite(deckBox.max.y)) return deckBox.max.y;
+  }
   const box = new Box3().setFromObject(pad);
   if (!Number.isFinite(box.max.y)) return GARAGE_PAD_DECK_FALLBACK_Y;
   return box.max.y;
