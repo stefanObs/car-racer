@@ -1,8 +1,8 @@
 /**
  * Spin + front-steer for authored StockWheel_* (Bison, Käferkraft, …).
- * Axle = thinnest local AABB axis (Bison X, Käferkraft Z after bake).
+ * Axle = thinnest **local** AABB axis (Bison X, Käferkraft Z after bake).
  */
-import { Box3, Group, Object3D, Vector3 } from "three";
+import { Box3, Group, Matrix4, Mesh, Object3D, Vector3 } from "three";
 import {
   isStockWheelRoot,
   STOCK_WHEEL_PREFIX,
@@ -24,6 +24,9 @@ export type WheelMount = {
 
 const _size = new Vector3();
 const _box = new Box3();
+const _tmpBox = new Box3();
+const _inv = new Matrix4();
+const _rel = new Matrix4();
 
 /** Max front-wheel yaw (rad) at full stick. */
 export const MAX_STEER_YAW = 0.42;
@@ -75,7 +78,9 @@ export function mountCarWheels(carRoot: Object3D): WheelMount[] {
 export function spinCarWheels(wheels: WheelMount[], speed: number, dt: number, steer = 0): void {
   const yaw = steerYawFromInput(steer);
   for (const w of wheels) {
-    const dAng = (speed * dt) / Math.max(w.radius, 0.08);
+    // Käferkraft (Z axle): negate so forward travel rolls the tire the visual way.
+    const sign = w.axis === 2 ? -1 : 1;
+    const dAng = (sign * speed * dt) / Math.max(w.radius, 0.08);
     if (w.axis === 0) w.spinner.rotation.x += dAng;
     else if (w.axis === 1) w.spinner.rotation.y += dAng;
     else w.spinner.rotation.z += dAng;
@@ -108,9 +113,14 @@ export function collectSpinMounts(root: Object3D): WheelMount[] {
   return mounts;
 }
 
-/** Thinnest local AABB axis = axle; radius = half the larger of the other two. */
+/**
+ * Thinnest **local** AABB axis = axle; radius = half the larger of the other two.
+ * Must not use world `setFromObject` — parent yaw (Käferkraft π/2) turns a Z-thin
+ * tire into an X-thin world box and we would spin the wrong local axis (looks like
+ * a different car’s wheels tumbling).
+ */
 export function wheelMetrics(obj: Object3D): { axis: SpinAxis; radius: number } {
-  _box.setFromObject(obj);
+  localAabb(obj, _box);
   _box.getSize(_size);
   const x = Math.max(_size.x, 1e-4);
   const y = Math.max(_size.y, 1e-4);
@@ -123,6 +133,34 @@ export function wheelMetrics(obj: Object3D): { axis: SpinAxis; radius: number } 
   const b = axis === 2 ? y : z;
   const radius = Math.max(a, b, 0.16) * 0.5;
   return { axis, radius };
+}
+
+function localAabb(obj: Object3D, out: Box3): void {
+  out.makeEmpty();
+  let any = false;
+  obj.updateWorldMatrix(true, true);
+  _inv.copy(obj.matrixWorld).invert();
+  obj.traverse((child) => {
+    const mesh = child as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    const geo = mesh.geometry;
+    if (!geo.boundingBox) geo.computeBoundingBox();
+    if (!geo.boundingBox) return;
+    _tmpBox.copy(geo.boundingBox);
+    if (child !== obj) {
+      _rel.multiplyMatrices(_inv, child.matrixWorld);
+      _tmpBox.applyMatrix4(_rel);
+    }
+    if (!any) {
+      out.copy(_tmpBox);
+      any = true;
+    } else {
+      out.union(_tmpBox);
+    }
+  });
+  if (!any) {
+    out.set(new Vector3(-0.2, -0.2, -0.2), new Vector3(0.2, 0.2, 0.2));
+  }
 }
 
 function collectStockWheelRoots(root: Object3D): Object3D[] {

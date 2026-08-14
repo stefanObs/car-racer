@@ -172,7 +172,13 @@ describe("stock wheels + Große Räder", () => {
       const mat = prim.getMaterial();
       expect(mat?.getBaseColorTexture(), "StockCage atlas").toBeTruthy();
       expect(prim.getAttribute("TEXCOORD_0"), "StockCage UV").toBeTruthy();
-      expect(mat?.getBaseColorTexture()?.getImage()?.byteLength).toBe(bodyTex!.getImage()!.byteLength);
+      const img = mat?.getBaseColorTexture()?.getImage();
+      expect(img?.byteLength, "StockCage atlas bytes").toBe(bodyTex!.getImage()!.byteLength);
+      // Valid JPEG/PNG — a corrupted atlas loads as flat grey in Three.js.
+      const head = img ? [...img.slice(0, 3)] : [];
+      const jpeg = head[0] === 0xff && head[1] === 0xd8;
+      const png = head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e;
+      expect(jpeg || png, "StockCage atlas magic").toBe(true);
     }
 
     // Front-right roof rail must remount (was filtered as "too thick" → visible hole).
@@ -425,7 +431,7 @@ describe("StockWheel spin + front steer", () => {
     }
   });
 
-  it("picks the thinnest AABB axis as the roll axle (Käferkraft-style Z)", () => {
+  it("picks the thinnest local AABB axis as the roll axle (Käferkraft-style Z)", () => {
     const mesh = new Mesh(new BoxGeometry(0.8, 0.8, 0.3), new MeshBasicMaterial({ name: "Tire" }));
     expect(wheelMetrics(mesh).axis).toBe(2);
 
@@ -438,8 +444,34 @@ describe("StockWheel spin + front steer", () => {
     expect(frontLeft.axis).toBe(2);
     const z0 = frontLeft.spinner.rotation.z;
     spinCarWheels(mounts, 10, 1 / 60);
-    expect(frontLeft.spinner.rotation.z).toBeGreaterThan(z0);
+    // Z-axle roll is negated vs X-axle (Käferkraft visual forward).
+    expect(frontLeft.spinner.rotation.z).toBeLessThan(z0);
     expect(frontLeft.spinner.rotation.x).toBe(0);
+  });
+
+  it("keeps Z axle under parent yaw π/2 (Käferkraft Scene) — not world-AABB X", () => {
+    const scene = new Group();
+    scene.rotation.y = Math.PI / 2;
+    const spots: Array<[string, number, number, number]> = [
+      ["StockWheel_FL", -1.2, 0.4, -0.78],
+      ["StockWheel_FR", -1.18, 0.4, 0.77],
+      ["StockWheel_RL", 1.2, 0.4, -0.78],
+      ["StockWheel_RR", 1.2, 0.4, 0.78],
+    ];
+    for (const [name, x, y, z] of spots) {
+      // Thin along local Z like shipped Käferkraft StockWheel bake
+      const mesh = new Mesh(new BoxGeometry(0.82, 0.82, 0.33), new MeshBasicMaterial({ name: "Tire" }));
+      mesh.name = name;
+      mesh.userData.isStockWheel = true;
+      mesh.position.set(x, y, z);
+      scene.add(mesh);
+    }
+    scene.updateMatrixWorld(true);
+    // World AABB would look X-thin after yaw — local metrics must still say Z.
+    expect(wheelMetrics(scene.getObjectByName("StockWheel_FL")!).axis).toBe(2);
+    const mounts = mountCarWheels(scene);
+    expect(mounts).toHaveLength(4);
+    expect(mounts.every((w) => w.axis === 2)).toBe(true);
   });
 
   it("maps heading delta to a clamped steer", () => {
