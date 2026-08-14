@@ -7,7 +7,7 @@ export function renderSettingsPanelHtml(settings: GameSettings, muted: boolean):
     <div class="settings-backdrop" data-act="close-settings" data-dev-name="settings.backdrop"></div>
     <div class="settings-panel" role="dialog" aria-modal="true" aria-labelledby="settings-title" data-dev-name="settings.panel">
       <h2 id="settings-title">Einstellungen</h2>
-      <p class="dim settings-hint">Rechtsklick öffnet dieses Menü (am Auto in der Garage: Rechtsklick dreht).</p>
+      <p class="dim settings-hint">Esc oder Rechtsklick öffnet dieses Menü (am Auto in der Garage: Rechtsklick dreht).</p>
       <div class="settings-row">
         <button type="button" data-nav data-act="toggle-easy-mode" class="settings-toggle" aria-pressed="${
           easyOn ? "true" : "false"

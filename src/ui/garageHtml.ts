@@ -165,6 +165,11 @@ export function renderGarageHtml(opts: {
         <p class="garage-kicker">Crash Circuit</p>
         <h1 class="brand garage-title">Garage</h1>
         <p class="tag">Ziehen zum Drehen · rüst Teile · dann ab auf die Piste</p>
+        <div class="garage-hero__actions">
+          <button data-nav data-act="open-settings" class="garage-settings" data-dev-name="garage.settings">
+            Einstellungen
+          </button>
+        </div>
       </div>
       <div class="garage-wallet" data-dev-name="garage.wallet">
         <span class="garage-wallet__label">Kasse</span>

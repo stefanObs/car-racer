@@ -35,6 +35,7 @@ import type { LevelDefinition } from "../track/types";
 import { renderGarageHtml } from "./garageHtml";
 import { garageOrbitAxesForPointer } from "./garageOrbit";
 import { renderSettingsPanelHtml } from "./settingsHtml";
+import { escapeOpensSettings } from "./settingsEsc";
 import { renderCarStatsPopup } from "./carStatsPopup";
 import { renderLapCounterHtml } from "./lapHud";
 import { renderMiniMapSvg } from "./miniMap";
@@ -335,13 +336,22 @@ export class GameApp {
       }
       return;
     }
-    if (this.screen === "race") return;
     if (
       document.activeElement instanceof HTMLInputElement ||
       document.activeElement instanceof HTMLTextAreaElement
     ) {
       return;
     }
+    if (e.code === "Escape") {
+      e.preventDefault();
+      if (escapeOpensSettings(this.screen)) this.openSettings();
+      else {
+        this.screen = "garage";
+        this.renderUi();
+      }
+      return;
+    }
+    if (this.screen === "race") return;
     const dirByCode: Record<string, UiNavDir> = {
       ArrowUp: "up",
       ArrowDown: "down",
@@ -358,12 +368,6 @@ export class GameApp {
       e.preventDefault();
       const btn = this.navButtons()[this.focusIndex];
       if (btn && !btn.disabled) btn.click();
-      return;
-    }
-    if (e.code === "Escape" && this.screen !== "garage") {
-      e.preventDefault();
-      this.screen = "garage";
-      this.renderUi();
     }
   }
 
@@ -400,6 +404,7 @@ export class GameApp {
       return;
     }
     if (this.screen === "race") {
+      const backEdge = risingEdge(actions.uiBack, this.lastUi.back);
       this.lastUi = {
         confirm: actions.uiConfirm,
         back: actions.uiBack,
@@ -408,6 +413,7 @@ export class GameApp {
         left: actions.uiLeft,
         right: actions.uiRight,
       };
+      if (backEdge) this.openSettings();
       return;
     }
 
@@ -437,9 +443,12 @@ export class GameApp {
       const btn = this.navButtons()[this.focusIndex];
       if (btn && !btn.disabled) btn.click();
     }
-    if (edges.back && this.screen !== "garage") {
-      this.screen = "garage";
-      this.renderUi();
+    if (edges.back) {
+      if (escapeOpensSettings(this.screen)) this.openSettings();
+      else {
+        this.screen = "garage";
+        this.renderUi();
+      }
     }
   }
 

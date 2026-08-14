@@ -14,11 +14,21 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.75 Auto↔Auto-Bump model
+- Trigger: user — cars interact on bump by weight, direction, hit location, relative speed
+- Impact: CONCEPT §4.5 (new arcade contact tables); §4.2 cross-ref; arcade-physics contact map; review red line
+- Decision: Keep ramming as spice. Formalize four inputs (Masse, Schließspeed, Richtung, Trefferort Bug/Flanke/Heck) with aggressor/victim and readable scene examples. No Pacejka / no ram score.
+- CONCEPT dokumentstand → v3.75; impl not in this step
+
 ### 2026-08-14 — v3.74 Arcade Front-Steer + Bremse→Rückwärts
 - Trigger: user — plan for more realistic driving; front-steer path; hold brake → reverse after stop
 - Impact: CONCEPT §4.2–4.3, §7.4 Easy Mode note, §9 Hilfe hint, summary; arcade-physics invariants/stat-map
 - Decision: Arcade stays (no tire sim). Front-steer = nose leads, velocity follows, no standstill pivot. Same brake action → reverse after near-stop; reverse cap ~35–50%; nitro forward-only. Impl not in this step.
 - CONCEPT dokumentstand → v3.74
+
+### 2026-08-14 — Esc opens settings (v0.3.149 / CONCEPT v3.76)
+- Trigger: user — Esc should open settings; add Settings button in garage
+- Decision: Esc/B opens Einstellungen in Garage + Race (Esc again closes); other screens keep Esc = back to Garage. Prominent Einstellungen button in garage hero (footer entry remains).
 
 ### 2026-08-14 — garage sit: plant tire AABB (v0.3.148)
 - Trigger: user — car still floating in normal garage pose

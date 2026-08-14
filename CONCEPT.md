@@ -69,7 +69,9 @@ Gleiche Aktionen auf allen Eingabegeräten; kein Feature nur auf einer Plattform
 | Lenken | Pfeile / A–D | Linker Stick (oder D-Pad) | Virtuelles Lenkrad / linker Stick-Zone |
 | **Drift** | Strg / E | LB / L1 (Bumper) | Drift-Button |
 | Nitro | Taste | Face-Button / Bumper (RB/R1) | Nitro-Button (Daumen-Erreichbarkeit) |
-| Menü / Bestätigen / Zurück | Enter / Esc | A / B (Layout-Hints) | Tap / Zurück-Chrome |
+| Menü / Bestätigen / Zurück | Enter / Esc¹ | A / B (Layout-Hints) | Tap / Zurück-Chrome |
+
+¹ **Esc / B:** In **Garage** und **Rennen** öffnet Einstellungen (nochmals Esc schließt). In Untermenüs = Zurück zur Garage.
 
 **Pflichten:**
 
@@ -84,7 +86,7 @@ Kein realistisches Drift-/Reifen-Physik-Sim (keine Pacejka-Kurven) — Arcade-Fa
 - **Bremse → Rückwärts:** Bremse verzögert vorwärts; sobald Vorwärts-Tempo praktisch null ist und Bremse weiter gehalten wird, fährt das Auto **rückwärts** (entlang der Nase rückwärts). Gas bricht Rückwärts ab und beschleunigt wieder vorwärts. Rückwärts-Cap deutlich unter Vorwärts-Tempo (~35–50 %). Keine eigene Rückwärts-Taste — dieselbe Bremse-/Rückwärts-Aktion auf allen Plattformen.
 - **Nitro** nur sinnvoll vorwärts (starker Boost-Kick + Speed über Cap); in Rückwärts kein / vernachlässigbarer Nitro-Schub.
 - **Drift** = Taste halten + Lenken **oder** zu hart in die Kurve bei hohem Tempo (Oversteer) → **Outside-Drift** (Nase schwenkt in die Kurve, Tempo-Vektor bleibt außen, Ziel-Schlupfwinkel bis ca. 40° wie Kart); Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben.
-- **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. Kontakt schiebt nach **Masse**.
+- **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. **Auto↔Auto-Kontakt** schiebt nach Masse, Schließspeed, Richtung und Trefferort (Bug/Flanke/Heck) — siehe §4.5.
 - **Falsche Richtung:** Anhaltendes Fahren gegen die Streckenrichtung (auch Rückwärts) bleibt als Wrong-Way erkennbar (HUD/Warnung).
 
 **Physik-Autorenschaft:** Skill `.cursor/skills/arcade-physics/` (Stat-Map + Evolution-Log) — Änderungen an Fahrgefühl/Eigenschaften-Skalierung immer dort entlang evolvieren.
@@ -142,12 +144,80 @@ So belohnt saubere Linienführung; Abkürzen über Gras ist möglich, aber teuer
 
 ### 4.5 Rammen & Schaden (Nebeneffekt)
 
-**Kontakt / Rammen**
+**Kontakt / Rammen** entsteht natürlich bei Überholen, engen Stellen und Fehlern. **Keine Rammtaste**, kein Rampunkte-Hauptscore — Kontakt ist **Würze**. Saubere, knappe Überholmanöver können etwas Style-Geld geben.
 
-- Entsteht natürlich bei Überholen, engen Stellen und Fehlern.
-- Frontal / seitlich / Heck: relative Geschwindigkeit und Masse entscheiden Schub und Schaden.
-- Der leichtere / fragilere Wagen wird stärker verschoben und nimmt mehr Schaden.
-- Saubere, knappe Überholmanöver können etwas Style-Geld geben — nicht „Rampunkte“ als Hauptscore.
+#### Auto↔Auto-Bump (Arcade-Kontaktmodell)
+
+Jeder harte Kontakt wertet vier Inputs (lesbar für ~10+, testbar in Unit-Tests):
+
+| Input | Bedeutung |
+|-------|-----------|
+| **Gewicht (Masse)** | Wer stärker steht / wen der Impuls mehr verschiebt |
+| **Relative Aufprallgeschwindigkeit** | Wie hart die Autos aufeinander zulaufen (Schließgeschwindigkeit entlang der Kontaktnormale) |
+| **Richtung** | Ob der Treffer eher frontal, schräg oder streifend ist (Winkel zwischen eigener Nase und Kontaktnormale) |
+| **Trefferort** | Wo am Auto getroffen wird: **Bug / Flanke / Heck** (relativ zur eigenen Ausrichtung) |
+
+**1. Masse entscheidet den Schub-Anteil**
+
+- Beide Autos trennen sich entlang der Kontaktnormale; das **leichtere** Auto wird stärker verschoben (Positions- und Impulsanteil ≈ inverse Masse).
+- Bei ähnlicher Masse: fairer Tausch. Bei klarem Masse-Unterschied (z. B. Bunker vs Blitz): der Schwere hält die Linie, der Leichte fliegt / prallt stärker ab.
+- Teil *Spike-Stoßstange* (`ramBonus`) verstärkt den Impuls etwas — bleibt Würze, kein One-Hit-Win.
+
+**2. Relative Speed skaliert Härte**
+
+- Nur **schließende** Kontakte (Autos laufen aufeinander zu) erzeugen harten Schub + Schaden. Sanftes Aneinanderreiben / Auseinanderfahren = nur Trennung, kaum/kein Schaden.
+- Schubimpuls und Basisschaden wachsen mit der **Schließgeschwindigkeit** (weich bei Tipps, knackig bei High-Speed-Treffern).
+- Sehr langsame Rempler bleiben „Schubserei“; harte High-Speed-Hits sind klar spürbar (SFX + Impuls).
+
+**3. Richtung (wie der Treffer zur eigenen Nase steht)**
+
+Pro Auto wird der Winkel zwischen **eigener Heading** und der Kontaktnormale gelesen:
+
+| Richtungs-Klasse | Lesbar als | Effekt (Arcade) |
+|------------------|------------|-----------------|
+| **Frontal** | Bug voraus in den Kontakt | Stärkerer eigener Schubanteil nach vorn / Gegner wegdrücken; etwas mehr eigener Mauer-/Kontakt-Selbstschaden-Anteil wenn man der Angreifer ist |
+| **Schräg** | Typisches Überholen / Drängeln | Ausgewogener Impuls + leichter **Giermoment** (Nase dreht etwas vom Kontakt weg / in die Flanke) |
+| **Streifend** | Fast parallel | Wenig Impuls, kaum Schaden, kurzer „Schramm“-Effekt |
+
+Die **relative** Situation zählt: wer mit höherer Schließkomponente *in* den anderen fährt, gilt als **Angreifer** für Schaden-/Schub-Gewichtung; der andere als **Getroffener**.
+
+**4. Trefferort (Bug / Flanke / Heck)**
+
+Trefferort = wo die Kontaktnormale am eigenen Auto anliegt (Bug vorne, Heck hinten, sonst Flanke):
+
+| Ort am Getroffenen | Effekt |
+|--------------------|--------|
+| **Bug** | Stabiler Abprall nach hinten/außen; weniger Giermoment |
+| **Flanke** | Stärkerer **Seitenschub** + spürbares **Ausdrehen** (Giermoment); Grip entscheidet, wie schnell die Nase wieder einfängt |
+| **Heck** | „Angeschoben“-Gefühl: Extra-Schub in Fahrtrichtung des Getroffenen möglich (leichter Boost/Impuls nach vorn), dazu Risiko kurz die Linie zu verlieren |
+
+Am **Angreifer**:
+
+| Ort am Angreifer | Effekt |
+|------------------|--------|
+| **Bug** (auffahren / rammen) | Klassischer Ramm-Schub; Spike-Stoßstange wirkt hier am klarsten |
+| **Flanke** | Schultercheck — mittlerer Schub, eigenes Ausdrehen möglich |
+| **Heck** (rückwärts / aufgefahrener Hecktreffer) | Schwächerer Angriffs-Schub; eher ungeschickt / defensiv |
+
+**Kombinierte Lesart (Beispiele für Balancing)**
+
+| Szene | Erwartung |
+|-------|-----------|
+| Schwerer Bug → leichtes Heck | Leichter wird nach vorn geschubst und kann ausbrechen; Schwerer bremst kaum |
+| Leichter Bug → schwere Flanke | Leichter prallt ab / dreht aus; Schwerer nur leichter Seitenschub |
+| Gleichstand Flanke↔Flanke bei Tempo | Beide bekommen Seitenschub + Gier; relativer Speed entscheidet, wer mehr verliert |
+| Streifkontakt bei ähnlicher Speed | Kaum Schaden, kurze Funken, Linie bleibt meist |
+
+**Schaden aus Kontakt** (weiter Nebeneffekt)
+
+- Skaliert mit Schließgeschwindigkeit, Masse des Gegners und Trefferklasse (Frontal/Flanke härter als streifend; Heck-Treffer am Getroffenen etwas milder als harte Flanke).
+- **Panzerung** mindert genommenen Schaden; Spike erhöht abgegebenen Anteil leicht.
+- Leichtere / fragilere Wagen nehmen bei gleichem Hit typischerweise mehr Schaden.
+- Runden-Schild: **kein Schaden**, Schub bleibt (siehe unten).
+
+**Luft:** Airborne-Autos haben keinen Auto↔Auto-Solid-Kontakt (wie bisher) — erst wieder am Boden.
+
+**Nicht-Ziele:** keine realistische Deformationsphysik, keine Multi-Body-Joints, kein Rampunkte-Modus.
 
 **Schadenszustände** (Spieler + KI sichtbar)
 
@@ -419,10 +489,10 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch frei drehen** (LMB / 1 Finger = gieren; **RMB** / **2 Finger** = anheben und um die **Auto-Mitte** drehen; Loslassen stellt flach auf den Boden), **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
-4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Rechtsklick oder Button)
+4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Esc, Rechtsklick oder Button)
 5. **Ergebnis** — Zielbanner/-linie; **~15 s 2D-Comic-Film** bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation**; dann Podium-Landung / CHF; weiter / Garage  
 6. **Hilfe** — Steuerungshinweise (optional; inkl. Bremse halten = Rückwärts); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
-7. **Einstellungen** — per **Rechtsklick** (außer Garage-Canvas-Orbit) oder Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste)  
+7. **Einstellungen** — per **Esc** (Garage + Rennen; erneut Esc schließt), **Rechtsklick** (außer Garage-Canvas-Orbit), Garage-Button oder HUD-Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste). In Untermenüs (Cup/Hilfe/Ergebnis) bleibt Esc = Zurück zur Garage.  
 
 **Audio (SFX):** Arcade-Effekte (Motor-Loop, Nitro, Mauer/Kontakt, Runde/Schild, K.O., Ziel, UI-Klicks) — **CC0**-Samples, Web Audio, Mute speichert lokal. Keine Pflicht-Musik im MVP.
 
@@ -508,7 +578,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 |-------|--------|
 | Kerndynamik | Getunte Autos möglichst schnell fahren |
 | Fahrphysik | Arcade Front-Steer (kein Tank-Pivot); Bremse → Rückwärts nach Stillstand; Kart-Drift bleibt Würze |
-| Rammen | Nebeneffekt / Würze, keine Rammtaste, kein Rampunkte-Fokus |
+| Rammen | Nebeneffekt; Auto↔Auto nach Masse + Schließspeed + Richtung + Bug/Flanke/Heck; keine Rammtaste |
 | Schaden | Regeneriert über Zeit mit sichtbarem Heil-Effekt; K.O. mit Comeback |
 | Unebene Piste | Hüpf-/Wackleffekt; Federung dämpft |
 | Gras | Langsamer; Federung mildert, entfernt nicht |
@@ -526,4 +596,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.74 — Arcade Front-Steer + Bremse→Rückwärts.*
+*Dokumentstand: Konzept v3.76 — Esc öffnet Einstellungen in Garage/Rennen; Garage-Button Einstellungen.*
