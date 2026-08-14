@@ -259,8 +259,11 @@ export class RaceRenderer {
     this.garageDragging = dragging;
   }
 
-  /** Hover lift while RMB / two-finger tumble is held. */
+  /** Hover lift while RMB / two-finger tumble is held; releasing snaps pitch flat. */
   setGaragePitchInspect(active: boolean): void {
+    if (this.garagePitchInspect && !active) {
+      this.garagePitch = GARAGE_PITCH_DEFAULT;
+    }
     this.garagePitchInspect = active;
   }
 

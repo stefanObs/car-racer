@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.67 Garage pitch mode release snaps flat
+- Trigger: user — releasing vertical pitch mode should put the car horizontal again
+- Decision: Ending RMB / 2-finger inspect resets `garagePitch` to 0 (sit back on pad); yaw kept
+- CONCEPT §9 → v3.67
+
 ### 2026-08-14 — v3.66 Garage RMB free tumble + pad hover
 - Trigger: user — right click pitches all directions; lift car so it does not clip the floor
 - Decision: RMB / 2-finger = yaw+pitch; hover lift while inspect held + pitch-based floor clearance from half-extents

@@ -8,6 +8,7 @@ import {
   garagePitchFloorClearance,
   garagePitchHoverY,
   GARAGE_ORBIT_SENSITIVITY,
+  GARAGE_PITCH_DEFAULT,
   GARAGE_PITCH_INSPECT_LIFT,
   GARAGE_PITCH_LIMIT,
   GARAGE_YAW_DEFAULT,
@@ -36,6 +37,10 @@ describe("garage orbit yaw + pitch", () => {
     expect(garagePitchFloorClearance(Math.PI, 1.5, 0.6)).toBeCloseTo(1.2, 5);
     expect(garagePitchHoverY(0, 1.5, 0.6, true)).toBeCloseTo(GARAGE_PITCH_INSPECT_LIFT, 5);
     expect(garagePitchHoverY(0, 1.5, 0.6, false)).toBeCloseTo(0, 5);
+  });
+
+  it("documents pitch default as flat (inspect release snaps here)", () => {
+    expect(GARAGE_PITCH_DEFAULT).toBe(0);
   });
 
   it("drag right decreases yaw (turntable)", () => {
