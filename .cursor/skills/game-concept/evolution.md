@@ -26,6 +26,10 @@ Append newest first.
 - Decision: Arcade stays (no tire sim). Front-steer = nose leads, velocity follows, no standstill pivot. Same brake action → reverse after near-stop; reverse cap ~35–50%; nitro forward-only. Impl not in this step.
 - CONCEPT dokumentstand → v3.74
 
+### 2026-08-14 — leave race from settings (v0.3.151 / CONCEPT v3.77)
+- Trigger: user — in a race, settings should let the player return to the garage
+- Decision: Race settings show **Rennen verlassen** → Garage with no purse/unlock for the aborted run; Esc still only closes the panel
+
 ### 2026-08-14 — Esc opens settings (v0.3.149 / CONCEPT v3.76)
 - Trigger: user — Esc should open settings; add Settings button in garage
 - Decision: Esc/B opens Einstellungen in Garage + Race (Esc again closes); other screens keep Esc = back to Garage. Prominent Einstellungen button in garage hero (footer entry remains).

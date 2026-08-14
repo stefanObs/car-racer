@@ -426,8 +426,37 @@ button:disabled {
   box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
 }
 
+.settings-leave {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  text-align: left;
+  padding: 14px;
+  min-height: 56px;
+  background: #fff4e0;
+  color: #1b1b1f;
+  font-weight: 800;
+  border: 3px solid #1b1b1f;
+  box-shadow: 0 4px 0 rgba(0, 0, 0, 0.35);
+}
+
+.settings-leave strong {
+  font-size: 1.05rem;
+}
+
+.settings-leave__hint {
+  font-size: 0.85rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: #343a40;
+}
+
 .settings-close:hover,
-.settings-close:focus-visible {
+.settings-close:focus-visible,
+.settings-leave:hover,
+.settings-leave:focus-visible {
   filter: brightness(1.08);
 }
 

@@ -43,4 +43,13 @@ describe("settings Esc + garage button", () => {
     expect(html).toContain("settings-kicker");
     expect(html).toContain("settings-hazard");
   });
+
+  it("offers leave-race only while in a race", () => {
+    const garage = renderSettingsPanelHtml({ easyMode: false }, false);
+    expect(garage).not.toContain("leave-race");
+    const race = renderSettingsPanelHtml({ easyMode: false }, false, { inRace: true });
+    expect(race).toContain('data-act="leave-race"');
+    expect(race).toContain("Rennen verlassen");
+    expect(race).toContain("kein Preisgeld");
+  });
 });

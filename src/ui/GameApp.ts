@@ -142,11 +142,27 @@ export class GameApp {
     else this.wireUi();
   }
 
+  /** Abort the current race without rewards and return to the garage hub. */
+  private leaveRaceToGarage(): void {
+    gameAudio.stopEngine();
+    gameAudio.playUiClick();
+    this.settingsOpen = false;
+    this.uiRoot.querySelector(".settings-host")?.remove();
+    this.finishCelebrate = null;
+    this.race = null;
+    this.stylePops.clear();
+    this.renderer.clearCars();
+    this.screen = "garage";
+    this.renderUi();
+  }
+
   private renderSettingsOverlay(): void {
     this.uiRoot.querySelector(".settings-host")?.remove();
     const host = document.createElement("div");
     host.className = "settings-host";
-    host.innerHTML = renderSettingsPanelHtml(this.settings, gameAudio.muted);
+    host.innerHTML = renderSettingsPanelHtml(this.settings, gameAudio.muted, {
+      inRace: this.screen === "race",
+    });
     this.uiRoot.appendChild(host);
     host.querySelectorAll<HTMLElement>("[data-act]").forEach((el) => {
       el.addEventListener("click", (e) => {
@@ -789,6 +805,10 @@ export class GameApp {
     if (act === "close-settings") {
       gameAudio.playUiClick();
       this.closeSettings();
+      return;
+    }
+    if (act === "leave-race") {
+      this.leaveRaceToGarage();
       return;
     }
     if (act === "toggle-easy-mode") {
