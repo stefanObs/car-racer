@@ -18,6 +18,12 @@ import {
 } from "../meta/cosmeticsShop";
 import { buyPart, selectPartInGarage, showcaseParts } from "../meta/partsShop";
 import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
+import {
+  applyEasyModeThrottle,
+  loadGameSettings,
+  writeGameSettings,
+  type GameSettings,
+} from "../meta/gameSettings";
 import { ensureCarPartTemplates } from "../render/carParts";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
 import { preloadTrackModels } from "../render/loadTrackGltf";
@@ -28,6 +34,7 @@ import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from 
 import type { LevelDefinition } from "../track/types";
 import { renderGarageHtml } from "./garageHtml";
 import { garageOrbitAxesForPointer } from "./garageOrbit";
+import { renderSettingsPanelHtml } from "./settingsHtml";
 import { renderCarStatsPopup } from "./carStatsPopup";
 import { renderLapCounterHtml } from "./lapHud";
 import { renderMiniMapSvg } from "./miniMap";
@@ -68,6 +75,8 @@ export class GameApp {
   private previewSticker: StickerId | null = null;
   private previewPart: PartId | null = null;
   private stylePops = new StylePopupQueue();
+  private settings: GameSettings = loadGameSettings();
+  private settingsOpen = false;
   private lastUi = {
     confirm: false,
     back: false,
@@ -81,9 +90,10 @@ export class GameApp {
     this.uiRoot = uiRoot;
     bindKeyboard();
     window.addEventListener("keydown", (e) => this.onMenuKeyDown(e));
+    window.addEventListener("contextmenu", (e) => this.onContextMenu(e, canvas));
     const created = createGameRenderer(canvas);
-  this.renderer = created;
-  this.bindGarageOrbit(canvas);
+    this.renderer = created;
+    this.bindGarageOrbit(canvas);
     const host = uiRoot.parentElement ?? document.body;
     this.dev = new DevTools(host, {
       getChf: () => this.save.chf,
@@ -104,6 +114,69 @@ export class GameApp {
       },
     });
     this.renderUi();
+  }
+
+  private onContextMenu(e: MouseEvent, canvas: HTMLCanvasElement): void {
+    const target = e.target;
+    if (target instanceof Node && (target === canvas || canvas.contains(target))) {
+      // Garage canvas RMB = orbit; race canvas RMB = settings.
+      if (this.screen === "garage") return;
+    }
+    e.preventDefault();
+    this.openSettings();
+  }
+
+  private openSettings(): void {
+    if (this.settingsOpen) return;
+    this.settingsOpen = true;
+    gameAudio.playUiClick();
+    this.renderSettingsOverlay();
+  }
+
+  private closeSettings(): void {
+    if (!this.settingsOpen) return;
+    this.settingsOpen = false;
+    this.uiRoot.querySelector(".settings-host")?.remove();
+    if (this.screen !== "race") this.renderUi();
+    else this.wireUi();
+  }
+
+  private renderSettingsOverlay(): void {
+    this.uiRoot.querySelector(".settings-host")?.remove();
+    const host = document.createElement("div");
+    host.className = "settings-host";
+    host.innerHTML = renderSettingsPanelHtml(this.settings, gameAudio.muted);
+    this.uiRoot.appendChild(host);
+    host.querySelectorAll<HTMLElement>("[data-act]").forEach((el) => {
+      el.addEventListener("click", (e) => {
+        e.stopPropagation();
+        if (el instanceof HTMLButtonElement) this.onAction(el);
+        else if (el.dataset.act === "close-settings") {
+          gameAudio.playUiClick();
+          this.closeSettings();
+        }
+      });
+    });
+    const first = host.querySelector<HTMLButtonElement>("button[data-nav]");
+    first?.focus({ preventScroll: true });
+  }
+
+  private playerRaceInput(actions: ReturnType<typeof sampleActions>): {
+    throttle: number;
+    brake: number;
+    steer: number;
+    nitro: boolean;
+    drift: boolean;
+  } {
+    const brake = actions.brake;
+    const throttle = applyEasyModeThrottle(actions.throttle, brake, this.settings.easyMode);
+    return {
+      throttle,
+      brake,
+      steer: actions.steer,
+      nitro: actions.nitro,
+      drift: actions.drift,
+    };
   }
 
   /** LMB/1-finger yaw; RMB/2-finger free tumble (with pad hover). */
@@ -188,6 +261,10 @@ export class GameApp {
     if (!typing) this.handleUiNav(actions);
 
     if (this.screen === "race" && this.race) {
+      if (this.settingsOpen) {
+        this.renderer.sync(this.race);
+        return;
+      }
       if (this.finishCelebrate) {
         advanceFinishCelebrate(this.finishCelebrate, now);
         this.renderer.sync(this.race, this.finishCelebrate);
@@ -204,13 +281,7 @@ export class GameApp {
           dt,
           typing
             ? { throttle: 0, brake: 0, steer: 0, nitro: false, drift: false }
-            : {
-                throttle: actions.throttle,
-                brake: actions.brake,
-                steer: actions.steer,
-                nitro: actions.nitro,
-                drift: actions.drift,
-              },
+            : this.playerRaceInput(actions),
         );
         for (const ev of this.race.consumeAudioEvents()) {
           playRaceAudioEvent(gameAudio, ev);
@@ -241,6 +312,13 @@ export class GameApp {
 
   private onMenuKeyDown(e: KeyboardEvent): void {
     if (e.code === "F1" || e.code === "F2" || e.code === "F3") return;
+    if (this.settingsOpen) {
+      if (e.code === "Escape") {
+        e.preventDefault();
+        this.closeSettings();
+      }
+      return;
+    }
     if (this.screen === "race") return;
     if (
       document.activeElement instanceof HTMLInputElement ||
@@ -292,6 +370,19 @@ export class GameApp {
   }
 
   private handleUiNav(actions: ReturnType<typeof sampleActions>): void {
+    if (this.settingsOpen) {
+      const backEdge = risingEdge(actions.uiBack, this.lastUi.back);
+      this.lastUi = {
+        confirm: actions.uiConfirm,
+        back: actions.uiBack,
+        up: actions.uiUp,
+        down: actions.uiDown,
+        left: actions.uiLeft,
+        right: actions.uiRight,
+      };
+      if (backEdge) this.closeSettings();
+      return;
+    }
     if (this.screen === "race") {
       this.lastUi = {
         confirm: actions.uiConfirm,
@@ -485,6 +576,7 @@ export class GameApp {
         <p class="credit">${APP_CREDIT}</p>
         <p class="help">Tastatur: WASD / Pfeile, Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LB Drift, A/RB Nitro · Tablet: Touch</p>
         <div class="stack">
+          <button data-nav data-act="open-settings">Einstellungen</button>
           <button data-nav data-act="toggle-mute">${gameAudio.muted ? "Ton aus" : "Ton an"}</button>
           <button data-nav data-act="garage">Zur Garage</button>
         </div>
@@ -561,6 +653,7 @@ export class GameApp {
     } else if (this.screen === "race") {
       body = `
         <div id="race-hud" class="race-hud"></div>
+        <button type="button" data-act="open-settings" class="race-settings">Einstellungen</button>
         <button type="button" data-act="toggle-mute" class="race-mute" aria-pressed="${
           gameAudio.muted ? "true" : "false"
         }">${gameAudio.muted ? "Ton aus" : "Ton an"}</button>
@@ -656,11 +749,31 @@ export class GameApp {
 
   private onAction(btn: HTMLButtonElement): void {
     const act = btn.dataset.act;
+    if (act === "open-settings") {
+      this.openSettings();
+      return;
+    }
+    if (act === "close-settings") {
+      gameAudio.playUiClick();
+      this.closeSettings();
+      return;
+    }
+    if (act === "toggle-easy-mode") {
+      this.settings.easyMode = !this.settings.easyMode;
+      writeGameSettings(this.settings);
+      gameAudio.playUiClick();
+      if (this.settingsOpen) this.renderSettingsOverlay();
+      return;
+    }
     if (act === "toggle-mute") {
       const wasMuted = gameAudio.muted;
       if (!wasMuted) gameAudio.playUiClick();
       gameAudio.toggleMute();
       if (wasMuted) gameAudio.playUiClick();
+      if (this.settingsOpen) {
+        this.renderSettingsOverlay();
+        return;
+      }
       if (this.screen === "race") {
         const muteBtn = this.uiRoot.querySelector<HTMLButtonElement>("[data-act='toggle-mute']");
         if (muteBtn) {

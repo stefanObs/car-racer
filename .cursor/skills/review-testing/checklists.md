@@ -33,7 +33,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 ## B. UX by screen
 
 ### Garage (Start-Hub)
-- [ ] Canvas drag: LMB/1-finger yaws on pad; RMB/2-finger lifts and tumbles around car center
+- [ ] Einstellungen (Rechtsklick / Button): Einfacher Modus toggles auto-Vollgas
 - [ ] Boots here by default (not a separate Hauptmenü)
 - [ ] Cup / Freier Modus / Ad-hoc CTAs present; focus defaults to Cup
 - [ ] Ausrüsten / Laden clearly above Schmücken

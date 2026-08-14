@@ -238,6 +238,7 @@ export function renderGarageHtml(opts: {
       <button data-nav data-act="toggle-mute" class="garage-mute" aria-pressed="${opts.muted ? "true" : "false"}">${
         opts.muted ? "Ton aus" : "Ton an"
       }</button>
+      <button data-nav data-act="open-settings" class="garage-settings">Einstellungen</button>
       <button data-nav data-act="menu" class="garage-help-link">Hilfe</button>
     </div>
   `;

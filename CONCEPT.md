@@ -342,6 +342,7 @@ Kids lesen Gegner und passen Taktik an — Fokus bleibt Tempo und Linie.
 ### 7.4 Assistenz (Accessibility für 10+)
 
 - Optional: Lenkhilfe, Absolvieren-Bremse vor engen Kurven, klarere Damage-/Heil-Farben.
+- **Einfacher Modus** (Einstellungen, Standard aus): immer Vollgas ohne Gas-Taste; Bremse hebt das auf — Hilfe zum Lernen von Lenken/Bremsen, kein Unbesiegbar-Modus.
 - Hilfen, die Können aufbauen — kein Default-Unbesiegbar-Modus.
 - Touch: etwas großzügigere Lenk-Deadzone optional; Controller: stick sensitivity einstellbar.
 
@@ -408,9 +409,10 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch frei drehen** (LMB / 1 Finger = gieren; **RMB** / **2 Finger** = anheben und um die **Auto-Mitte** drehen; Loslassen stellt flach auf den Boden), **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
-4. **Renn-HUD** — Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**  
+4. **Renn-HUD** — Platz, **Runden-Zähler** (aktuell / gesamt), Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Rechtsklick oder Button)
 5. **Ergebnis** — Zielbanner/-linie; **~15 s 2D-Comic-Film** bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation**; dann Podium-Landung / CHF; weiter / Garage  
-6. **Hilfe** — Steuerungshinweise (optional); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**  
+6. **Hilfe** — Steuerungshinweise (optional); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
+7. **Einstellungen** — per **Rechtsklick** (außer Garage-Canvas-Orbit) oder Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste)  
 
 **Audio (SFX):** Arcade-Effekte (Motor-Loop, Nitro, Mauer/Kontakt, Runde/Schild, K.O., Ziel, UI-Klicks) — **CC0**-Samples, Web Audio, Mute speichert lokal. Keine Pflicht-Musik im MVP.
 
@@ -513,4 +515,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.68 — Garage-Inspect um Auto-Mitte + fester Hover.*
+*Dokumentstand: Konzept v3.69 — Einstellungen + Einfacher Modus (Vollgas-Hilfe).*

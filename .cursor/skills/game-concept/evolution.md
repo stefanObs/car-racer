@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.69 Settings + Easy Mode auto-throttle
+- Trigger: user — settings on right click; easy mode without holding up/gas for full speed
+- Decision: Einstellungen panel (RMB outside garage canvas / button); `easyMode` localStorage; force throttle=1 unless braking. Default off (CONCEPT §7.4).
+- CONCEPT §7.4 / §9 → v3.69
+
 ### 2026-08-14 — v3.68 Garage inspect pivots at car center
 - Trigger: user — vertical pitch in air not good; lift and turn on the spot around car middle
 - Decision: Orbit pivot at bbox center; fixed inspect lift (not pitch-dependent clearance); yaw/pitch on pivot so tumble stays in place
