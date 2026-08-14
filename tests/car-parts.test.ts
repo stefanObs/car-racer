@@ -197,8 +197,17 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(CAR_PART_LAYOUTS.blitz.reinforced_frame.preferGlb).not.toBe(false);
     expect(existsSync("public/models/parts/blitz-reinforced_frame.glb")).toBe(true);
     const a = BLITZ_PART_PLACEMENT.reinforced_frame[0]!;
-    expect(a.z).toBeLessThan(-0.2);
-    expect(a.scale).toBeCloseTo(1, 5);
+    // Look sheet: rocker plates between arches + cage behind cabin on rear deck.
+    expect(a.z).toBeGreaterThan(-0.25);
+    expect(a.z).toBeLessThan(0.0);
+    expect(a.y).toBeGreaterThan(0.08);
+    expect(a.y).toBeLessThan(0.18);
+    expect(a.scale).toBeGreaterThan(1.05);
+    expect(a.scale).toBeLessThan(1.2);
+    expect(a.scaleY ?? a.scale).toBeLessThan(a.scale);
+    expect(a.scaleZ ?? a.scale).toBeGreaterThan(1.0);
+    expect(a.yaw).toBeCloseTo(0);
+    expect(a.snap).toBe(false);
   });
 
   it("does not seal Blitz cabin with opaque glass planes", () => {
@@ -460,13 +469,15 @@ describe("Equipped-part visuals (all cars)", () => {
     // Hood mid ~1.17 (not windshield ~0.92) — look sheet panel 1 balanced gaps.
     expect(scoop.z).toBeGreaterThan(1.1);
     expect(scoop.z).toBeLessThan(1.25);
-    expect(scoop.scale).toBeLessThan(0.85);
-    expect(scoop.preferY).toBeLessThan(1.15);
+    // Larger + fixed lower Y buries the black flange into the hood paint.
+    expect(scoop.scale).toBeGreaterThan(0.85);
+    expect(scoop.scale).toBeLessThan(0.98);
+    expect(scoop.y).toBeLessThan(0.95);
+    expect(scoop.snap).toBe(false);
     // Open mouth is local −Z; yaw π aims it at the nose. Pitch sinks the aft into the hood.
     expect(scoop.yaw).toBeCloseTo(Math.PI);
-    expect(scoop.pitch!).toBeLessThan(-0.1);
-    expect(scoop.pitch!).toBeGreaterThan(-0.3);
-    expect(scoop.sitGap!).toBeLessThan(0);
+    expect(scoop.pitch!).toBeLessThan(-0.15);
+    expect(scoop.pitch!).toBeGreaterThan(-0.35);
     expect(nitroZ).toBeLessThan(-0.6);
     expect(nitroZ).toBeGreaterThan(-1.3);
 

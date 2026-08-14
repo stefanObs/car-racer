@@ -154,8 +154,20 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
     { x: 0.7, y: 0.06, z: -1.08, yaw: 0, scale: 0.7, snap: false },
     { x: -0.7, y: 0.06, z: -1.08, yaw: Math.PI, scale: 0.7, snap: false },
   ],
-  // Sill armor between arches + rear V-cage on deck (Tripo).
-  reinforced_frame: [{ x: 0, y: 0.02, z: -0.55, yaw: 0, scale: 1, snap: false }],
+  // Look sheet: sill armor between arches + rear half-cage on the deck (bolted plates).
+  // Raise/widen so rocker plates sit outside the body; Z so hoop sits behind the cabin.
+  reinforced_frame: [
+    {
+      x: 0,
+      y: 0.12,
+      z: -0.15,
+      yaw: 0,
+      scale: 1.1,
+      scaleY: 0.9,
+      scaleZ: 1.08,
+      snap: false,
+    },
+  ],
   // Hood louvers — fixed Y (no roof snap); sit on deck above stock recess.
   lightweight_body: [{ x: 0, y: 0.62, z: 1.12, yaw: 0, scale: 1.2, snap: false }],
 };
