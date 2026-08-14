@@ -59,7 +59,8 @@ const CAR_JOBS = {
     { id: "lightweight_body", toward: "+z", targetSpan: 1.6, maxH: 0.85, simplify: 0.4 },
   ],
   donnerbuechse: [
-    { id: "big_engine", toward: "+z", targetSpan: 0.9, maxH: 0.55, simplify: 0.4 },
+    // Bay fill is mostly mount scale in carParts; keep bake compact for garage LOD.
+    { id: "big_engine", toward: "+z", targetSpan: 0.9, maxH: 0.55, simplify: 0.4, material: "Chrome" },
     { id: "spike_bumper", toward: "+z", targetSpan: 1.55, maxH: 0.4, simplify: 0.4 },
     { id: "nitro_kit", toward: "+z", targetSpan: 0.75, maxH: 0.6, simplify: 0.4 },
     { id: "rear_spoiler", toward: "-z", targetSpan: 1.15, maxH: 0.7, simplify: 0.4 },
@@ -227,7 +228,7 @@ async function bakeJob(carId, job) {
   facePosZFromTripoX(doc);
   if (job.toward === "-z") rotateY180(doc);
   const sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
-  comicMaterial(doc, MAT[job.id] ?? "Carbon");
+  comicMaterial(doc, job.material ?? MAT[job.id] ?? "Carbon");
   await simplifyDoc(doc, job.simplify);
   mkdirSync(outDir, { recursive: true });
   const bytes = await io.writeBinary(doc);

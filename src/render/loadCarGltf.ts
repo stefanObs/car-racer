@@ -252,8 +252,13 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     }
     const skullOrnament = isHornMat || name.includes("skull");
     const tireMesh = stockWheel || name.includes("tire") || name.includes("rubber") || name.includes("hubcap");
+    // StockEngine shares the BodyPaint atlas — keeping the map paints the block blue.
+    // Flat comic chrome matches the silver look sheet (garage paint already skips Chrome).
+    const stockEngineChrome =
+      meshNameLower === "stockengine" ||
+      ((name.includes("chrome") || name.includes("metal")) && meshNameLower.includes("engine"));
     // Keep authored atlas maps (Tripo bake / leftover free-asset maps) under cel shading.
-    if (map && !skullOrnament && !tireMesh) {
+    if (map && !skullOrnament && !tireMesh && !stockEngineChrome) {
       toon.map = map;
       toon.needsUpdate = true;
     } else if (!tireMesh && !carUsesAuthoredAtlas(carId) && mesh.geometry && !skullOrnament && !toon.map) {

@@ -22,22 +22,32 @@ const srcPath = srcArg || carPath;
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
 
 function isEngineBlockVertex(x, y, z) {
-  if (z < 0.28 || z > 1.42) return false;
-  if (Math.abs(x) > 0.62) return false;
-  if (y < 0.48 || y > 1.42) return false;
+  if (z < 0.22 || z > 1.55) return false;
+  if (Math.abs(x) > 0.72) return false;
+  if (y < 0.38 || y > 1.48) return false;
   return true;
 }
 
 function isSidePipeVertex(x, y, z) {
   const ax = Math.abs(x);
-  if (ax < 0.55 || ax > 1.12) return false;
-  if (z < 0.25 || z > 1.25) return false;
-  if (y < 0.28 || y > 0.78) return false;
+  if (ax < 0.5 || ax > 1.15) return false;
+  if (z < 0.2 || z > 1.35) return false;
+  if (y < 0.22 || y > 0.85) return false;
+  return true;
+}
+
+/** Crossmember / bay mounts that read as engine frame (should be chrome, not body blue). */
+function isBayMountVertex(x, y, z) {
+  if (z < 0.35 || z > 1.35) return false;
+  if (Math.abs(x) > 0.85) return false;
+  if (y < 0.32 || y > 0.72) return false;
+  // Keep outer chassis rails (look sheet: body blue) — only center bay.
+  if (Math.abs(x) > 0.55 && y < 0.45) return false;
   return true;
 }
 
 function isStockEngineVertex(x, y, z) {
-  return isEngineBlockVertex(x, y, z) || isSidePipeVertex(x, y, z);
+  return isEngineBlockVertex(x, y, z) || isSidePipeVertex(x, y, z) || isBayMountVertex(x, y, z);
 }
 
 function faceIsEngine(a, b, c) {
@@ -139,6 +149,10 @@ const buffer = out.getRoot().listBuffers()[0];
 const bodyPrim = remappedPrimitive(out, buffer, bodyFaces, pos, nrm, uv, outMat);
 const engMat = outMat.clone();
 engMat.setName("Chrome"); // garage paint skips chrome; mesh hidden when big_engine on
+// Distinct factor so prune/dedup does not merge Chrome back into BodyPaint.
+engMat.setBaseColorFactor([0.86, 0.89, 0.91, 1]);
+engMat.setMetallicFactor(0.55);
+engMat.setRoughnessFactor(0.35);
 const engPrim = remappedPrimitive(out, buffer, engineFaces, pos, nrm, uv, engMat);
 
 outMesh.listPrimitives().forEach((p) => outMesh.removePrimitive(p));

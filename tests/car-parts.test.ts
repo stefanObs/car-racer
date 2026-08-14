@@ -499,7 +499,11 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(existsSync("public/models/parts/donnerbuechse-lightweight_body.glb")).toBe(true);
 
     const eng = L.big_engine.anchors[0]!;
-    expect(eng.z).toBeGreaterThan(0.4);
+    // Fill open bay (grille → cabin): forward of mid-bay, large enough to close the gap.
+    expect(eng.z).toBeGreaterThan(1.25);
+    expect(eng.z).toBeLessThan(1.55);
+    expect(eng.y).toBeLessThan(0.25);
+    expect(eng.scale).toBeGreaterThan(2.9);
     expect(eng.yaw).toBeCloseTo(0);
   });
 

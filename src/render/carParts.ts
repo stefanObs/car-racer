@@ -351,8 +351,9 @@ function layoutDonner(): CarVisualLayout {
       { x: -1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
     ],
     big_engine: {
-      // Replaces StockEngine in the open bay (intakes toward nose +Z).
-      anchors: [{ x: 0, y: 0.48, z: 0.72, yaw: 0, scale: 1.25, snap: false }],
+      // Look sheet: pack against grille; intakes above beltline (silver Tripo GLB).
+      // Mesh mass sits aft in the bbox — high +Z closes the grille gap.
+      anchors: [{ x: 0, y: 0.16, z: 1.42, yaw: 0, scale: 3.15, snap: false }],
       build: () => buildHoodScoop("blower"),
       preferGlb: true,
     },
@@ -601,7 +602,10 @@ function toonifyPart(root: Object3D, fallbackName: string): void {
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     const next = mats.map((m) => {
       const std = m as MeshToonMaterial & { map?: unknown; name?: string };
-      const toon = comicToon(0xffffff);
+      const name = (std.name || fallbackName).toLowerCase();
+      // Chrome without a map → flat silver; with a map keep white so albedo stays neutral.
+      const chrome = name.includes("chrome") || name.includes("metal");
+      const toon = comicToon(chrome && !std.map ? 0xdce2e8 : 0xffffff);
       toon.name = std.name || fallbackName;
       if (std.map) {
         toon.map = std.map as never;

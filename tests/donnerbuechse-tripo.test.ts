@@ -13,8 +13,12 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     const text = readFileSync(path).toString("latin1");
     expect(text).toContain("BodyPaint");
     expect(text).toContain("StockEngine");
+    expect(text).toContain("Chrome");
 
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
+    const engNode = doc.getRoot().listNodes().find((n) => n.getName() === "StockEngine");
+    expect(engNode?.getMesh()?.listPrimitives()[0]?.getMaterial()?.getName()).toBe("Chrome");
+
     const b = getBounds(doc.getRoot().listScenes()[0]!);
     const sx = b.max[0] - b.min[0];
     const sy = b.max[1] - b.min[1];
@@ -65,5 +69,35 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     }
     expect(total).toBeGreaterThan(10_000);
     expect(orange / total).toBeLessThan(0.005);
+  });
+
+  it("Großer Motor GLB is silver Chrome (no body-paint bleed)", async () => {
+    const path = resolve("public/models/parts/donnerbuechse-big_engine.glb");
+    expect(statSync(path).size).toBeGreaterThan(40_000);
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
+    const mat = doc.getRoot().listMaterials()[0];
+    expect(mat?.getName()).toBe("Chrome");
+    const raw = mat?.getBaseColorTexture()?.getImage();
+    expect(raw).toBeTruthy();
+    const sharp = (await import("sharp")).default;
+    const { data } = await sharp(Buffer.from(raw!)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    let red = 0;
+    let blue = 0;
+    let lit = 0;
+    for (let i = 0; i < data.length; i += 4) {
+      const r = data[i]!;
+      const g = data[i + 1]!;
+      const b = data[i + 2]!;
+      if (r + g + b < 40) continue;
+      lit++;
+      const max = Math.max(r, g, b);
+      const min = Math.min(r, g, b);
+      const chroma = max - min;
+      if (r === max && chroma / max > 0.22 && r > g + 8 && r > b + 8) red++;
+      if (b === max && chroma / max > 0.32 && b > r + 8 && b > g + 16) blue++;
+    }
+    expect(lit).toBeGreaterThan(10_000);
+    expect(red / lit).toBeLessThan(0.02);
+    expect(blue / lit).toBeLessThan(0.01);
   });
 });
