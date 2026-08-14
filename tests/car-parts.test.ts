@@ -63,16 +63,17 @@ describe("Equipped-part visuals (all cars)", () => {
     const anchors = BLITZ_PART_PLACEMENT.lightweight_body;
     expect(anchors).toHaveLength(1);
     expect(anchors[0]!.z).toBeGreaterThan(0.7);
-    expect(anchors[0]!.z).toBeLessThan(1.2);
+    expect(anchors[0]!.z).toBeLessThan(1.25);
+    expect(anchors[0]!.y).toBeGreaterThan(0.55);
     expect(anchors[0]!.snap).toBe(false);
-    expect(CAR_PART_LAYOUTS.blitz.lightweight_body.preferGlb).toBe(false);
+    expect(CAR_PART_LAYOUTS.blitz.lightweight_body.preferGlb).not.toBe(false);
 
     const root = new Group();
     applyEquippedPartVisuals(root, "blitz", ["lightweight_body"]);
     const vent = root.getObjectByName(blitzPartObjectName("lightweight_body"));
     expect(vent).toBeTruthy();
     expect(root.getObjectByName(blitzPartObjectName("lightweight_body", 1))).toBeUndefined();
-    expect(vent!.position.y).toBeCloseTo(0.5, 2);
+    expect(vent!.position.y).toBeCloseTo(0.62, 2);
     expect(vent!.position.z).toBeGreaterThan(0.7);
   });
 
@@ -333,17 +334,11 @@ describe("Equipped-part visuals (all cars)", () => {
       "reinforced_frame",
       "lightweight_body",
     ] as const;
-    /** Temporary Blitz allowlist until Tripo kits rematch look sheets — no new entries. */
-    const allowPreferFalse = new Set(["blitz:lightweight_body"]);
     for (const car of CAR_IDS as CarId[]) {
       for (const part of silhouette) {
         const path = `public/models/parts/${car}-${part}.glb`;
         if (!existsSync(path)) continue;
         const key = `${car}:${part}`;
-        if (allowPreferFalse.has(key)) {
-          expect(CAR_PART_LAYOUTS[car][part].preferGlb, key).toBe(false);
-          continue;
-        }
         expect(CAR_PART_LAYOUTS[car][part].preferGlb, `${key} ships ${path}`).not.toBe(false);
       }
     }

@@ -180,7 +180,9 @@ function findSourceGlb(dir) {
     if (existsSync(p)) return p;
   }
   const stack = [dir];
-  let fallback = null;
+  /** Prefer newest nested model.glb when re-runs leave older Tripo folders. */
+  let best = null;
+  let bestMtime = -1;
   while (stack.length) {
     const cur = stack.pop();
     if (!existsSync(cur) || !statSync(cur).isDirectory()) continue;
@@ -192,11 +194,13 @@ function findSourceGlb(dir) {
         continue;
       }
       if (!name.endsWith(".glb")) continue;
-      if (name === "model.glb" && p.includes("texture")) return p;
-      if (!fallback) fallback = p;
+      if (st.mtimeMs >= bestMtime) {
+        best = p;
+        bestMtime = st.mtimeMs;
+      }
     }
   }
-  return fallback;
+  return best;
 }
 
 async function loadPrepared(path) {

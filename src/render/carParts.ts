@@ -146,8 +146,8 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
   ],
   // Sill armor between arches + rear V-cage on deck (Tripo).
   reinforced_frame: [{ x: 0, y: 0.02, z: -0.55, yaw: 0, scale: 1, snap: false }],
-  // Hood louvers — fixed Y (no roof snap).
-  lightweight_body: [{ x: 0, y: 0.5, z: 1.05, yaw: 0, scale: 1.05, snap: false }],
+  // Hood louvers — fixed Y (no roof snap); sit on deck above stock recess.
+  lightweight_body: [{ x: 0, y: 0.62, z: 1.12, yaw: 0, scale: 1.2, snap: false }],
 };
 
 type PartVisual = {
@@ -197,8 +197,7 @@ function layoutBlitz(): CarVisualLayout {
     lightweight_body: {
       anchors: BLITZ_PART_PLACEMENT.lightweight_body,
       build: () => buildLightweightBody("vents"),
-      // Temporary: Tripo kit is wrong silhouette; hood louvers procedural until rematched.
-      preferGlb: false,
+      preferGlb: true,
     },
     nitro_kit: {
       anchors: BLITZ_PART_PLACEMENT.nitro_kit,
