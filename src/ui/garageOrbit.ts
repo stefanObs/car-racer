@@ -9,8 +9,11 @@ export const GARAGE_ORBIT_SENSITIVITY = 0.0075;
 /** Full tumble allowed; keep pitch in ±π so Euler YXZ stays readable. */
 export const GARAGE_PITCH_LIMIT = Math.PI;
 
-/** Extra clearance above half-extent when hovering for inspect tumble. */
-export const GARAGE_INSPECT_LIFT_PADDING = 0.45;
+/**
+ * World Y for inspect hover — mid-frame under the garage camera (lookAt follows).
+ * Old half-extent clearance floated the car near the top of the view (~3.5+).
+ */
+export const GARAGE_INSPECT_TARGET_Y = 2.0;
 
 export type GarageOrbitAxes = { yaw: boolean; pitch: boolean };
 
@@ -32,9 +35,12 @@ export function garageOrbitAxesForPointer(
   return { yaw: false, pitch: false };
 }
 
-/** Fixed hover lift so the car clears the pad while tumbling around its center. */
-export function garageInspectLiftAmount(halfLen: number, halfHeight: number): number {
-  return Math.max(halfLen, halfHeight) + GARAGE_INSPECT_LIFT_PADDING;
+/** Raise the pivot to mid-screen height while inspect is held. */
+export function garageInspectLiftAmount(
+  sitCenterY: number,
+  targetY = GARAGE_INSPECT_TARGET_Y,
+): number {
+  return Math.max(0, targetY - sitCenterY);
 }
 
 /** Pivot Y: sit-center, or raised by a fixed lift while inspect is held. */

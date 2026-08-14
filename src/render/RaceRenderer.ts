@@ -189,9 +189,7 @@ export class RaceRenderer {
     visual.root.updateMatrixWorld(true);
     const bounds = new Box3().setFromObject(visual.root);
     const center = bounds.getCenter(new Vector3());
-    const halfLen = Math.max(0.6, (bounds.max.z - bounds.min.z) * 0.5);
-    const halfHeight = Math.max(0.35, (bounds.max.y - bounds.min.y) * 0.5);
-    this.garageInspectLift = garageInspectLiftAmount(halfLen, halfHeight);
+    this.garageInspectLift = garageInspectLiftAmount(center.y);
     this.garageSitCenterY = center.y;
     this.garageOrbitX = center.x;
     this.garageOrbitZ = center.z;
@@ -325,7 +323,10 @@ export class RaceRenderer {
     this.applyGarageOrbitPose();
     // Slightly right of the pad so left heroes and right stock both read
     this.camera.position.set(3.4, 2.7, 9.2);
-    this.camera.lookAt(1.5, 0.95, 0.2);
+    const lookY = this.garagePitchInspect
+      ? garageOrbitPivotY(this.garageSitCenterY, true, this.garageInspectLift)
+      : 0.95;
+    this.camera.lookAt(1.5, lookY, 0.2);
     this.renderer.render(this.scene, this.camera);
   }
 

@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.71 Garage inspect lift to mid-screen
+- Trigger: user — vertical pitch lift too high; should sit mid-screen
+- Decision: Inspect hover targets fixed mid-frame Y (~2) instead of half-extent clearance; camera lookAt follows pivot while held
+- CONCEPT §9 (anheben) unchanged in wording; framing fix only
+
 ### 2026-08-14 — v3.70 Race start countdown 3…2…1…GO
 - Trigger: user — countdown at race start, 4 seconds total
 - Decision: Hold field for 4 s with HUD phases 3 / 2 / 1 / GO (1 s each); cars frozen; SFX on phase change; then normal race

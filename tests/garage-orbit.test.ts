@@ -7,10 +7,10 @@ import {
   garageInspectLiftAmount,
   garageOrbitAxesForPointer,
   garageOrbitPivotY,
-  GARAGE_INSPECT_LIFT_PADDING,
   GARAGE_ORBIT_SENSITIVITY,
   GARAGE_PITCH_DEFAULT,
   GARAGE_PITCH_LIMIT,
+  GARAGE_INSPECT_TARGET_Y,
   GARAGE_YAW_DEFAULT,
 } from "../src/ui/garageOrbit";
 
@@ -31,11 +31,14 @@ describe("garage orbit yaw + pitch", () => {
     expect(garageOrbitAxesForPointer(0, "pen", 2)).toEqual({ yaw: true, pitch: true });
   });
 
-  it("uses a fixed center-pivot lift while inspect is held (not pitch-dependent)", () => {
-    const lift = garageInspectLiftAmount(1.5, 0.6);
-    expect(lift).toBeCloseTo(1.5 + GARAGE_INSPECT_LIFT_PADDING, 5);
-    expect(garageOrbitPivotY(1.0, false, lift)).toBeCloseTo(1.0, 5);
-    expect(garageOrbitPivotY(1.0, true, lift)).toBeCloseTo(1.0 + lift, 5);
+  it("lifts the inspect pivot to mid-screen target Y (not half-extent height)", () => {
+    const lift = garageInspectLiftAmount(1.52);
+    expect(lift).toBeCloseTo(GARAGE_INSPECT_TARGET_Y - 1.52, 5);
+    expect(lift).toBeLessThan(1);
+    expect(garageOrbitPivotY(1.52, false, lift)).toBeCloseTo(1.52, 5);
+    expect(garageOrbitPivotY(1.52, true, lift)).toBeCloseTo(GARAGE_INSPECT_TARGET_Y, 5);
+    expect(garageInspectLiftAmount(GARAGE_INSPECT_TARGET_Y)).toBe(0);
+    expect(garageInspectLiftAmount(2.5)).toBe(0);
   });
 
   it("documents pitch default as flat (inspect release snaps here)", () => {
