@@ -57,7 +57,7 @@ const FX_LOOK: Record<FxChunkId, FxLook> = {
 const templates = new Map<FxChunkId, Object3D>();
 let preloadPromise: Promise<void> | null = null;
 
-/** Load shared FX GLBs once. Optional — cars keep sphere FX until this succeeds. */
+/** Load shared FX GLBs once. Required before building cars (damage smoke / sparks / nitro). */
 export function preloadFxModels(): Promise<void> {
   if (preloadPromise) return preloadPromise;
   preloadPromise = (async () => {

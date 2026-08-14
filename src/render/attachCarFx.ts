@@ -57,17 +57,23 @@ export function makeFxGroups(
   return { smoke, sparks, nitro, shield };
 }
 
-/** Replace sphere placeholders with Tripo chunks when preloaded; otherwise keep spheres. */
+/** Ensure Tripo FX chunks are mounted (smoke / sparks / nitro). Strips any on-car shield mesh. */
 export function upgradeCarFx(visual: ComicCarParts): void {
   // Always strip on-car shield meshes (immunity has no chassis mesh).
   clearGroup(visual.shield);
   visual.shield.visible = false;
   visual.shield.name = "fx-shield";
 
-  if (visual.smoke.userData.tripoFx) return;
   if (!hasFxModels()) return;
   const rearZ = carMeshRearZ(visual.root);
   visual.root.userData.fxRearZ = rearZ;
+  if (visual.smoke.userData.tripoFx) {
+    // Already Tripo — refresh nitro sit to current hull rear.
+    visual.nitro.children.forEach((trail, i) => {
+      trail.position.set((i - 2) * 0.12, 0.34, rearZ - 0.2 - i * 0.28);
+    });
+    return;
+  }
   const fx = makeFxGroups(rearZ);
   clearGroup(visual.smoke);
   for (const child of [...fx.smoke.children]) visual.smoke.add(child);

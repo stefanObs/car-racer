@@ -2,14 +2,13 @@
  * Car visuals from preloaded GLBs (`public/models/cars/{id}.glb`).
  * Collision uses `CAR_MODELS.collisionRadius` (silhouette circle).
  */
-import { CircleGeometry, Group, Mesh, MeshBasicMaterial, SphereGeometry } from "three";
+import { CircleGeometry, Group, Mesh, MeshBasicMaterial } from "three";
 import { CARS, type CarId, type GearClass } from "../data/cars";
 import type { CarState } from "../sim/vehicle";
 import { applyEquippedPartVisuals } from "./carParts";
-import { comicToon } from "./comicMaterials";
+import { carMeshRearZ, makeFxGroups, upgradeCarFx } from "./attachCarFx";
 import { cloneGltfCar, hasGltfCar } from "./loadCarGltf";
-import { upgradeCarFx } from "./attachCarFx";
-import { ComicPalette } from "./palette";
+import { hasFxModels } from "./loadFxGltf";
 
 export type ComicCarParts = {
   root: Group;
@@ -31,6 +30,9 @@ export function buildComicCar(car: CarState): ComicCarParts {
   if (!hasGltfCar(id)) {
     throw new Error(`Car GLB not loaded: ${id}. Call preloadCarModels() before building cars.`);
   }
+  if (!hasFxModels()) {
+    throw new Error("FX GLBs not loaded. Call preloadFxModels() before building cars.");
+  }
   return buildFromGltf(car, id);
 }
 
@@ -50,7 +52,10 @@ function buildFromGltf(car: CarState, id: CarId): ComicCarParts {
   body.visible = false;
   root.add(body);
 
-  const fx = makeFxGroups(-1.7);
+  const rearZ = carMeshRearZ(root);
+  root.userData.fxRearZ = rearZ;
+  const fx = makeFxGroups(rearZ);
+  fx.smoke.userData.tripoFx = true;
   root.add(groundBlob(1.4), fx.smoke, fx.sparks, fx.nitro, fx.shield);
   const visual = { root, body, ...fx, lastHeading: car.heading };
   upgradeCarFx(visual);
@@ -66,41 +71,4 @@ function groundBlob(radius: number): Mesh {
   blob.rotation.x = -Math.PI / 2;
   blob.position.y = 0.03;
   return blob;
-}
-
-function makeFxGroups(nitroZ: number): Pick<ComicCarParts, "smoke" | "sparks" | "nitro" | "shield"> {
-  const smoke = new Group();
-  for (let i = 0; i < 6; i++) {
-    const puff = new Mesh(new SphereGeometry(0.22 + i * 0.05, 10, 10), comicToon(ComicPalette.smoke));
-    puff.visible = false;
-    smoke.add(puff);
-  }
-  const sparks = new Group();
-  for (let i = 0; i < 8; i++) {
-    const spark = new Mesh(
-      new SphereGeometry(0.07, 6, 6),
-      comicToon(ComicPalette.repairSpark, { emissive: ComicPalette.repairSpark }),
-    );
-    spark.visible = false;
-    sparks.add(spark);
-  }
-  const nitro = new Group();
-  for (let i = 0; i < 5; i++) {
-    const trail = new Mesh(
-      new SphereGeometry(0.16, 8, 8),
-      comicToon(i % 2 === 0 ? ComicPalette.nitroOrange : ComicPalette.nitroCyan, {
-        emissive: i % 2 === 0 ? ComicPalette.nitroOrange : ComicPalette.nitroCyan,
-        emissiveIntensity: 0.65,
-      }),
-    );
-    trail.scale.set(1, 0.7, 1.6 + i * 0.2);
-    trail.position.set((i - 2) * 0.12, 0.34, nitroZ - i * 0.28);
-    trail.visible = false;
-    nitro.add(trail);
-  }
-  // No on-car shield mesh — Tripo lap-shield is the overhead round counter only.
-  const shield = new Group();
-  shield.name = "fx-shield";
-  shield.visible = false;
-  return { smoke, sparks, nitro, shield };
 }

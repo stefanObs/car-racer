@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { Group } from "three";
 import { describe, expect, it } from "vitest";
 import {
@@ -10,17 +11,42 @@ import { makeFxGroups, upgradeCarFx } from "../src/render/attachCarFx";
 import type { ComicCarParts } from "../src/render/comicCarMesh";
 import type { FxChunkId } from "../src/render/loadFxGltf";
 
-function stubChunk(_id: FxChunkId): Group {
-  return new Group();
+function stubChunk(id: FxChunkId): Group {
+  const g = new Group();
+  g.name = `fx-${id}`;
+  return g;
 }
 
 describe("shared comic car FX", () => {
+  it("builds damage smoke and nitro from Tripo chunk ids (no procedural spheres in comicCarMesh)", () => {
+    const src = readFileSync("src/render/comicCarMesh.ts", "utf8");
+    expect(src).not.toMatch(/SphereGeometry/);
+    expect(src).toMatch(/makeFxGroups/);
+    expect(src).toMatch(/hasFxModels/);
+
+    const fx = makeFxGroups(-1.6, stubChunk);
+    expect(fx.smoke.children.map((c) => c.name)).toEqual([
+      "fx-smokePuff",
+      "fx-smokePuff",
+      "fx-smokeHeavy",
+      "fx-smokeHeavy",
+    ]);
+    expect(fx.sparks.children.every((c) => c.name === "fx-repairSpark")).toBe(true);
+    expect(fx.nitro.children.map((c) => c.name)).toEqual([
+      "fx-nitroOrange",
+      "fx-nitroCyan",
+      "fx-nitroOrange",
+      "fx-nitroCyan",
+      "fx-nitroOrange",
+    ]);
+    expect(fx.shield.children).toHaveLength(0);
+  });
+
   it("exposes smoke, sparks, nitro, and an empty Tripo-free shield shell", () => {
     const fx = makeFxGroups(-1.6, stubChunk);
     expect(fx.smoke.children).toHaveLength(4);
     expect(fx.sparks.children).toHaveLength(8);
     expect(fx.nitro.children).toHaveLength(5);
-    // Tripo lap-shield is overhead round counter only — not mounted in the cabin.
     expect(fx.shield.children).toHaveLength(0);
     expect(fx.smoke.children.every((c) => !c.visible)).toBe(true);
     expect(fx.sparks.children.every((c) => !c.visible)).toBe(true);
