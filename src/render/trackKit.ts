@@ -1,6 +1,7 @@
 import { Group, InstancedMesh, Mesh, Object3D } from "three";
 import { TRACK_PROPS, type TrackPropId } from "../data/trackModels";
 import { nearestOnTrack, sampleCenterline } from "../track/buildTrack";
+import { clearsAllRibbonAsphalt } from "../track/medianBarriers";
 import type { BuiltTrack } from "../track/types";
 import { cloneTrackProp, hasTrackProp, propHeightFor, tileAlongFor, trackPropTemplate } from "./loadTrackGltf";
 
@@ -15,8 +16,8 @@ export type WallPlacement = {
 
 /**
  * Tile tire modules on corners and concrete (+fence) on straights.
- * Push outward until nearest-track lateral is clear of asphalt (tight loops
- * can otherwise land a wall module inside another ribbon segment).
+ * Push outward until clear of *all* ribbon asphalts (tight loops can otherwise
+ * land a wall module inside another parallel segment).
  */
 export function planWallPlacements(track: BuiltTrack): WallPlacement[] {
   const tireAlong = tileAlongFor("tire-wall");
@@ -41,10 +42,16 @@ export function planWallPlacements(track: BuiltTrack): WallPlacement[] {
         x = s.position.x + -s.tangent.z * dist * side;
         z = s.position.z + s.tangent.x * dist * side;
         const near = nearestOnTrack(track, { x, z });
-        if (Math.abs(near.lateral) >= minClear) break;
+        if (
+          Math.abs(near.lateral) >= minClear &&
+          clearsAllRibbonAsphalt(track, x, z, { selfAlong: d, padding: 0.55 })
+        ) {
+          break;
+        }
         dist += 2.5;
       }
-      // Drop modules that still sit on asphalt after push (pathological pinch).
+      // Drop modules that still sit on any asphalt after push (pathological pinch).
+      if (!clearsAllRibbonAsphalt(track, x, z, { selfAlong: d, padding: 0.55 })) continue;
       const near = nearestOnTrack(track, { x, z });
       if (Math.abs(near.lateral) < track.asphaltHalfWidth + 0.5) continue;
       out.push({

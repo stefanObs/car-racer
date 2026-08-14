@@ -1,5 +1,6 @@
 import type { LevelDefinition, TrackSegment } from "./types";
 import { buildTrackFromLevel } from "./buildTrack";
+import { planMedianBarriers } from "./medianBarriers";
 import { trackSelfIntersects } from "./validateTrack";
 
 export type AdhocLength = "short" | "medium" | "long";
@@ -139,6 +140,16 @@ export function generateAdhocLevel(params: AdhocParams): LevelDefinition {
       { type: "curve_r", radius: 18, angleDeg: 90, width },
     ];
     level = wrapAdhoc(seed, theme, length, laps, grassWidth, width, segments);
+  }
+
+  const track = buildTrackFromLevel(level);
+  for (const m of planMedianBarriers(track)) {
+    level.obstacles.push({
+      type: m.type,
+      position: [m.x, m.z],
+      radius: m.type === "tire_stack" ? 1.45 : 1.25,
+      role: "median",
+    });
   }
 
   return level;
