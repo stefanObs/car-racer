@@ -6,24 +6,26 @@ import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { getBounds } from "@gltf-transform/functions";
 import { BLITZ_PART_MESH_IDS, BLITZ_PART_PLACEMENT } from "../src/render/carParts";
 
-const MATERIALS: Record<(typeof BLITZ_PART_MESH_IDS)[number], string> = {
+const MATERIALS: Partial<Record<(typeof BLITZ_PART_MESH_IDS)[number], string>> = {
   rear_spoiler: "Spoiler",
   big_engine: "Carbon",
   nitro_kit: "NitroKit",
   spike_bumper: "Spike",
   offroad_suspension: "Spring",
   reinforced_frame: "Grey",
-  lightweight_body: "Carbon",
 };
 
+/** Blitz no longer ships Leichtbau hood vents — other classes still load that id. */
+const BLITZ_SHIPPED_PART_IDS = BLITZ_PART_MESH_IDS.filter((id) => id !== "lightweight_body");
+
 describe("Blitz Tripo part add-on bakes", () => {
-  it.each([...BLITZ_PART_MESH_IDS])("ships a small %s GLB with authored material", async (id) => {
+  it.each([...BLITZ_SHIPPED_PART_IDS])("ships a small %s GLB with authored material", async (id) => {
     const path = resolve("public/models/parts", `blitz-${id}.glb`);
     expect(existsSync(path), path).toBe(true);
     expect(statSync(path).size).toBeGreaterThan(8_000);
     expect(statSync(path).size).toBeLessThan(2_000_000);
     const text = readFileSync(path).toString("latin1");
-    expect(text).toContain(MATERIALS[id]);
+    expect(text).toContain(MATERIALS[id]!);
 
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
     const b = getBounds(doc.getRoot().listScenes()[0]!);
@@ -36,6 +38,10 @@ describe("Blitz Tripo part add-on bakes", () => {
     expect(BLITZ_PART_PLACEMENT[id].length).toBeGreaterThan(0);
   });
 
+  it("does not ship Blitz Leichtbau hood-vent GLB", () => {
+    expect(existsSync(resolve("public/models/parts/blitz-lightweight_body.glb"))).toBe(false);
+    expect(BLITZ_PART_PLACEMENT.lightweight_body).toHaveLength(0);
+  });
   it("ships Großer Motor with comic red + black two-tone albedo", async () => {
     const sharp = (await import("sharp")).default;
     const doc = await new NodeIO()

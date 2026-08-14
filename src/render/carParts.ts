@@ -167,8 +167,8 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
       snap: false,
     },
   ],
-  // Hood louvers — fixed Y (no roof snap); sit on deck above stock recess.
-  lightweight_body: [{ x: 0, y: 0.62, z: 1.12, yaw: 0, scale: 1.2, snap: false }],
+  // Hood louvers — Blitz has no Leichtbau mesh (dropped from shop); keep empty anchors.
+  lightweight_body: [],
 };
 
 type PartVisual = {
@@ -222,7 +222,8 @@ function layoutBlitz(): CarVisualLayout {
     lightweight_body: {
       anchors: BLITZ_PART_PLACEMENT.lightweight_body,
       build: () => buildLightweightBody("vents"),
-      preferGlb: true,
+      // No Blitz hood-vent GLB — part dropped from shop via carSupportsPart.
+      preferGlb: false,
     },
     nitro_kit: {
       anchors: BLITZ_PART_PLACEMENT.nitro_kit,
@@ -596,6 +597,10 @@ export function ensureCarPartTemplates(carId: CarId): Promise<void> {
       BLITZ_PART_MESH_IDS.map(async (id) => {
         const key = partTemplateKey(carId, id);
         if (templates.has(key)) return;
+        // Skip when layout opts out of Tripo (e.g. Blitz Leichtbau — no mesh / shop).
+        if (id !== "offroad_suspension" && CAR_PART_LAYOUTS[carId][id].preferGlb === false) {
+          return;
+        }
         try {
           const gltf = await loader.loadAsync(partGlbUrl(carId, id));
           const root = gltf.scene;

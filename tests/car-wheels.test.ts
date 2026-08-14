@@ -51,6 +51,16 @@ describe("parts catalog (per-car)", () => {
       expect(partsForCar(id)).toContain("big_wheels");
     }
   });
+
+  it("drops Leichtbau-Karosserie on Blitz; keeps it on other classes", () => {
+    expect(carSupportsPart("blitz", "lightweight_body")).toBe(false);
+    expect(partsForCar("blitz")).not.toContain("lightweight_body");
+    for (const id of CAR_IDS as CarId[]) {
+      if (id === "blitz") continue;
+      expect(carSupportsPart(id, "lightweight_body")).toBe(true);
+      expect(partsForCar(id)).toContain("lightweight_body");
+    }
+  });
 });
 
 describe("stock wheels + Große Räder", () => {

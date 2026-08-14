@@ -14,6 +14,10 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — Blitz drops Leichtbau mesh (v0.3.163)
+- Trigger: user — remove lightweight body art from Blitz
+- Decision: No Blitz hood-vent GLB; empty mounts; `carSupportsPart("blitz","lightweight_body")` false (same pattern as Bessere Bremsen). Other classes keep Tripo Leichtbau kits.
+
 ### 2026-08-14 — no on-car shield mesh (v0.3.159 / CONCEPT v3.84)
 - Trigger: user — the mesh in the car should not exist
 - Decision: Remove procedural cyan bubble from `fx-shield`; never show on-car shield meshes. Immunity = Style-Popup + damage block; Tripo plaque only overhead round flash.

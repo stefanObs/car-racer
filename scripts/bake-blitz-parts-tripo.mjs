@@ -54,7 +54,6 @@ const JOBS = [
     // Keep bottom ~28% of Tripo height (rocker plates); discard roll-cage tubes.
     dropAboveYFrac: 0.28,
   },
-  { id: "lightweight_body", material: "Carbon", toward: "+z", targetSpan: 0.85, maxH: 0.24, simplify: 0.4 },
 ];
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);

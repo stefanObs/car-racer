@@ -100,22 +100,14 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(mounted!.position.y).toBeCloseTo(scoop.y, 2);
   });
 
-  it("places Blitz Leichtbau louvers on the hood (not cabin roof triples)", () => {
-    const anchors = BLITZ_PART_PLACEMENT.lightweight_body;
-    expect(anchors).toHaveLength(1);
-    expect(anchors[0]!.z).toBeGreaterThan(0.7);
-    expect(anchors[0]!.z).toBeLessThan(1.25);
-    expect(anchors[0]!.y).toBeGreaterThan(0.55);
-    expect(anchors[0]!.snap).toBe(false);
-    expect(CAR_PART_LAYOUTS.blitz.lightweight_body.preferGlb).not.toBe(false);
+  it("drops Blitz Leichtbau from shop and mounts no hood-vent mesh", () => {
+    expect(CAR_PART_LAYOUTS.blitz.lightweight_body.preferGlb).toBe(false);
+    expect(BLITZ_PART_PLACEMENT.lightweight_body).toHaveLength(0);
+    expect(existsSync("public/models/parts/blitz-lightweight_body.glb")).toBe(false);
 
     const root = new Group();
     applyEquippedPartVisuals(root, "blitz", ["lightweight_body"]);
-    const vent = root.getObjectByName(blitzPartObjectName("lightweight_body"));
-    expect(vent).toBeTruthy();
-    expect(root.getObjectByName(blitzPartObjectName("lightweight_body", 1))).toBeUndefined();
-    expect(vent!.position.y).toBeCloseTo(0.62, 2);
-    expect(vent!.position.z).toBeGreaterThan(0.7);
+    expect(root.getObjectByName(blitzPartObjectName("lightweight_body"))).toBeUndefined();
   });
 
   it("paints Blitz spike bumper bar with body color and keeps chrome tips", () => {
