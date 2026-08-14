@@ -30,7 +30,7 @@ import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
-import { GARAGE_IDLE_WHEEL_SPEED, spinCarWheels } from "./carWheels";
+import { spinCarWheels } from "./carWheels";
 import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
 import { carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
@@ -80,7 +80,6 @@ export class RaceRenderer {
   private celebrateSeed = -1;
   private idleGroup = new Group();
   private idleCar: Group | null = null;
-  private idleWheels: ComicCarParts["wheels"] = [];
   /** Pivot at car geometric center — yaw/pitch rotate here so tumble stays on the spot. */
   private idleOrbit: Group | null = null;
   private idleLookKey = "";
@@ -158,7 +157,6 @@ export class RaceRenderer {
     this.idleGroup = buildGarageBay();
     this.idleCar = null;
     this.idleOrbit = null;
-    this.idleWheels = [];
 
     const paint = look?.paint ?? "#E03131";
     const sticker = look?.sticker ?? "none";
@@ -208,7 +206,6 @@ export class RaceRenderer {
     const pivot = mountGarageOrbitPivot(this.idleGroup, visual.root, center);
     this.idleOrbit = pivot;
     this.idleCar = visual.root;
-    this.idleWheels = visual.wheels ?? [];
     this.applyGarageOrbitPose();
     // Re-plant after attach + default yaw so tires meet the deck exactly.
     pivot.position.y += garagePadContactSnapDelta(visual.root, deckY);
@@ -334,7 +331,6 @@ export class RaceRenderer {
     this.fxTime += 1 / 60;
     this.idleGroup.visible = true;
     this.applyGarageOrbitPose();
-    spinCarWheels(this.idleWheels, GARAGE_IDLE_WHEEL_SPEED, 1 / 60, 0);
     // Slightly right of the pad so left heroes and right stock both read
     this.camera.position.set(3.4, 2.7, 9.2);
     const lookY = this.garagePitchInspect

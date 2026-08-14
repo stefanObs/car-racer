@@ -71,6 +71,14 @@ export function bisonBigWheelHubDrop(scale = BISON_BIG_WHEEL_SCALE): number {
   if (scale <= 1) return 0;
   return BISON_STOCK_WHEEL_RADIUS * (scale - 1) + BISON_BIG_WHEEL_ARCH_CLEARANCE;
 }
+
+/** Käferkraft Tripo StockWheel_* (axle along local Z; radius from bake AABB). */
+export const KAEFERKRAFT_STOCK_WHEEL_RADIUS = 0.41;
+export const KAEFERKRAFT_BIG_WHEEL_SCALE = 1.3;
+export function kaeferkraftBigWheelHubDrop(scale = KAEFERKRAFT_BIG_WHEEL_SCALE): number {
+  if (scale <= 1) return 0;
+  return KAEFERKRAFT_STOCK_WHEEL_RADIUS * (scale - 1);
+}
 export const SUSPENSION_LIFT = 0.06;
 export const BLITZ_SUSPENSION_LIFT = SUSPENSION_LIFT;
 
@@ -319,17 +327,15 @@ function layoutBison(): CarVisualLayout {
 /** Child local: nose −X, width ±Z (parent yaw π/2 → world +Z). Mesh ~ x±1.68 y≤1.72. */
 function layoutKaeferkraft(): CarVisualLayout {
   // Hull child yaw π/2; mesh local nose −X, width ±Z. Cage roof ~y1.65 near x0.3–0.6.
+  const wheelLift =
+    kaeferkraftBigWheelHubDrop() + KAEFERKRAFT_STOCK_WHEEL_RADIUS * (KAEFERKRAFT_BIG_WHEEL_SCALE - 1);
   return {
-    wheelLift: 0.14,
+    wheelLift,
     suspensionLift: 0,
     brakes: [],
     springs: [],
-    wheelHints: [
-      { x: -1.22, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
-      { x: -1.22, y: 0.5, z: -0.82, yaw: Math.PI / 2, scale: 1, snap: false },
-      { x: 1.18, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
-      { x: 1.18, y: 0.5, z: -0.82, yaw: Math.PI / 2, scale: 1, snap: false },
-    ],
+    // Große Räder scales Tripo StockWheel_* — no procedural overlays.
+    wheelHints: [],
     big_engine: {
       // Look sheet panel 1: fat block on open rear deck; scoop clears top cage tubes.
       anchors: [{ x: 1.28, y: 0.95, z: 0, yaw: 0, scale: 1.35, scaleY: 1.5, snap: false }],
@@ -1111,7 +1117,7 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
   if (usesScaledStockWheels(carId)) {
     applyStockWheelVisibility(root, false);
     const scale = bigWheelScaleFor(carId, equippedParts);
-    const hubDrop = bisonHubDropFor(equippedParts);
+    const hubDrop = stockWheelHubDropFor(carId, equippedParts);
     applyStockWheelScale(root, scale, hubDrop);
   } else {
     applyStockWheelScale(root, 1, 0);
@@ -1120,22 +1126,25 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
 }
 
 function usesScaledStockWheels(carId: CarId): boolean {
-  return carId === "bison";
+  return carId === "bison" || carId === "kaeferkraft";
 }
 
-/** Bison Große Räder drops/scales StockWheel_* (Federung does not enlarge tires). */
+/** Bison / Käferkraft Große Räder scales Tripo StockWheel_* (no procedural stand-ins). */
 export function bisonLowersStockWheels(equippedParts: readonly PartId[]): boolean {
   return equippedParts.includes("big_wheels");
 }
 
-function bisonHubDropFor(equippedParts: readonly PartId[]): number {
-  if (!bisonLowersStockWheels(equippedParts)) return 0;
-  return bisonBigWheelHubDrop(BISON_BIG_WHEEL_SCALE);
+function stockWheelHubDropFor(carId: CarId, equippedParts: readonly PartId[]): number {
+  if (!equippedParts.includes("big_wheels")) return 0;
+  if (carId === "bison") return bisonBigWheelHubDrop(BISON_BIG_WHEEL_SCALE);
+  if (carId === "kaeferkraft") return kaeferkraftBigWheelHubDrop(KAEFERKRAFT_BIG_WHEEL_SCALE);
+  return 0;
 }
 
 function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): number {
-  if (carId !== "bison") return 1;
-  if (bisonLowersStockWheels(equippedParts)) return BISON_BIG_WHEEL_SCALE;
+  if (!equippedParts.includes("big_wheels")) return 1;
+  if (carId === "bison") return BISON_BIG_WHEEL_SCALE;
+  if (carId === "kaeferkraft") return KAEFERKRAFT_BIG_WHEEL_SCALE;
   return 1;
 }
 
@@ -1149,10 +1158,7 @@ function upgradeWheelFor(carId: CarId) {
   if (carId === "donnerbuechse") {
     return () => buildUpgradeWheel({ radius: 0.44, width: 0.36 });
   }
-  if (carId === "kaeferkraft") {
-    return () => buildUpgradeWheel({ radius: 0.42, width: 0.34 });
-  }
-  // bison uses scaled StockWheel_* (see applyStockPartVisibility).
+  // bison / kaeferkraft use scaled StockWheel_* (see applyStockPartVisibility).
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 

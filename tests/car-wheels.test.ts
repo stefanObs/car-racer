@@ -15,6 +15,9 @@ import {
   BLITZ_WHEEL_LIFT,
   CAR_PART_LAYOUTS,
   carStanceLift,
+  KAEFERKRAFT_BIG_WHEEL_SCALE,
+  KAEFERKRAFT_STOCK_WHEEL_RADIUS,
+  kaeferkraftBigWheelHubDrop,
   partGlbUrl,
   registerCarPartTemplate,
 } from "../src/render/carParts";
@@ -24,6 +27,8 @@ import {
   mountCarWheels,
   spinCarWheels,
   steerFromHeadingDelta,
+  steerYawFromInput,
+  wheelMetrics,
 } from "../src/render/carWheels";
 import { collectWheelUvTriangles, shouldApplyGaragePaint } from "../src/render/loadCarGltf";
 import { groundContactMinY, stockWheelName } from "../src/render/stockWheels";
@@ -159,6 +164,16 @@ describe("stock wheels + Große Räder", () => {
     const cage = doc.getRoot().listMeshes().find((m) => m.getName() === "StockCage");
     expect(cage).toBeTruthy();
     expect(cage!.listPrimitives().every((p) => p.getMaterial()?.getName() === "StockCage")).toBe(true);
+    // Same Tripo body atlas as pre-segmentation (not flat grey).
+    const bodyPaint = doc.getRoot().listMaterials().find((m) => m.getName() === "BodyPaint");
+    const bodyTex = bodyPaint?.getBaseColorTexture();
+    expect(bodyTex).toBeTruthy();
+    for (const prim of cage!.listPrimitives()) {
+      const mat = prim.getMaterial();
+      expect(mat?.getBaseColorTexture(), "StockCage atlas").toBeTruthy();
+      expect(prim.getAttribute("TEXCOORD_0"), "StockCage UV").toBeTruthy();
+      expect(mat?.getBaseColorTexture()?.getImage()?.byteLength).toBe(bodyTex!.getImage()!.byteLength);
+    }
 
     // Front-right roof rail must remount (was filtered as "too thick" → visible hole).
     let fr = 0;
@@ -197,9 +212,9 @@ describe("stock wheels + Große Räder", () => {
     }
   });
 
-  it("Große Räder mounts procedural UpgradeTire overlays except Bison", () => {
+  it("Große Räder mounts procedural UpgradeTire overlays except Bison/Käferkraft", () => {
     for (const id of CAR_IDS as CarId[]) {
-      if (id === "bison") continue;
+      if (id === "bison" || id === "kaeferkraft") continue;
       const hints = CAR_PART_LAYOUTS[id].wheelHints;
       expect(hints.length, id).toBe(4);
       const root = new Group();
@@ -233,6 +248,26 @@ describe("stock wheels + Große Räder", () => {
       BISON_STOCK_WHEEL_RADIUS - bisonBigWheelHubDrop(),
     );
     applyEquippedPartVisuals(root, "bison", ["big_wheels"]);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
+  });
+
+  it("Käferkraft Große Räder scales StockWheel_* instead of procedural tires", () => {
+    expect(CAR_PART_LAYOUTS.kaeferkraft.wheelHints).toHaveLength(0);
+    const root = new Group();
+    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
+      const stock = new Mesh(new BoxGeometry(0.35, 0.8, 0.8), new MeshBasicMaterial());
+      stock.name = stockWheelName(corner);
+      stock.userData.isStockWheel = true;
+      stock.position.y = KAEFERKRAFT_STOCK_WHEEL_RADIUS;
+      root.add(stock);
+    }
+    applyStockPartVisibility(root, "kaeferkraft", ["big_wheels"]);
+    expect(root.children[0]!.scale.x).toBeCloseTo(KAEFERKRAFT_BIG_WHEEL_SCALE);
+    expect(root.children[0]!.position.y).toBeCloseTo(
+      KAEFERKRAFT_STOCK_WHEEL_RADIUS - kaeferkraftBigWheelHubDrop(),
+    );
+    applyEquippedPartVisuals(root, "kaeferkraft", ["big_wheels"]);
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
     expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
   });
@@ -380,13 +415,31 @@ describe("StockWheel spin + front steer", () => {
     expect(wheels[0]!.spinner.rotation.x).toBeLessThan(a2);
   });
 
-  it("yaws only the front pair from steer", () => {
+  it("yaws only the front pair opposite the stick (visual fix)", () => {
     const wheels = mountCarWheels(stockWheelCar());
     spinCarWheels(wheels, 8, 1 / 60, 1);
+    expect(steerYawFromInput(1)).toBeCloseTo(-MAX_STEER_YAW);
     for (const w of wheels) {
-      if (w.isFront) expect(Math.abs(w.steer.rotation.y)).toBeCloseTo(MAX_STEER_YAW);
+      if (w.isFront) expect(w.steer.rotation.y).toBeCloseTo(-MAX_STEER_YAW);
       else expect(w.steer.rotation.y).toBe(0);
     }
+  });
+
+  it("picks the thinnest AABB axis as the roll axle (Käferkraft-style Z)", () => {
+    const mesh = new Mesh(new BoxGeometry(0.8, 0.8, 0.3), new MeshBasicMaterial({ name: "Tire" }));
+    expect(wheelMetrics(mesh).axis).toBe(2);
+
+    const full = stockWheelCar();
+    const fl = full.getObjectByName("StockWheel_FL") as Mesh;
+    fl.geometry.dispose();
+    fl.geometry = new BoxGeometry(0.8, 0.8, 0.28);
+    const mounts = mountCarWheels(full);
+    const frontLeft = mounts.find((w) => w.spinner.name === "WheelSpin_FL")!;
+    expect(frontLeft.axis).toBe(2);
+    const z0 = frontLeft.spinner.rotation.z;
+    spinCarWheels(mounts, 10, 1 / 60);
+    expect(frontLeft.spinner.rotation.z).toBeGreaterThan(z0);
+    expect(frontLeft.spinner.rotation.x).toBe(0);
   });
 
   it("maps heading delta to a clamped steer", () => {

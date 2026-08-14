@@ -1,6 +1,6 @@
 /**
- * Spin + front-steer for authored StockWheel_* (Bison, Käferkraft).
- * Geometry is thin along local X (axle); roll = spinner.rotation.x, steer = yaw on front only.
+ * Spin + front-steer for authored StockWheel_* (Bison, Käferkraft, …).
+ * Axle = thinnest local AABB axis (Bison X, Käferkraft Z after bake).
  */
 import { Box3, Group, Object3D, Vector3 } from "three";
 import {
@@ -9,13 +9,17 @@ import {
   type WheelCorner,
 } from "./stockWheels";
 
+export type SpinAxis = 0 | 1 | 2;
+
 export type WheelMount = {
   /** Yaw pivot — front axle turns with steer. */
   steer: Group;
-  /** Roll spinner (local X = axle). */
+  /** Roll spinner (local axle). */
   spinner: Group;
   radius: number;
   isFront: boolean;
+  /** Local axle: 0=x, 1=y, 2=z. */
+  axis: SpinAxis;
 };
 
 const _size = new Vector3();
@@ -24,8 +28,13 @@ const _box = new Box3();
 /** Max front-wheel yaw (rad) at full stick. */
 export const MAX_STEER_YAW = 0.42;
 
-/** Gentle garage showcase roll (m/s equivalent). */
-export const GARAGE_IDLE_WHEEL_SPEED = 2.6;
+/**
+ * Visual steer vs stick: positive stick (left) yaws wheels the other way in
+ * Three.js Y-up, so we negate.
+ */
+export function steerYawFromInput(steer: number): number {
+  return Math.max(-MAX_STEER_YAW, Math.min(MAX_STEER_YAW, -steer * MAX_STEER_YAW));
+}
 
 export function mountCarWheels(carRoot: Object3D): WheelMount[] {
   const existing = collectSpinMounts(carRoot);
@@ -45,8 +54,8 @@ export function mountCarWheels(carRoot: Object3D): WheelMount[] {
     const parent = wheel.parent;
     if (!parent) continue;
 
-    const radius = radiusOf(wheel);
-    const { steer, spinner } = makeWheelRig(corner, wheel.position, isFront, radius);
+    const { axis, radius } = wheelMetrics(wheel);
+    const { steer, spinner } = makeWheelRig(corner, wheel.position, isFront, radius, axis);
 
     parent.add(steer);
     // Bake hub (incl. any Große-Räder drop) into the steer pivot; mesh sits at local origin.
@@ -55,7 +64,7 @@ export function mountCarWheels(carRoot: Object3D): WheelMount[] {
     wheel.position.set(0, 0, 0);
     delete wheel.userData.stockWheelBaseY;
 
-    mounts.push({ steer, spinner, radius, isFront });
+    mounts.push({ steer, spinner, radius, isFront, axis });
   }
 
   if (mounts.length !== 4) return [];
@@ -64,9 +73,12 @@ export function mountCarWheels(carRoot: Object3D): WheelMount[] {
 }
 
 export function spinCarWheels(wheels: WheelMount[], speed: number, dt: number, steer = 0): void {
-  const yaw = Math.max(-MAX_STEER_YAW, Math.min(MAX_STEER_YAW, steer * MAX_STEER_YAW));
+  const yaw = steerYawFromInput(steer);
   for (const w of wheels) {
-    w.spinner.rotation.x += (speed * dt) / Math.max(w.radius, 0.08);
+    const dAng = (speed * dt) / Math.max(w.radius, 0.08);
+    if (w.axis === 0) w.spinner.rotation.x += dAng;
+    else if (w.axis === 1) w.spinner.rotation.y += dAng;
+    else w.spinner.rotation.z += dAng;
     w.steer.rotation.y = w.isFront ? yaw : 0;
   }
 }
@@ -87,11 +99,30 @@ export function collectSpinMounts(root: Object3D): WheelMount[] {
     if (!steer) return;
     const corner = obj.name.slice("WheelSpin_".length) as WheelCorner;
     const isFront = corner === "FL" || corner === "FR";
+    const axis =
+      typeof obj.userData.spinAxis === "number" ? (obj.userData.spinAxis as SpinAxis) : wheelMetrics(obj).axis;
     const radius =
-      typeof obj.userData.wheelRadius === "number" ? obj.userData.wheelRadius : radiusOf(obj);
-    mounts.push({ steer, spinner: obj as Group, radius, isFront });
+      typeof obj.userData.wheelRadius === "number" ? obj.userData.wheelRadius : wheelMetrics(obj).radius;
+    mounts.push({ steer, spinner: obj as Group, radius, isFront, axis });
   });
   return mounts;
+}
+
+/** Thinnest local AABB axis = axle; radius = half the larger of the other two. */
+export function wheelMetrics(obj: Object3D): { axis: SpinAxis; radius: number } {
+  _box.setFromObject(obj);
+  _box.getSize(_size);
+  const x = Math.max(_size.x, 1e-4);
+  const y = Math.max(_size.y, 1e-4);
+  const z = Math.max(_size.z, 1e-4);
+  let axis: SpinAxis = 0;
+  if (x <= y && x <= z) axis = 0;
+  else if (y <= x && y <= z) axis = 1;
+  else axis = 2;
+  const a = axis === 0 ? y : x;
+  const b = axis === 2 ? y : z;
+  const radius = Math.max(a, b, 0.16) * 0.5;
+  return { axis, radius };
 }
 
 function collectStockWheelRoots(root: Object3D): Object3D[] {
@@ -116,6 +147,7 @@ function makeWheelRig(
   local: { x: number; y: number; z: number },
   isFront: boolean,
   radius: number,
+  axis: SpinAxis,
 ): { steer: Group; spinner: Group } {
   const steer = new Group();
   steer.name = `WheelSteer_${corner}`;
@@ -125,19 +157,13 @@ function makeWheelRig(
   const spinner = new Group();
   spinner.name = `WheelSpin_${corner}`;
   spinner.userData.wheelRadius = radius;
+  spinner.userData.spinAxis = axis;
   spinner.userData.isFront = isFront;
   spinner.userData.isWheel = true;
   spinner.userData.spinWheel = true;
 
   steer.add(spinner);
   return { steer, spinner };
-}
-
-function radiusOf(obj: Object3D): number {
-  if (typeof obj.userData.wheelRadius === "number") return obj.userData.wheelRadius;
-  _box.setFromObject(obj);
-  _box.getSize(_size);
-  return Math.max(_size.y, _size.z, 0.16) * 0.5;
 }
 
 function namedAncestor(obj: Object3D, prefix: string): Group | null {

@@ -126,7 +126,8 @@ Exact CLI flags evolve — use `tripo mesh segment --help` / Tripo docs; park ou
 
 - `convertToComicMaterial`: keep Tire `map`; `NearestFilter` + no mipmaps; unmapped rubber → `ComicPalette.tire`.
 - `hasAuthoredStockWheels` → `collectWheelUvTriangles` returns **empty** (Tire UV space ≠ BodyPaint).
-- Bison Große Räder: `usesScaledStockWheels` + scale **root** `StockWheel_*` only (`BISON_BIG_WHEEL_SCALE` 1.2) + hub drop `radius×(scale−1)` (no procedural overlays; never scale GLTF `…_1` children).
+- Bison / Käferkraft Große Räder: `usesScaledStockWheels` + scale **root** `StockWheel_*` only + hub drop `radius×(scale−1)` so tops stay on the stock fender line (no procedural overlays; never scale GLTF `…_1` children).
+- Wheel roll: axle = thinnest local AABB axis (Bison X, Käferkraft Z); front yaw negated vs stick; no garage idle spin.
 - Garage paint: `bakeAuthoredGreenToPaint` on BodyPaint only; verify swatches on **owned** Bison.
 
 ### Failure modes (segment / wheels)
