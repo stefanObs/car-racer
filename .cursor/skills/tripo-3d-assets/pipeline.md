@@ -134,6 +134,7 @@ Exact CLI flags evolve — use `tripo mesh segment --help` / Tripo docs; park ou
 | Symptom | Likely cause | Fix |
 |---------|--------------|-----|
 | Grey clay wheels | Map stripped / flat toon / UV on rubber ring only | Keep map; face disks + comic albedo; dark `ComicPalette.tire` |
+| Front hubcaps warped / oval | Segment tire filled the hub; annulus UVs mapped spoke art onto rubber | Carve hub hole (`filterFacesOutsideHub`); tread-only annulus (`albedoR0≥0.58`); hub art on face disks only |
 | Wheels explode into fenders | Scale applied to GLTF `StockWheel_*_1` children too | Scale **root** `StockWheel_FL|FR|RL|RR` only (`isStockWheelRoot`) |
 | Scaled tires clip arch | Hub stays put while radius grows up | Hub drop `radius×(scale−1)+clearance`; stance `wheelLift` matches sink |
 | Body mottled / paint “broken” | StockWheel UVs in paint-skip mask | `collectWheelUvTriangles` empty when StockWheel_* present |

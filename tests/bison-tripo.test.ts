@@ -93,4 +93,31 @@ describe("Bison Tripo arcade bake", () => {
       "StockWheel_RR",
     ]);
   });
+
+  it("keeps a hub hole on every StockWheel so face disks are not warped by rubber", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/bison.glb"),
+    );
+    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
+      const mesh = doc.getRoot().listMeshes().find((m) => m.getName() === `StockWheel_${corner}`);
+      expect(mesh, corner).toBeTruthy();
+      // Rubber = non-face prim (face disks have 33 UV verts).
+      const rubber = mesh!
+        .listPrimitives()
+        .find((p) => (p.getAttribute("TEXCOORD_0")?.getCount() ?? 0) !== 33);
+      expect(rubber, corner).toBeTruthy();
+      const pos = rubber!.getAttribute("POSITION")!;
+      let rMin = Infinity;
+      let rMax = 0;
+      for (let i = 0; i < pos.getCount(); i++) {
+        const v = pos.getElement(i, []);
+        const r = Math.hypot(v[1]!, v[2]!);
+        if (r < 1e-5) continue;
+        rMin = Math.min(rMin, r);
+        rMax = Math.max(rMax, r);
+      }
+      // Filled front segments used to have rMin≈0 and annulus-warped hubcaps.
+      expect(rMin / rMax, corner).toBeGreaterThan(0.35);
+    }
+  });
 });

@@ -216,7 +216,8 @@ function recenterMesh(mesh, offset) {
 }
 
 /**
- * Annulus disk UVs so Tripo rubber torii sample the comic tread ring (and some rim).
+ * Annulus disk UVs so Tripo rubber torii sample the comic tread ring only.
+ * Hub/rim art lives on the flat face disks — mapping it onto the torus warps.
  */
 function setAnnulusDiskUvs(doc, prim, { mirrorU = false } = {}) {
   const pos = prim.getAttribute("POSITION");
@@ -234,7 +235,8 @@ function setAnnulusDiskUvs(doc, prim, { mirrorU = false } = {}) {
     rMin = 0;
     rMax = Math.max(rMax, 1e-3);
   }
-  const albedoR0 = 0.35;
+  // Stay on the tread band of bison-tire-albedo.png (avoid hub/spoke disk).
+  const albedoR0 = 0.58;
   const albedoR1 = 0.98;
   const uvs = new Float32Array(pos.getCount() * 2);
   for (let i = 0; i < pos.getCount(); i++) {
@@ -255,6 +257,42 @@ function setAnnulusDiskUvs(doc, prim, { mirrorU = false } = {}) {
     "TEXCOORD_0",
     doc.createAccessor().setType("VEC2").setArray(uvs).setBuffer(buffer),
   );
+}
+
+/**
+ * Drop triangles inside the hub radius so filled front segments get a hole for
+ * the comic face disk (otherwise annulus UVs warp hubcap art onto rubber).
+ */
+function filterFacesOutsideHub(faces, pos, holeFrac = 0.42) {
+  let rMax = 0;
+  for (let i = 0; i < pos.getCount(); i++) {
+    const v = pos.getElement(i, []);
+    rMax = Math.max(rMax, Math.hypot(v[1], v[2]));
+  }
+  const holeR = rMax * holeFrac;
+  if (!(holeR > 0.02)) return { faces, dropped: 0, holeR: 0 };
+  const kept = [];
+  let dropped = 0;
+  for (const tri of faces) {
+    const [i0, i1, i2] = tri;
+    const a = pos.getElement(i0, []);
+    const b = pos.getElement(i1, []);
+    const c = pos.getElement(i2, []);
+    const ra = Math.hypot(a[1], a[2]);
+    const rb = Math.hypot(b[1], b[2]);
+    const rc = Math.hypot(c[1], c[2]);
+    // Any hub vertex keeps warped annulus art — drop the whole triangle.
+    if (Math.min(ra, rb, rc) < holeR) {
+      dropped++;
+      continue;
+    }
+    kept.push(tri);
+  }
+  // Keep original if carve would destroy the tire.
+  if (kept.length < Math.max(12, faces.length * 0.35)) {
+    return { faces, dropped: 0, holeR };
+  }
+  return { faces: kept, dropped, holeR };
 }
 
 /**
@@ -475,6 +513,7 @@ for (const tire of tires) {
   const wheelMesh = body.createMesh(`StockWheel_${tire.corner}`);
   const buffer = body.getRoot().listBuffers()[0];
   const mirrorU = tire.corner === "FL" || tire.corner === "RL";
+  let hubDropped = 0;
   for (const prim of tire.mesh.listPrimitives()) {
     const pos = prim.getAttribute("POSITION");
     const nrm = prim.getAttribute("NORMAL");
@@ -487,7 +526,9 @@ for (const tire of tires) {
     } else {
       for (let t = 0; t < pos.getCount() / 3; t++) faces.push([t * 3, t * 3 + 1, t * 3 + 2]);
     }
-    const p = remappedPrimitive(body, buffer, faces, pos, nrm, null, faceMat);
+    const carved = filterFacesOutsideHub(faces, pos, 0.42);
+    hubDropped += carved.dropped;
+    const p = remappedPrimitive(body, buffer, carved.faces, pos, nrm, null, faceMat);
     setAnnulusDiskUvs(body, p, { mirrorU });
     wheelMesh.addPrimitive(p);
   }
@@ -514,6 +555,7 @@ for (const tire of tires) {
     faces: 2,
     faceR: +faceR.toFixed(3),
     mirrorU,
+    hubDropped,
   };
 }
 
