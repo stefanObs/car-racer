@@ -61,7 +61,7 @@ describe("mvp core", () => {
     const last = catchUpMultipliers(6, 6);
     expect(last.accel).toBeGreaterThan(lead.accel);
     expect(last.topSpeed).toBeGreaterThan(lead.topSpeed);
-    expect(last.topSpeed).toBeLessThan(1.1);
+    expect(last.topSpeed).toBeLessThan(1.2);
   });
 
   it("applies part synergies for street glue", () => {

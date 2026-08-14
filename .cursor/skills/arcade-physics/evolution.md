@@ -7,6 +7,11 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-14 — v0.3.172 stronger trailing catch-up
+- Trigger: user — cars behind P1 a bit faster so they can keep up
+- Decision: `catchUpMultipliers` last-of-6 accel 1.18→1.30, topSpeed 1.06→1.12 (still linear by place; leader unchanged; ceiling < magnet)
+- Tests: `tests/catchup.test.ts` + mvp catch-up bound
+
 ### 2026-08-14 — v0.3.150 Auto↔Auto-Bump impl (CONCEPT v3.75)
 - Trigger: user — implement improved ram concept
 - Decision: `contactHitZone` / `contactDirectionClass` / aggressor + `resolveContact` scales impulse by dir×zone, Heck forward shove, Flanke yaw kick, Spike stronger on aggressor nose; soft contacts still separation-only
