@@ -9,6 +9,7 @@ export function surfaceAt(
   z: number,
   grassMitigation: number,
   suspension: number,
+  preferAlong?: number,
 ): {
   zone: SurfaceZone;
   speedFactor: number;
@@ -19,7 +20,11 @@ export function surfaceAt(
   distanceAlong: number;
   tangent: { x: number; z: number };
 } {
-  const near = nearestOnTrack(track, { x, z });
+  const near = nearestOnTrack(
+    track,
+    { x, z },
+    preferAlong === undefined ? undefined : { preferAlong },
+  );
   const absLat = Math.abs(near.lateral);
   const asphaltEdge = track.asphaltHalfWidth;
   const grassEdge = asphaltEdge + track.grassWidth;

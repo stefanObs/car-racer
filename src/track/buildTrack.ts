@@ -138,12 +138,15 @@ export function sampleCenterline(
 export function nearestOnTrack(
   track: BuiltTrack,
   point: Vec2,
+  opts?: { preferAlong?: number; alongWeight?: number },
 ): { distanceAlong: number; lateral: number; tangent: Vec2; wall: "tire" | "concrete" } {
-  let bestDist = Infinity;
+  let bestScore = Infinity;
   let bestAlong = 0;
   let bestLateral = 0;
   let bestTangent = { x: 1, z: 0 };
   let bestWall: "tire" | "concrete" = "concrete";
+  const prefer = opts?.preferAlong;
+  const alongW = opts?.alongWeight ?? 0.35;
 
   for (let i = 0; i < track.centerline.length - 1; i++) {
     const a = track.centerline[i]!;
@@ -158,10 +161,16 @@ export function nearestOnTrack(
     const dx = point.x - px;
     const dz = point.z - pz;
     const dist = Math.hypot(dx, dz);
-    if (dist < bestDist) {
-      bestDist = dist;
-      const segLen = Math.sqrt(lenSq);
-      bestAlong = track.cumulativeDistances[i]! + segLen * t;
+    const segLen = Math.sqrt(lenSq);
+    const along = track.cumulativeDistances[i]! + segLen * t;
+    let score = dist;
+    if (prefer !== undefined) {
+      const gap = Math.abs(along - prefer);
+      score += alongW * Math.min(gap, track.totalLength - gap);
+    }
+    if (score < bestScore) {
+      bestScore = score;
+      bestAlong = along;
       const len = segLen || 1;
       const tx = abx / len;
       const tz = abz / len;

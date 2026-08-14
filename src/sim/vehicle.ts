@@ -431,6 +431,7 @@ export function stepCar(
     car.z,
     car.stats.grassMitigation,
     car.stats.suspension,
+    car.distanceAlong,
   );
   const passable = passableObstacleMods(car.x, car.z, obstacles);
   surface.gripFactor *= passable.gripMul;
@@ -670,20 +671,21 @@ export function stepCar(
   if (car.impactCooldown > 0) car.impactCooldown = Math.max(0, car.impactCooldown - dt);
   if (car.lapShield > 0) car.lapShield = Math.max(0, car.lapShield - dt);
 
-  // Walls are solid on the ground: project back, bounce velocity inward.
+  // Walls stay solid in air too (soft) so Schanze jumps cannot leave the ribbon.
   let hitWall = false;
-  if (!isAirborne(car)) {
+  {
     const afterMove = surfaceAt(
       track,
       car.x,
       car.z,
       car.stats.grassMitigation,
       car.stats.suspension,
+      car.distanceAlong,
     );
     const wallLimit = track.asphaltHalfWidth + track.grassWidth;
     const overflow = Math.abs(afterMove.lateral) - wallLimit;
     if (overflow > 0) {
-      hitWall = applyWallBounce(car, afterMove, overflow);
+      hitWall = applyWallBounce(car, afterMove, overflow, { soft: isAirborne(car) });
     }
   }
 
@@ -695,6 +697,7 @@ export function stepCar(
     car.z,
     car.stats.grassMitigation,
     car.stats.suspension,
+    car.distanceAlong,
   );
 
   // Heal
@@ -717,11 +720,21 @@ export function stepCar(
     car.nitroHeld = false;
   }
 
-  // Progress
-  car.distanceAlong = resolved.distanceAlong;
-  car.progress = resolved.distanceAlong + (car.lap - 1) * track.totalLength;
+  // Progress: reject snaps onto a parallel ribbon (Phase C corridor lock).
+  car.distanceAlong = continuousAlong(car.distanceAlong, resolved.distanceAlong, track.totalLength, dt);
+  car.progress = car.distanceAlong + (car.lap - 1) * track.totalLength;
 
   return { hitWall: hitWall || hitObstacle, stage: stageFromHp(car.hp) };
+}
+
+/** Max along-track advance (m/s) before we treat a jump as a parallel-ribbon snap. */
+const MAX_ALONG_SPEED = 55;
+
+export function continuousAlong(prev: number, next: number, totalLength: number, dt: number): number {
+  const gap = Math.min(Math.abs(next - prev), totalLength - Math.abs(next - prev));
+  const maxJump = Math.max(8, MAX_ALONG_SPEED * Math.max(dt, 1 / 120) * 1.35);
+  if (gap <= maxJump) return next;
+  return prev;
 }
 
 /** Arcade jump: ramp launches, gravity, grip/suspension soften landings. */
@@ -762,12 +775,15 @@ export function stepJump(car: CarState, rampLaunch: number, dt: number): void {
 /**
  * Separate from wall, reflect outward velocity back onto the track, apply capped damage.
  * RCA: old code damaged every frame while clamped (no bounce) → KO in ~1.5s grinding.
+ * Soft mode (airborne): project + damp without impact damage so jumps cannot exit the world.
  */
 export function applyWallBounce(
   car: CarState,
   afterMove: ReturnType<typeof surfaceAt>,
   overflow: number,
+  opts: { soft?: boolean } = {},
 ): boolean {
+  const soft = Boolean(opts.soft);
   const sign = Math.sign(afterMove.lateral) || 1;
   const leftX = -afterMove.tangent.z;
   const leftZ = afterMove.tangent.x;
@@ -775,32 +791,32 @@ export function applyWallBounce(
   const outwardZ = sign * leftZ;
 
   // Push clearly inside the grass edge so we don't re-hit next frame.
-  const push = overflow + 0.2;
+  const push = overflow + (soft ? 0.35 : 0.2);
   car.x -= outwardX * push;
   car.z -= outwardZ * push;
 
   let vx = car.vx;
   let vz = car.vz;
   const outwardVel = vx * outwardX + vz * outwardZ;
-  const restitution = afterMove.wallKind === "concrete" ? 0.55 : 0.7;
+  const restitution = soft ? 0.25 : afterMove.wallKind === "concrete" ? 0.55 : 0.7;
   const suspEase = Math.min(0.2, Math.max(0, (car.stats.suspension - 0.7) * 0.15));
   // Light cars bounce harder; heavy cars dump more speed into the wall.
   const massBounce = 1.15 - Math.min(0.35, car.stats.mass * 0.2);
   if (outwardVel > 0) {
-    const bounce = outwardVel * (1 + restitution - suspEase) * massBounce;
+    const bounce = outwardVel * (1 + restitution - suspEase) * (soft ? 0.85 : massBounce);
     vx -= outwardX * bounce;
     vz -= outwardZ * bounce;
   } else {
     // Scraping: nudge slightly back onto track
-    vx -= outwardX * 2;
-    vz -= outwardZ * 2;
+    vx -= outwardX * (soft ? 1.2 : 2);
+    vz -= outwardZ * (soft ? 1.2 : 2);
   }
 
-  const damp = afterMove.wallKind === "concrete" ? 0.52 : 0.68;
+  const damp = soft ? 0.82 : afterMove.wallKind === "concrete" ? 0.52 : 0.68;
   car.vx = vx * damp;
   car.vz = vz * damp;
   syncSpeedFromVelocity(car);
-  if (car.speed > 0.05) {
+  if (!soft && car.speed > 0.05) {
     // Nudge heading toward post-bounce velocity without erasing all slip
     const moveAng = Math.atan2(car.vz, car.vx);
     let err = moveAng - car.heading;
@@ -810,7 +826,7 @@ export function applyWallBounce(
   }
 
   let damaged = false;
-  if (car.impactCooldown <= 0) {
+  if (!soft && car.impactCooldown <= 0) {
     const impact = Math.min(1, Math.max(0, outwardVel) / BASE_TOP);
     const base = afterMove.wallKind === "concrete" ? 0.07 : 0.045;
     const amount = base * (0.35 + 0.65 * impact);
