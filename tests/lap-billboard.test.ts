@@ -1,11 +1,12 @@
 /** @vitest-environment happy-dom */
 import { describe, expect, it } from "vitest";
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Sprite } from "three";
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera } from "three";
 import {
   createLapBillboard,
   formatLapBillboardLabel,
   LAP_BILLBOARD_FLASH_SEC,
   LAP_BILLBOARD_NAME,
+  LAP_SHIELD_FLASH_SCALE,
   lapBillboardFlashUntil,
   lapBillboardFlashVisible,
   setLapBillboardLabel,
@@ -18,10 +19,14 @@ describe("lap billboard", () => {
     expect(formatLapBillboardLabel(6, 5)).toBe("5/5");
   });
 
-  it("creates a named camera-facing sprite", () => {
-    const sprite = createLapBillboard();
-    expect(sprite).toBeInstanceOf(Sprite);
-    expect(sprite.name).toBe(LAP_BILLBOARD_NAME);
+  it("keeps the Tripo shield flash compact", () => {
+    expect(LAP_SHIELD_FLASH_SCALE).toBeLessThan(0.8);
+  });
+
+  it("creates a named group plaque", () => {
+    const plaque = createLapBillboard();
+    expect(plaque).toBeInstanceOf(Group);
+    expect(plaque.name).toBe(LAP_BILLBOARD_NAME);
   });
 
   it("only starts a flash when lap increases (finish-line crossing)", () => {
@@ -40,19 +45,19 @@ describe("lap billboard", () => {
     root.position.set(10, 0, -5);
     root.updateMatrixWorld(true);
 
-    const sprite = createLapBillboard();
+    const plaque = createLapBillboard();
     const cam = new PerspectiveCamera();
     cam.position.set(10, 3, 5);
-    syncLapBillboard(sprite, root, cam, 2, 5, true, 0);
+    syncLapBillboard(plaque, root, cam, 2, 5, true, 0);
 
-    expect(sprite.position.y).toBeGreaterThanOrEqual(2.75);
-    expect(sprite.position.z).toBeGreaterThan(-5);
-    expect(sprite.userData.lapLabel).toBe("2/5");
+    expect(plaque.position.y).toBeGreaterThanOrEqual(2.75);
+    expect(plaque.position.z).toBeGreaterThan(-5);
+    expect(plaque.userData.lapLabel).toBe("2/5");
   });
 
-  it("updates the canvas when the lap changes", () => {
-    const sprite = createLapBillboard();
-    setLapBillboardLabel(sprite, 3, 5);
-    expect(sprite.userData.lapLabel).toBe("3/5");
+  it("updates the number badge when the lap changes", () => {
+    const plaque = createLapBillboard();
+    setLapBillboardLabel(plaque, 3, 5);
+    expect(plaque.userData.lapLabel).toBe("3/5");
   });
 });

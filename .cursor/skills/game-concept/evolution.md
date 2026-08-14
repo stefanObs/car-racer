@@ -26,6 +26,10 @@ Append newest first.
 - Decision: Arcade stays (no tire sim). Front-steer = nose leads, velocity follows, no standstill pivot. Same brake action → reverse after near-stop; reverse cap ~35–50%; nitro forward-only. Impl not in this step.
 - CONCEPT dokumentstand → v3.74
 
+### 2026-08-14 — Tripo lap-shield as round flash (v0.3.155 / CONCEPT v3.81)
+- Trigger: user — round plaque too big; use old Tripo3D plaque
+- Decision: Finish-line flash uses compact Tripo `lap-shield.glb` (scale 0.55) + tiny n/m badge; no large canvas RUNDE card
+
 ### 2026-08-14 — lap plaque only on finish cross (v0.3.154 / CONCEPT v3.80)
 - Trigger: user — use plaque as round counter; only when crossing finish line
 - Decision: Hide persistent over-car plaques; flash comic RUNDE n/m ~2.2s after lap increments; HUD keeps ongoing counter

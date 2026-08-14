@@ -1,5 +1,6 @@
 import {
   CanvasTexture,
+  Group,
   Sprite,
   SpriteMaterial,
   SRGBColorSpace,
@@ -8,6 +9,7 @@ import {
 } from "three";
 import { displayLap } from "../ui/lapHud";
 import { carBodyWorldBox } from "./garageSit";
+import { cloneFxChunk, hasFxModels } from "./loadFxGltf";
 
 export const LAP_BILLBOARD_NAME = "lapBillboard";
 
@@ -17,8 +19,11 @@ export const LAP_BILLBOARD_FLASH_SEC = 2.2;
 /** Clearance above the car roof AABB so the plaque clears the silhouette in chase cam. */
 export const LAP_BILLBOARD_ROOF_CLEARANCE = 1.35;
 
-/** World-space scale of the comic plaque (width × height). */
-export const LAP_BILLBOARD_SCALE = { x: 2.0, y: 0.95 } as const;
+/** Uniform scale for the Tripo lap-shield mesh (baked longest ~1.4). */
+export const LAP_SHIELD_FLASH_SCALE = 0.55;
+
+/** Tiny number badge in front of the Tripo plaque. */
+export const LAP_NUMBER_BADGE_SCALE = { x: 0.7, y: 0.34 } as const;
 
 export function formatLapBillboardLabel(lap: number, totalLaps: number): string {
   const total = Math.max(1, totalLaps);
@@ -45,32 +50,22 @@ export function lapBillboardFlashUntil(
   return fxTime + flashSec;
 }
 
-function paintLapPlaque(ctx: CanvasRenderingContext2D, w: number, h: number, label: string): void {
+function paintNumberBadge(ctx: CanvasRenderingContext2D, w: number, h: number, label: string): void {
   ctx.clearRect(0, 0, w, h);
-  // Thick comic outline + cream fill (matches garage/settings plaques)
   ctx.fillStyle = "#1b1b1f";
-  roundRect(ctx, 4, 4, w - 8, h - 8, 18);
+  roundRect(ctx, 2, 2, w - 4, h - 4, 16);
   ctx.fill();
-  ctx.fillStyle = "#fff4e0";
-  roundRect(ctx, 14, 14, w - 28, h - 28, 12);
+  ctx.fillStyle = "#ffe066";
+  roundRect(ctx, 10, 10, w - 20, h - 20, 12);
   ctx.fill();
-  ctx.strokeStyle = "#ffe066";
-  ctx.lineWidth = 8;
-  roundRect(ctx, 22, 22, w - 44, h - 44, 10);
-  ctx.stroke();
-
-  ctx.fillStyle = "#1b1b1f";
-  ctx.font = "bold 42px Trebuchet MS, Segoe UI, sans-serif";
+  ctx.font = "900 96px Trebuchet MS, Segoe UI, sans-serif";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("RUNDE", w / 2, h * 0.34);
-
-  ctx.font = "900 92px Trebuchet MS, Segoe UI, sans-serif";
-  ctx.fillStyle = "#e03131";
   ctx.strokeStyle = "#1b1b1f";
   ctx.lineWidth = 10;
-  ctx.strokeText(label, w / 2, h * 0.68);
-  ctx.fillText(label, w / 2, h * 0.68);
+  ctx.strokeText(label, w / 2, h / 2 + 4);
+  ctx.fillStyle = "#e03131";
+  ctx.fillText(label, w / 2, h / 2 + 4);
 }
 
 function roundRect(
@@ -91,13 +86,12 @@ function roundRect(
   ctx.closePath();
 }
 
-/** Comic lap plaque — Sprite always faces the camera (the player). */
-export function createLapBillboard(): Sprite {
+function makeNumberBadge(label: string): Sprite {
   const canvas = document.createElement("canvas");
-  canvas.width = 512;
-  canvas.height = 256;
+  canvas.width = 256;
+  canvas.height = 128;
   const ctx = canvas.getContext("2d");
-  if (ctx) paintLapPlaque(ctx, canvas.width, canvas.height, "1/5");
+  if (ctx) paintNumberBadge(ctx, canvas.width, canvas.height, label);
   const map = new CanvasTexture(canvas);
   map.colorSpace = SRGBColorSpace;
   map.needsUpdate = true;
@@ -108,34 +102,64 @@ export function createLapBillboard(): Sprite {
     depthWrite: false,
   });
   const sprite = new Sprite(mat);
-  sprite.name = LAP_BILLBOARD_NAME;
-  sprite.scale.set(LAP_BILLBOARD_SCALE.x, LAP_BILLBOARD_SCALE.y, 1);
+  sprite.name = "lapNumberBadge";
+  sprite.scale.set(LAP_NUMBER_BADGE_SCALE.x, LAP_NUMBER_BADGE_SCALE.y, 1);
+  sprite.position.set(0, 0.05, 0.42);
   sprite.userData.lapCanvas = canvas;
-  sprite.userData.lapLabel = "1/5";
+  sprite.userData.lapLabel = label;
   return sprite;
 }
 
-export function setLapBillboardLabel(sprite: Sprite, lap: number, totalLaps: number): void {
+/**
+ * Finish-line round flash: Tripo `lap-shield` plaque (small) + tiny n/m badge.
+ * Falls back to the number badge alone if FX GLBs are not loaded yet.
+ */
+export function createLapBillboard(): Group {
+  const root = new Group();
+  root.name = LAP_BILLBOARD_NAME;
+  root.userData.lapLabel = "1/5";
+
+  if (hasFxModels()) {
+    const crest = cloneFxChunk("lapShield");
+    crest.name = "lapShieldMesh";
+    crest.scale.setScalar(LAP_SHIELD_FLASH_SCALE);
+    root.add(crest);
+    root.userData.usesTripoShield = true;
+  }
+
+  const badge = makeNumberBadge("1/5");
+  // Without Tripo mesh, center the compact badge as the whole pop.
+  if (!root.userData.usesTripoShield) {
+    badge.position.set(0, 0, 0);
+    badge.scale.set(0.95, 0.45, 1);
+  }
+  root.add(badge);
+  root.userData.lapBadge = badge;
+  return root;
+}
+
+export function setLapBillboardLabel(root: Group, lap: number, totalLaps: number): void {
   const label = formatLapBillboardLabel(lap, totalLaps);
-  if (sprite.userData.lapLabel === label) return;
-  sprite.userData.lapLabel = label;
-  const canvas = sprite.userData.lapCanvas as HTMLCanvasElement | undefined;
-  const mat = sprite.material as SpriteMaterial;
+  if (root.userData.lapLabel === label) return;
+  root.userData.lapLabel = label;
+  const badge = root.userData.lapBadge as Sprite | undefined;
+  if (!badge) return;
+  badge.userData.lapLabel = label;
+  const canvas = badge.userData.lapCanvas as HTMLCanvasElement | undefined;
+  const mat = badge.material as SpriteMaterial;
   const map = mat.map;
   if (!canvas || !map) return;
   const ctx = canvas.getContext("2d");
   if (!ctx) return;
-  paintLapPlaque(ctx, canvas.width, canvas.height, label);
+  paintNumberBadge(ctx, canvas.width, canvas.height, label);
   map.needsUpdate = true;
 }
 
 /**
- * Sit the plaque well above the car (chase-cam clear) and keep Sprite facing the camera.
- * `carY` is the sim ground-sit height; we add a fixed arcade roof stack so the plaque
- * never reads as jammed in the hatch/rear (AABB alone sat too low in chase framing).
+ * Sit the Tripo plaque well above the car and face the camera (player).
  */
 export function syncLapBillboard(
-  sprite: Sprite,
+  root: Group,
   carRoot: Object3D,
   camera: Camera,
   lap: number,
@@ -143,36 +167,40 @@ export function syncLapBillboard(
   visible: boolean,
   carY = 0,
 ): void {
-  setLapBillboardLabel(sprite, lap, totalLaps);
-  sprite.visible = visible;
+  setLapBillboardLabel(root, lap, totalLaps);
+  root.visible = visible;
   if (!visible) return;
   const box = carBodyWorldBox(carRoot);
   const cx = Number.isFinite(box.min.x) ? (box.min.x + box.max.x) * 0.5 : carRoot.position.x;
   const cz = Number.isFinite(box.min.z) ? (box.min.z + box.max.z) * 0.5 : carRoot.position.z;
   const roofY = Number.isFinite(box.max.y) ? box.max.y : carY + 1.2;
-  // Prefer the higher of AABB roof + clearance vs a chase-safe stack above sit height.
   const stacked = carY + 2.75;
   const topY = Math.max(roofY + LAP_BILLBOARD_ROOF_CLEARANCE, stacked);
   const toCamX = camera.position.x - cx;
   const toCamZ = camera.position.z - cz;
   const flat = Math.hypot(toCamX, toCamZ) || 1;
   const pull = 0.45;
-  sprite.position.set(cx + (toCamX / flat) * pull, topY, cz + (toCamZ / flat) * pull);
-  const dx = camera.position.x - sprite.position.x;
-  const dy = camera.position.y - sprite.position.y;
-  const dz = camera.position.z - sprite.position.z;
-  const dist = Math.hypot(dx, dy, dz);
-  const s = Math.min(1.25, Math.max(0.8, 14 / Math.max(8, dist)));
-  sprite.scale.set(LAP_BILLBOARD_SCALE.x * s, LAP_BILLBOARD_SCALE.y * s, 1);
+  root.position.set(cx + (toCamX / flat) * pull, topY, cz + (toCamZ / flat) * pull);
+  root.lookAt(camera.position.x, root.position.y, camera.position.z);
 }
 
-/** World Y used when only sit height is known (tests / fallbacks). */
-export function lapBillboardStackedY(carY: number): number {
-  return carY + 2.75;
-}
-
-export function disposeLapBillboard(sprite: Sprite): void {
-  const mat = sprite.material as SpriteMaterial;
-  mat.map?.dispose();
-  mat.dispose();
+export function disposeLapBillboard(root: Group): void {
+  root.traverse((obj) => {
+    const sprite = obj as Sprite;
+    if (sprite.isSprite) {
+      const mat = sprite.material as SpriteMaterial;
+      mat.map?.dispose();
+      mat.dispose();
+      return;
+    }
+    const mesh = obj as Object3D & {
+      isMesh?: boolean;
+      geometry?: { dispose: () => void };
+      material?: { dispose: () => void } | Array<{ dispose: () => void }>;
+    };
+    if (!mesh.isMesh) return;
+    mesh.geometry?.dispose();
+    if (Array.isArray(mesh.material)) mesh.material.forEach((m) => m.dispose());
+    else mesh.material?.dispose();
+  });
 }

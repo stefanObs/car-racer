@@ -13,7 +13,6 @@ import {
   PlaneGeometry,
   Scene,
   SphereGeometry,
-  Sprite,
   SRGBColorSpace,
   WebGLRenderer,
 } from "three";
@@ -69,7 +68,7 @@ export class RaceRenderer {
   private readonly carVisuals = new Map<string, ComicCarParts>();
   private readonly lastNitro = new Map<string, number>();
   /** Comic lap plaques — only while a finish-line flash is active. */
-  private readonly lapBillboards = new Map<string, Sprite>();
+  private readonly lapBillboards = new Map<string, Group>();
   private readonly lapBillboardLastLap = new Map<string, number>();
   private readonly lapBillboardFlashUntil = new Map<string, number>();
   private trackGroup = new Group();
