@@ -24,15 +24,41 @@ import type { BuiltTrack } from "../track/types";
 import { infieldClearRadius, trackCentroid } from "./themeScenery";
 import type { ThemeLook } from "./themeLook";
 
-const HARBOR_PANORAMA_URLS = {
-  horizon: "/textures/panorama/harbor-horizon.png",
-  infield: "/textures/panorama/harbor-infield.png",
-} as const;
+export type PanoramaKind = "harbor" | "beach" | "city" | "factory" | "canyon";
+export type PanoramaPlate = "horizon" | "infield";
+
+/** Authored Asphalt-Comic plates under `/textures/panorama/`. */
+export const PANORAMA_URLS: Record<PanoramaKind, Record<PanoramaPlate, string>> = {
+  harbor: {
+    horizon: "/textures/panorama/harbor-horizon.png",
+    infield: "/textures/panorama/harbor-infield.png",
+  },
+  beach: {
+    horizon: "/textures/panorama/beach-horizon.png",
+    infield: "/textures/panorama/beach-infield.png",
+  },
+  city: {
+    horizon: "/textures/panorama/city-horizon.png",
+    infield: "/textures/panorama/city-infield.png",
+  },
+  factory: {
+    horizon: "/textures/panorama/factory-horizon.png",
+    infield: "/textures/panorama/factory-infield.png",
+  },
+  canyon: {
+    horizon: "/textures/panorama/canyon-horizon.png",
+    infield: "/textures/panorama/canyon-infield.png",
+  },
+};
 
 const shippedPanorama = new Map<string, Texture>();
 let panoramaPreload: Promise<void> | null = null;
 
-/** Boot-time load of authored harbor panorama plates (canvas fallbacks if missing). */
+function plateKey(kind: PanoramaKind, plate: PanoramaPlate): string {
+  return `${kind}:${plate}`;
+}
+
+/** Boot-time load of authored theme panorama plates (canvas fallbacks if missing). */
 export function preloadPanoramaTextures(): Promise<void> {
   if (panoramaPreload) return panoramaPreload;
   if (typeof document === "undefined") {
@@ -40,31 +66,44 @@ export function preloadPanoramaTextures(): Promise<void> {
     return panoramaPreload;
   }
   const loader = new TextureLoader();
-  panoramaPreload = Promise.all(
-    (Object.keys(HARBOR_PANORAMA_URLS) as (keyof typeof HARBOR_PANORAMA_URLS)[]).map(
-      (key) =>
+  const jobs: Promise<void>[] = [];
+  for (const kind of Object.keys(PANORAMA_URLS) as PanoramaKind[]) {
+    for (const plate of Object.keys(PANORAMA_URLS[kind]) as PanoramaPlate[]) {
+      const url = PANORAMA_URLS[kind][plate];
+      jobs.push(
         new Promise<void>((resolve) => {
           loader.load(
-            HARBOR_PANORAMA_URLS[key],
+            url,
             (tex) => {
               tex.colorSpace = SRGBColorSpace;
               tex.wrapS = ClampToEdgeWrapping;
               tex.wrapT = ClampToEdgeWrapping;
               tex.needsUpdate = true;
-              shippedPanorama.set(key, tex);
+              shippedPanorama.set(plateKey(kind, plate), tex);
               resolve();
             },
             undefined,
             () => resolve(),
           );
         }),
-    ),
-  ).then(() => undefined);
+      );
+    }
+  }
+  panoramaPreload = Promise.all(jobs).then(() => undefined);
   return panoramaPreload;
 }
 
-export function hasShippedHarborPanorama(kind: "horizon" | "infield"): boolean {
-  return shippedPanorama.has(kind);
+export function hasShippedPanorama(kind: PanoramaKind, plate: PanoramaPlate): boolean {
+  return shippedPanorama.has(plateKey(kind, plate));
+}
+
+/** @deprecated use hasShippedPanorama("harbor", plate) */
+export function hasShippedHarborPanorama(kind: PanoramaPlate): boolean {
+  return hasShippedPanorama("harbor", kind);
+}
+
+function shippedPlate(kind: PanoramaKind, plate: PanoramaPlate): Texture | undefined {
+  return shippedPanorama.get(plateKey(kind, plate));
 }
 
 function hexCss(n: number): string {
@@ -152,7 +191,7 @@ export function makeHarborEquirectTexture(look: ThemeLook): Texture {
 
   const bandY = Math.floor(h * 0.32);
   const bandH = Math.floor(h * 0.42);
-  const shipped = shippedPanorama.get("horizon");
+  const shipped = shippedPlate("harbor", "horizon");
   const img = shipped?.image as CanvasImageSource | undefined;
   if (img) {
     ctx.drawImage(img, 0, bandY, w, bandH);
@@ -183,11 +222,11 @@ export function makeHarborEquirectTexture(look: ThemeLook): Texture {
   return tex;
 }
 
-type PanoramaKind = "harbor" | "beach" | "city" | "factory" | "canyon";
-
 function panoramaKind(theme: string): PanoramaKind {
   const t = theme.toLowerCase();
   if (t === "beach" || t === "city" || t === "factory" || t === "canyon") return t;
+  if (t === "scrapyard") return "factory";
+  if (t === "mountain") return "canyon";
   return "harbor";
 }
 
@@ -303,10 +342,8 @@ function paintHarborHorizon(ctx: CanvasRenderingContext2D, look: ThemeLook): voi
 /** Wide comic silhouette strip for a surrounding cylinder. */
 export function makeHorizonPanoramaTexture(theme: string, look: ThemeLook): Texture {
   const kind = panoramaKind(theme);
-  if (kind === "harbor") {
-    const shipped = shippedPanorama.get("horizon");
-    if (shipped) return shipped;
-  }
+  const shipped = shippedPlate(kind, "horizon");
+  if (shipped) return shipped;
 
   const canvas = makeCanvas(1024, 256);
   if (!canvas) return solidTexture(look.skyLow);
@@ -513,10 +550,8 @@ function paintHarborInfield(ctx: CanvasRenderingContext2D, look: ThemeLook): voi
 /** Infield disc texture — distant feel inside the loop (basin / hills / stands). */
 export function makeInfieldPanoramaTexture(theme: string, look: ThemeLook): Texture {
   const kind = panoramaKind(theme);
-  if (kind === "harbor") {
-    const shipped = shippedPanorama.get("infield");
-    if (shipped) return shipped;
-  }
+  const shipped = shippedPlate(kind, "infield");
+  if (shipped) return shipped;
 
   const canvas = makeCanvas(512, 512);
   if (!canvas) return solidTexture(look.ground);

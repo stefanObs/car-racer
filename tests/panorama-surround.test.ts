@@ -1,3 +1,5 @@
+import { existsSync, readFileSync, statSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { CUP_LEVELS } from "../src/data/levels";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
@@ -7,11 +9,26 @@ import {
   makeHorizonPanoramaTexture,
   makeInfieldPanoramaTexture,
   makeSkyDomeTexture,
+  PANORAMA_URLS,
+  type PanoramaKind,
 } from "../src/render/panoramaSurround";
 import { buildThemeScenery, planSceneryAnchors } from "../src/render/themeScenery";
 import { themeLook } from "../src/render/themeLook";
 
 describe("sky dome + panorama surround", () => {
+  it("ships Asphalt-Comic panorama plates for every theme", () => {
+    for (const kind of Object.keys(PANORAMA_URLS) as PanoramaKind[]) {
+      for (const plate of ["horizon", "infield"] as const) {
+        const url = PANORAMA_URLS[kind][plate];
+        const path = resolve(`public${url}`);
+        expect(existsSync(path), path).toBe(true);
+        expect(statSync(path).size, path).toBeGreaterThan(80_000);
+        const buf = readFileSync(path);
+        expect(buf.subarray(0, 8).toString("binary")).toBe("\x89PNG\r\n\x1a\n");
+      }
+    }
+  });
+
   it("builds an equirect harbor environment texture", () => {
     const tex = makeHarborEquirectTexture(themeLook("harbor"));
     expect(tex).toBeTruthy();
@@ -21,7 +38,7 @@ describe("sky dome + panorama surround", () => {
   it("builds sky and horizon textures for every known cup theme", () => {
     for (const level of CUP_LEVELS) {
       const look = themeLook(level.theme);
-      const sky = makeSkyDomeTexture(look);
+      const sky = makeSkyDomeTexture(look, level.theme);
       const horizon = makeHorizonPanoramaTexture(level.theme, look);
       const infield = makeInfieldPanoramaTexture(level.theme, look);
       expect(sky).toBeTruthy();
@@ -43,11 +60,11 @@ describe("sky dome + panorama surround", () => {
         if (o.name) names.add(o.name);
       });
       if (level.theme === "harbor") {
-        // Harbor skyline lives on the equirect sky dome; surround is water apron + infield disc.
         expect(names.has("infieldPanorama"), level.id).toBe(true);
         expect(names.has("harborWaterApron"), level.id).toBe(true);
       } else {
         expect(names.has("horizonPanorama"), level.id).toBe(true);
+        expect(names.has("infieldPanorama"), level.id).toBe(true);
       }
     }
   });
