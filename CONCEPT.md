@@ -240,7 +240,7 @@ Am **Angreifer**:
 
 - Jedes Rennen hat **5 Runden** (Cup, Freier Modus, Ad-hoc).
 - Beim Durchfahren der Start/Ziel-Linie (neue Runde) bekommt das Auto kurz ein **Runden-Schild**: ~2 s **kein Schaden** von Mauer / Hindernis / Kontakt (Schub bleibt).
-- Sichtbar als Comic-Energie-Blase (procedural am Auto) + Style-Popup „Schild!“ — lesbar für ~10+. Die Tripo-**Lap-Shield**-Plakette ist der Runden-Flash **über** dem Auto (nicht im Chassis).
+- Sichtbar als Style-Popup „Schild!“ (+ SFX); **kein** Mesh am Auto. Die Tripo-**Lap-Shield**-Plakette ist nur der Runden-Flash **über** dem Auto.
 
 **Respawn nach K.O.**
 
@@ -596,4 +596,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.83 — Tripo Lap-Shield nur über dem Auto (Runden-Flash); Immunität = Energie-Blase.*
+*Dokumentstand: Konzept v3.84 — kein On-Car-Schild-Mesh; Tripo-Plakette nur über dem Auto.*

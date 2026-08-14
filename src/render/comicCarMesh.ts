@@ -98,15 +98,9 @@ function makeFxGroups(nitroZ: number): Pick<ComicCarParts, "smoke" | "sparks" | 
     trail.visible = false;
     nitro.add(trail);
   }
+  // No on-car shield mesh — Tripo lap-shield is the overhead round counter only.
   const shield = new Group();
   shield.name = "fx-shield";
-  const crest = new Mesh(
-    new SphereGeometry(1.15, 16, 12),
-    comicToon(ComicPalette.nitroCyan, { emissive: ComicPalette.nitroCyan, emissiveIntensity: 0.35 }),
-  );
-  crest.scale.set(1.15, 0.85, 1.35);
-  crest.position.y = 0.75;
-  crest.visible = false;
-  shield.add(crest);
+  shield.visible = false;
   return { smoke, sparks, nitro, shield };
 }

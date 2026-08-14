@@ -62,10 +62,11 @@ describe("shared comic car FX", () => {
     expect(fx.nitro.children.every((c) => c.visible)).toBe(true);
 
     applyCarFx(visual, { stage: 0, healFx: 0, boosting: false, lapShield: 1.5 }, 1);
-    expect(fx.shield.visible).toBe(true);
+    expect(fx.shield.visible).toBe(false);
+    expect(fx.shield.children).toHaveLength(0);
   });
 
-  it("upgradeCarFx keeps the procedural on-car shield bubble (no Tripo crest in cabin)", () => {
+  it("upgradeCarFx strips any leftover on-car shield mesh", () => {
     const root = new Group();
     const smoke = new Group();
     smoke.add(new Group());
@@ -77,11 +78,12 @@ describe("shared comic car FX", () => {
     shield.add(bubble);
     const visual = { root, smoke, sparks, nitro, shield } as ComicCarParts;
     upgradeCarFx(visual);
-    expect(visual.shield.getObjectByName("proceduralShield")).toBe(bubble);
-    expect(visual.shield.children).toHaveLength(1);
+    expect(visual.shield.getObjectByName("proceduralShield")).toBeUndefined();
+    expect(visual.shield.children).toHaveLength(0);
+    expect(visual.shield.visible).toBe(false);
   });
 
-  it("upgradeCarFx is a no-op when FX GLBs are not preloaded", () => {
+  it("upgradeCarFx is a no-op for Tripo smoke when FX GLBs are not preloaded", () => {
     const smoke = new Group();
     smoke.add(new Group());
     const visual = {
@@ -94,5 +96,6 @@ describe("shared comic car FX", () => {
     expect(() => upgradeCarFx(visual)).not.toThrow();
     expect(visual.smoke.userData.tripoFx).toBeFalsy();
     expect(visual.smoke.children).toHaveLength(1);
+    expect(visual.shield.children).toHaveLength(0);
   });
 });

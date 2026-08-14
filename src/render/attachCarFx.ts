@@ -50,15 +50,20 @@ export function makeFxGroups(
     nitro.add(trail);
   }
 
-  // Empty shell — Tripo lap-shield is the overhead round counter only.
-  // On-car immunity keeps the procedural cyan bubble from comicCarMesh.
+  // Empty — no on-car shield mesh (Tripo plaque is overhead round flash only).
   const shield = new Group();
   shield.name = "fx-shield";
+  shield.visible = false;
   return { smoke, sparks, nitro, shield };
 }
 
 /** Replace sphere placeholders with Tripo chunks when preloaded; otherwise keep spheres. */
 export function upgradeCarFx(visual: ComicCarParts): void {
+  // Always strip on-car shield meshes (immunity has no chassis mesh).
+  clearGroup(visual.shield);
+  visual.shield.visible = false;
+  visual.shield.name = "fx-shield";
+
   if (visual.smoke.userData.tripoFx) return;
   if (!hasFxModels()) return;
   const rearZ = carMeshRearZ(visual.root);
@@ -70,11 +75,9 @@ export function upgradeCarFx(visual: ComicCarParts): void {
   for (const child of [...fx.sparks.children]) visual.sparks.add(child);
   clearGroup(visual.nitro);
   for (const child of [...fx.nitro.children]) visual.nitro.add(child);
-  // Keep procedural fx-shield bubble — do not mount Tripo crest inside the cabin.
   visual.smoke.name = "fx-smoke";
   visual.sparks.name = "fx-sparks";
   visual.nitro.name = "fx-nitro";
-  visual.shield.name = "fx-shield";
   visual.smoke.userData.tripoFx = true;
 }
 

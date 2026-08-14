@@ -62,13 +62,8 @@ export function applyCarFx(
     if (child.visible) child.scale.z = 1 + (i % 3) * 0.15 + Math.sin(fxTime * 20 + i) * 0.1;
   });
 
-  const shielded = lapShieldVisible(opts.lapShield);
-  shield.visible = shielded;
-  shield.children.forEach((child) => {
-    child.visible = shielded;
-  });
-  if (shielded) {
-    const pulse = 1 + Math.sin(fxTime * 10) * 0.06;
-    shield.scale.setScalar(pulse);
-  }
+  // Lap immunity is gameplay + Style-Popup only — never show an on-car shield mesh.
+  void opts.lapShield;
+  shield.visible = false;
+  for (const child of shield.children) child.visible = false;
 }

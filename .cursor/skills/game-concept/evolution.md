@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — no on-car shield mesh (v0.3.159 / CONCEPT v3.84)
+- Trigger: user — the mesh in the car should not exist
+- Decision: Remove procedural cyan bubble from `fx-shield`; never show on-car shield meshes. Immunity = Style-Popup + damage block; Tripo plaque only overhead round flash.
+- CONCEPT dokumentstand → v3.84
+
 ### 2026-08-14 — Tripo plaque above car only (v0.3.157 / CONCEPT v3.83)
 - Trigger: user — blue Tripo plaque still in the car; reorient and use as round counter above
 - Decision: Stop mounting `lap-shield.glb` in on-car `fx-shield` (keep procedural cyan bubble for immunity). Overhead finish flash yaws face (−90°) so plaque faces camera after lookAt; badge on −Z toward camera.
