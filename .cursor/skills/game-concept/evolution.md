@@ -26,6 +26,10 @@ Append newest first.
 - Decision: Arcade stays (no tire sim). Front-steer = nose leads, velocity follows, no standstill pivot. Same brake action → reverse after near-stop; reverse cap ~35–50%; nitro forward-only. Impl not in this step.
 - CONCEPT dokumentstand → v3.74
 
+### 2026-08-14 — lap plaque above cars (v0.3.152 / CONCEPT v3.78)
+- Trigger: user — round counter is in the car; place above car facing the player
+- Decision: Comic **RUNDE n/m** Sprite billboard above each car roof (camera-facing); keep compact HUD lap too
+
 ### 2026-08-14 — leave race from settings (v0.3.151 / CONCEPT v3.77)
 - Trigger: user — in a race, settings should let the player return to the garage
 - Decision: Race settings show **Rennen verlassen** → Garage with no purse/unlock for the aborted run; Esc still only closes the panel
@@ -43,6 +47,12 @@ Append newest first.
 - Trigger: user — car still floating in normal garage pose
 - RCA: orbit pivot used full `Box3.setFromObject` (FX skewed center); sit clearance 2 cm still read as a gap
 - Fix: body-only bounds for pivot; snap contact to deck after attach/yaw; zero pad clearance
+
+### 2026-08-14 — v3.74 Bison Federung keeps stock wheel size
+- Trigger: user — Bison offroad suspension should not enlarge wheels
+- RCA: `bisonLowersStockWheels` / `bigWheelScaleFor` treated Federung like Große Räder (shared 1.35× scale + hub drop)
+- Decision: Only `big_wheels` scales/drops `StockWheel_*`. Federung mounts Blitz shocks at stock hub Y + `suspensionLift` (no tire enlarge). Stance stacks when both equipped.
+- CONCEPT §6.3 Sichtbarkeit → v3.74
 
 ### 2026-08-14 — garage sit: orbit pivot via attach (v0.3.141)
 - Trigger: user — car always in the air; should sit on the floor

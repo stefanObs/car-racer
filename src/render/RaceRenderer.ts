@@ -13,6 +13,7 @@ import {
   PlaneGeometry,
   Scene,
   SphereGeometry,
+  Sprite,
   SRGBColorSpace,
   WebGLRenderer,
 } from "three";
@@ -44,6 +45,11 @@ import { themeLook } from "./themeLook";
 import { buildThemeScenery, trackCentroid } from "./themeScenery";
 import { buildSmoothTrack } from "./trackMesh";
 import {
+  createLapBillboard,
+  disposeLapBillboard,
+  syncLapBillboard,
+} from "./lapBillboard";
+import {
   applyGarageDragOrbit,
   garageDisplayYaw,
   garageInspectLiftAmount,
@@ -60,6 +66,8 @@ export class RaceRenderer {
   readonly renderer: WebGLRenderer;
   private readonly carVisuals = new Map<string, ComicCarParts>();
   private readonly lastNitro = new Map<string, number>();
+  /** Comic lap plaques above each car — Sprite always faces the camera. */
+  private readonly lapBillboards = new Map<string, Sprite>();
   private trackGroup = new Group();
   private sceneryGroup = new Group();
   private panoramaGroup = new Group();
@@ -505,6 +513,22 @@ export class RaceRenderer {
         { stage, healFx: car.healFx, boosting, lapShield: car.lapShield },
         this.fxTime,
       );
+
+      let plaque = this.lapBillboards.get(car.id);
+      if (!plaque) {
+        plaque = createLapBillboard();
+        this.lapBillboards.set(car.id, plaque);
+        this.scene.add(plaque);
+      }
+      syncLapBillboard(plaque, root, this.camera, car.lap, session.level.laps, root.visible, car.y);
+    }
+
+    // Drop plaques for cars that left the field
+    for (const [id, plaque] of this.lapBillboards) {
+      if (this.carVisuals.has(id)) continue;
+      this.scene.remove(plaque);
+      disposeLapBillboard(plaque);
+      this.lapBillboards.delete(id);
     }
 
     if (import.meta.env.DEV) {
@@ -563,6 +587,11 @@ export class RaceRenderer {
     }
     this.carVisuals.clear();
     this.lastNitro.clear();
+    for (const plaque of this.lapBillboards.values()) {
+      this.scene.remove(plaque);
+      disposeLapBillboard(plaque);
+    }
+    this.lapBillboards.clear();
     this.clearCelebrate();
   }
 }
