@@ -58,14 +58,15 @@ export const WHEEL_LIFT = 0.1;
 export const BLITZ_WHEEL_LIFT = 0.02;
 /**
  * Bison Große Räder = uniform scale of Tripo-segmented StockWheel_*.
- * Hubs drop by radius×(scale−1) plus arch clearance so growth goes down
- * (not into the frame / fender lip).
+ * Hub drop is exactly radius×(scale−1) so tire tops stay at the stock fender
+ * line and growth goes into the ground (stance lift). Extra “arch clearance”
+ * over-drop made tops sit lower in the wells — Große Räder looked smaller.
  */
 export const BISON_STOCK_WHEEL_RADIUS = 0.32;
-export const BISON_BIG_WHEEL_SCALE = 1.2;
-/** Extra drop past top-fixed so scaled tires clear the wheel arch. */
-export const BISON_BIG_WHEEL_ARCH_CLEARANCE = 0.05;
-/** Hub drop that keeps scaled tires under the fender lip. */
+export const BISON_BIG_WHEEL_SCALE = 1.35;
+/** @deprecated Kept at 0 — over-drop hid the bigger-tire read in the arches. */
+export const BISON_BIG_WHEEL_ARCH_CLEARANCE = 0;
+/** Hub drop that keeps scaled tire tops on the stock fender line. */
 export function bisonBigWheelHubDrop(scale = BISON_BIG_WHEEL_SCALE): number {
   if (scale <= 1) return 0;
   return BISON_STOCK_WHEEL_RADIUS * (scale - 1) + BISON_BIG_WHEEL_ARCH_CLEARANCE;
@@ -130,17 +131,17 @@ export type BlitzPartAnchor = PartAnchor;
 export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
   // Extracted wing sits flush on the stock lip (body keeps the full coupe).
   rear_spoiler: [{ x: 0, y: 0.78, z: -1.48, yaw: 0, scale: 0.92, snap: false }],
-  // Hood scoop — prefer hood deck (not cabin roof); sit flush.
+  // Hood scoop — bake tip (low red flange) is local +Z; yaw 0 aims tip + intakes at the nose.
+  // Fixed Y + mild nose-up pitch: bury aft flange, keep black scoop above the deck.
   big_engine: [
     {
       x: 0,
-      y: 0.5,
-      z: 1.15,
-      yaw: Math.PI,
-      scale: 0.95,
-      sitGap: -0.02,
-      preferY: 0.5,
-      snapRadius: 0.32,
+      y: 0.42,
+      z: 1.2,
+      yaw: 0,
+      pitch: -0.16,
+      scale: 0.92,
+      snap: false,
     },
   ],
   // Twin bottles on the rear bumper — tucked to the diffuser, not floating aft.
@@ -226,8 +227,8 @@ function layoutBlitz(): CarVisualLayout {
 function layoutBison(): CarVisualLayout {
   // Mesh bounds ~ x±0.85 y≤1.45 z±1.9 — use class procs (not Blitz Tripo kits).
   const wheelLift = bisonBigWheelHubDrop() + BISON_STOCK_WHEEL_RADIUS * (BISON_BIG_WHEEL_SCALE - 1);
-  // Authored StockWheel_* hubs (bake); Gelände-Federung drops hubs by bisonBigWheelHubDrop().
-  const hubY = BISON_STOCK_WHEEL_RADIUS - bisonBigWheelHubDrop();
+  // Springs sit on stock hub height; Große Räder alone scales/drops StockWheel_*.
+  const hubY = BISON_STOCK_WHEEL_RADIUS;
   const hubs = {
     FL: { x: -0.669, z: 1.13 },
     FR: { x: 0.669, z: 1.13 },
@@ -237,32 +238,34 @@ function layoutBison(): CarVisualLayout {
   // Sit coil on hub height/axle Z, well inboard of the tire so it is not seen through the rim.
   const inboard = 0.22;
   return {
-    // Bottom sink = hub drop + radius growth below hub (Große Räder or Gelände-Federung).
+    // Große Räder stance only — Federung uses suspensionLift and keeps stock tire size.
     wheelLift,
-    suspensionLift: 0,
+    suspensionLift: BLITZ_SUSPENSION_LIFT,
     // Bison drops Bessere Bremsen — no caliper anchors.
     brakes: [],
-    // Blitz Tripo shocks: inboard of inner tire face, foot at hub height → up into the arch.
+    // Blitz Tripo shocks: inboard of inner tire face, foot at stock hub height → up into the arch.
     springs: [
       { x: hubs.FR.x - inboard, y: hubY, z: hubs.FR.z, yaw: 0, scale: 0.8, scaleY: 1.2, snap: false },
       { x: hubs.FL.x + inboard, y: hubY, z: hubs.FL.z, yaw: Math.PI, scale: 0.8, scaleY: 1.2, snap: false },
       { x: hubs.RR.x - inboard, y: hubY, z: hubs.RR.z, yaw: 0, scale: 0.8, scaleY: 1.2, snap: false },
       { x: hubs.RL.x + inboard, y: hubY, z: hubs.RL.z, yaw: Math.PI, scale: 0.8, scaleY: 1.2, snap: false },
     ],
-    // Große Räder / Federung scale Tripo-segmented StockWheel_* — no procedural overlays.
+    // Große Räder scales Tripo-segmented StockWheel_* — no procedural overlays.
     wheelHints: [],
     big_engine: {
-      // Mid-hood scoop (look sheet panel 1) — hood deck z~0.63…1.71, mid~1.17; clear gaps to grille + windshield.
+      // Mid-hood scoop (look sheet) — open grill faces the nose; aft sunk into the deck.
+      // Mesh open mouth is local −Z; yaw π aims it at +Z. Pitch tips the closed back into the hood.
       anchors: [
         {
           x: 0,
-          y: 1.03,
+          y: 1.0,
           z: 1.17,
           yaw: Math.PI,
+          pitch: -0.18,
           scale: 0.72,
-          sitGap: 0.01,
+          sitGap: -0.04,
           snapRadius: 0.28,
-          preferY: 1.03,
+          preferY: 1.0,
         },
       ],
       build: () => buildHoodScoop("block"),
@@ -275,8 +278,8 @@ function layoutBison(): CarVisualLayout {
       preferGlb: true,
     },
     reinforced_frame: {
-      // Bed roll bar: packed arch at +Z against cab rear (~z−0.91); braces into bed.
-      anchors: [{ x: 0, y: 0.64, z: -1.12, yaw: 0, scale: 0.88, snap: false }],
+      // Chase rack: arch (+Z) half into the cabin through the rear glass; braces look out into the bed.
+      anchors: [{ x: 0, y: 0.64, z: -0.82, yaw: 0, scale: 0.88, snap: false }],
       build: () => buildReinforcedFrame("pickup"),
       preferGlb: true,
     },
@@ -934,8 +937,8 @@ export function carStanceLift(carId: CarId, equippedParts: readonly PartId[]): n
   const layout = CAR_PART_LAYOUTS[carId];
   let lift = 0;
   if (carId === "bison") {
-    // Große Räder and Gelände-Federung share one lowered StockWheel sit — do not stack.
-    if (bisonLowersStockWheels(equippedParts)) lift += layout.wheelLift;
+    if (equippedParts.includes("big_wheels")) lift += layout.wheelLift;
+    if (equippedParts.includes("offroad_suspension")) lift += layout.suspensionLift;
     return lift;
   }
   if (equippedParts.includes("big_wheels")) lift += layout.wheelLift;
@@ -1098,23 +1101,18 @@ function usesScaledStockWheels(carId: CarId): boolean {
   return carId === "bison";
 }
 
-/** Bison Gelände-Federung or Große Räder → same dropped StockWheel_* stance. */
+/** Bison Große Räder drops/scales StockWheel_* (Federung does not enlarge tires). */
 export function bisonLowersStockWheels(equippedParts: readonly PartId[]): boolean {
-  return (
-    equippedParts.includes("big_wheels") ||
-    (carSupportsPart("bison", "offroad_suspension") && equippedParts.includes("offroad_suspension"))
-  );
+  return equippedParts.includes("big_wheels");
 }
 
 function bisonHubDropFor(equippedParts: readonly PartId[]): number {
   if (!bisonLowersStockWheels(equippedParts)) return 0;
-  // Match Große Räder hub height even when Federung alone keeps stock diameter.
   return bisonBigWheelHubDrop(BISON_BIG_WHEEL_SCALE);
 }
 
 function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): number {
   if (carId !== "bison") return 1;
-  // Federung attaches the same oversized StockWheel_* look to the frame.
   if (bisonLowersStockWheels(equippedParts)) return BISON_BIG_WHEEL_SCALE;
   return 1;
 }

@@ -52,11 +52,52 @@ describe("Equipped-part visuals (all cars)", () => {
     clearBlitzPartTemplates();
   });
 
-  it("mounts Blitz Großer Motor on the hood facing the nose", () => {
-    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.z).toBeGreaterThan(1.05);
-    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.y).toBeLessThan(0.55);
-    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.yaw).toBeCloseTo(Math.PI);
-    expect(BLITZ_PART_PLACEMENT.big_engine[0]!.preferY).toBeLessThan(0.55);
+  it("mounts Blitz Großer Motor on the hood with red tip toward the nose", async () => {
+    const scoop = BLITZ_PART_PLACEMENT.big_engine[0]!;
+    expect(scoop.z).toBeGreaterThan(1.1);
+    expect(scoop.y).toBeLessThan(0.5);
+    expect(scoop.y).toBeGreaterThan(0.35);
+    // Bake: low tip at local +Z — yaw 0 aims tip at the nose (not π / aft).
+    expect(scoop.yaw).toBeCloseTo(0);
+    // Fixed deck Y + nose-up pitch buries the aft flange (snap would lift after pitch).
+    expect(scoop.snap).toBe(false);
+    expect(scoop.pitch!).toBeLessThan(-0.1);
+    expect(scoop.pitch!).toBeGreaterThan(-0.3);
+
+    const { NodeIO } = await import("@gltf-transform/core");
+    const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
+    const { getBounds } = await import("@gltf-transform/functions");
+    const doc = await new NodeIO()
+      .registerExtensions(ALL_EXTENSIONS)
+      .read("public/models/parts/blitz-big_engine.glb");
+    const b = getBounds(doc.getRoot().listScenes()[0]!);
+    const midZ = (b.min[2] + b.max[2]) / 2;
+    let maxYPlus = -Infinity;
+    let maxYMinus = -Infinity;
+    for (const mesh of doc.getRoot().listMeshes()) {
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION");
+        if (!pos) continue;
+        for (let i = 0; i < pos.getCount(); i++) {
+          const v = pos.getElement(i, []);
+          if (v[2]! >= midZ) maxYPlus = Math.max(maxYPlus, v[1]!);
+          else maxYMinus = Math.max(maxYMinus, v[1]!);
+        }
+      }
+    }
+    // Low tip lives on +Z; taller scoop body on −Z.
+    expect(maxYPlus).toBeLessThan(maxYMinus);
+    const tipWorldZ = scoop.z + Math.cos(scoop.yaw) * b.max[2]! * scoop.scale;
+    const aftWorldZ = scoop.z + Math.cos(scoop.yaw) * b.min[2]! * scoop.scale;
+    expect(tipWorldZ).toBeGreaterThan(aftWorldZ);
+
+    const root = new Group();
+    applyEquippedPartVisuals(root, "blitz", ["big_engine"]);
+    const mounted = root.getObjectByName(blitzPartObjectName("big_engine"));
+    expect(mounted).toBeTruthy();
+    expect(mounted!.rotation.y).toBeCloseTo(0);
+    expect(mounted!.rotation.x).toBeCloseTo(scoop.pitch!);
+    expect(mounted!.position.y).toBeCloseTo(scoop.y, 2);
   });
 
   it("places Blitz Leichtbau louvers on the hood (not cabin roof triples)", () => {
@@ -413,7 +454,7 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(appSrc).toContain("ensureCarPartTemplates");
   });
 
-  it("places Bison scoop on mid-hood and nitro on the bed", () => {
+  it("places Bison scoop on mid-hood with grill toward the nose", async () => {
     const scoop = CAR_PART_LAYOUTS.bison.big_engine.anchors[0]!;
     const nitroZ = CAR_PART_LAYOUTS.bison.nitro_kit.anchors[0]!.z;
     // Hood mid ~1.17 (not windshield ~0.92) — look sheet panel 1 balanced gaps.
@@ -421,8 +462,40 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(scoop.z).toBeLessThan(1.25);
     expect(scoop.scale).toBeLessThan(0.85);
     expect(scoop.preferY).toBeLessThan(1.15);
+    // Open mouth is local −Z; yaw π aims it at the nose. Pitch sinks the aft into the hood.
+    expect(scoop.yaw).toBeCloseTo(Math.PI);
+    expect(scoop.pitch!).toBeLessThan(-0.1);
+    expect(scoop.pitch!).toBeGreaterThan(-0.3);
+    expect(scoop.sitGap!).toBeLessThan(0);
     expect(nitroZ).toBeLessThan(-0.6);
     expect(nitroZ).toBeGreaterThan(-1.3);
+
+    const { NodeIO } = await import("@gltf-transform/core");
+    const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
+    const { MeshoptDecoder } = await import("meshoptimizer");
+    const doc = await new NodeIO()
+      .registerExtensions(ALL_EXTENSIONS)
+      .registerDependencies({ "meshopt.decoder": MeshoptDecoder })
+      .read("public/models/parts/bison-big_engine.glb");
+    const verts: { y: number; z: number }[] = [];
+    for (const mesh of doc.getRoot().listMeshes()) {
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION")!;
+        const v = [0, 0, 0];
+        for (let i = 0; i < pos.getCount(); i++) {
+          pos.getElement(i, v);
+          verts.push({ y: v[1]!, z: v[2]! });
+        }
+      }
+    }
+    const minZ = Math.min(...verts.map((p) => p.z));
+    const maxZ = Math.max(...verts.map((p) => p.z));
+    // Open grill is the local −Z face; yaw π maps it ahead of the mount toward the nose.
+    const cos = Math.cos(scoop.yaw);
+    const worldGrillZ = scoop.z + cos * minZ * scoop.scale;
+    const worldAftZ = scoop.z + cos * maxZ * scoop.scale;
+    expect(worldGrillZ).toBeGreaterThan(worldAftZ);
+    expect(worldGrillZ).toBeGreaterThan(scoop.z);
   });
 
   it("places Bison Tripo spike on the stock bumper (replaces the bar)", () => {
@@ -438,12 +511,12 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(spike.anchors[0]!.y).toBeLessThan(0.35);
   });
 
-  it("places Bison reinforced frame in the bed behind the cab", async () => {
+  it("places Bison reinforced frame with arch half into the cabin", async () => {
     const frame = CAR_PART_LAYOUTS.bison.reinforced_frame.anchors[0]!;
-    // Bake arch faces local +Z; yaw 0 keeps braces leaning aft (−Z), not into the cabin.
+    // Bake arch faces local +Z; yaw 0 keeps braces leaning aft (−Z) into the bed.
     expect(frame.yaw).toBeCloseTo(0);
-    expect(frame.z).toBeLessThan(-1.0);
-    expect(frame.z).toBeGreaterThan(-1.25);
+    expect(frame.z).toBeGreaterThan(-0.9);
+    expect(frame.z).toBeLessThan(-0.7);
     expect(frame.y).toBeGreaterThan(0.55);
     expect(frame.y).toBeLessThan(0.75);
     // Bed rails are ~|x|≤0.70 — keep scaled width inside.
@@ -459,8 +532,13 @@ describe("Equipped-part visuals (all cars)", () => {
     const b = getBounds(doc.getRoot().listScenes()[0]!);
     const sx = frame.scale;
     const sz = frame.scaleZ ?? frame.scale;
-    // Runtime cab rear high verts reach ~z−0.91 — stay aft of that.
-    expect(frame.z + b.max[2]! * sz).toBeLessThan(-0.9);
+    const worldFront = frame.z + b.max[2]! * sz;
+    const worldAft = frame.z + b.min[2]! * sz;
+    // Cab rear high verts ~z−0.87…−0.63 — front poles past that into the cabin.
+    expect(worldFront).toBeGreaterThan(-0.75);
+    expect(worldFront).toBeLessThan(-0.5);
+    // Aft braces still read in the bed (aft of cab rear).
+    expect(worldAft).toBeLessThan(-0.95);
     expect(Math.max(Math.abs(b.min[0]! * sx), Math.abs(b.max[0]! * sx))).toBeLessThanOrEqual(0.7);
     // Packed bake: arch near +Z face (feet no longer stick past the hoop).
     const yArch = b.min[1]! + (b.max[1]! - b.min[1]!) * 0.7;
