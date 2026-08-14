@@ -382,13 +382,13 @@ function layoutDonner(): CarVisualLayout {
       preferGlb: true,
     },
     rear_spoiler: {
-      // Rear deck / trunk lip — feet snapped on body, wing spans ±X.
+      // Rear deck / trunk lip — yaw π so the wing faces aft like a real spoiler.
       anchors: [
         {
           x: 0,
           y: 1.0,
           z: -1.42,
-          yaw: 0,
+          yaw: Math.PI,
           scale: 1.15,
           snap: true,
           sitGap: 0.005,

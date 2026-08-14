@@ -486,7 +486,7 @@ describe("Equipped-part visuals (all cars)", () => {
 
     const wing = L.rear_spoiler.anchors[0]!;
     expect(wing.z).toBeLessThan(-1.2);
-    expect(wing.yaw).toBeCloseTo(0);
+    expect(wing.yaw).toBeCloseTo(Math.PI);
     expect(wing.snap).toBe(true);
 
     const frame = L.reinforced_frame.anchors[0]!;
