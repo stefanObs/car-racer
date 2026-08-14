@@ -112,13 +112,21 @@ describe("car sticker decals", () => {
     const anchors = STICKER_DECALS.donnerbuechse;
     expect(anchors.length).toBe(2);
     for (const a of anchors) {
-      expect(a.z).toBeGreaterThan(-0.25);
-      expect(a.z).toBeLessThan(0.2);
-      expect(Math.abs(a.x)).toBeGreaterThan(1.0);
-      expect(a.y).toBeGreaterThan(0.7);
-      expect(a.width).toBeLessThan(1.7);
-      expect(a.height).toBeLessThan(0.7);
+      expect(a.z).toBeGreaterThan(-0.4);
+      expect(a.z).toBeLessThan(0);
+      // Door panel half-width ~0.67–0.79 — not the wider rear fenders (~1.19).
+      expect(Math.abs(a.x)).toBeGreaterThan(0.65);
+      expect(Math.abs(a.x)).toBeLessThan(0.85);
+      expect(a.y).toBeGreaterThan(0.8);
+      expect(a.y).toBeLessThan(1.1);
+      expect(a.width).toBeLessThan(1.15);
+      expect(a.height).toBeLessThan(0.5);
     }
+  });
+
+  it("uses flush door planes for Donner flames (not floating Tripo plaques)", () => {
+    const src = readFileSync("src/render/carStickers.ts", "utf8");
+    expect(src).toContain('carId !== "donnerbuechse" && mountFlameTripoPlates');
   });
 
   it("keeps Bison stickers on the doors only (no hood/front)", () => {

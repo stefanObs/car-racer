@@ -122,9 +122,9 @@ export const STICKER_DECALS: Record<Exclude<CarId, "kaeferkraft">, DecalAnchor[]
     { slot: "side", x: -0.74, y: 0.78, z: 0.25, yaw: -Math.PI / 2, width: 1.25, height: 0.48, depth: 0.42 },
   ],
   donnerbuechse: [
-    // 3-window coupe door — between engine (+Z) and rear wheel (−Z), above side pipes.
-    { slot: "side", x: 1.14, y: 0.8, z: -0.05, yaw: Math.PI / 2, width: 1.35, height: 0.48, depth: 0.35, mirrorU: true },
-    { slot: "side", x: -1.14, y: 0.8, z: -0.05, yaw: -Math.PI / 2, width: 1.35, height: 0.48, depth: 0.35 },
+    // Coupe door skin is only ~|x|0.67–0.79 (fenders are wider). Sit flush, not outboard.
+    { slot: "side", x: 0.705, y: 0.92, z: -0.22, yaw: Math.PI / 2, width: 1.0, height: 0.4, depth: 0.35, mirrorU: true },
+    { slot: "side", x: -0.705, y: 0.92, z: -0.22, yaw: -Math.PI / 2, width: 1.0, height: 0.4, depth: 0.35 },
   ],
   bunker: [
     { slot: "door", x: 0.95, y: 1.05, z: 0.45, yaw: Math.PI / 2, width: 1.15, height: 0.48, depth: 0.42, mirrorU: true },
@@ -519,11 +519,12 @@ function mountFlameTripoPlates(root: Object3D, carId: Exclude<CarId, "kaeferkraf
     // Plaque is XY facing +Z; yaw like PlaneGeometry so +Z faces out of the door.
     plaque.position.set(anchor.x, anchor.y, anchor.z);
     plaque.rotation.y = anchor.yaw;
-    plaque.position.x += Math.sign(anchor.x || 1) * 0.03;
+    plaque.position.x += Math.sign(anchor.x || 1) * 0.012;
     const fit = anchor.width / 1.05;
     // Left side (−X) needs X flip so tongues still point aft after yaw −π/2.
     const mirror = anchor.x < 0 ? -1 : 1;
-    plaque.scale.set(fit * mirror, fit * (anchor.height / 0.48), Math.abs(fit));
+    // Keep plaque thin (native ~0.08) — scaling Z with width made thick floating cards.
+    plaque.scale.set(fit * mirror, fit * (anchor.height / 0.48), 1);
     group.add(plaque);
   }
 
@@ -536,7 +537,7 @@ function mountStickerDecals(root: Object3D, carId: Exclude<CarId, "kaeferkraft">
   clearStickerDecals(root);
   if (sticker === "none") return;
 
-  if (sticker === "flames" && mountFlameTripoPlates(root, carId)) return;
+  if (sticker === "flames" && carId !== "donnerbuechse" && mountFlameTripoPlates(root, carId)) return;
 
   const tex = stickerTexture(sticker, carId);
   if (!tex) return;
@@ -648,7 +649,7 @@ function mountDonnerDoorPlanes(root: Object3D, sticker: string, tex: Texture): v
     mesh.position.set(anchor.x, anchor.y, anchor.z);
     mesh.rotation.y = anchor.yaw;
     // Sit just outside the door skin so the plane is not buried in BodyPaint.
-    mesh.position.x += Math.sign(anchor.x) * 0.02;
+    mesh.position.x += Math.sign(anchor.x) * 0.012;
     mesh.name = `stickerDecal-${anchor.slot}-${i}`;
     mesh.userData.stickerDecal = sticker;
     mesh.userData.stickerSlot = anchor.slot;
