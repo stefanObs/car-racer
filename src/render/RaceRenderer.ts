@@ -33,6 +33,7 @@ import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
+import { mountGarageOrbitPivot } from "./garageOrbitPivot";
 import { groundContactMinY } from "./stockWheels";
 import { buildLevelObstacles } from "./levelObstacles";
 import {
@@ -195,15 +196,7 @@ export class RaceRenderer {
     this.garageOrbitX = center.x;
     this.garageOrbitZ = center.z;
 
-    const localCenter = visual.root.worldToLocal(center.clone());
-    const pivot = new Group();
-    pivot.name = "garageOrbitPivot";
-    pivot.rotation.order = "YXZ";
-    this.idleGroup.remove(visual.root);
-    pivot.add(visual.root);
-    visual.root.position.set(-localCenter.x, -localCenter.y, -localCenter.z);
-    visual.root.rotation.set(0, 0, 0);
-    this.idleGroup.add(pivot);
+    const pivot = mountGarageOrbitPivot(this.idleGroup, visual.root, center);
     this.idleOrbit = pivot;
     this.idleCar = visual.root;
     this.applyGarageOrbitPose();

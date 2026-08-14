@@ -14,6 +14,16 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — garage sit: orbit pivot via attach (v0.3.141)
+- Trigger: user — car always in the air; should sit on the floor
+- RCA: parenting scaled showcase car with `worldToLocal` → position offset ignored scale → tires floated ~0.4 above pad
+- Fix: `mountGarageOrbitPivot` uses `Object3D.attach` to keep world transform
+
+### 2026-08-14 — v3.73 Bison Gelände-Federung (Blitz shocks)
+- Trigger: user — re-enable offroad suspension on Bison using Blitz Tripo shock absorbers
+- Decision: Shop allows `offroad_suspension` on Bison; mounts `blitz-offroad_suspension.glb` at wheel arches. Equipping it lowers/scales `StockWheel_*` like Große Räder (shared stance, no double lift) so shocks visually bridge frame → big wheels.
+- CONCEPT §6.3 Sichtbarkeit → v3.73
+
 ### 2026-08-14 — v3.72 Garage inspect release snaps flat on pad
 - Trigger: user — bring car back horizontal + to floor when RMB released
 - Decision: Harden release (lostpointercapture / mouse idle clear); snap pitch to 0 and drop lift immediately on inspect end (CONCEPT §9)
