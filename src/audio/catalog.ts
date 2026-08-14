@@ -22,7 +22,7 @@ export const SFX_URLS: Record<SfxId, string> = {
   uiNav: "/audio/ui-nav.wav",
   uiBuy: "/audio/ui-buy.wav",
   engineLoop: "/audio/engine-loop.wav",
-  nitro: "/audio/nitro.ogg",
+  nitro: "/audio/nitro.wav",
   wallHit: "/audio/wall-hit.ogg",
   wallHitHard: "/audio/wall-hit-hard.ogg",
   contact: "/audio/contact.ogg",

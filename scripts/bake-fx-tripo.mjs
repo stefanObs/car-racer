@@ -30,9 +30,9 @@ const JOBS = [
   { id: "smoke-puff", mat: "SmokePuff", longest: 0.55, sit: true, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   { id: "smoke-heavy", mat: "SmokeHeavy", longest: 0.75, sit: true, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   { id: "repair-spark", mat: "RepairSpark", longest: 0.25, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
-  // Keep flame tails — old ratio 0.02 collapsed the Tripo mesh into a sphere-like blob.
-  { id: "nitro-orange", mat: "NitroOrange", longest: 0.85, sit: false, alignLongZ: true, bluntPosZ: true, ratio: 0.05, error: 0.0025, baseColor: [1, 0.478, 0.094, 1] },
-  { id: "nitro-cyan", mat: "NitroCyan", longest: 0.85, sit: false, alignLongZ: true, bluntPosZ: true, ratio: 0.05, error: 0.0025, baseColor: [0.239, 0.725, 0.78, 1] },
+  // Keep flame teeth — over-simplify collapsed the Tripo mesh into a soft blob.
+  { id: "nitro-orange", mat: "NitroOrange", longest: 0.95, sit: false, alignLongZ: true, bluntPosZ: true, minWidthX: 0.28, ratio: 0.12, error: 0.0018, baseColor: [1, 0.478, 0.094, 1] },
+  { id: "nitro-cyan", mat: "NitroCyan", longest: 0.95, sit: false, alignLongZ: true, bluntPosZ: true, minWidthX: 0.28, ratio: 0.12, error: 0.0018, baseColor: [0.239, 0.725, 0.78, 1] },
   { id: "lap-shield", mat: "LapShield", longest: 1.4, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.4, error: 0.0015 },
 ];
 
@@ -172,6 +172,17 @@ function centerScale(doc, { longest, sit }) {
   return sceneSize(doc);
 }
 
+/** Flat Tripo flames read as paper cards — fatten X so the silhouette holds in chase cam. */
+function ensureMinWidthX(doc, minWidthX) {
+  if (!minWidthX) return;
+  const s = sceneSize(doc);
+  if (s.size[0] >= minWidthX) return;
+  const mul = minWidthX / Math.max(s.size[0], 1e-6);
+  forEachPosition(doc, (v) => {
+    v[0] *= mul;
+  });
+}
+
 function comicMaterial(doc, name, baseColor = [1, 1, 1, 1]) {
   for (const mat of doc.getRoot().listMaterials()) {
     mat.setName(name);
@@ -199,11 +210,9 @@ async function simplifyDoc(doc, ratio, error = 0.0012) {
 
 function findSourceGlb(dir) {
   const preferred = [join(dir, "texture/model.glb"), join(dir, "model.glb")];
-  for (const p of preferred) {
-    if (existsSync(p)) return p;
-  }
   const stack = [dir];
-  let fallback = null;
+  /** @type {{ path: string, mtime: number }[]} */
+  const found = [];
   while (stack.length) {
     const cur = stack.pop();
     if (!existsSync(cur) || !statSync(cur).isDirectory()) continue;
@@ -215,11 +224,23 @@ function findSourceGlb(dir) {
         continue;
       }
       if (!name.endsWith(".glb")) continue;
-      if (name === "model.glb" && p.includes("texture")) return p;
-      if (!fallback) fallback = p;
+      found.push({ path: p, mtime: st.mtimeMs });
     }
   }
-  return fallback;
+  if (!found.length) {
+    for (const p of preferred) {
+      if (existsSync(p)) return p;
+    }
+    return null;
+  }
+  // Prefer textured exports, then newest (remakes must win over stale model.glb).
+  found.sort((a, b) => {
+    const at = a.path.includes("texture") || a.path.includes("remake") ? 1 : 0;
+    const bt = b.path.includes("texture") || b.path.includes("remake") ? 1 : 0;
+    if (at !== bt) return bt - at;
+    return b.mtime - a.mtime;
+  });
+  return found[0].path;
 }
 
 async function loadPrepared(path) {
@@ -240,6 +261,8 @@ async function bakeOne(job) {
   if (job.alignLongZ) alignLongestToZ(doc);
   if (job.bluntPosZ) bluntTowardPosZ(doc);
   const sized = centerScale(doc, { longest: job.longest, sit: job.sit });
+  ensureMinWidthX(doc, job.minWidthX);
+  const finalSize = job.minWidthX ? sceneSize(doc) : sized;
   comicMaterial(doc, job.mat, job.baseColor ?? [1, 1, 1, 1]);
   await simplifyDoc(doc, job.ratio, job.error);
   mkdirSync(outDir, { recursive: true });
@@ -249,7 +272,7 @@ async function bakeOne(job) {
   console.log(`${job.id}.glb ← Tripo FX`, {
     src,
     bytes: bytes.byteLength,
-    size: sized.size.map((v) => +v.toFixed(3)),
+    size: finalSize.size.map((v) => +v.toFixed(3)),
   });
 }
 

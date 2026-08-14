@@ -35,7 +35,8 @@ export function playRaceAudioEvent(
       audio.play("shield", { volume: 0.7 });
       break;
     case "nitro":
-      audio.play("nitro", { volume: 0.8, playbackRate: 1.05 });
+      // Punchy boost whoosh — not a spring pluck.
+      audio.play("nitro", { volume: 0.88, playbackRate: 0.98 + Math.random() * 0.08 });
       break;
     case "style":
       audio.play("style", { volume: 0.45, playbackRate: 1.1 });

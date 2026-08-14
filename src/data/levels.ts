@@ -1,8 +1,12 @@
 import type { LevelDefinition, TrackSegment } from "../track/types";
-import { buildTrackFromLevel, nearestOnTrack } from "../track/buildTrack";
+import { buildTrackFromLevel, nearestOnTrack, sampleCenterline } from "../track/buildTrack";
 import { planMedianBarriers } from "../track/medianBarriers";
 import { pointOnTrack } from "../track/validateTrack";
 
+/** Yaw so local +Z aligns with track tangent (tx, tz). */
+export function yawFromTangent(tx: number, tz: number): number {
+  return Math.atan2(tx, tz);
+}
 /**
  * Cup layouts — unique silhouettes per race (one primary turn direction so
  * the loop cannot self-intersect; no figure-8 without a bridge — CONCEPT §4.4).
@@ -160,10 +164,12 @@ function makeCup(
   if (opts.vergeBlockers?.length) {
     for (const b of opts.vergeBlockers) {
       const p = placeSolidInGrass(track, b.along, b.side);
+      const tan = sampleCenterline(track, b.along).tangent;
       level.obstacles.push({
         type: b.type,
         position: [p.x, p.z],
         radius: b.type === "tire_stack" ? 1.35 : 1.15,
+        heading: yawFromTangent(tan.x, tan.z),
       });
     }
   }
@@ -173,11 +179,13 @@ function makeCup(
       // Passable hazards may sit on asphalt; bias toward the named side (hot line).
       const lateral = (h.side ?? 0) * (track.asphaltHalfWidth * 0.35);
       const p = pointOnTrack(track, h.along, lateral);
+      const tan = sampleCenterline(track, h.along).tangent;
       level.obstacles.push({
         type: h.type,
         position: [p.x, p.z],
         radius: h.radius ?? (h.type === "ramp" ? 4.5 : h.type === "oil" ? 2.2 : 5),
         intensity: h.intensity ?? (h.type === "ramp" ? 0.9 : 0.55),
+        heading: yawFromTangent(tan.x, tan.z),
       });
     }
   }
@@ -187,6 +195,7 @@ function makeCup(
       type: m.type,
       position: [m.x, m.z],
       radius: m.type === "tire_stack" ? 1.45 : 1.25,
+      heading: m.heading,
       role: "median",
     });
   }

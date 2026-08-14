@@ -187,12 +187,9 @@ async function simplifyDoc(doc, ratio) {
 }
 
 function findSourceGlb(dir) {
-  const preferred = [join(dir, "texture/model.glb"), join(dir, "model.glb")];
-  for (const p of preferred) {
-    if (existsSync(p)) return p;
-  }
   const stack = [dir];
-  let fallback = null;
+  /** @type {{ path: string, mtime: number }[]} */
+  const found = [];
   while (stack.length) {
     const cur = stack.pop();
     if (!existsSync(cur) || !statSync(cur).isDirectory()) continue;
@@ -204,12 +201,39 @@ function findSourceGlb(dir) {
         continue;
       }
       if (!name.endsWith(".glb")) continue;
-      if (name === "model.glb" && p.includes("texture")) return p;
-      if (p.includes("texture") && !fallback) fallback = p;
-      else if (!fallback) fallback = p;
+      found.push({ path: p, mtime: st.mtimeMs });
     }
   }
-  return fallback;
+  if (!found.length) return null;
+  found.sort((a, b) => {
+    const at = a.path.includes("texture") || a.path.includes("remake") ? 1 : 0;
+    const bt = b.path.includes("texture") || b.path.includes("remake") ? 1 : 0;
+    if (at !== bt) return bt - at;
+    return b.mtime - a.mtime;
+  });
+  return found[0].path;
+}
+
+function rotateY180(doc) {
+  forEachPosition(doc, (v, n) => {
+    v[0] = -v[0];
+    v[2] = -v[2];
+    if (n) {
+      n[0] = -n[0];
+      n[2] = -n[2];
+    }
+  });
+}
+
+/** High end must sit at +Z (exit); low end at −Z (approach). */
+function ensureRampRisesTowardPosZ(doc) {
+  let maxNeg = -Infinity;
+  let maxPos = -Infinity;
+  forEachPosition(doc, (v) => {
+    if (v[2] < 0) maxNeg = Math.max(maxNeg, v[1]);
+    if (v[2] > 0) maxPos = Math.max(maxPos, v[1]);
+  });
+  if (maxNeg > maxPos + 0.05) rotateY180(doc);
 }
 
 async function loadPrepared(path) {
@@ -233,6 +257,10 @@ async function bakeProp(spec) {
   longestHorizontalTo(doc, spec.along);
   const sized = centerSitScale(doc, spec);
   comicMaterial(doc, spec.id === "container" || spec.id === "tank" ? "BodyPaint" : spec.id);
+  // Ramp bake: slope must rise toward +Z so cars driving +heading climb, not dive.
+  if (spec.id === "ramp") {
+    ensureRampRisesTowardPosZ(doc);
+  }
   await simplifyDoc(doc, spec.simplify);
   mkdirSync(outDir, { recursive: true });
   const bytes = await io.writeBinary(doc);

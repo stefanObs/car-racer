@@ -9,6 +9,8 @@ export type MedianBarrierPose = {
   type: "tire_stack" | "concrete_barrier";
   /** Along-track of nearest ribbon (for debug / tests). */
   along: number;
+  /** Radians — local +Z along track tangent. */
+  heading: number;
 };
 
 function alongGap(track: BuiltTrack, a: number, b: number): number {
@@ -86,6 +88,7 @@ function barriersForPinch(
       z,
       type: Math.abs(near.lateral) < track.asphaltHalfWidth + 1.2 ? "tire_stack" : "concrete_barrier",
       along: near.distanceAlong,
+      heading: Math.atan2(near.tangent.x, near.tangent.z),
     });
   }
   if (poses.length === 0) {
@@ -99,6 +102,7 @@ function barriersForPinch(
         z: midZ,
         type: "tire_stack",
         along: near.distanceAlong,
+        heading: Math.atan2(near.tangent.x, near.tangent.z),
       });
     }
   }

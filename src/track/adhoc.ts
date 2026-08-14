@@ -148,6 +148,7 @@ export function generateAdhocLevel(params: AdhocParams): LevelDefinition {
       type: m.type,
       position: [m.x, m.z],
       radius: m.type === "tire_stack" ? 1.45 : 1.25,
+      heading: m.heading,
       role: "median",
     });
   }

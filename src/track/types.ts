@@ -34,6 +34,8 @@ export interface LevelDefinition {
     position: [number, number];
     radius?: number;
     intensity?: number;
+    /** Radians: track tangent yaw so props face along the ribbon. */
+    heading?: number;
     /** Section wall between close ribbons — may sit near asphalt edge. */
     role?: "median";
   }>;

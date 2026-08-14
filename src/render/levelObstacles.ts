@@ -11,31 +11,37 @@ import { ComicPalette } from "./palette";
  * Solid (bounce): concrete_barrier, tire_stack — tall, clearly blocking.
  * Passable (drive over): uneven rumble strips, oil, ramp (Schanze) — low + high-contrast.
  * Prefer Tripo kit GLBs when preloaded; procedural boxes remain for unit tests without boot.
+ *
+ * Kit local space: ramp/rumble/oil face +Z along travel after bake; barrier long axis is X
+ * (across) so we yaw +π/2 to run parallel to the ribbon.
  */
+const BARRIER_YAW_OFFSET = Math.PI / 2;
+
 export function buildLevelObstacles(level: LevelDefinition): Group {
   const root = new Group();
   for (const o of level.obstacles) {
     const [x, z] = o.position;
-    const kit = tryTripoObstacle(o.type, x, z, o.radius);
+    const yaw = obstacleYaw(o.type, o.heading);
+    const kit = tryTripoObstacle(o.type, x, z, yaw, o.radius);
     if (kit) {
       root.add(kit);
       continue;
     }
     switch (o.type) {
       case "concrete_barrier":
-        root.add(makeBarrier(x, z, o.radius ?? 1.2));
+        root.add(makeBarrier(x, z, yaw, o.radius ?? 1.2));
         break;
       case "tire_stack":
-        root.add(makeTireObstacle(x, z));
+        root.add(makeTireObstacle(x, z, yaw));
         break;
       case "uneven":
-        root.add(makeRumbleStrip(x, z, o.radius ?? 6));
+        root.add(makeRumbleStrip(x, z, yaw, o.radius ?? 6));
         break;
       case "ramp":
-        root.add(makeRamp(x, z, o.radius ?? 4.5));
+        root.add(makeRamp(x, z, yaw, o.radius ?? 4.5));
         break;
       case "oil":
-        root.add(makeOil(x, z, o.radius ?? 2));
+        root.add(makeOil(x, z, yaw, o.radius ?? 2));
         break;
       default:
         break;
@@ -44,7 +50,19 @@ export function buildLevelObstacles(level: LevelDefinition): Group {
   return root;
 }
 
-function tryTripoObstacle(type: string, x: number, z: number, radius?: number): Group | null {
+export function obstacleYaw(type: string, heading?: number): number {
+  const base = heading ?? 0;
+  if (type === "concrete_barrier") return base + BARRIER_YAW_OFFSET;
+  return base;
+}
+
+function tryTripoObstacle(
+  type: string,
+  x: number,
+  z: number,
+  yaw: number,
+  radius?: number,
+): Group | null {
   const map = OBSTACLE_PROP_BY_TYPE[type as keyof typeof OBSTACLE_PROP_BY_TYPE];
   if (!map || !hasTrackProp(map.id)) return null;
   const g = cloneTrackProp(map.id);
@@ -53,14 +71,15 @@ function tryTripoObstacle(type: string, x: number, z: number, radius?: number): 
   const s = Math.max(0.35, r / map.refRadius);
   g.scale.multiplyScalar(s);
   g.position.set(x, 0, z);
+  g.rotation.y = yaw;
   g.userData.obstacle = type;
   return g;
 }
 
-function makeBarrier(x: number, z: number, radius: number): Group {
-  // Small comic barrier — never the long outer-wall GLB (that read as a wall on the asphalt).
+function makeBarrier(x: number, z: number, yaw: number, radius: number): Group {
   const g = new Group();
   g.position.set(x, 0, z);
+  g.rotation.y = yaw;
   g.userData.obstacle = "concrete_barrier";
   const w = Math.max(1.6, radius * 2);
   const bar = withOutline(new RoundedBoxGeometry(w, 1.15, 0.55, 2, 0.08), comicToon(ComicPalette.concrete), 0.05);
@@ -71,10 +90,10 @@ function makeBarrier(x: number, z: number, radius: number): Group {
   return g;
 }
 
-function makeTireObstacle(x: number, z: number): Group {
-  // Compact tire stack prop — not the tiled corner tire-wall module.
+function makeTireObstacle(x: number, z: number, yaw: number): Group {
   const g = new Group();
   g.position.set(x, 0, z);
+  g.rotation.y = yaw;
   g.userData.obstacle = "tire_stack";
   for (let i = 0; i < 3; i++) {
     const tire = withOutline(
@@ -91,10 +110,10 @@ function makeTireObstacle(x: number, z: number): Group {
   return g;
 }
 
-/** Passable rumble — low height, yellow zebra so kids know to drive over. */
-function makeRumbleStrip(x: number, z: number, radius: number): Group {
+function makeRumbleStrip(x: number, z: number, yaw: number, radius: number): Group {
   const g = new Group();
   g.position.set(x, 0, z);
+  g.rotation.y = yaw;
   const size = Math.max(4, radius * 1.4);
   const base = withOutline(
     new RoundedBoxGeometry(size, 0.16, size * 0.55, 2, 0.04),
@@ -115,10 +134,10 @@ function makeRumbleStrip(x: number, z: number, radius: number): Group {
   return g;
 }
 
-/** Passable Schanze — wedge ramp, yellow chevron face. */
-function makeRamp(x: number, z: number, radius: number): Group {
+function makeRamp(x: number, z: number, yaw: number, radius: number): Group {
   const g = new Group();
   g.position.set(x, 0, z);
+  g.rotation.y = yaw;
   const len = Math.max(3.2, radius * 1.1);
   const base = withOutline(
     new RoundedBoxGeometry(len * 0.7, 0.22, len, 2, 0.05),
@@ -148,10 +167,10 @@ function makeRamp(x: number, z: number, radius: number): Group {
   return g;
 }
 
-/** Passable oil — shiny puddle, clear danger marking (not a wall). */
-function makeOil(x: number, z: number, radius: number): Group {
+function makeOil(x: number, z: number, yaw: number, radius: number): Group {
   const g = new Group();
   g.position.set(x, 0, z);
+  g.rotation.y = yaw;
   const puddle = new Mesh(
     new RoundedBoxGeometry(radius * 2, 0.05, radius * 1.4, 1, 0.02),
     comicToon(0x1a1a1f),
