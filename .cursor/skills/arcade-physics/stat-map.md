@@ -40,7 +40,7 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 
 | Pair | Model |
 |------|--------|
-| Car–car | Separate by mass; impulse along normal from closing speed × restitution × ram |
+| Car–car | CONCEPT §4.5: mass split + closing-speed impulse; **hit direction** (frontal / schräg / streifend) + **hit zone** (Bug / Flanke / Heck) bias shove, yaw torque, and damage; `ramBonus` spices impulse; soft separating contacts = separation only |
 | Car–obstacle | Fixed ≈ ∞ mass; rebound scales `1/mass` |
 | Car–wall | Reflect outward velocity; mass affects bounce; damage on cooldown |
 
@@ -55,6 +55,8 @@ Prefer asserting **relative** class/part diffs over absolute magic numbers:
 - Standstill + full steer → near-zero yaw (no tank pivot)
 - Hold brake from speed → stop → reverse along −heading; throttle recovers forward
 - Light car displaces more than heavy on head-on contact
+- Rear-hit shove on lighter car > side-hit yaw on same pair at matched closing speed (once §4.5 zones land)
+- Frontal aggressor applies more impulse than streifend at same closing speed
 - Nitro kick in one frame; sustained nitro ≫ throttle and above stock top; no nitro shove in reverse
 - Hard steer at speed → `drift > 0.45` and readable slip
 - Ramp / `stepJump` sets `y`/`vy` then lands

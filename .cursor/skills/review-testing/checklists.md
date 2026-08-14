@@ -116,6 +116,7 @@ Result: pass / fail — notes:
 ## F. Concept red lines
 
 - [ ] No dedicated ram control or ram score as main goal
+- [ ] Car bumps read mass + hit speed + front/side/rear (CONCEPT §4.5) — light cars move more
 - [ ] Suspension reduces grass penalty but leaves a remainder
 - [ ] Damage regenerates with FX
 - [ ] Player-facing money is CHF

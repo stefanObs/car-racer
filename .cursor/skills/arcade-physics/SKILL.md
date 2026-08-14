@@ -27,7 +27,7 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 4. **Front-steer path** — nose yaws with Handling; velocity follows behind (rear stable under grip); **no tank pivot at standstill**; turn authority scales with forward speed
 5. **Brake → reverse** — brake scrub to stop, then held brake drives reverse along −heading (lower reverse cap); throttle exits reverse; nitro forward-only
 6. **Slide when grip is short** — yaw from Handling; lateral pull from Grip; **arcade outside-drift** (nose leads, velocity seeks ~26–40° slip) via Drift hold **or** high-speed oversteer
-7. **Mass decides shove** — light cars get pushed / rebound more; heavy hold the line
+7. **Mass decides shove** — light cars get pushed / rebound more; heavy hold the line; car–car also uses closing speed, hit direction, and Bug/Flanke/Heck zone (CONCEPT §4.5)
 8. **Schanzen = real airtime** — `y`/`vy`; landing needs Grip + Federung
 9. **Grass penalty never removed** — Federung / grassMitigation only mitigate (`zones.ts`)
 10. **Walls bounce + cooldown damage** — no grind-KO spam (`IMPACT_DAMAGE_COOLDOWN`)
@@ -47,7 +47,7 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 | Arcade drift | `driftIntent` → `car.drift`; mini-turbo on exit |
 | Nitro | `nitroKickFor` (edge) + `nitroForceFor` + headroom |
 | Jump / land | `stepJump`, `isAirborne`, ramp via `passableObstacleMods` |
-| Car–car | `resolveContact` (mass impulse + ramBonus) |
+| Car–car | `resolveContact` (mass + closing speed + direction/zone per CONCEPT §4.5; `ramBonus`) |
 | Obstacles | `resolveObstacles` (infinite-mass bounce × mass) |
 | Walls | `applyWallBounce` |
 | Surfaces | `src/sim/zones.ts` `surfaceAt` |

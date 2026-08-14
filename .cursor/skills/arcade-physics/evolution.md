@@ -7,6 +7,17 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-14 — v0.3.150 Auto↔Auto-Bump impl (CONCEPT v3.75)
+- Trigger: user — implement improved ram concept
+- Decision: `contactHitZone` / `contactDirectionClass` / aggressor + `resolveContact` scales impulse by dir×zone, Heck forward shove, Flanke yaw kick, Spike stronger on aggressor nose; soft contacts still separation-only
+- Tests: `tests/contact-bump.test.ts`
+
+### 2026-08-14 — v3.75 Auto↔Auto-Bump (Masse × Speed × Richtung × Ort)
+- Trigger: user — concept for car bumps by weight, direction, hit location, relative speed
+- Decision: CONCEPT §4.5 expands arcade contact model: mass split, closing-speed hardness, frontal/schräg/streifend, Bug/Flanke/Heck effects + aggressor/victim; still spice, no ram button / no sim deform
+- Impl follow-up: evolve `resolveContact` (+ yaw torque helpers); lock with feel tests
+- CONCEPT dokumentstand → v3.75
+
 ### 2026-08-14 — v0.3.147 Phase C: pedal priority + high-speed coast
 - Trigger: CONCEPT v3.74 polish
 - Decision: brake wins over throttle when both pressed; mild extra coast above ~22 speed (still not abrupt dump)

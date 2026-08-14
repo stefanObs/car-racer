@@ -18,7 +18,7 @@ Append newest first.
 - Trigger: user — cars interact on bump by weight, direction, hit location, relative speed
 - Impact: CONCEPT §4.5 (new arcade contact tables); §4.2 cross-ref; arcade-physics contact map; review red line
 - Decision: Keep ramming as spice. Formalize four inputs (Masse, Schließspeed, Richtung, Trefferort Bug/Flanke/Heck) with aggressor/victim and readable scene examples. No Pacejka / no ram score.
-- CONCEPT dokumentstand → v3.75; impl not in this step
+- CONCEPT dokumentstand → v3.75; impl in v0.3.150 (`resolveContact` + `tests/contact-bump.test.ts`)
 
 ### 2026-08-14 — v3.74 Arcade Front-Steer + Bremse→Rückwärts
 - Trigger: user — plan for more realistic driving; front-steer path; hold brake → reverse after stop

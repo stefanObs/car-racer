@@ -906,8 +906,78 @@ export function passableObstacleMods(
 }
 
 /**
- * Car–car contact: mass + relative speed decide shove (CONCEPT §4.5).
- * Light cars get pushed farther; heavy cars hold the line.
+ * Car–car bump helpers (CONCEPT §4.5): hit zone, direction class, aggressor.
+ * Normal `(nx,nz)` points from self toward the other car.
+ */
+export type ContactHitZone = "nose" | "flank" | "tail";
+export type ContactDirectionClass = "frontal" | "oblique" | "glancing";
+
+/** Alignment of nose with contact normal: +1 = other dead ahead, −1 = dead astern. */
+export function contactForwardAlign(heading: number, nx: number, nz: number): number {
+  return Math.cos(heading) * nx + Math.sin(heading) * nz;
+}
+
+export function contactHitZone(heading: number, nx: number, nz: number): ContactHitZone {
+  const f = contactForwardAlign(heading, nx, nz);
+  if (f > 0.5) return "nose";
+  if (f < -0.5) return "tail";
+  return "flank";
+}
+
+export function contactDirectionClass(heading: number, nx: number, nz: number): ContactDirectionClass {
+  const a = Math.abs(contactForwardAlign(heading, nx, nz));
+  if (a >= 0.72) return "frontal";
+  if (a >= 0.32) return "oblique";
+  return "glancing";
+}
+
+/** +1 = contact on the left of the nose (heading × normal). */
+export function contactSideSign(heading: number, nx: number, nz: number): number {
+  const hx = Math.cos(heading);
+  const hz = Math.sin(heading);
+  const cross = hx * nz - hz * nx;
+  return Math.sign(cross) || 1;
+}
+
+export function contactImpulseDirScale(dir: ContactDirectionClass): number {
+  if (dir === "glancing") return 0.32;
+  if (dir === "oblique") return 0.82;
+  return 1.12;
+}
+
+export function contactAggressorZoneScale(zone: ContactHitZone): number {
+  if (zone === "tail") return 0.55;
+  if (zone === "flank") return 0.88;
+  return 1.08; // nose
+}
+
+export function contactDamageZoneScale(victimZone: ContactHitZone): number {
+  if (victimZone === "tail") return 0.75;
+  if (victimZone === "flank") return 1.05;
+  return 1;
+}
+
+/** Arcade yaw kick from a flank/oblique bump; Grip settles the nose afterward via grip pull. */
+export function contactYawKick(opts: {
+  zone: ContactHitZone;
+  dir: ContactDirectionClass;
+  closing: number;
+  grip: number;
+  side: number;
+}): number {
+  // Streifend + Bug/Heck: barely turn. Flanke always gets some spin (Schultercheck).
+  if (opts.dir === "glancing" && opts.zone !== "flank") return 0;
+  let mag = opts.zone === "flank" ? 0.24 : opts.zone === "tail" ? 0.1 : 0.045;
+  if (opts.dir === "oblique") mag *= 1.12;
+  if (opts.dir === "glancing") mag *= 0.62;
+  mag *= Math.min(1.35, opts.closing / 16);
+  mag /= 0.55 + Math.max(0.35, opts.grip) * 0.55;
+  return opts.side * mag;
+}
+
+/**
+ * Car–car contact (CONCEPT §4.5): Masse + Schließspeed + Richtung + Bug/Flanke/Heck.
+ * Soft / separating contacts only separate. Hard hits shove, may yaw, and chip damage.
  * @returns true when a hard closing impulse was applied (for SFX).
  */
 export function resolveContact(a: CarState, b: CarState): boolean {
@@ -937,21 +1007,83 @@ export function resolveContact(a: CarState, b: CarState): boolean {
     return false;
   }
 
+  const zoneA = contactHitZone(a.heading, nx, nz);
+  const zoneB = contactHitZone(b.heading, -nx, -nz);
+  const approachA = a.vx * nx + a.vz * nz;
+  const approachB = -(b.vx * nx + b.vz * nz);
+  const aIsAggressor = approachA >= approachB;
+  const agg = aIsAggressor ? a : b;
+  const vic = aIsAggressor ? b : a;
+  const aggZone = aIsAggressor ? zoneA : zoneB;
+  const vicZone = aIsAggressor ? zoneB : zoneA;
+  const nxAgg = aIsAggressor ? nx : -nx;
+  const nzAgg = aIsAggressor ? nz : -nz;
+  const aggDir = contactDirectionClass(agg.heading, nxAgg, nzAgg);
+  const vicDir = contactDirectionClass(vic.heading, aIsAggressor ? -nx : nx, aIsAggressor ? -nz : nz);
+
+  const dirScale = contactImpulseDirScale(aggDir);
+  const zoneScale = contactAggressorZoneScale(aggZone);
+  const ramNose = aggZone === "nose" ? 0.55 : 0.22;
+  const ram =
+    1 +
+    agg.stats.ramBonus * ramNose +
+    vic.stats.ramBonus * 0.12 +
+    (a.stats.ramBonus + b.stats.ramBonus) * 0.08;
+
   const restitution = 0.35;
   const invA = 1 / Math.max(0.35, a.stats.mass);
   const invB = 1 / Math.max(0.35, b.stats.mass);
-  const ram = 1 + (a.stats.ramBonus + b.stats.ramBonus) * 0.35;
-  const impulse = ((1 + restitution) * closing * ram) / (invA + invB);
+  const impulse =
+    ((1 + restitution) * closing * ram * dirScale * zoneScale) / (invA + invB);
 
   a.vx -= impulse * invA * nx;
   a.vz -= impulse * invA * nz;
   b.vx += impulse * invB * nx;
   b.vz += impulse * invB * nz;
+
+  // Heck-Treffer: angeschoben — mild forward shove on the victim
+  if (vicZone === "tail" && closing > 2) {
+    const boost = closing * 0.09 * (agg.stats.mass / totalMass);
+    const hx = Math.cos(vic.heading);
+    const hz = Math.sin(vic.heading);
+    vic.vx += hx * boost;
+    vic.vz += hz * boost;
+  }
+
+  // Flanke / schräg: arcade Giermoment (both can spin a bit)
+  a.heading += contactYawKick({
+    zone: zoneA,
+    dir: aIsAggressor ? aggDir : vicDir,
+    closing,
+    grip: a.stats.grip,
+    side: contactSideSign(a.heading, nx, nz),
+  });
+  b.heading += contactYawKick({
+    zone: zoneB,
+    dir: aIsAggressor ? vicDir : aggDir,
+    closing,
+    grip: b.stats.grip,
+    side: contactSideSign(b.heading, -nx, -nz),
+  });
+
   syncSpeedFromVelocity(a);
   syncSpeedFromVelocity(b);
 
-  const hit = 0.01 + closing * 0.0035 + (a.stats.ramBonus + b.stats.ramBonus) * 0.01;
-  damageCar(a, (hit * b.stats.mass) / totalMass);
-  damageCar(b, (hit * a.stats.mass) / totalMass);
+  const dmgScale = dirScale * contactDamageZoneScale(vicZone);
+  const hitBase =
+    (0.01 + closing * 0.0035 * dmgScale + (a.stats.ramBonus + b.stats.ramBonus) * 0.01) * dmgScale;
+  // Heavier opponent deals more; aggressor frontal takes a slightly larger self share
+  let dmgA = (hitBase * b.stats.mass) / totalMass;
+  let dmgB = (hitBase * a.stats.mass) / totalMass;
+  if (aIsAggressor && aggDir === "frontal") {
+    dmgA *= 1.12;
+    dmgB *= 0.95;
+  } else if (!aIsAggressor && aggDir === "frontal") {
+    dmgB *= 1.12;
+    dmgA *= 0.95;
+  }
+  damageCar(a, dmgA);
+  damageCar(b, dmgB);
   return true;
 }
+
