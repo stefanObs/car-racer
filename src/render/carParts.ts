@@ -418,8 +418,9 @@ function layoutBunker(): CarVisualLayout {
       { x: -1.02, y: 0.62, z: -1.15, yaw: 0, scale: 1, snap: false },
     ],
     big_engine: {
-      // Look sheet: low hood scoop between grille and windshield (not roof turret).
-      anchors: [{ x: 0, y: 1.02, z: 1.32, yaw: 0, scale: 1.25, snap: false }],
+      // Look sheet panel 1: compact scoop on mid-hood yellow stripe (not nose lip / roof).
+      // scaleY lifts the flat Tripo bake so the intake still reads at garage distance.
+      anchors: [{ x: 0, y: 1.1, z: 1.15, yaw: 0, scale: 1.05, scaleY: 1.55, snap: false }],
       build: () => buildHoodScoop("block"),
       preferGlb: true,
     },

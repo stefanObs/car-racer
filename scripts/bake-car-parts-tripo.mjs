@@ -68,7 +68,8 @@ const CAR_JOBS = {
     { id: "lightweight_body", toward: "+z", targetSpan: 2.2, maxH: 1.1, simplify: 0.4 },
   ],
   bunker: [
-    { id: "big_engine", toward: "+z", targetSpan: 1.1, maxH: 0.55, simplify: 0.4 },
+    // Look sheet panel 1: compact hood scoop (~⅓ hood width, low but readable height).
+    { id: "big_engine", toward: "+z", targetSpan: 0.62, maxH: 0.3, simplify: 0.4 },
     { id: "spike_bumper", toward: "+z", targetSpan: 1.7, maxH: 0.45, simplify: 0.4 },
     { id: "nitro_kit", toward: "+z", targetSpan: 0.75, maxH: 0.7, simplify: 0.4 },
     { id: "rear_spoiler", toward: "-z", targetSpan: 1.45, maxH: 0.65, simplify: 0.35 },

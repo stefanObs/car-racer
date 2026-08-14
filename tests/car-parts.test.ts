@@ -440,9 +440,15 @@ describe("Equipped-part visuals (all cars)", () => {
     const L = CAR_PART_LAYOUTS.bunker;
     const eng = L.big_engine.anchors[0]!;
     expect(eng.snap).toBe(false);
-    expect(eng.y).toBeLessThan(1.15);
-    expect(eng.y).toBeGreaterThan(0.9);
-    expect(eng.z).toBeGreaterThan(1.15);
+    expect(eng.y).toBeLessThan(1.18);
+    expect(eng.y).toBeGreaterThan(1.05);
+    // Mid-hood deck (look sheet panel 1) — not nose lip (~1.3+) or roof.
+    expect(eng.z).toBeGreaterThan(1.05);
+    expect(eng.z).toBeLessThan(1.25);
+    // Compact rebaked scoop (~0.62m span) near unity — not the old 1.25× full-hood block.
+    expect(eng.scale).toBeGreaterThan(0.9);
+    expect(eng.scale).toBeLessThan(1.2);
+    expect(eng.scaleY ?? eng.scale).toBeGreaterThan(1.4);
     expect(eng.yaw).toBeCloseTo(0);
 
     const frame = L.reinforced_frame.anchors[0]!;
