@@ -255,17 +255,16 @@ function layoutBison(): CarVisualLayout {
     big_engine: {
       // Mid-hood scoop (look sheet) — open grill faces the nose; aft sunk into the deck.
       // Mesh open mouth is local −Z; yaw π aims it at +Z. Pitch tips the closed back into the hood.
+      // Fixed Y (no snap): bury black aft flange into paint; slightly larger so the foot reads solid.
       anchors: [
         {
           x: 0,
-          y: 1.0,
+          y: 0.9,
           z: 1.17,
           yaw: Math.PI,
-          pitch: -0.18,
-          scale: 0.72,
-          sitGap: -0.04,
-          snapRadius: 0.28,
-          preferY: 1.0,
+          pitch: -0.22,
+          scale: 0.9,
+          snap: false,
         },
       ],
       build: () => buildHoodScoop("block"),
@@ -631,14 +630,20 @@ function toonifyPart(root: Object3D, fallbackName: string): void {
     if (!mesh.isMesh) return;
     const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     const next = mats.map((m) => {
-      const std = m as MeshToonMaterial & { map?: unknown; name?: string };
+      const std = m as MeshToonMaterial & { map?: Texture | null; name?: string };
       const name = (std.name || fallbackName).toLowerCase();
       // Chrome without a map → flat silver; with a map keep white so albedo stays neutral.
       const chrome = name.includes("chrome") || name.includes("metal");
       const toon = comicToon(chrome && !std.map ? 0xdce2e8 : 0xffffff);
       toon.name = std.name || fallbackName;
       if (std.map) {
-        toon.map = std.map as never;
+        const map = std.map;
+        map.colorSpace = SRGBColorSpace;
+        map.magFilter = NearestFilter;
+        map.minFilter = NearestFilter;
+        map.generateMipmaps = false;
+        map.needsUpdate = true;
+        toon.map = map;
         toon.needsUpdate = true;
       }
       return toon;

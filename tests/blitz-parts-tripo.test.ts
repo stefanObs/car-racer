@@ -35,4 +35,34 @@ describe("Blitz Tripo part add-on bakes", () => {
     expect(sy).toBeLessThan(id === "reinforced_frame" ? 1.45 : 1.1);
     expect(BLITZ_PART_PLACEMENT[id].length).toBeGreaterThan(0);
   });
+
+  it("ships Großer Motor with comic red + black two-tone albedo", async () => {
+    const sharp = (await import("sharp")).default;
+    const doc = await new NodeIO()
+      .registerExtensions(ALL_EXTENSIONS)
+      .read(resolve("public/models/parts/blitz-big_engine.glb"));
+    const mat = doc.getRoot().listMaterials()[0]!;
+    expect(mat.getName()).toBe("Carbon");
+    const tex = mat.getBaseColorTexture();
+    expect(tex).toBeTruthy();
+    const img = tex!.getImage();
+    expect(img?.byteLength).toBeGreaterThan(10_000);
+    const { data } = await sharp(Buffer.from(img!))
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    let red = 0;
+    let black = 0;
+    let n = 0;
+    for (let i = 0; i < data.length; i += 16) {
+      const r = data[i]!;
+      const g = data[i + 1]!;
+      const b = data[i + 2]!;
+      n++;
+      if (r > 160 && r > g * 1.5 && r > b * 1.5) red++;
+      if (r < 55 && g < 55 && b < 55) black++;
+    }
+    expect(red / n).toBeGreaterThan(0.08);
+    expect(black / n).toBeGreaterThan(0.35);
+  });
 });

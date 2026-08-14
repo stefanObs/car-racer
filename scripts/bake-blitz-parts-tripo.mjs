@@ -8,6 +8,7 @@
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import sharp from "sharp";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import {
@@ -28,7 +29,16 @@ const outDir = join(rootDir, "public/models/parts");
 /** Nose +Z, cabin −Z — same as Blitz body. Rear parts extra yaw 180. */
 const JOBS = [
   // Heckspoiler stays the extracted original wing (`npm run cars:extract-blitz-spoiler`) — not Tripo.
-  { id: "big_engine", material: "Carbon", toward: "+z", targetSpan: 0.85, maxH: 0.38, simplify: 0.4 },
+  // comicTwoTone: Asphalt-Comic red flange + black scoop (Tripo albedo is muddy bleed).
+  {
+    id: "big_engine",
+    material: "Carbon",
+    toward: "+z",
+    targetSpan: 0.85,
+    maxH: 0.38,
+    simplify: 0.4,
+    comicTwoTone: { red: [224, 49, 49], black: [27, 27, 31] },
+  },
   { id: "nitro_kit", material: "NitroKit", toward: "-z", targetSpan: 0.9, maxH: 0.42, simplify: 0.4 },
   { id: "spike_bumper", material: "Spike", toward: "+z", targetSpan: 1.68, maxH: 0.32, simplify: 0.4 },
   { id: "offroad_suspension", material: "Spring", toward: "+z", targetSpan: 0.5, maxH: 0.34, simplify: 0.45 },
@@ -155,6 +165,45 @@ function comicMaterial(doc, name) {
   }
 }
 
+/**
+ * Posterize Tripo albedo to flat Asphalt-Comic red + black (hood scoop).
+ * Keeps a little luminance banding so cel steps stay readable.
+ */
+async function comicTwoToneAlbedo(doc, { red, black }) {
+  const mat = doc.getRoot().listMaterials()[0];
+  if (!mat) return;
+  const tex = mat.getBaseColorTexture();
+  const img = tex?.getImage();
+  if (!tex || !img) return;
+  const { data, info } = await sharp(Buffer.from(img)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  let redN = 0;
+  let blackN = 0;
+  for (let i = 0; i < data.length; i += 4) {
+    const r = data[i];
+    const g = data[i + 1];
+    const b = data[i + 2];
+    const max = Math.max(r, g, b);
+    const min = Math.min(r, g, b);
+    const chroma = max - min;
+    const isRed = r === max && chroma / Math.max(max, 1) > 0.14 && r > g + 8 && r > b + 8 && r > 70;
+    const target = isRed ? red : black;
+    const lum = max / 255;
+    const shade = isRed ? 0.78 + 0.22 * lum : 0.72 + 0.28 * lum;
+    data[i] = Math.round(target[0] * shade);
+    data[i + 1] = Math.round(target[1] * shade);
+    data[i + 2] = Math.round(target[2] * shade);
+    if (isRed) redN++;
+    else blackN++;
+  }
+  const jpeg = await sharp(data, { raw: { width: info.width, height: info.height, channels: 4 } })
+    .jpeg({ quality: 90 })
+    .toBuffer();
+  tex.setImage(jpeg);
+  tex.setMimeType("image/jpeg");
+  mat.setBaseColorFactor([1, 1, 1, 1]);
+  console.log("comicTwoTone", { redN, blackN });
+}
+
 function liftAftRegion(doc, { fromZ, lift }) {
   forEachPosition(doc, (v) => {
     if (v[2] >= fromZ) return;
@@ -226,6 +275,7 @@ async function bakeJob(job) {
   });
   if (job.liftAft) liftAftRegion(doc, job.liftAft);
   comicMaterial(doc, job.material);
+  if (job.comicTwoTone) await comicTwoToneAlbedo(doc, job.comicTwoTone);
   await simplifyDoc(doc, job.simplify);
   const finalSize = sceneSize(doc);
   mkdirSync(outDir, { recursive: true });
