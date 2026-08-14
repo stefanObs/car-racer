@@ -11,6 +11,9 @@ import { carBodyWorldBox } from "./garageSit";
 
 export const LAP_BILLBOARD_NAME = "lapBillboard";
 
+/** How long the plaque stays up after a finish-line crossing. */
+export const LAP_BILLBOARD_FLASH_SEC = 2.2;
+
 /** Clearance above the car roof AABB so the plaque clears the silhouette in chase cam. */
 export const LAP_BILLBOARD_ROOF_CLEARANCE = 1.35;
 
@@ -21,6 +24,25 @@ export function formatLapBillboardLabel(lap: number, totalLaps: number): string 
   const total = Math.max(1, totalLaps);
   const cur = displayLap(lap, total);
   return `${cur}/${total}`;
+}
+
+/** True while a finish-line flash is still active. */
+export function lapBillboardFlashVisible(flashUntilFxTime: number, fxTime: number): boolean {
+  return flashUntilFxTime > fxTime;
+}
+
+/**
+ * When `lap` increases past `prevLap`, start/extend a flash deadline.
+ * Race start (lap stays 1) does not flash.
+ */
+export function lapBillboardFlashUntil(
+  prevLap: number | undefined,
+  lap: number,
+  fxTime: number,
+  flashSec = LAP_BILLBOARD_FLASH_SEC,
+): number | null {
+  if (prevLap == null || lap <= prevLap) return null;
+  return fxTime + flashSec;
 }
 
 function paintLapPlaque(ctx: CanvasRenderingContext2D, w: number, h: number, label: string): void {

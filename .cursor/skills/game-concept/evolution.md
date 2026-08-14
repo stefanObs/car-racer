@@ -26,6 +26,10 @@ Append newest first.
 - Decision: Arcade stays (no tire sim). Front-steer = nose leads, velocity follows, no standstill pivot. Same brake action → reverse after near-stop; reverse cap ~35–50%; nitro forward-only. Impl not in this step.
 - CONCEPT dokumentstand → v3.74
 
+### 2026-08-14 — lap plaque only on finish cross (v0.3.154 / CONCEPT v3.80)
+- Trigger: user — use plaque as round counter; only when crossing finish line
+- Decision: Hide persistent over-car plaques; flash comic RUNDE n/m ~2.2s after lap increments; HUD keeps ongoing counter
+
 ### 2026-08-14 — lap plaque above cars (v0.3.152 / CONCEPT v3.78)
 - Trigger: user — round counter is in the car; place above car facing the player
 - Decision: Comic **RUNDE n/m** Sprite billboard above each car roof (camera-facing); keep compact HUD lap too

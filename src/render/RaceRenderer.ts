@@ -47,6 +47,8 @@ import { buildSmoothTrack } from "./trackMesh";
 import {
   createLapBillboard,
   disposeLapBillboard,
+  lapBillboardFlashUntil,
+  lapBillboardFlashVisible,
   syncLapBillboard,
 } from "./lapBillboard";
 import {
@@ -66,8 +68,10 @@ export class RaceRenderer {
   readonly renderer: WebGLRenderer;
   private readonly carVisuals = new Map<string, ComicCarParts>();
   private readonly lastNitro = new Map<string, number>();
-  /** Comic lap plaques above each car — Sprite always faces the camera. */
+  /** Comic lap plaques — only while a finish-line flash is active. */
   private readonly lapBillboards = new Map<string, Sprite>();
+  private readonly lapBillboardLastLap = new Map<string, number>();
+  private readonly lapBillboardFlashUntil = new Map<string, number>();
   private trackGroup = new Group();
   private sceneryGroup = new Group();
   private panoramaGroup = new Group();
@@ -514,13 +518,26 @@ export class RaceRenderer {
         this.fxTime,
       );
 
+      const prevLap = this.lapBillboardLastLap.get(car.id);
+      const flashUntil = lapBillboardFlashUntil(prevLap, car.lap, this.fxTime);
+      if (flashUntil != null) this.lapBillboardFlashUntil.set(car.id, flashUntil);
+      this.lapBillboardLastLap.set(car.id, car.lap);
+      const flashing = lapBillboardFlashVisible(
+        this.lapBillboardFlashUntil.get(car.id) ?? 0,
+        this.fxTime,
+      );
+
       let plaque = this.lapBillboards.get(car.id);
-      if (!plaque) {
-        plaque = createLapBillboard();
-        this.lapBillboards.set(car.id, plaque);
-        this.scene.add(plaque);
+      if (flashing) {
+        if (!plaque) {
+          plaque = createLapBillboard();
+          this.lapBillboards.set(car.id, plaque);
+          this.scene.add(plaque);
+        }
+        syncLapBillboard(plaque, root, this.camera, car.lap, session.level.laps, root.visible, car.y);
+      } else if (plaque) {
+        plaque.visible = false;
       }
-      syncLapBillboard(plaque, root, this.camera, car.lap, session.level.laps, root.visible, car.y);
     }
 
     // Drop plaques for cars that left the field
@@ -529,6 +546,8 @@ export class RaceRenderer {
       this.scene.remove(plaque);
       disposeLapBillboard(plaque);
       this.lapBillboards.delete(id);
+      this.lapBillboardLastLap.delete(id);
+      this.lapBillboardFlashUntil.delete(id);
     }
 
     if (import.meta.env.DEV) {
@@ -592,6 +611,8 @@ export class RaceRenderer {
       disposeLapBillboard(plaque);
     }
     this.lapBillboards.clear();
+    this.lapBillboardLastLap.clear();
+    this.lapBillboardFlashUntil.clear();
     this.clearCelebrate();
   }
 }
