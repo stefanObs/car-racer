@@ -15,6 +15,7 @@ import {
 } from "../src/render/themeScenery";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
 import { generateAdhocLevel } from "../src/track/adhoc";
+import { isAllowedNonTripoScenery } from "../src/track/layoutRules";
 
 describe("theme track Tripo kit (cups 2–5)", () => {
   it("ships baked theme scenery GLBs that sit on y=0", async () => {
@@ -61,7 +62,7 @@ describe("theme track Tripo kit (cups 2–5)", () => {
       const anchors = planSceneryAnchors(track, level.theme);
       expect(anchors.length, level.id).toBeGreaterThan(5);
       for (const a of anchors) {
-        if (a.kind === "water" || a.kind === "dune" || a.kind === "lamp" || a.kind === "stack") continue;
+        if (isAllowedNonTripoScenery(a.kind)) continue;
         expect(isTripoSceneryKind(a.kind), `${level.id} ${a.kind}`).toBe(true);
       }
     }
