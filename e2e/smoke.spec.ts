@@ -33,7 +33,7 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.getByRole("button", { name: /Kaufen/ }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: /Blitz Sportwagen/ })).toBeVisible();
 
-    // Drag on canvas (behind UI) — turntable orbit
+    // Drag on canvas (behind UI) — yaw + pitch orbit
     const canvas = page.locator("#game-canvas");
     const box = await canvas.boundingBox();
     expect(box).toBeTruthy();
@@ -42,7 +42,7 @@ test.describe("Crash Circuit smoke", () => {
     await page.mouse.move(x, y);
     await page.mouse.down();
     await expect(canvas).toHaveClass(/is-orbiting/);
-    await page.mouse.move(x + 120, y);
+    await page.mouse.move(x + 120, y + 90);
     await page.mouse.up();
     await expect(canvas).not.toHaveClass(/is-orbiting/);
   });

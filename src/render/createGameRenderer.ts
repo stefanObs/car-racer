@@ -17,7 +17,7 @@ export type GameRenderer = {
   renderIdle: () => void;
   setGarageLook: (look: GarageLook) => void;
   setGarageDragging: (dragging: boolean) => void;
-  addGarageYawFromDrag: (deltaXPx: number) => void;
+  addGarageOrbitFromDrag: (deltaXPx: number, deltaYPx: number) => void;
   clearCars: () => void;
 };
 

@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.63 Garage free yaw + pitch orbit
+- Trigger: user — cars should turn in all directions; code only yawed
+- Decision: CONCEPT §9 „frei drehen“ = horizontal drag yaw + vertical drag pitch (clamp ±π). Wire `applyGarageDragOrbit` through GameApp → RaceRenderer (Euler YXZ).
+- CONCEPT §9 → v3.63
+
 ### 2026-08-14 — v3.62 Drop Bessere Bremsen on Bunker
 - Trigger: user — bunker: remove the art for the better brakes
 - Decision: `better_brakes` dropped for Bunker (like Blitz/Bison/Käferkraft): shop/kits strip via `carSupportsPart`; empty brake anchors / no caliper meshes. Only Donnerbüchse keeps the part.

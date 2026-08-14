@@ -43,8 +43,9 @@ import { themeLook } from "./themeLook";
 import { buildThemeScenery, trackCentroid } from "./themeScenery";
 import { buildSmoothTrack } from "./trackMesh";
 import {
-  applyGarageDragYaw,
+  applyGarageDragOrbit,
   garageDisplayYaw,
+  GARAGE_PITCH_DEFAULT,
   GARAGE_YAW_DEFAULT,
 } from "../ui/garageOrbit";
 import { ensureIdleClearsRaceField } from "./idleRaceTeardown";
@@ -67,6 +68,7 @@ export class RaceRenderer {
   /** Look key waiting on per-car Tripo kit load (rebuild when ready). */
   private pendingGarageLookKey: string | null = null;
   private garageYaw = GARAGE_YAW_DEFAULT;
+  private garagePitch = GARAGE_PITCH_DEFAULT;
   private garageDragging = false;
   private fxTime = 0;
   /** True while track/scenery from the last race are still meant to be shown. */
@@ -160,7 +162,9 @@ export class RaceRenderer {
     const pad = this.idleGroup.getObjectByName("garagePad");
     const deckY = pad ? garagePadDeckY(pad) : GARAGE_PAD_DECK_FALLBACK_Y;
     visual.root.position.set(GARAGE_PAD_CENTER.x, deckY, GARAGE_PAD_CENTER.z);
+    visual.root.rotation.order = "YXZ";
     visual.root.rotation.y = this.garageYaw;
+    visual.root.rotation.x = this.garagePitch;
     visual.root.scale.setScalar(1.35);
     this.idleGroup.add(visual.root);
     // Sit on tire contact — not full Box3 (invisible FX chunks under the origin sink the body).
@@ -242,9 +246,11 @@ export class RaceRenderer {
     this.garageDragging = dragging;
   }
 
-  /** Horizontal pointer drag in CSS pixels — left mouse / touch. */
-  addGarageYawFromDrag(deltaXPx: number): void {
-    this.garageYaw = applyGarageDragYaw(this.garageYaw, deltaXPx);
+  /** Pointer drag in CSS pixels — yaw (dx) + pitch (dy), mouse / touch. */
+  addGarageOrbitFromDrag(deltaXPx: number, deltaYPx: number): void {
+    const next = applyGarageDragOrbit(this.garageYaw, this.garagePitch, deltaXPx, deltaYPx);
+    this.garageYaw = next.yaw;
+    this.garagePitch = next.pitch;
   }
 
   renderIdle(): void {
@@ -258,7 +264,9 @@ export class RaceRenderer {
     this.fxTime += 1 / 60;
     this.idleGroup.visible = true;
     if (this.idleCar) {
+      this.idleCar.rotation.order = "YXZ";
       this.idleCar.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
+      this.idleCar.rotation.x = this.garagePitch;
     }
     // Slightly right of the pad so left heroes and right stock both read
     this.camera.position.set(3.4, 2.7, 9.2);

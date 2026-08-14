@@ -105,10 +105,11 @@ export class GameApp {
     this.renderUi();
   }
 
-  /** LMB / touch drag on the canvas spins the garage showcase car. */
+  /** LMB / touch drag on the canvas spins the garage showcase car (yaw + pitch). */
   private bindGarageOrbit(canvas: HTMLCanvasElement): void {
     let dragging = false;
     let lastX = 0;
+    let lastY = 0;
 
     const endDrag = (e: PointerEvent): void => {
       if (!dragging) return;
@@ -127,6 +128,7 @@ export class GameApp {
       if (e.button !== 0) return;
       dragging = true;
       lastX = e.clientX;
+      lastY = e.clientY;
       this.renderer.setGarageDragging(true);
       canvas.classList.add("is-orbiting");
       canvas.setPointerCapture(e.pointerId);
@@ -136,8 +138,10 @@ export class GameApp {
     canvas.addEventListener("pointermove", (e) => {
       if (!dragging || this.screen !== "garage") return;
       const dx = e.clientX - lastX;
+      const dy = e.clientY - lastY;
       lastX = e.clientX;
-      if (dx !== 0) this.renderer.addGarageYawFromDrag(dx);
+      lastY = e.clientY;
+      if (dx !== 0 || dy !== 0) this.renderer.addGarageOrbitFromDrag(dx, dy);
     });
 
     canvas.addEventListener("pointerup", endDrag);
