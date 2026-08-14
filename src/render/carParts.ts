@@ -2,7 +2,7 @@
  * Equipped-Teile visuals for every car (CONCEPT §6.3 + parts-look sheets).
  * Silhouette Teile (engine/scoop, spike, nitro, spoiler, frame, lightweight)
  * use per-car Tripo/extracted GLBs (`preferGlb: true`). Procedural: better_brakes
- * calipers + big_wheels (procedural tires, or Käferkraft upscaled StockWheel_*).
+ * calipers + big_wheels (procedural tires on Bison; scaled StockWheel_* on Blitz/Käferkraft/Donner/Bunker).
  * Hood/deck parts surface-snap. Meshes are cosmetic — stats stay in mergeStats.
  */
 import {
@@ -51,6 +51,8 @@ export const STOCK_CAGE_MESH = "StockCage";
 export const WHEEL_LIFT = 0.1;
 /** Blitz goes wider, not taller — tiny ride lift only. */
 export const BLITZ_WHEEL_LIFT = 0.02;
+/** Große Räder = uniform scale of detached StockWheel_* (not procedural cylinders). */
+export const BLITZ_BIG_WHEEL_SCALE = 1.28;
 /** Käferkraft / Donnerbüchse / Bunker Große Räder = uniform scale of baked StockWheel_* (not procedural). */
 export const KAEFERKRAFT_BIG_WHEEL_SCALE = 1.35;
 export const DONNER_BIG_WHEEL_SCALE = 1.55;
@@ -172,13 +174,8 @@ function layoutBlitz(): CarVisualLayout {
     // Blitz drops Bessere Bremsen from the shop — no caliper anchors.
     brakes: [],
     springs: BLITZ_PART_PLACEMENT.offroad_suspension,
-    // Wider tires (builder width), slight outboard so they fill the arches.
-    wheelHints: [
-      { x: 0.8, y: 0.3, z: 1.15, yaw: 0, scale: 1, snap: false },
-      { x: -0.8, y: 0.3, z: 1.15, yaw: 0, scale: 1, snap: false },
-      { x: 0.8, y: 0.3, z: -1.15, yaw: 0, scale: 1, snap: false },
-      { x: -0.8, y: 0.3, z: -1.15, yaw: 0, scale: 1, snap: false },
-    ],
+    // Große Räder scales detached StockWheel_* — no procedural anchor tires.
+    wheelHints: [],
     big_engine: {
       anchors: BLITZ_PART_PLACEMENT.big_engine,
       build: () => buildHoodScoop("triple"),
@@ -937,11 +934,12 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
 }
 
 function usesScaledStockWheels(carId: CarId): boolean {
-  return carId === "kaeferkraft" || carId === "donnerbuechse" || carId === "bunker";
+  return carId === "blitz" || carId === "kaeferkraft" || carId === "donnerbuechse" || carId === "bunker";
 }
 
 function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): number {
   if (!equippedParts.includes("big_wheels")) return 1;
+  if (carId === "blitz") return BLITZ_BIG_WHEEL_SCALE;
   if (carId === "donnerbuechse") return DONNER_BIG_WHEEL_SCALE;
   if (carId === "bunker") return BUNKER_BIG_WHEEL_SCALE;
   if (carId === "kaeferkraft") return KAEFERKRAFT_BIG_WHEEL_SCALE;
@@ -949,14 +947,10 @@ function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): numbe
 }
 
 function upgradeWheelFor(carId: CarId) {
-  if (carId === "blitz") {
-    // Wider track tires, stock-ish diameter (not taller).
-    return () => buildUpgradeWheel({ radius: 0.32, width: 0.4 });
-  }
   if (carId === "bison") {
     return () => buildUpgradeWheel({ radius: 0.46, width: 0.34 });
   }
-  // bunker / donnerbuechse / kaeferkraft use scaled StockWheel_* (see applyStockPartVisibility).
+  // blitz / bunker / donnerbuechse / kaeferkraft use scaled StockWheel_* (see applyStockPartVisibility).
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 

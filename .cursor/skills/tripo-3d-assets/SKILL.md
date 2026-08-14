@@ -31,7 +31,7 @@ Full CLI / path cookbook: [pipeline.md](pipeline.md).
 | Prefer Tripo (required on cars) | Prefer procedural (`carPartBuilders.ts`) |
 |--------------|------------------------------------------|
 | Full cars, FX blobs, track walls, garage props | `better_brakes` calipers, `big_wheels` replacement tires (stock wheels extracted/hidden) |
-| Silhouette Teile: `big_engine`, `spike_bumper`, `nitro_kit`, `rear_spoiler`, `reinforced_frame`, `lightweight_body` | Load-time fallback if a GLB failed to load (never leave `preferGlb: false` once a kit ships) |
+| Silhouette Teile: `big_engine`, `spike_bumper`, `nitro_kit`, `rear_spoiler`, `reinforced_frame`, `lightweight_body` | Load-time fallback if a GLB failed to load (never leave `preferGlb: false` once a kit ships); `better_brakes` calipers; Bison `big_wheels` procedural (Blitz/Käferkraft/Donner/Bunker scale detached `StockWheel_*`) |
 | Per-class kits matching parts-look sheets | Temporary authoring only until bake lands — then flip `preferGlb: true` |
 
 **Agent check:** if `public/models/parts/{car}-{part}.glb` exists for a silhouette part, layout must have `preferGlb: true`. Unit tests in `tests/car-parts.test.ts` enforce this.

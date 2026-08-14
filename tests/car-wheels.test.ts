@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { Box3, BoxGeometry, Group, Mesh, MeshBasicMaterial, type Mesh as MeshType } from "three";
+import { Box3, BoxGeometry, Group, Mesh, MeshBasicMaterial } from "three";
 import { describe, expect, it } from "vitest";
 import { CAR_IDS, type CarId } from "../src/data/cars";
 import { carSupportsPart, partsForCar } from "../src/data/partsCatalog";
@@ -9,6 +9,7 @@ import {
   applyStockPartVisibility,
   blitzPartObjectName,
   BLITZ_WHEEL_LIFT,
+  BLITZ_BIG_WHEEL_SCALE,
   CAR_PART_LAYOUTS,
   carStanceLift,
   KAEFERKRAFT_BIG_WHEEL_SCALE,
@@ -65,7 +66,7 @@ describe("stock wheels + Große Räder", () => {
     expect(load).toContain("extractStockWheels");
   });
 
-  it("hides stock wheels and mounts upgrade tires for big_wheels", () => {
+  it("Blitz Große Räder scales detached StockWheel_* (no procedural UpgradeTire)", () => {
     const root = new Group();
     const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
     stock.name = stockWheelName("FL");
@@ -73,14 +74,32 @@ describe("stock wheels + Große Räder", () => {
     root.add(stock);
 
     applyEquippedPartVisuals(root, "blitz", ["big_wheels"]);
+    expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(BLITZ_BIG_WHEEL_SCALE);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
+
+    // Empty equip keeps original StockWheel extracts visible at scale 1.
+    applyEquippedPartVisuals(root, "blitz", []);
+    expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(1);
+    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
+  });
+
+  it("Bison hides stock wheels and mounts upgrade tires for big_wheels", () => {
+    const root = new Group();
+    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
+    stock.name = stockWheelName("FL");
+    stock.userData.isStockWheel = true;
+    root.add(stock);
+
+    applyEquippedPartVisuals(root, "bison", ["big_wheels"]);
     expect(stock.visible).toBe(false);
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
     expect(root.getObjectByName("UpgradeTire")).toBeTruthy();
 
-    // Empty equip keeps original StockWheel extracts visible (no procedural stand-ins).
-    applyEquippedPartVisuals(root, "blitz", []);
+    applyEquippedPartVisuals(root, "bison", []);
     expect(stock.visible).toBe(true);
-    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
   });
 
   it("groundContactMinY prefers tires over low invisible FX debris", () => {
@@ -120,25 +139,20 @@ describe("stock wheels + Große Räder", () => {
 
     applyEquippedPartVisuals(root, "blitz", []);
     expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(1);
     expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
 
     applyEquippedPartVisuals(root, "blitz", ["big_wheels"]);
-    expect(stock.visible).toBe(false);
-    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
+    expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(BLITZ_BIG_WHEEL_SCALE);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
   });
 
-  it("Blitz upgrade wheels are wider than bunker meats", () => {
-    const blitz = buildUpgradeWheel({ radius: 0.32, width: 0.4 });
-    const bunker = buildUpgradeWheel({ radius: 0.46, width: 0.34 });
-    const bTire = blitz.getObjectByName("UpgradeTire") as MeshType & {
-      geometry: { parameters: { height: number; radiusTop: number } };
-    };
-    const uTire = bunker.getObjectByName("UpgradeTire") as MeshType & {
-      geometry: { parameters: { height: number; radiusTop: number } };
-    };
-    expect(bTire.geometry.parameters.height).toBeGreaterThan(uTire.geometry.parameters.height);
-    expect(uTire.geometry.parameters.radiusTop).toBeGreaterThan(bTire.geometry.parameters.radiusTop);
+  it("Blitz upgrade-style cylinders are unused; stock scale is the Große Räder path", () => {
+    expect(BLITZ_BIG_WHEEL_SCALE).toBeGreaterThan(1.1);
+    expect(BLITZ_BIG_WHEEL_SCALE).toBeLessThan(1.5);
+    const bison = buildUpgradeWheel({ radius: 0.46, width: 0.34 });
+    expect(bison.getObjectByName("UpgradeTire")).toBeTruthy();
   });
 
   it("Blitz stance lift for big_wheels is small (wider, not taller)", () => {
@@ -153,16 +167,18 @@ describe("stock wheels + Große Räder", () => {
     );
   });
 
-  it("applyStockPartVisibility toggles stock wheels with big_wheels", () => {
+  it("applyStockPartVisibility scales Blitz stock wheels with big_wheels", () => {
     const root = new Group();
     const stock = new Mesh(new BoxGeometry(0.2, 0.2, 0.2), new MeshBasicMaterial());
     stock.name = stockWheelName("RR");
     stock.userData.isStockWheel = true;
     root.add(stock);
     applyStockPartVisibility(root, "blitz", ["big_wheels"]);
-    expect(stock.visible).toBe(false);
+    expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(BLITZ_BIG_WHEEL_SCALE);
     applyStockPartVisibility(root, "blitz", []);
     expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(1);
   });
 
   it("Käferkraft ships baked StockWheel_* and skips re-extract", async () => {

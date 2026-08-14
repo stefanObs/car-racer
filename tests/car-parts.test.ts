@@ -161,7 +161,7 @@ describe("Equipped-part visuals (all cars)", () => {
       expect(root.getObjectByName(blitzPartObjectName("spike_bumper")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("rear_spoiler")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("big_engine")), id).toBeTruthy();
-      if (id === "kaeferkraft" || id === "donnerbuechse" || id === "bunker") {
+      if (id === "blitz" || id === "kaeferkraft" || id === "donnerbuechse" || id === "bunker") {
         expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeFalsy();
       } else {
         expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeTruthy();
@@ -209,14 +209,15 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(withPart.grip).toBeGreaterThan(bare.grip);
   });
 
-  it("raises stance for big_wheels and mounts upgrade tires (no WheelSpin hubs)", () => {
+  it("raises stance for big_wheels without procedural UpgradeTire hubs", () => {
     expect(blitzStanceLift(["big_wheels"])).toBeCloseTo(BLITZ_WHEEL_LIFT);
     const root = new Group();
     root.position.y = 0;
     applyBlitzParts(root, ["big_wheels"]);
     expect(root.position.y).toBeCloseTo(BLITZ_WHEEL_LIFT);
     expect(root.getObjectByName("WheelSpin_FL")).toBeUndefined();
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
     applyBlitzParts(root, []);
     expect(root.position.y).toBeCloseTo(0);
   });
@@ -264,8 +265,9 @@ describe("Equipped-part visuals (all cars)", () => {
       if (id === "blitz" || id === "bison" || id === "kaeferkraft" || id === "bunker") {
         expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(0);
       } else expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(4);
-      if (id === "kaeferkraft" || id === "donnerbuechse" || id === "bunker") expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(0);
-      else expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(4);
+      if (id === "blitz" || id === "kaeferkraft" || id === "donnerbuechse" || id === "bunker") {
+        expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(0);
+      } else expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(4);
     }
   });
 
