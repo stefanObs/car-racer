@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.155",
+  "version": "0.3.158",
   "private": true,
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -24,6 +24,7 @@
     "cars:bake-car-parts-tripo": "node scripts/bake-car-parts-tripo.mjs",
     "cars:bake-bison-tripo": "node scripts/bake-bison-tripo.mjs",
     "cars:bake-bison-segmented-wheels": "node scripts/bake-bison-segmented-wheels.mjs",
+    "cars:bake-kaeferkraft-segmented-parts": "node scripts/bake-kaeferkraft-segmented-parts.mjs",
     "cars:bake-donnerbuechse-tripo": "node scripts/bake-donnerbuechse-tripo.mjs",
     "cars:strip-donner-flames": "node scripts/strip-donner-flames.mjs",
     "cars:bake-bunker-tripo": "node scripts/bake-bunker-tripo.mjs",

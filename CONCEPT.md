@@ -240,7 +240,7 @@ Am **Angreifer**:
 
 - Jedes Rennen hat **5 Runden** (Cup, Freier Modus, Ad-hoc).
 - Beim Durchfahren der Start/Ziel-Linie (neue Runde) bekommt das Auto kurz ein **Runden-Schild**: ~2 s **kein Schaden** von Mauer / Hindernis / Kontakt (Schub bleibt).
-- Sichtbar als Comic-Energie-Schild (Tripo-FX am Auto) + Style-Popup „Schild!“ — lesbar für ~10+.
+- Sichtbar als Comic-Energie-Blase (procedural am Auto) + Style-Popup „Schild!“ — lesbar für ~10+. Die Tripo-**Lap-Shield**-Plakette ist der Runden-Flash **über** dem Auto (nicht im Chassis).
 
 **Respawn nach K.O.**
 
@@ -372,7 +372,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 **Design-Regel für jedes Teil:**  
 Kind muss in **einem Satz** Vor- und Nachteil verstehen. UI zeigt immer beides + kurze Empfehlung („Gut mit großen Rädern“).
 
-**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. **Bessere Bremsen** = prozedurale Bremssättel/Scheiben — **nur Donnerbüchse** (bei Blitz, Bison, Käferkraft und Bunker passen die Sättel nicht; Teil fehlt im Shop, Saves strippen es). **Große Räder** = Stock-Reifen werden aus dem Auto-Mesh gelöst; Blitz/Bison blenden Stock aus und montieren Ersatzräder (prozedural — Blitz **breiter**, Bison skaliert Tripo-`StockWheel_*`); **Käferkraft, Donnerbüchse und Bunker** skalieren die gelösten grauen Stock-Räder selbst (kein Ersatz-Mesh). Leichter Stance-Lift. **Gelände-Federung** = Blitz Tripo-Federn; **Bison** nutzt dieselben Stoßdämpfer bei **Stock-Radgröße** (kein Reifen-Scale; leichter Suspension-Lift); sonst nicht im Shop. Ablegen blendet Add-ons aus / setzt Stock-Räder zurück. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
+**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. **Bessere Bremsen** = prozedurale Bremssättel/Scheiben — **nur Donnerbüchse** (bei Blitz, Bison, Käferkraft und Bunker passen die Sättel nicht; Teil fehlt im Shop, Saves strippen es). **Große Räder** = Stock-Reifen werden aus dem Auto-Mesh gelöst; Blitz blendt Stock aus und montiert Ersatzräder (prozedural — **breiter**); Bison skaliert Tripo-`StockWheel_*`; **Käferkraft** löst Tripo-segmentierte `StockWheel_*` und blendet sie bei Großen Rädern aus (prozedurale Ersatzräder); **Donnerbüchse und Bunker** skalieren die gelösten grauen Stock-Räder selbst (kein Ersatz-Mesh). Leichter Stance-Lift. **Gelände-Federung** = Blitz Tripo-Federn; **Bison** nutzt dieselben Stoßdämpfer bei **Stock-Radgröße** (kein Reifen-Scale; leichter Suspension-Lift); sonst nicht im Shop. **Käferkraft StockCage** = Tripo-segmentiertes Überrollkäfig-Dach; ausgeblendet wenn Verstärkter Rahmen. Ablegen blendet Add-ons aus / setzt Stock-Räder zurück. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
 
 ### 6.4 Synergie-System („gute Kombinationen“)
 
@@ -596,4 +596,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.81 — Runden-Flash nutzt Tripo Lap-Shield-Plakette (klein).*
+*Dokumentstand: Konzept v3.83 — Tripo Lap-Shield nur über dem Auto (Runden-Flash); Immunität = Energie-Blase.*

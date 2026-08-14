@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — Tripo plaque above car only (v0.3.157 / CONCEPT v3.83)
+- Trigger: user — blue Tripo plaque still in the car; reorient and use as round counter above
+- Decision: Stop mounting `lap-shield.glb` in on-car `fx-shield` (keep procedural cyan bubble for immunity). Overhead finish flash yaws face (−90°) so plaque faces camera after lookAt; badge on −Z toward camera.
+- CONCEPT dokumentstand → v3.83
+
 ### 2026-08-14 — v3.75 Auto↔Auto-Bump model
 - Trigger: user — cars interact on bump by weight, direction, hit location, relative speed
 - Impact: CONCEPT §4.5 (new arcade contact tables); §4.2 cross-ref; arcade-physics contact map; review red line
@@ -55,6 +60,11 @@ Append newest first.
 - Trigger: user — car still floating in normal garage pose
 - RCA: orbit pivot used full `Box3.setFromObject` (FX skewed center); sit clearance 2 cm still read as a gap
 - Fix: body-only bounds for pivot; snap contact to deck after attach/yaw; zero pad clearance
+
+### 2026-08-14 — v3.80 Käferkraft Tripo-segment wheels + cage
+- Trigger: user — segment buggy cage + wheels like Bison tire detach
+- Decision: Tripo mesh segment v2 simple on `kaeferkraft-pre-cage-split.glb`; bake remounts `StockWheel_*` (comic Tire albedo) + `StockCage`; punch volumes keep BodyPaint atlas. Runtime: hide cage under Verstärkter Rahmen; hide wheels under Große Räder (procedural overlays unchanged).
+- CONCEPT §6.3 Sichtbarkeit minor sync; `npm run cars:bake-kaeferkraft-segmented-parts`
 
 ### 2026-08-14 — v3.74 Bison Federung keeps stock wheel size
 - Trigger: user — Bison offroad suspension should not enlarge wheels

@@ -15,16 +15,16 @@ function stubChunk(_id: FxChunkId): Group {
 }
 
 describe("shared comic car FX", () => {
-  it("exposes smoke, sparks, nitro, and lap-shield groups on every car visual", () => {
+  it("exposes smoke, sparks, nitro, and an empty Tripo-free shield shell", () => {
     const fx = makeFxGroups(-1.6, stubChunk);
     expect(fx.smoke.children).toHaveLength(4);
     expect(fx.sparks.children).toHaveLength(8);
     expect(fx.nitro.children).toHaveLength(5);
-    expect(fx.shield.children).toHaveLength(1);
+    // Tripo lap-shield is overhead round counter only — not mounted in the cabin.
+    expect(fx.shield.children).toHaveLength(0);
     expect(fx.smoke.children.every((c) => !c.visible)).toBe(true);
     expect(fx.sparks.children.every((c) => !c.visible)).toBe(true);
     expect(fx.nitro.children.every((c) => !c.visible)).toBe(true);
-    expect(fx.shield.children.every((c) => !c.visible)).toBe(true);
   });
 
   it("places nitro chunks behind the rear, not a Blitz-only offset", () => {
@@ -54,7 +54,7 @@ describe("shared comic car FX", () => {
     expect(fx.smoke.children.filter((c) => c.visible)).toHaveLength(3);
     expect(fx.nitro.children.every((c) => !c.visible)).toBe(true);
     expect(fx.sparks.children.every((c) => !c.visible)).toBe(true);
-    expect(fx.shield.children.every((c) => !c.visible)).toBe(true);
+    expect(fx.shield.visible).toBe(false);
     expect(fx.smoke.children[0]!.position.z).toBeCloseTo(-1.7, 5);
 
     applyCarFx(visual, { stage: 0, healFx: 0, boosting: true, lapShield: 0 }, 1);
@@ -63,7 +63,22 @@ describe("shared comic car FX", () => {
 
     applyCarFx(visual, { stage: 0, healFx: 0, boosting: false, lapShield: 1.5 }, 1);
     expect(fx.shield.visible).toBe(true);
-    expect(fx.shield.children.every((c) => c.visible)).toBe(true);
+  });
+
+  it("upgradeCarFx keeps the procedural on-car shield bubble (no Tripo crest in cabin)", () => {
+    const root = new Group();
+    const smoke = new Group();
+    smoke.add(new Group());
+    const sparks = new Group();
+    const nitro = new Group();
+    const shield = new Group();
+    const bubble = new Group();
+    bubble.name = "proceduralShield";
+    shield.add(bubble);
+    const visual = { root, smoke, sparks, nitro, shield } as ComicCarParts;
+    upgradeCarFx(visual);
+    expect(visual.shield.getObjectByName("proceduralShield")).toBe(bubble);
+    expect(visual.shield.children).toHaveLength(1);
   });
 
   it("upgradeCarFx is a no-op when FX GLBs are not preloaded", () => {

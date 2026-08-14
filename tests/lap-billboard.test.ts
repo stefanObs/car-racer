@@ -6,6 +6,8 @@ import {
   formatLapBillboardLabel,
   LAP_BILLBOARD_FLASH_SEC,
   LAP_BILLBOARD_NAME,
+  LAP_NUMBER_BADGE_Z,
+  LAP_SHIELD_FACE_YAW,
   LAP_SHIELD_FLASH_SCALE,
   lapBillboardFlashUntil,
   lapBillboardFlashVisible,
@@ -19,8 +21,10 @@ describe("lap billboard", () => {
     expect(formatLapBillboardLabel(6, 5)).toBe("5/5");
   });
 
-  it("keeps the Tripo shield flash compact", () => {
+  it("keeps the Tripo shield flash compact and camera-facing (−Z after yaw)", () => {
     expect(LAP_SHIELD_FLASH_SCALE).toBeLessThan(0.8);
+    expect(LAP_SHIELD_FACE_YAW).toBeCloseTo(-Math.PI / 2, 5);
+    expect(LAP_NUMBER_BADGE_Z).toBeLessThan(0);
   });
 
   it("creates a named group plaque", () => {

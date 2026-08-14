@@ -22,8 +22,15 @@ export const LAP_BILLBOARD_ROOF_CLEARANCE = 1.35;
 /** Uniform scale for the Tripo lap-shield mesh (baked longest ~1.4). */
 export const LAP_SHIELD_FLASH_SCALE = 0.55;
 
-/** Tiny number badge in front of the Tripo plaque. */
+/**
+ * Baked face normals point roughly +X; Object3D.lookAt aims local −Z at the camera.
+ * Yaw −90° so the plaque face sits on −Z (camera-facing after lookAt).
+ */
+export const LAP_SHIELD_FACE_YAW = -Math.PI / 2;
+
+/** Tiny number badge in front of the Tripo plaque (toward camera = −Z). */
 export const LAP_NUMBER_BADGE_SCALE = { x: 0.7, y: 0.34 } as const;
+export const LAP_NUMBER_BADGE_Z = -0.38;
 
 export function formatLapBillboardLabel(lap: number, totalLaps: number): string {
   const total = Math.max(1, totalLaps);
@@ -104,14 +111,14 @@ function makeNumberBadge(label: string): Sprite {
   const sprite = new Sprite(mat);
   sprite.name = "lapNumberBadge";
   sprite.scale.set(LAP_NUMBER_BADGE_SCALE.x, LAP_NUMBER_BADGE_SCALE.y, 1);
-  sprite.position.set(0, 0.05, 0.42);
+  sprite.position.set(0, 0.05, LAP_NUMBER_BADGE_Z);
   sprite.userData.lapCanvas = canvas;
   sprite.userData.lapLabel = label;
   return sprite;
 }
 
 /**
- * Finish-line round flash: Tripo `lap-shield` plaque (small) + tiny n/m badge.
+ * Finish-line round flash: Tripo `lap-shield` plaque (above the car) + tiny n/m badge.
  * Falls back to the number badge alone if FX GLBs are not loaded yet.
  */
 export function createLapBillboard(): Group {
@@ -122,9 +129,11 @@ export function createLapBillboard(): Group {
   if (hasFxModels()) {
     const crest = cloneFxChunk("lapShield");
     crest.name = "lapShieldMesh";
+    crest.rotation.y = LAP_SHIELD_FACE_YAW;
     crest.scale.setScalar(LAP_SHIELD_FLASH_SCALE);
     root.add(crest);
     root.userData.usesTripoShield = true;
+    root.userData.lapShieldMesh = crest;
   }
 
   const badge = makeNumberBadge("1/5");

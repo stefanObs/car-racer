@@ -50,13 +50,10 @@ export function makeFxGroups(
     nitro.add(trail);
   }
 
+  // Empty shell — Tripo lap-shield is the overhead round counter only.
+  // On-car immunity keeps the procedural cyan bubble from comicCarMesh.
   const shield = new Group();
   shield.name = "fx-shield";
-  const crest = cloneChunk("lapShield");
-  crest.position.set(0, 0.9, 0);
-  crest.scale.setScalar(1.35);
-  crest.visible = false;
-  shield.add(crest);
   return { smoke, sparks, nitro, shield };
 }
 
@@ -73,8 +70,7 @@ export function upgradeCarFx(visual: ComicCarParts): void {
   for (const child of [...fx.sparks.children]) visual.sparks.add(child);
   clearGroup(visual.nitro);
   for (const child of [...fx.nitro.children]) visual.nitro.add(child);
-  clearGroup(visual.shield);
-  for (const child of [...fx.shield.children]) visual.shield.add(child);
+  // Keep procedural fx-shield bubble — do not mount Tripo crest inside the cabin.
   visual.smoke.name = "fx-smoke";
   visual.sparks.name = "fx-sparks";
   visual.nitro.name = "fx-nitro";

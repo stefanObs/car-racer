@@ -550,9 +550,14 @@ export class RaceRenderer {
     }
 
     if (import.meta.env.DEV) {
-      const w = window as unknown as { __ccCars?: typeof session.cars; __ccFxTripo?: boolean };
+      const w = window as unknown as {
+        __ccCars?: typeof session.cars;
+        __ccFxTripo?: boolean;
+        __ccScene?: typeof this.scene;
+      };
       w.__ccCars = session.cars;
       w.__ccFxTripo = [...this.carVisuals.values()].every((v) => v.smoke.userData.tripoFx === true);
+      w.__ccScene = this.scene;
     }
 
     const player = session.player();
