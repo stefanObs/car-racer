@@ -51,8 +51,9 @@ export const STOCK_CAGE_MESH = "StockCage";
 export const WHEEL_LIFT = 0.1;
 /** Blitz goes wider, not taller — tiny ride lift only. */
 export const BLITZ_WHEEL_LIFT = 0.02;
-/** Käferkraft Große Räder = uniform scale of baked StockWheel_* (not procedural). */
+/** Käferkraft / Donnerbüchse Große Räder = uniform scale of baked StockWheel_* (not procedural). */
 export const KAEFERKRAFT_BIG_WHEEL_SCALE = 1.35;
+export const DONNER_BIG_WHEEL_SCALE = 1.55;
 export const SUSPENSION_LIFT = 0.06;
 export const BLITZ_SUSPENSION_LIFT = SUSPENSION_LIFT;
 
@@ -335,7 +336,7 @@ function layoutKaeferkraft(): CarVisualLayout {
 function layoutDonner(): CarVisualLayout {
   // Mesh bounds ~ x±1.19 y≤1.55 z±1.9 — nose +Z, cabin aft. StockEngine hides for big_engine.
   return {
-    wheelLift: 0.11,
+    wheelLift: 0.12,
     suspensionLift: 0,
     brakes: [
       { x: 0.9, y: 0.38, z: 1.25, yaw: 0, scale: 0.95, snap: false },
@@ -344,12 +345,8 @@ function layoutDonner(): CarVisualLayout {
       { x: -1.0, y: 0.48, z: -1.1, yaw: Math.PI, scale: 1.1, snap: false },
     ],
     springs: [],
-    wheelHints: [
-      { x: 1.02, y: 0.44, z: 1.25, yaw: 0, scale: 1, snap: false },
-      { x: -1.02, y: 0.44, z: 1.25, yaw: 0, scale: 1, snap: false },
-      { x: 1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
-      { x: -1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
-    ],
+    // Große Räder scales baked StockWheel_* — no procedural anchor tires.
+    wheelHints: [],
     big_engine: {
       // Look sheet: pack against grille; intakes above beltline (silver Tripo GLB).
       // Mesh mass sits aft in the bbox — high +Z closes the grille gap.
@@ -937,10 +934,7 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
   if (usesScaledStockWheels(carId)) {
     // Keep StockWheel_* visible; Große Räder only changes their scale.
     applyStockWheelVisibility(root, false);
-    applyStockWheelScale(
-      root,
-      equippedParts.includes("big_wheels") ? KAEFERKRAFT_BIG_WHEEL_SCALE : 1,
-    );
+    applyStockWheelScale(root, bigWheelScaleFor(carId, equippedParts));
   } else {
     applyStockWheelScale(root, 1);
     applyStockWheelVisibility(root, equippedParts.includes("big_wheels"));
@@ -948,7 +942,14 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
 }
 
 function usesScaledStockWheels(carId: CarId): boolean {
-  return carId === "kaeferkraft";
+  return carId === "kaeferkraft" || carId === "donnerbuechse";
+}
+
+function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): number {
+  if (!equippedParts.includes("big_wheels")) return 1;
+  if (carId === "donnerbuechse") return DONNER_BIG_WHEEL_SCALE;
+  if (carId === "kaeferkraft") return KAEFERKRAFT_BIG_WHEEL_SCALE;
+  return 1;
 }
 
 function upgradeWheelFor(carId: CarId) {
@@ -959,8 +960,7 @@ function upgradeWheelFor(carId: CarId) {
   if (carId === "bunker" || carId === "bison") {
     return () => buildUpgradeWheel({ radius: 0.46, width: 0.34 });
   }
-  // donnerbuechse — fat rear-bias street meats, still “bigger”
-  // kaeferkraft uses scaled StockWheel_* instead (see applyStockPartVisibility).
+  // donnerbuechse / kaeferkraft use scaled StockWheel_* instead (see applyStockPartVisibility).
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 

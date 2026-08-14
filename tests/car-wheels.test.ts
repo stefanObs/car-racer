@@ -12,6 +12,7 @@ import {
   CAR_PART_LAYOUTS,
   carStanceLift,
   KAEFERKRAFT_BIG_WHEEL_SCALE,
+  DONNER_BIG_WHEEL_SCALE,
 } from "../src/render/carParts";
 import { shouldApplyGaragePaint } from "../src/render/loadCarGltf";
 import {
@@ -207,6 +208,33 @@ describe("stock wheels + Große Räder", () => {
 
     applyEquippedPartVisuals(root, "kaeferkraft", []);
     expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(1);
+  });
+
+  it("Donnerbüchse ships baked StockWheel_* (dark tires) and scales them for Große Räder", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/donnerbuechse.glb"),
+    );
+    const names = doc
+      .getRoot()
+      .listNodes()
+      .map((n) => n.getName())
+      .filter((n) => n?.startsWith("StockWheel_"));
+    expect(names.sort()).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
+    for (const n of doc.getRoot().listNodes()) {
+      if (!n.getName()?.startsWith("StockWheel_")) continue;
+      expect(n.getMesh()?.listPrimitives()[0]?.getMaterial()?.getName()).toBe("Tire");
+    }
+
+    const root = new Group();
+    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
+    stock.name = stockWheelName("RR");
+    root.add(stock);
+    applyEquippedPartVisuals(root, "donnerbuechse", ["big_wheels"]);
+    expect(stock.visible).toBe(true);
+    expect(stock.scale.x).toBeCloseTo(DONNER_BIG_WHEEL_SCALE);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    applyEquippedPartVisuals(root, "donnerbuechse", []);
     expect(stock.scale.x).toBeCloseTo(1);
   });
 
