@@ -75,7 +75,8 @@ const CAR_JOBS = {
     { id: "rear_spoiler", toward: "-z", targetSpan: 1.45, maxH: 0.65, simplify: 0.35 },
     // Look sheet panel 5: full external cage (roof rails + pillars + rockers), not short sill bars.
     { id: "reinforced_frame", toward: "+z", targetSpan: 3.4, maxH: 1.95, simplify: 0.35 },
-    { id: "lightweight_body", toward: "+z", targetSpan: 1.95, maxH: 1.4, simplify: 0.4 },
+    // Look sheet panel 6: single door plate with triangular cutouts; dual-mounted on ±X flanks.
+    { id: "lightweight_body", toward: "+z", targetSpan: 1.05, maxH: 0.9, simplify: 0.4 },
   ],
 };
 

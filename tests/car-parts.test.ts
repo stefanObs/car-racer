@@ -106,6 +106,20 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.scale).toBeGreaterThan(0.9);
   });
 
+  it("paints Bunker Leichtbau flank plates with garage body color on both sides", () => {
+    registerCarPartTemplate("bunker", "lightweight_body", fakePartTemplate());
+    const root = new Group();
+    applyEquippedPartVisuals(root, "bunker", ["lightweight_body"], { paint: "#e03131" });
+    const a = root.getObjectByName(blitzPartObjectName("lightweight_body"));
+    const b = root.getObjectByName(blitzPartObjectName("lightweight_body", 1));
+    expect(a).toBeTruthy();
+    expect(b).toBeTruthy();
+    const mat = (a!.children[0] as Mesh).material as MeshBasicMaterial;
+    expect(mat.color.getHex()).toBe(0xe03131);
+    expect(mat.map).toBeNull();
+    expect(CAR_PART_LAYOUTS.bunker.lightweight_body.anchors).toHaveLength(2);
+  });
+
   it("tucks Blitz nitro onto the rear bumper under the deck spoiler", () => {
     const nitro = BLITZ_PART_PLACEMENT.nitro_kit[0]!;
     const wing = BLITZ_PART_PLACEMENT.rear_spoiler[0]!;
@@ -465,8 +479,11 @@ describe("Equipped-part visuals (all cars)", () => {
 
     const light = L.lightweight_body;
     expect(light.preferGlb).toBe(true);
-    expect(light.anchors[0]!.y).toBeGreaterThan(0.35);
-    expect(light.anchors[0]!.y).toBeLessThan(0.6);
+    expect(light.anchors).toHaveLength(2);
+    expect(light.anchors[0]!.x).toBeLessThan(0);
+    expect(light.anchors[1]!.x).toBeGreaterThan(0);
+    expect(light.anchors[0]!.y).toBeGreaterThan(0.4);
+    expect(light.anchors[0]!.y).toBeLessThan(0.7);
     expect(existsSync("public/models/parts/bunker-lightweight_body.glb")).toBe(true);
 
     const wing = L.rear_spoiler.anchors[0]!;

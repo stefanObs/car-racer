@@ -430,8 +430,11 @@ function layoutBunker(): CarVisualLayout {
       preferGlb: true,
     },
     lightweight_body: {
-      // U-shaped door panels — slightly oversized so cutouts read on the flanks.
-      anchors: [{ x: 0, y: 0.48, z: 0.05, yaw: 0, scale: 1.08, snap: false }],
+      // Look sheet panel 6: triangular cutouts on each door flank (body-paint tinted).
+      anchors: [
+        { x: -1.02, y: 0.55, z: 0.1, yaw: Math.PI / 2, scale: 1.08, snap: false },
+        { x: 1.02, y: 0.55, z: 0.1, yaw: -Math.PI / 2, scale: 1.08, snap: false },
+      ],
       build: () => buildLightweightBody("tri_cutouts"),
       preferGlb: true,
     },
@@ -1056,6 +1059,8 @@ export function applyEquippedPartVisuals(
     );
   }
   if (equipped.has("lightweight_body")) {
+    // Bunker look sheet panel 6: solid body paint on plates; geometric cutouts stay open.
+    const bunkerPaint = carId === "bunker" && opts?.paint ? new Color(opts.paint).getHex() : undefined;
     mountGlbOrProc(
       group,
       root,
@@ -1065,7 +1070,8 @@ export function applyEquippedPartVisuals(
       layout.lightweight_body.build,
       true,
       layout.lightweight_body.preferGlb !== false,
-      layout.lightweight_body.tint,
+      bunkerPaint ?? layout.lightweight_body.tint,
+      bunkerPaint != null,
     );
   }
   if (equipped.has("nitro_kit")) {
