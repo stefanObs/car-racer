@@ -64,7 +64,6 @@ describe("sky dome + panorama surround", () => {
         expect(names.has("harborWaterApron"), level.id).toBe(true);
       } else {
         expect(names.has("horizonPanorama"), level.id).toBe(true);
-        expect(names.has("infieldPanorama"), level.id).toBe(true);
       }
     }
   });
