@@ -192,7 +192,10 @@ describe("Equipped-part visuals (all cars)", () => {
       if (id === "blitz") {
         expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeFalsy();
         expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeTruthy();
-      } else if (id === "bison" || id === "kaeferkraft" || id === "bunker") {
+      } else if (id === "bison") {
+        expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeFalsy();
+        expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeTruthy();
+      } else if (id === "kaeferkraft" || id === "bunker") {
         expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeFalsy();
         expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeFalsy();
       } else {

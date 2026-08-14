@@ -3,12 +3,11 @@ import { PARTS, type PartId } from "./parts";
 
 /**
  * Per-car shop/equip allowlist.
- * Gelände-Federung only ships a Tripo kit for Blitz — other classes drop the part
- * and rely on tire/stance changes from Große Räder instead.
+ * Gelände-Federung: Blitz Tripo springs; Bison reuses that kit + dropped StockWheel_*.
  * Bessere Bremsen is dropped on Blitz, Bison, Käferkraft, and Bunker (procedural calipers don't fit).
  */
 export function carSupportsPart(carId: CarId, partId: PartId): boolean {
-  if (partId === "offroad_suspension") return carId === "blitz";
+  if (partId === "offroad_suspension") return carId === "blitz" || carId === "bison";
   if (partId === "better_brakes") {
     return carId === "donnerbuechse";
   }

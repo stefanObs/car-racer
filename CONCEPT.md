@@ -292,7 +292,7 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 **Design-Regel für jedes Teil:**  
 Kind muss in **einem Satz** Vor- und Nachteil verstehen. UI zeigt immer beides + kurze Empfehlung („Gut mit großen Rädern“).
 
-**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. **Bessere Bremsen** = prozedurale Bremssättel/Scheiben — **nur Donnerbüchse** (bei Blitz, Bison, Käferkraft und Bunker passen die Sättel nicht; Teil fehlt im Shop, Saves strippen es). **Große Räder** = Stock-Reifen werden aus dem Auto-Mesh gelöst; Blitz/Bison blenden Stock aus und montieren Ersatzräder (prozedural — Blitz **breiter**, Bison **größer**); **Käferkraft, Donnerbüchse und Bunker** skalieren die gelösten grauen Stock-Räder selbst (kein Ersatz-Mesh). Leichter Stance-Lift. **Gelände-Federung** nur wenn ein Federungs-Kit existiert (aktuell Blitz Tripo-Federn); sonst nicht im Shop, Stance über Große Räder. Ablegen blendet Add-ons aus / setzt Stock-Räder zurück. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
+**Sichtbarkeit:** Eingebaute Teile sind am Auto als kleine Add-on-Meshes sichtbar (alle Klassen; Look-Targets unter `assets/tripo-concepts/parts-look/`). Silhouette-Mesh-Teile (Motor/Scoop, Spike, Nitro, Spoiler, Rahmen, Leichtbau) nutzen **nur** pro-Auto Tripo-/Extract-GLBs unter `public/models/parts/{auto}-{teil}.glb` — keine absichtlichen Prozedur-Silhouetten am Auto. **Bessere Bremsen** = prozedurale Bremssättel/Scheiben — **nur Donnerbüchse** (bei Blitz, Bison, Käferkraft und Bunker passen die Sättel nicht; Teil fehlt im Shop, Saves strippen es). **Große Räder** = Stock-Reifen werden aus dem Auto-Mesh gelöst; Blitz/Bison blenden Stock aus und montieren Ersatzräder (prozedural — Blitz **breiter**, Bison skaliert Tripo-`StockWheel_*`); **Käferkraft, Donnerbüchse und Bunker** skalieren die gelösten grauen Stock-Räder selbst (kein Ersatz-Mesh). Leichter Stance-Lift. **Gelände-Federung** = Blitz Tripo-Federn; **Bison** nutzt dieselben Stoßdämpfer und senkt/skaliert `StockWheel_*` wie bei Großen Rädern (Federn verbinden Rahmen und Räder); sonst nicht im Shop. Ablegen blendet Add-ons aus / setzt Stock-Räder zurück. Die Meshes geben **keine Extra-Stats** — nur `mergeStats` aus der Teile-Liste. Lack und Aufkleber bleiben kosmetisch.
 
 ### 6.4 Synergie-System („gute Kombinationen“)
 
@@ -515,4 +515,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.70 — Start-Countdown 3…2…1…GO (4 s).*
+*Dokumentstand: Konzept v3.73 — Bison Gelände-Federung mit Blitz-Stoßdämpfern.*

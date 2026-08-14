@@ -15,6 +15,8 @@ import {
   BLITZ_WHEEL_LIFT,
   CAR_PART_LAYOUTS,
   carStanceLift,
+  partGlbUrl,
+  registerCarPartTemplate,
 } from "../src/render/carParts";
 import { collectWheelUvTriangles, shouldApplyGaragePaint } from "../src/render/loadCarGltf";
 import { groundContactMinY, stockWheelName } from "../src/render/stockWheels";
@@ -23,11 +25,15 @@ import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 
 describe("parts catalog (per-car)", () => {
-  it("keeps Gelände-Federung only on Blitz (has Tripo spring kit)", () => {
+  it("keeps Gelände-Federung on Blitz and Bison (Blitz Tripo springs)", () => {
     expect(carSupportsPart("blitz", "offroad_suspension")).toBe(true);
+    expect(carSupportsPart("bison", "offroad_suspension")).toBe(true);
     expect(existsSync("public/models/parts/blitz-offroad_suspension.glb")).toBe(true);
+    expect(partsForCar("bison")).toContain("offroad_suspension");
+    expect(CAR_PART_LAYOUTS.bison.springs).toHaveLength(4);
+    expect(partGlbUrl("bison", "offroad_suspension")).toBe("/models/parts/blitz-offroad_suspension.glb");
     for (const id of CAR_IDS as CarId[]) {
-      if (id === "blitz") continue;
+      if (id === "blitz" || id === "bison") continue;
       expect(carSupportsPart(id, "offroad_suspension")).toBe(false);
       expect(partsForCar(id)).not.toContain("offroad_suspension");
       expect(CAR_PART_LAYOUTS[id].springs).toHaveLength(0);
@@ -207,10 +213,61 @@ describe("stock wheels + Große Räder", () => {
     expect(w.getObjectByName("UpgradeTire")).toBeTruthy();
   });
 
-  it("non-Blitz cars get no offroad suspension lift", () => {
+  it("non-Blitz cars get no offroad suspension lift except Bison (shares wheel drop)", () => {
     expect(carStanceLift("bunker", ["offroad_suspension"])).toBe(0);
-    expect(carStanceLift("bison", ["big_wheels", "offroad_suspension"])).toBe(
+    expect(carStanceLift("bison", ["offroad_suspension"])).toBeCloseTo(CAR_PART_LAYOUTS.bison.wheelLift);
+    expect(carStanceLift("bison", ["big_wheels", "offroad_suspension"])).toBeCloseTo(
       CAR_PART_LAYOUTS.bison.wheelLift,
     );
+  });
+
+  it("Bison Gelände-Federung drops StockWheel_* like Große Räder and mounts Blitz springs", () => {
+    const root = new Group();
+    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
+      const stock = new Mesh(new BoxGeometry(0.4, 0.5, 0.4), new MeshBasicMaterial());
+      stock.name = stockWheelName(corner);
+      stock.userData.isStockWheel = true;
+      stock.position.y = BISON_STOCK_WHEEL_RADIUS;
+      root.add(stock);
+    }
+    registerCarPartTemplate(
+      "bison",
+      "offroad_suspension",
+      (() => {
+        const g = new Group();
+        g.add(new Mesh(new BoxGeometry(0.1, 0.3, 0.1), new MeshBasicMaterial()));
+        return g;
+      })(),
+    );
+    applyStockPartVisibility(root, "bison", ["offroad_suspension"]);
+    expect(root.children[0]!.scale.x).toBeCloseTo(BISON_BIG_WHEEL_SCALE);
+    expect(root.children[0]!.position.y).toBeCloseTo(
+      BISON_STOCK_WHEEL_RADIUS - bisonBigWheelHubDrop(),
+    );
+    applyEquippedPartVisuals(root, "bison", ["offroad_suspension"]);
+    expect(root.getObjectByName(blitzPartObjectName("offroad_suspension"))).toBeTruthy();
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+  });
+
+  it("places Bison shocks behind the outer rim on the hub centers", () => {
+    const hubs = [
+      { x: 0.669, z: 1.13 },
+      { x: -0.669, z: 1.13 },
+      { x: 0.669, z: -1.052 },
+      { x: -0.669, z: -1.052 },
+    ];
+    const hubY = BISON_STOCK_WHEEL_RADIUS - bisonBigWheelHubDrop();
+    // Inner tire face ~|x|0.55 — keep coils inside so they are not seen through the rim.
+    const innerTireFace = 0.55;
+    const springs = CAR_PART_LAYOUTS.bison.springs;
+    expect(springs).toHaveLength(4);
+    for (let i = 0; i < 4; i++) {
+      const s = springs[i]!;
+      const h = hubs[i]!;
+      expect(s.y).toBeCloseTo(hubY, 3);
+      expect(s.z).toBeCloseTo(h.z, 2);
+      expect(Math.abs(s.x)).toBeLessThan(innerTireFace);
+      expect(Math.abs(s.x)).toBeGreaterThan(0.35);
+    }
   });
 });
