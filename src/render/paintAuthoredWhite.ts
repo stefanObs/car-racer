@@ -38,94 +38,15 @@ export type CarPaintBounds = {
   maxAbsX: number;
 };
 
-export type BunkerGlassBounds = CarPaintBounds & {
+export type BunkerTrimBounds = CarPaintBounds & {
   maxAbsZ: number;
 };
-
-/**
- * Smoked cabin glass — light black (not ink #1b1b1f), readable under cel steps.
- * Look sheet windows are dark charcoal; garage paint must not recolor these to body.
- */
-export const BUNKER_CABIN_GLASS_SRGB = { r: 52 / 255, g: 52 / 255, b: 58 / 255 };
-
-/** Authored window albedo before paint — pale (gets body-painted) or mid grey glass. */
-export function isBunkerGlassSourcePixel(r: number, g: number, b: number): boolean {
-  if (isNearWhitePaintPixel(r, g, b)) return true;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  if (max < 40 || max > 110) return false;
-  return max - min <= 22;
-}
 
 /** Low, outboard verts — wheel disks on a grounded arcade silhouette. */
 export function isWheelPaintVertex(x: number, y: number, _z: number, bounds: CarPaintBounds): boolean {
   if (bounds.height < 0.05 || bounds.maxAbsX < 0.05) return false;
   const yCut = bounds.minY + Math.min(0.58, Math.max(0.2, bounds.height * 0.32));
   return y < yCut && Math.abs(x) >= bounds.maxAbsX * 0.5;
-}
-
-/**
- * Bunker cabin glass faces — upper windshield / side / rear panes (outer + recessed).
- * Face normal `(nx,ny,nz)` should be the triangle's geometric normal (unit-ish).
- */
-export function isBunkerCabinGlassTriangle(
-  ax: number,
-  ay: number,
-  az: number,
-  bx: number,
-  by: number,
-  bz: number,
-  cx: number,
-  cy: number,
-  cz: number,
-  nx: number,
-  ny: number,
-  nz: number,
-  bounds: BunkerGlassBounds,
-): boolean {
-  if (bounds.height < 0.05 || bounds.maxAbsZ < 0.05 || bounds.maxAbsX < 0.05) return false;
-  // Steep underbody is never glass; steep +Y is often armored windshield (handled below).
-  if (ny < -0.55) return false;
-  const x = (ax + bx + cx) / 3;
-  const y = (ay + by + cy) / 3;
-  const z = (az + bz + cz) / 3;
-  const yLo = bounds.minY + bounds.height * 0.46;
-  const yHi = bounds.minY + bounds.height * 0.72;
-  if (y < yLo || y > yHi) return false;
-  // Flat roof only (very steep +Y and mid ship) — not glass.
-  if (ny > 0.92 && Math.abs(z) < bounds.maxAbsZ * 0.35) return false;
-  // Front cabin pocket — windshield + side-cut panes (outer, recessed, or side-facing).
-  if (
-    z > bounds.maxAbsZ * 0.35 &&
-    Math.abs(ny) < 0.85 &&
-    (Math.abs(nz) > 0.2 || Math.abs(nx) > 0.55)
-  ) {
-    return true;
-  }
-  // Slanted armored windshield (Tripo often faces mostly +Y, not +Z).
-  if (
-    z > bounds.maxAbsZ * 0.4 &&
-    z < bounds.maxAbsZ * 0.88 &&
-    y < bounds.minY + bounds.height * 0.66 &&
-    ny > 0.4 &&
-    ny < 0.98 &&
-    Math.abs(nx) < 0.55
-  ) {
-    return true;
-  }
-  // Also catch slightly aft windshield faces with clear +Z/−Z normals.
-  if (z > bounds.maxAbsZ * 0.25 && Math.abs(nz) > 0.28 && Math.abs(ny) < 0.78) return true;
-  // Rear panes — outward or recessed.
-  if (z < -bounds.maxAbsZ * 0.12 && Math.abs(nz) > 0.28 && Math.abs(ny) < 0.78) return true;
-  // Side door glass only (avoid fender armor further fore/aft).
-  if (
-    Math.abs(nx) > 0.55 &&
-    Math.abs(x) > bounds.maxAbsX * 0.45 &&
-    Math.abs(z) < bounds.maxAbsZ * 0.45
-  ) {
-    return true;
-  }
-  return false;
 }
 
 /**
@@ -144,7 +65,7 @@ export function isBunkerBumperTriangle(
   _nx: number,
   _ny: number,
   _nz: number,
-  bounds: BunkerGlassBounds,
+  bounds: BunkerTrimBounds,
 ): boolean {
   if (bounds.height < 0.05 || bounds.maxAbsZ < 0.05) return false;
   const y = (ay + by + cy) / 3;
@@ -172,7 +93,7 @@ export function isBunkerLightTriangle(
   _nx: number,
   _ny: number,
   _nz: number,
-  bounds: BunkerGlassBounds,
+  bounds: BunkerTrimBounds,
 ): boolean {
   if (bounds.height < 0.05 || bounds.maxAbsZ < 0.05 || bounds.maxAbsX < 0.05) return false;
   const x = (ax + bx + cx) / 3;
@@ -190,36 +111,6 @@ export function isBunkerLightTriangle(
     return true;
   }
   return false;
-}
-
-/**
- * Force cabin-glass texels to smoked light black (after body paint bake).
- * `source` is the pre-paint atlas — only pale/glass source texels are overwritten so
- * false-positive armor faces that share the geometric mask stay body-colored.
- */
-export function tintBunkerCabinGlassTexels(
-  data: Uint8ClampedArray | Uint8Array,
-  mask: Uint8Array,
-  source?: Uint8ClampedArray | Uint8Array,
-): number {
-  let changed = 0;
-  const { r: gr, g: gg, b: gb } = BUNKER_CABIN_GLASS_SRGB;
-  for (let i = 0; i < mask.length; i++) {
-    if (!mask[i]) continue;
-    const o = i * 4;
-    const sr = source ? source[o]! : data[o]!;
-    const sg = source ? source[o + 1]! : data[o + 1]!;
-    const sb = source ? source[o + 2]! : data[o + 2]!;
-    if (source && !isBunkerGlassSourcePixel(sr, sg, sb)) continue;
-    const lum = (sr + sg + sb) / (3 * 255);
-    // Flat smoked tint — pale islands must not stay bright enough to read as body paint.
-    const shade = 0.78 + 0.14 * Math.min(1, Math.max(0.15, lum));
-    data[o] = Math.round(gr * 255 * shade);
-    data[o + 1] = Math.round(gg * 255 * shade);
-    data[o + 2] = Math.round(gb * 255 * shade);
-    changed++;
-  }
-  return changed;
 }
 
 function fract01(t: number): number {
@@ -477,7 +368,6 @@ function bakeAuthoredMap(
   cacheKey: string,
   recolor: RecolorPixels,
   wheelUvTris?: ArrayLike<number>,
-  glassUvTris?: ArrayLike<number>,
 ): Texture {
   const hit = cache.get(cacheKey);
   if (hit) return hit;
@@ -520,14 +410,7 @@ function bakeAuthoredMap(
   const paintColor = paintSrgb01(paint);
   const skip =
     wheelUvTris && wheelUvTris.length >= 6 ? buildWheelTexelMask(w, h, wheelUvTris) : undefined;
-  const source =
-    glassUvTris && glassUvTris.length >= 6 ? new Uint8ClampedArray(imageData.data) : undefined;
   recolor(imageData.data, paintColor.r, paintColor.g, paintColor.b, skip);
-  if (glassUvTris && glassUvTris.length >= 6 && source) {
-    // Overwrite cabin glass after body bake so pale window islands stay light black.
-    const glass = buildWheelTexelMask(w, h, glassUvTris, 2);
-    tintBunkerCabinGlassTexels(imageData.data, glass, source);
-  }
   ctx.putImageData(imageData, 0, 0);
 
   const tex = new CanvasTexture(c);
@@ -546,9 +429,8 @@ function mapCacheKey(
   paint: string,
   base: Texture,
   wheelUvTris?: ArrayLike<number>,
-  glassUvTris?: ArrayLike<number>,
 ): string {
-  return `${kind}:${paint}:${textureKey(base)}:wuv${wheelUvTris?.length ?? 0}:guv${glassUvTris?.length ?? 0}`;
+  return `${kind}:${paint}:${textureKey(base)}:wuv${wheelUvTris?.length ?? 0}`;
 }
 
 /** Canvas texture with matching body pixels tinted to `paint`; falls back to the original map. */
@@ -556,15 +438,13 @@ export function bakeAuthoredWhiteToPaint(
   base: Texture,
   paint: string,
   wheelUvTris?: ArrayLike<number>,
-  glassUvTris?: ArrayLike<number>,
 ): Texture {
   return bakeAuthoredMap(
     base,
     paint,
-    mapCacheKey("bunker-white", paint, base, wheelUvTris, glassUvTris),
+    mapCacheKey("bunker-white", paint, base, wheelUvTris),
     recolorNearWhitePixels,
     wheelUvTris,
-    glassUvTris,
   );
 }
 

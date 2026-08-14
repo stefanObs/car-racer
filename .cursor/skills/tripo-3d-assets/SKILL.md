@@ -2,9 +2,11 @@
 name: tripo-3d-assets
 description: >-
   Authors Crash Circuit 3D meshes via Asphalt-Comic concept art → Tripo3D
-  image-to-mesh → bake scripts → shipped GLBs. Use when generating or rebuilding
-  cars, equipped Teile / parts, garage props, track kit, FX, nose ornaments,
-  Tripo GLBs, bake-*-tripo scripts, or when the user asks for 3D assets / Tripo.
+  image-to-mesh → bake scripts → shipped GLBs. Also covers Tripo mesh segment
+  detach/remount (e.g. Bison tires → StockWheel_* with comic albedo). Use when
+  generating or rebuilding cars, equipped Teile / parts, garage props, track
+  kit, FX, nose ornaments, Tripo GLBs, bake-*-tripo scripts, segmented wheels,
+  or when the user asks for 3D assets / Tripo.
 ---
 
 # Tripo 3D assets (Crash Circuit)
@@ -24,13 +26,14 @@ Full CLI / path cookbook: [pipeline.md](pipeline.md).
 5. **Ship only baked outputs** — commit `public/models/**/*.glb` + bake scripts/tests; never commit `assets/tripo-out/` or `.tripo/`.
 6. **Visuals ≠ stats** — equipped Teile meshes are cosmetic; stats stay in `mergeStats`.
 7. **Delivery** — version → commit `master` → push after a bake that changes shipped GLBs.
+8. **Detach ≠ UV carve** — to remove a welded part (tires, etc.), use Tripo **mesh segment** + remount bake. Do **not** carve `StockWheel_*` from BodyPaint UV islands alone (fails texture/QA).
 
 ## When Tripo vs procedural
 
 | Prefer Tripo (required on cars) | Prefer procedural (`carPartBuilders.ts`) |
 |--------------|------------------------------------------|
-| Full cars, FX blobs, track walls, garage props | `better_brakes` calipers, `big_wheels` replacement tires (stock wheels extracted/hidden) |
-| Silhouette Teile: `big_engine`, `spike_bumper`, `nitro_kit`, `rear_spoiler`, `reinforced_frame`, `lightweight_body` | Load-time fallback if a GLB failed to load (never leave `preferGlb: false` once a kit ships); `better_brakes` calipers; Bison `big_wheels` procedural (Blitz/Käferkraft/Donner/Bunker scale detached `StockWheel_*`) |
+| Full cars, FX blobs, track walls, garage props | `better_brakes` calipers; `big_wheels` procedural overlays (except Bison: Tripo-segmented `StockWheel_*` scaled for Große Räder) |
+| Silhouette Teile: `big_engine`, `spike_bumper`, `nitro_kit`, `rear_spoiler`, `reinforced_frame`, `lightweight_body` | Load-time fallback if a GLB failed to load (never leave `preferGlb: false` once a kit ships); `better_brakes` calipers; procedural `big_wheels` where stock tires stay welded |
 | Per-class kits matching parts-look sheets | Temporary authoring only until bake lands — then flip `preferGlb: true` |
 
 **Agent check:** if `public/models/parts/{car}-{part}.glb` exists for a silhouette part, layout must have `preferGlb: true`. Unit tests in `tests/car-parts.test.ts` enforce this.
@@ -47,6 +50,36 @@ Task Progress:
 - [ ] 6. Unit + e2e / browser garage or race QA
 - [ ] 7. Version + commit master + push
 ```
+
+## Mesh segment: detach a part, remount with color + texture
+
+Canonical example: **Bison tires** (`npm run cars:bake-bison-segmented-wheels`). Use this pattern when a welded sub-mesh must become a named runtime node (`StockWheel_*`, etc.) **without** destroying the car’s BodyPaint atlas.
+
+### Why this shape
+
+| Approach | Result |
+|----------|--------|
+| Carve tires from BodyPaint UVs / extract islands | Rejected — wrong textures, grey clay wheels |
+| Merge all Tripo segment body fragments onto one atlas | Scrambles UVs — body texture “off” |
+| **Keep good BodyPaint GLB + segment only the part + remount** | Body atlas intact; part gets its own mat/albedo |
+
+### Steps (Bison tires)
+
+1. **Keep a pre-split body** with a good single Tripo atlas — e.g. `assets/tripo-out/bison/bison-pre-wheel-split.glb` (do not rebuild body from segment shards).
+2. **Segment** the textured car GLB with Tripo mesh segment **v2 `simple`** (prefer over `smartsegment` / `fine` — those over-fragment the body). Output under `assets/tripo-out/bison/segment-tires-v2/…`.
+3. **Identify part meshes** by bounds (tires: low Y, compact disks — four corners).
+4. **Bake remount** (`scripts/bake-bison-segmented-wheels.mjs`):
+   - Punch tire **volumes** out of the pre-split BodyPaint mesh (ellipsoid around segment centers).
+   - Clone segment tire meshes → nodes/meshes `StockWheel_{FL,FR,RL,RR}`.
+   - Material **`Tire`** + Asphalt-Comic albedo (`assets/tripo-concepts/bison-tire-albedo.png`): full disk **face** prims on both ±X flanks + annulus UVs on rubber so tread/rim read; `NearestFilter` at runtime.
+   - Orient/sit like other car bakes (`facePosZFromTripoX`, cab toward +Z, sit/scale).
+5. **Runtime** (`loadCarGltf.ts` / `carParts.ts` / `stockWheels.ts`):
+   - Keep authored maps on Tire; flat rubber only if no map (`ComicPalette.tire`).
+   - Cars with authored `StockWheel_*`: **`collectWheelUvTriangles` returns `[]`** — never feed Tire-atlas UVs into BodyPaint paint-skip (causes blotches / “paint broken”).
+   - Bison Große Räder: **scale** root `StockWheel_*` only (`BISON_BIG_WHEEL_SCALE` = 1.2; do not scale GLTF `…_1` children) and **drop hubs** by `radius×(scale−1)` so growth goes down (not into the frame); no procedural `UpgradeTire` overlays.
+6. **Tests**: `tests/bison-tripo.test.ts`, `tests/car-wheels.test.ts`, garage paint recolor on BodyPaint atlas.
+
+Detail + CLI notes: [pipeline.md](pipeline.md) § Mesh segment detach/remount.
 
 ## Blitz Teile — canonical part pipeline (original)
 
@@ -106,6 +139,7 @@ npm run cars:extract-blitz-spoiler
 | Family | Concepts | Out dir | Bake npm |
 |--------|----------|---------|----------|
 | Cars | `*-concept-3q.png` | `tripo-out/{carId}/` | `cars:bake-{carId}-tripo` |
+| Bison segmented wheels | `bison-tire-albedo.png` + segment out | `tripo-out/bison/segment-tires-v2/` | `cars:bake-bison-segmented-wheels` |
 | Blitz parts | `blitz-part-*.png` | `tripo-out/parts/blitz/{id}/` | `cars:bake-blitz-parts-tripo` |
 | FX | `fx-*.png` | `tripo-out/fx/` | `fx:bake-tripo` |
 | Track kit | `track-*.png` | `tripo-out/track/` | `track:bake-tripo` |
@@ -125,6 +159,6 @@ After bake, car/parts local space:
 
 ## Do / Don't
 
-**Do:** small primary volumes; thick-outline-friendly; match parts-look; update SOURCES; keep start scripts green.
+**Do:** small primary volumes; thick-outline-friendly; match parts-look; update SOURCES; keep start scripts green; segment-detach with pre-split BodyPaint + remount albedo.
 
-**Don't:** photoreal PBR clutter; purple glow; commit `tripo-out`; call Tripo at runtime; reuse Blitz part GLBs on other classes; grant stats from meshes.
+**Don't:** photoreal PBR clutter; purple glow; commit `tripo-out`; call Tripo at runtime; reuse Blitz part GLBs on other classes; grant stats from meshes; BodyPaint UV-carve for detach; merge segment body shards onto one atlas; feed `StockWheel_*` UVs into garage paint skip.

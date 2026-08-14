@@ -3,7 +3,6 @@ import {
   buildWheelTexelMask,
   isBlueBodyPixel,
   isHotRodFlamePixel,
-  isBunkerCabinGlassTriangle,
   isBunkerBumperTriangle,
   isBunkerLightTriangle,
   isGreenBodyPixel,
@@ -19,7 +18,6 @@ import {
   recolorNearWhitePixels,
   recolorOrangeBodyPixels,
   recolorRedBodyPixels,
-  tintBunkerCabinGlassTexels,
 } from "../src/render/paintAuthoredWhite";
 import { CAR_PAINT_BLACK } from "../src/render/palette";
 
@@ -67,67 +65,6 @@ describe("bunker authored white → garage paint", () => {
     expect(data[0]!).toBeGreaterThan(150);
     expect(data[4]).toBe(200);
     expect(data[5]).toBe(200);
-  });
-
-  it("classifies cabin glass faces (windshield / side / rear), not roof or rockers", () => {
-    const bounds = { minY: 0, height: 2.1, maxAbsX: 1, maxAbsZ: 1.9 };
-    // Windshield
-    expect(
-      isBunkerCabinGlassTriangle(0, 1.2, 1.2, 0.2, 1.2, 1.2, 0, 1.3, 1.1, 0, 0.1, 0.9, bounds),
-    ).toBe(true);
-    // Lower windshield lip (was missed at y≈1.02)
-    expect(
-      isBunkerCabinGlassTriangle(0, 1.02, 1.6, 0.2, 1.02, 1.6, 0, 1.05, 1.55, 0, 0.05, 0.95, bounds),
-    ).toBe(true);
-    // Side window
-    expect(
-      isBunkerCabinGlassTriangle(0.9, 1.2, 0.1, 0.9, 1.25, 0.2, 0.9, 1.15, 0, 0.95, 0.05, 0.1, bounds),
-    ).toBe(true);
-    // Forward side cabin glass caught by front pocket (high +Z), not door-side rule
-    expect(
-      isBunkerCabinGlassTriangle(0.9, 1.15, 1.2, 0.9, 1.2, 1.3, 0.9, 1.1, 1.1, 0.2, 0.05, 0.9, bounds),
-    ).toBe(true);
-    // Roof (mid-ship flat)
-    expect(
-      isBunkerCabinGlassTriangle(0, 1.8, 0, 0.2, 1.8, 0, 0, 1.8, 0.2, 0, 1, 0, bounds),
-    ).toBe(false);
-    // Slanted armored windshield (+Y heavy)
-    expect(
-      isBunkerCabinGlassTriangle(0, 1.1, 1.25, 0.2, 1.1, 1.25, 0, 1.15, 1.2, 0, 0.91, 0.1, bounds),
-    ).toBe(true);
-    // Lower door armor
-    expect(
-      isBunkerCabinGlassTriangle(0.9, 0.5, 0.1, 0.9, 0.55, 0.2, 0.9, 0.45, 0, 0.95, 0.05, 0.1, bounds),
-    ).toBe(false);
-  });
-
-  it("tints cabin glass texels to light black instead of leaving pale white", () => {
-    const data = new Uint8ClampedArray([
-      220, 220, 218, 255,
-      40, 40, 40, 255,
-      200, 40, 40, 255, // already body-painted red — only tinted if source says glass
-    ]);
-    const source = new Uint8ClampedArray([
-      220, 220, 218, 255,
-      40, 40, 40, 255,
-      220, 220, 218, 255,
-    ]);
-    const mask = new Uint8Array([1, 0, 1]);
-    const n = tintBunkerCabinGlassTexels(data, mask, source);
-    expect(n).toBe(2);
-    expect(data[0]!).toBeLessThan(90);
-    expect(data[0]!).toBeGreaterThan(35);
-    expect(Math.abs(data[0]! - data[1]!)).toBeLessThan(8);
-    expect(data[4]).toBe(40);
-    expect(data[8]!).toBeLessThan(90);
-  });
-
-  it("does not blacken armor texels that only share the geometric glass mask", () => {
-    const data = new Uint8ClampedArray([200, 40, 40, 255]);
-    const source = new Uint8ClampedArray([30, 30, 32, 255]); // charcoal trim, not glass
-    const mask = new Uint8Array([1]);
-    expect(tintBunkerCabinGlassTexels(data, mask, source)).toBe(0);
-    expect(data[0]).toBe(200);
   });
 
   it("recolors white pixels toward chosen paint and leaves yellow alone", () => {
@@ -251,6 +188,30 @@ describe("Bison green body → garage paint", () => {
     expect(data[4]!).toBeLessThan(data[0]!);
     expect(data[8]).toBe(20);
     expect(data[12]).toBe(235);
+  });
+
+  it("recolors a large share of the shipped Bison BodyPaint atlas to red", async () => {
+    const { resolve } = await import("node:path");
+    const { NodeIO } = await import("@gltf-transform/core");
+    const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
+    const sharp = (await import("sharp")).default;
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(resolve("public/models/cars/bison.glb"));
+    const tex = doc
+      .getRoot()
+      .listMaterials()
+      .find((m) => m.getName() === "BodyPaint")
+      ?.getBaseColorTexture();
+    expect(tex?.getImage()).toBeTruthy();
+    const { data, info } = await sharp(tex!.getImage()!).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const before = Uint8ClampedArray.from(data);
+    const paint = paintSrgb01("#e03131");
+    const n = recolorGreenBodyPixels(before, paint.r, paint.g, paint.b);
+    expect(n).toBeGreaterThan(info.width * info.height * 0.08);
+    let redish = 0;
+    for (let i = 0; i < before.length; i += 4) {
+      if (before[i]! > before[i + 1]! + 15 && before[i]! > before[i + 2]! + 15) redish++;
+    }
+    expect(redish).toBeGreaterThan(n * 0.5);
   });
 });
 

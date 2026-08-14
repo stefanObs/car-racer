@@ -3,6 +3,7 @@ import {
   Color,
   Group,
   Mesh,
+  NearestFilter,
   Object3D,
   Vector3,
   type Material,
@@ -17,6 +18,7 @@ import { applyBuggyNoseVariant, isBuggySkullHornMesh } from "./buggyNose";
 import { buggyNoseTexture } from "./buggyNoseTextures";
 import { applyCarStickers, carUsesNoseVariants } from "./carStickers";
 import { comicToon, outlineMaterial, inflateGeometry } from "./comicMaterials";
+import { ComicPalette } from "./palette";
 import {
   atlasRoleFromName,
   carUsesAuthoredAtlas,
@@ -29,12 +31,11 @@ import {
   bakeAuthoredOrangeToPaint,
   bakeAuthoredRedToPaint,
   bakeAuthoredWhiteToPaint,
-  isBunkerCabinGlassTriangle,
   isBunkerBumperTriangle,
   isBunkerLightTriangle,
   isWheelPaintVertex,
 } from "./paintAuthoredWhite";
-import { extractStockWheels, wheelContactMinY } from "./stockWheels";
+import { wheelContactMinY, hasAuthoredStockWheels } from "./stockWheels";
 import { APP_VERSION } from "../core/version";
 
 type Template = {
@@ -143,9 +144,7 @@ function normalizeCarScene(root: Object3D, spec: CarModelSpec): void {
     root.position.y += spec.y;
   }
 
-  // Detach authored tires so Große Räder can hide/replace them, then re-sit on tires
-  // (skirts / splitters must not define the ground plane).
-  extractStockWheels(root);
+  // Re-sit on tire contact (skirts / splitters must not define the ground plane).
   root.updateMatrixWorld(true);
   {
     const tireY = wheelContactMinY(root);
@@ -219,8 +218,8 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
         isBuggySkullHornMesh(mesh));
     let toon;
     if (stockWheel || name.includes("tire") || name.includes("rubber") || name.includes("hubcap") || name.includes("wheel")) {
-      // Detached StockWheel_* must stay flat dark rubber — body atlas would paint them red.
-      toon = comicToon(0x3a3a42);
+      // Prefer authored Tripo tire atlases; flat rubber only when no map shipped.
+      toon = map ? comicToon(0xffffff) : comicToon(ComicPalette.tire);
     } else if (name.includes("glass") || name.includes("window")) {
       toon = comicToon(color.getHex());
     } else if (isHeadlamp) {
@@ -256,13 +255,12 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
     }
     const skullOrnament = isHornMat || name.includes("skull");
     const tireMesh = stockWheel || name.includes("tire") || name.includes("rubber") || name.includes("hubcap");
-    // StockEngine shares the BodyPaint atlas — keeping the map paints the block blue.
-    // Flat comic chrome matches the silver look sheet (garage paint already skips Chrome).
-    const stockEngineChrome =
-      meshNameLower === "stockengine" ||
-      ((name.includes("chrome") || name.includes("metal")) && meshNameLower.includes("engine"));
-    // Keep authored atlas maps (Tripo bake / leftover free-asset maps) under cel shading.
-    if (map && !skullOrnament && !tireMesh && !stockEngineChrome) {
+    // Keep authored atlas maps (Tripo bake / tire islands / leftover free-asset maps) under cel shading.
+    if (map && !skullOrnament) {
+      map.magFilter = NearestFilter;
+      map.minFilter = NearestFilter;
+      map.generateMipmaps = false;
+      map.needsUpdate = true;
       toon.map = map;
       toon.needsUpdate = true;
     } else if (!tireMesh && !carUsesAuthoredAtlas(carId) && mesh.geometry && !skullOrnament && !toon.map) {
@@ -330,7 +328,11 @@ function applyCosmetics(root: Object3D, id: CarId, sticker: string): void {
   applyCarStickers(root, id, sticker);
 }
 
-function collectWheelUvTriangles(root: Object3D): number[] {
+export function collectWheelUvTriangles(root: Object3D): number[] {
+  // Authored StockWheel_* use a separate Tire atlas — their UVs (and leftover
+  // wheel-well verts on BodyPaint) must not mask the body paint bake.
+  if (hasAuthoredStockWheels(root)) return [];
+
   const tris: number[] = [];
   root.updateMatrixWorld(true);
   const box = new Box3().setFromObject(root);
@@ -368,71 +370,6 @@ function collectWheelUvTriangles(root: Object3D): number[] {
           isWheelPaintVertex(a.x, a.y, a.z, bounds) &&
           isWheelPaintVertex(b.x, b.y, b.z, bounds) &&
           isWheelPaintVertex(c.x, c.y, c.z, bounds)
-        )
-      ) {
-        continue;
-      }
-      tris.push(uv.getX(i0), uv.getY(i0), uv.getX(i1), uv.getY(i1), uv.getX(i2), uv.getY(i2));
-    }
-  });
-  return tris;
-}
-
-/** UV tris for Bunker cabin glass — pale atlas islands that would otherwise bake to body paint. */
-function collectBunkerGlassUvTriangles(root: Object3D): number[] {
-  const tris: number[] = [];
-  root.updateMatrixWorld(true);
-  const box = new Box3().setFromObject(root);
-  const size = new Vector3();
-  box.getSize(size);
-  const bounds = {
-    minY: box.min.y,
-    height: size.y,
-    maxAbsX: Math.max(Math.abs(box.min.x), Math.abs(box.max.x)),
-    maxAbsZ: Math.max(Math.abs(box.min.z), Math.abs(box.max.z)),
-  };
-  const a = new Vector3();
-  const b = new Vector3();
-  const c = new Vector3();
-  const ab = new Vector3();
-  const ac = new Vector3();
-  const n = new Vector3();
-  root.traverse((obj) => {
-    const mesh = obj as Mesh;
-    if (!mesh.isMesh || !mesh.geometry) return;
-    if (mesh.name && !shouldApplyGaragePaint(mesh.name)) return;
-    const geo = mesh.geometry;
-    const pos = geo.attributes.position;
-    const uv = geo.attributes.uv;
-    if (!pos || !uv) return;
-    const index = geo.index;
-    const triCount = index ? index.count / 3 : Math.floor(pos.count / 3);
-    const vert = (t: number, k: number) => (index ? index.getX(t * 3 + k) : t * 3 + k);
-    for (let t = 0; t < triCount; t++) {
-      const i0 = vert(t, 0);
-      const i1 = vert(t, 1);
-      const i2 = vert(t, 2);
-      a.fromBufferAttribute(pos, i0).applyMatrix4(mesh.matrixWorld);
-      b.fromBufferAttribute(pos, i1).applyMatrix4(mesh.matrixWorld);
-      c.fromBufferAttribute(pos, i2).applyMatrix4(mesh.matrixWorld);
-      ab.subVectors(b, a);
-      ac.subVectors(c, a);
-      n.crossVectors(ab, ac).normalize();
-      if (
-        !isBunkerCabinGlassTriangle(
-          a.x,
-          a.y,
-          a.z,
-          b.x,
-          b.y,
-          b.z,
-          c.x,
-          c.y,
-          c.z,
-          n.x,
-          n.y,
-          n.z,
-          bounds,
         )
       ) {
         continue;
@@ -499,7 +436,6 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
   const wheelUvTris = collectWheelUvTriangles(root);
   const skipUvTris =
     carId === "bunker" ? [...wheelUvTris, ...collectBunkerTrimUvTriangles(root)] : wheelUvTris;
-  const glassUvTris = carId === "bunker" ? collectBunkerGlassUvTriangles(root) : undefined;
   root.traverse((obj) => {
     const mesh = obj as Mesh;
     if (!mesh.isMesh) return;
@@ -520,7 +456,7 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
           if (hit) {
             toon.map = hit;
           } else {
-            const next = baker(prev, paint, skipUvTris, glassUvTris);
+            const next = baker(prev, paint, skipUvTris);
             replaced.set(prev, next);
             toon.map = next;
           }
@@ -542,14 +478,7 @@ function applyPaint(root: Object3D, paint: string, carId?: CarId): void {
 
 function authoredBodyPaintBaker(
   carId: CarId | undefined,
-):
-  | ((
-      map: Texture,
-      paint: string,
-      wheelUvTris?: ArrayLike<number>,
-      glassUvTris?: ArrayLike<number>,
-    ) => Texture)
-  | null {
+): ((map: Texture, paint: string, wheelUvTris?: ArrayLike<number>) => Texture) | null {
   if (carId === "blitz") return bakeAuthoredRedToPaint;
   if (carId === "bison") return bakeAuthoredGreenToPaint;
   if (carId === "kaeferkraft") return bakeAuthoredOrangeToPaint;
@@ -591,6 +520,7 @@ function isNonPaintMaterial(name: string): boolean {
     name.includes("tire") ||
     name.includes("rubber") ||
     name.includes("wheel") ||
+    name.includes("stockwheel") ||
     name.includes("rim") ||
     name.includes("hubcap") ||
     name.includes("chrome") ||

@@ -12,12 +12,19 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     expect(statSync(path).size).toBeGreaterThan(40_000);
     const text = readFileSync(path).toString("latin1");
     expect(text).toContain("BodyPaint");
-    expect(text).toContain("StockEngine");
-    expect(text).toContain("Chrome");
+    expect(text).not.toContain("StockEngine");
+    expect(text).not.toContain("Chrome");
 
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
     const engNode = doc.getRoot().listNodes().find((n) => n.getName() === "StockEngine");
-    expect(engNode?.getMesh()?.listPrimitives()[0]?.getMaterial()?.getName()).toBe("Chrome");
+    expect(engNode).toBeUndefined();
+    const mats = doc.getRoot().listMaterials().map((m) => m.getName());
+    expect(mats).toEqual(["BodyPaint"]);
+    for (const mesh of doc.getRoot().listMeshes()) {
+      for (const prim of mesh.listPrimitives()) {
+        expect(prim.getMaterial()?.getName()).toBe("BodyPaint");
+      }
+    }
 
     const b = getBounds(doc.getRoot().listScenes()[0]!);
     const sx = b.max[0] - b.min[0];

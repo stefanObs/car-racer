@@ -4,9 +4,9 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 
 | Car | File | Source | License |
 |-----|------|--------|---------|
-| **Blitz** (sport) | `blitz.glb` | Tripo3D GT coupe from Asphalt-Comic concept; stock body is the wing-stripped bake (Tripo cabin glass kept). Heckspoiler add-on is the extracted original rear wing (`npm run cars:extract-blitz-spoiler`). Stock tires split to `StockWheel_*` (`npm run cars:extract-blitz-stock-wheels`) so Große Räder scales them without carving the doors. | Generated mesh (shipped bake) |
+| **Blitz** (sport) | `blitz.glb` | Tripo3D GT coupe from Asphalt-Comic concept; stock body is the wing-stripped bake (Tripo cabin glass kept). Heckspoiler add-on is the extracted original rear wing (`npm run cars:extract-blitz-spoiler`). Stock tires stay welded in the body mesh; Große Räder uses procedural overlays. | Generated mesh (shipped bake) |
 | **Blitz Teile** | `../parts/blitz-*.glb` | Tripo3D add-on props for equipped Teile (`npm run cars:bake-blitz-parts-tripo`). Visuals only — no extra stats. | Generated mesh (shipped bake) |
-| **Bison** (pickup) | `bison.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-bison-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
+| **Bison** (pickup) | `bison.glb` | Tripo3D image-to-mesh (`npm run cars:bake-bison-tripo`), then Tripo mesh segment v2 for tires + remount (`npm run cars:bake-bison-segmented-wheels`). Große Räder scales `StockWheel_*`. | Generated mesh (shipped bake) |
 | **Käferkraft** (buggy) | `kaeferkraft.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-kaeferkraft-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 | **Käferkraft Totenkopf** (nose) | `props/buggy-skull.glb` | Tripo3D from Asphalt-Comic skull concept (horns in-mesh) | Generated mesh (shipped bake) |
 | **Käferkraft Vogel** (nose) | `props/buggy-bird.glb` | Tripo3D from Asphalt-Comic bird concept | Generated mesh (shipped bake) |

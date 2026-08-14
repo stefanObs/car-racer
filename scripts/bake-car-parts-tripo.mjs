@@ -48,7 +48,7 @@ const CAR_JOBS = {
     { id: "spike_bumper", toward: "+z", targetSpan: 1.55, maxH: 0.4, simplify: 0.4 },
     { id: "nitro_kit", toward: "+z", targetSpan: 0.85, maxH: 0.7, simplify: 0.4 },
     { id: "rear_spoiler", toward: "-z", targetSpan: 1.2, maxH: 0.75, simplify: 0.4 },
-    // ¾ concept skews the rack; straightenXZ levels left/right before span fit.
+    // ¾ concept skews the rack; straighten + pack arch so feet stay aft of the hoop.
     {
       id: "reinforced_frame",
       toward: "+z",
@@ -56,6 +56,7 @@ const CAR_JOBS = {
       maxH: 1.0,
       simplify: 0.35,
       straightenXZ: true,
+      packArchForward: true,
     },
   ],
   kaeferkraft: [
@@ -191,6 +192,29 @@ function straightenXZ(doc) {
   rotateY(doc, yaw);
 }
 
+/**
+ * Chase-rack pack: clamp anything forward of the arch plane so feet do not
+ * poke past the hoop into the cabin when the arch sits on the cab rear.
+ */
+function packArchForward(doc) {
+  const b0 = sceneSize(doc);
+  const y0 = b0.min[1];
+  const y1 = b0.max[1];
+  const ySpan = Math.max(y1 - y0, 1e-6);
+  const yArch = y0 + ySpan * 0.7;
+  const archZs = [];
+  forEachPosition(doc, (v) => {
+    if (v[1] >= yArch) archZs.push(v[2]);
+  });
+  if (archZs.length < 8) return;
+  const archZ = archZs.reduce((s, z) => s + z, 0) / archZs.length;
+  const pad = ySpan * 0.02;
+  const plane = archZ + pad;
+  forEachPosition(doc, (v) => {
+    if (v[2] > plane) v[2] = plane;
+  });
+}
+
 function facePosZFromTripoX(doc) {
   forEachPosition(doc, (v, n) => {
     const x = v[0];
@@ -289,7 +313,10 @@ async function bakeJob(carId, job) {
   let sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
   if (job.straightenXZ) {
     straightenXZ(doc);
-    // Re-sit/center after yaw so the rack stays on the origin.
+    sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
+  }
+  if (job.packArchForward) {
+    packArchForward(doc);
     sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
   }
   comicMaterial(doc, job.material ?? MAT[job.id] ?? "Carbon");

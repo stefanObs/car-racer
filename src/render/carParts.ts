@@ -2,7 +2,7 @@
  * Equipped-Teile visuals for every car (CONCEPT §6.3 + parts-look sheets).
  * Silhouette Teile (engine/scoop, spike, nitro, spoiler, frame, lightweight)
  * use per-car Tripo/extracted GLBs (`preferGlb: true`). Procedural: better_brakes
- * calipers + big_wheels (procedural tires on Bison; scaled StockWheel_* on Blitz/Käferkraft/Donner/Bunker).
+ * calipers + big_wheels overlays (except Bison: scales Tripo-segmented StockWheel_*).
  * Hood/deck parts surface-snap. Meshes are cosmetic — stats stay in mergeStats.
  */
 import {
@@ -48,7 +48,7 @@ export const CAR_PARTS_GROUP = "carParts";
 /** @deprecated alias — Blitz cabin glass seal */
 export const BLITZ_PARTS_GROUP = CAR_PARTS_GROUP;
 export const BLITZ_CABIN_GLASS = "blitzCabinGlass";
-/** Donnerbüchse replaceable stock V8 — hidden when Großer Motor is equipped. */
+/** Donnerbüchse stock V8 used to be a detachable mesh; engine stays welded in the body now. */
 export const STOCK_ENGINE_MESH = "StockEngine";
 /** Käferkraft replaceable stock roll-cage top — hidden when Verstärkter Rahmen is equipped. */
 export const STOCK_CAGE_MESH = "StockCage";
@@ -56,13 +56,20 @@ export const STOCK_CAGE_MESH = "StockCage";
 export const WHEEL_LIFT = 0.1;
 /** Blitz goes wider, not taller — tiny ride lift only. */
 export const BLITZ_WHEEL_LIFT = 0.02;
-/** Große Räder = uniform scale of detached StockWheel_* (not procedural cylinders). */
-export const BLITZ_BIG_WHEEL_SCALE = 1.28;
-/** Käferkraft / Donnerbüchse / Bunker Große Räder = uniform scale of baked StockWheel_* (not procedural). */
-export const KAEFERKRAFT_BIG_WHEEL_SCALE = 1.35;
-export const DONNER_BIG_WHEEL_SCALE = 1.55;
-/** Bunker look-sheet panel 2 — chunky lifted grey tires. */
-export const BUNKER_BIG_WHEEL_SCALE = 1.55;
+/**
+ * Bison Große Räder = uniform scale of Tripo-segmented StockWheel_*.
+ * Hubs drop by radius×(scale−1) plus arch clearance so growth goes down
+ * (not into the frame / fender lip).
+ */
+export const BISON_STOCK_WHEEL_RADIUS = 0.32;
+export const BISON_BIG_WHEEL_SCALE = 1.2;
+/** Extra drop past top-fixed so scaled tires clear the wheel arch. */
+export const BISON_BIG_WHEEL_ARCH_CLEARANCE = 0.05;
+/** Hub drop that keeps scaled tires under the fender lip. */
+export function bisonBigWheelHubDrop(scale = BISON_BIG_WHEEL_SCALE): number {
+  if (scale <= 1) return 0;
+  return BISON_STOCK_WHEEL_RADIUS * (scale - 1) + BISON_BIG_WHEEL_ARCH_CLEARANCE;
+}
 export const SUSPENSION_LIFT = 0.06;
 export const BLITZ_SUSPENSION_LIFT = SUSPENSION_LIFT;
 
@@ -181,8 +188,12 @@ function layoutBlitz(): CarVisualLayout {
     // Blitz drops Bessere Bremsen from the shop — no caliper anchors.
     brakes: [],
     springs: BLITZ_PART_PLACEMENT.offroad_suspension,
-    // Große Räder scales detached StockWheel_* — no procedural anchor tires.
-    wheelHints: [],
+    wheelHints: [
+      { x: 0.8, y: 0.3, z: 1.15, yaw: 0, scale: 1, snap: false },
+      { x: -0.8, y: 0.3, z: 1.15, yaw: 0, scale: 1, snap: false },
+      { x: 0.8, y: 0.3, z: -1.15, yaw: 0, scale: 1, snap: false },
+      { x: -0.8, y: 0.3, z: -1.15, yaw: 0, scale: 1, snap: false },
+    ],
     big_engine: {
       anchors: BLITZ_PART_PLACEMENT.big_engine,
       build: () => buildHoodScoop("triple"),
@@ -215,17 +226,14 @@ function layoutBlitz(): CarVisualLayout {
 function layoutBison(): CarVisualLayout {
   // Mesh bounds ~ x±0.85 y≤1.45 z±1.9 — use class procs (not Blitz Tripo kits).
   return {
-    wheelLift: 0.12,
+    // Bottom sink = hub drop + radius growth below hub.
+    wheelLift: bisonBigWheelHubDrop() + BISON_STOCK_WHEEL_RADIUS * (BISON_BIG_WHEEL_SCALE - 1),
     suspensionLift: 0,
     // Bison drops Bessere Bremsen — no caliper anchors.
     brakes: [],
     springs: [],
-    wheelHints: [
-      { x: 0.85, y: 0.48, z: 1.2, yaw: 0, scale: 1, snap: false },
-      { x: -0.85, y: 0.48, z: 1.2, yaw: 0, scale: 1, snap: false },
-      { x: 0.85, y: 0.48, z: -1.2, yaw: 0, scale: 1, snap: false },
-      { x: -0.85, y: 0.48, z: -1.2, yaw: 0, scale: 1, snap: false },
-    ],
+    // Große Räder scales Tripo-segmented StockWheel_* — no procedural overlays.
+    wheelHints: [],
     big_engine: {
       // Mid-hood scoop (look sheet panel 1) — hood deck z~0.63…1.71, mid~1.17; clear gaps to grille + windshield.
       anchors: [
@@ -244,24 +252,14 @@ function layoutBison(): CarVisualLayout {
       preferGlb: true,
     },
     spike_bumper: {
-      // Tripo spiked bar (`bison-spike_bumper.glb`) on the stock bumper face — tips outside the nose.
-      anchors: [{ x: 0, y: 0.24, z: 2.28, yaw: 0, scale: 0.95, snap: false }],
+      // Stock bumper ~z 1.56–1.90. Sit the Tripo bar on that face (was z 2.28 / scale 0.95).
+      anchors: [{ x: 0, y: 0.28, z: 1.72, yaw: 0, scale: 0.82, snap: false }],
       build: () => buildSpikeBumper(5, 1.15),
       preferGlb: true,
     },
     reinforced_frame: {
-      // Bed roll bar: arch toward cab (+Z bake), scaleZ thins deep Tripo feet so plates clear cabin.
-      anchors: [
-        {
-          x: 0,
-          y: 0.64,
-          z: -0.82,
-          yaw: 0,
-          scale: 0.9,
-          scaleZ: 0.5,
-          snap: false,
-        },
-      ],
+      // Bed roll bar: packed arch at +Z against cab rear (~z−0.91); braces into bed.
+      anchors: [{ x: 0, y: 0.64, z: -1.12, yaw: 0, scale: 0.88, snap: false }],
       build: () => buildReinforcedFrame("pickup"),
       preferGlb: true,
     },
@@ -291,10 +289,15 @@ function layoutKaeferkraft(): CarVisualLayout {
   // Hull child yaw π/2; mesh local nose −X, width ±Z. Cage roof ~y1.65 near x0.3–0.6.
   return {
     wheelLift: 0.14,
+    suspensionLift: 0,
     brakes: [],
     springs: [],
-    // Große Räder scales baked StockWheel_* — no procedural anchor tires.
-    wheelHints: [],
+    wheelHints: [
+      { x: -1.22, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
+      { x: -1.22, y: 0.5, z: -0.82, yaw: Math.PI / 2, scale: 1, snap: false },
+      { x: 1.18, y: 0.5, z: 0.82, yaw: Math.PI / 2, scale: 1, snap: false },
+      { x: 1.18, y: 0.5, z: -0.82, yaw: Math.PI / 2, scale: 1, snap: false },
+    ],
     big_engine: {
       // Look sheet panel 1: fat block on open rear deck; scoop clears top cage tubes.
       anchors: [{ x: 1.28, y: 0.95, z: 0, yaw: 0, scale: 1.35, scaleY: 1.5, snap: false }],
@@ -337,7 +340,7 @@ function layoutKaeferkraft(): CarVisualLayout {
 }
 
 function layoutDonner(): CarVisualLayout {
-  // Mesh bounds ~ x±1.19 y≤1.55 z±1.9 — nose +Z, cabin aft. StockEngine hides for big_engine.
+  // Mesh bounds ~ x±1.19 y≤1.55 z±1.9 — nose +Z, cabin aft.
   return {
     wheelLift: 0.12,
     suspensionLift: 0,
@@ -348,8 +351,12 @@ function layoutDonner(): CarVisualLayout {
       { x: -1.0, y: 0.48, z: -1.1, yaw: Math.PI, scale: 1.1, snap: false },
     ],
     springs: [],
-    // Große Räder scales baked StockWheel_* — no procedural anchor tires.
-    wheelHints: [],
+    wheelHints: [
+      { x: 1.02, y: 0.44, z: 1.25, yaw: 0, scale: 1, snap: false },
+      { x: -1.02, y: 0.44, z: 1.25, yaw: 0, scale: 1, snap: false },
+      { x: 1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
+      { x: -1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
+    ],
     big_engine: {
       // Look sheet: pack against grille; intakes above beltline (silver Tripo GLB).
       // Mesh mass sits aft in the bbox — high +Z closes the grille gap.
@@ -409,8 +416,12 @@ function layoutBunker(): CarVisualLayout {
     suspensionLift: 0,
     brakes: [],
     springs: [],
-    // Große Räder scales baked StockWheel_* — no procedural anchor tires.
-    wheelHints: [],
+    wheelHints: [
+      { x: 1.02, y: 0.62, z: 1.2, yaw: 0, scale: 1, snap: false },
+      { x: -1.02, y: 0.62, z: 1.2, yaw: 0, scale: 1, snap: false },
+      { x: 1.02, y: 0.62, z: -1.15, yaw: 0, scale: 1, snap: false },
+      { x: -1.02, y: 0.62, z: -1.15, yaw: 0, scale: 1, snap: false },
+    ],
     big_engine: {
       // Look sheet panel 1: compact scoop on mid-hood yellow stripe (not nose lip / roof).
       // scaleY lifts the flat Tripo bake so the intake still reads at garage distance.
@@ -1042,40 +1053,45 @@ function placeAnchored(
 
 /** Hide replaceable stock meshes when a Teil supersedes them. */
 export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedParts: readonly PartId[]): void {
-  const hideEngine = carId === "donnerbuechse" && equippedParts.includes("big_engine");
   const hideCage = carId === "kaeferkraft" && equippedParts.includes("reinforced_frame");
   root.traverse((obj) => {
-    if (obj.name === STOCK_ENGINE_MESH) obj.visible = !hideEngine;
     if (obj.name === STOCK_CAGE_MESH) obj.visible = !hideCage;
   });
   if (usesScaledStockWheels(carId)) {
-    // Keep StockWheel_* visible; Große Räder only changes their scale.
     applyStockWheelVisibility(root, false);
-    applyStockWheelScale(root, bigWheelScaleFor(carId, equippedParts));
+    const scale = bigWheelScaleFor(carId, equippedParts);
+    const hubDrop = scale > 1 ? bisonBigWheelHubDrop(scale) : 0;
+    applyStockWheelScale(root, scale, hubDrop);
   } else {
-    applyStockWheelScale(root, 1);
+    applyStockWheelScale(root, 1, 0);
     applyStockWheelVisibility(root, equippedParts.includes("big_wheels"));
   }
 }
 
 function usesScaledStockWheels(carId: CarId): boolean {
-  return carId === "blitz" || carId === "kaeferkraft" || carId === "donnerbuechse" || carId === "bunker";
+  return carId === "bison";
 }
 
 function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): number {
   if (!equippedParts.includes("big_wheels")) return 1;
-  if (carId === "blitz") return BLITZ_BIG_WHEEL_SCALE;
-  if (carId === "donnerbuechse") return DONNER_BIG_WHEEL_SCALE;
-  if (carId === "bunker") return BUNKER_BIG_WHEEL_SCALE;
-  if (carId === "kaeferkraft") return KAEFERKRAFT_BIG_WHEEL_SCALE;
+  if (carId === "bison") return BISON_BIG_WHEEL_SCALE;
   return 1;
 }
 
 function upgradeWheelFor(carId: CarId) {
-  if (carId === "bison") {
-    return () => buildUpgradeWheel({ radius: 0.46, width: 0.34 });
+  if (carId === "blitz") {
+    return () => buildUpgradeWheel({ radius: 0.32, width: 0.4 });
   }
-  // blitz / bunker / donnerbuechse / kaeferkraft use scaled StockWheel_* (see applyStockPartVisibility).
+  if (carId === "bunker") {
+    return () => buildUpgradeWheel({ radius: 0.48, width: 0.38 });
+  }
+  if (carId === "donnerbuechse") {
+    return () => buildUpgradeWheel({ radius: 0.44, width: 0.36 });
+  }
+  if (carId === "kaeferkraft") {
+    return () => buildUpgradeWheel({ radius: 0.42, width: 0.34 });
+  }
+  // bison uses scaled StockWheel_* (see applyStockPartVisibility).
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 

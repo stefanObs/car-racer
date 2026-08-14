@@ -183,7 +183,7 @@ describe("Equipped-part visuals (all cars)", () => {
       expect(root.getObjectByName(blitzPartObjectName("spike_bumper")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("rear_spoiler")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("big_engine")), id).toBeTruthy();
-      if (id === "blitz" || id === "kaeferkraft" || id === "donnerbuechse" || id === "bunker") {
+      if (id === "bison") {
         expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeFalsy();
       } else {
         expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeTruthy();
@@ -231,15 +231,15 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(withPart.grip).toBeGreaterThan(bare.grip);
   });
 
-  it("raises stance for big_wheels without procedural UpgradeTire hubs", () => {
+  it("raises stance for big_wheels and mounts procedural UpgradeTire overlays", () => {
     expect(blitzStanceLift(["big_wheels"])).toBeCloseTo(BLITZ_WHEEL_LIFT);
     const root = new Group();
     root.position.y = 0;
     applyBlitzParts(root, ["big_wheels"]);
     expect(root.position.y).toBeCloseTo(BLITZ_WHEEL_LIFT);
     expect(root.getObjectByName("WheelSpin_FL")).toBeUndefined();
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
-    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
+    expect(root.getObjectByName("UpgradeTire")).toBeTruthy();
     applyBlitzParts(root, []);
     expect(root.position.y).toBeCloseTo(0);
   });
@@ -287,9 +287,7 @@ describe("Equipped-part visuals (all cars)", () => {
       if (id === "blitz" || id === "bison" || id === "kaeferkraft" || id === "bunker") {
         expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(0);
       } else expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(4);
-      if (id === "blitz" || id === "kaeferkraft" || id === "donnerbuechse" || id === "bunker") {
-        expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(0);
-      } else expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(4);
+      expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(id === "bison" ? 0 : 4);
     }
   });
 
@@ -389,10 +387,6 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(frame.yaw).toBeCloseTo(Math.PI / 2);
     expect(L.reinforced_frame.preferGlb).toBe(true);
     expect(existsSync("scripts/extract-kaeferkraft-stock-cage.mjs")).toBe(true);
-    expect(existsSync("scripts/extract-kaeferkraft-stock-wheels.mjs")).toBe(true);
-    expect(existsSync("scripts/extract-donner-stock-wheels.mjs")).toBe(true);
-    expect(existsSync("scripts/extract-bunker-stock-wheels.mjs")).toBe(true);
-    expect(existsSync("scripts/extract-blitz-stock-wheels.mjs")).toBe(true);
 
     const light = L.lightweight_body.anchors[0]!;
     // Mirrored hole flank on blue rails; chunky Tripo half removed in fix script.
@@ -428,14 +422,16 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(nitroZ).toBeGreaterThan(-1.3);
   });
 
-  it("places Bison Tripo spike on the front bumper (outside the nose)", () => {
+  it("places Bison Tripo spike on the stock bumper (replaces the bar)", () => {
     const spike = CAR_PART_LAYOUTS.bison.spike_bumper;
     expect(spike.preferGlb).toBe(true);
     expect(spike.tint).toBeUndefined();
-    expect(spike.anchors[0]!.z).toBeGreaterThan(2.1);
-    expect(spike.anchors[0]!.z).toBeLessThan(2.45);
-    expect(spike.anchors[0]!.scale).toBeGreaterThan(0.85);
-    expect(spike.anchors[0]!.y).toBeGreaterThan(0.15);
+    // Was z 2.28 / scale 0.95 — pull onto bumper band (~1.56–1.90) and shrink slightly.
+    expect(spike.anchors[0]!.z).toBeGreaterThan(1.6);
+    expect(spike.anchors[0]!.z).toBeLessThan(1.85);
+    expect(spike.anchors[0]!.scale).toBeGreaterThan(0.75);
+    expect(spike.anchors[0]!.scale).toBeLessThan(0.9);
+    expect(spike.anchors[0]!.y).toBeGreaterThan(0.2);
     expect(spike.anchors[0]!.y).toBeLessThan(0.35);
   });
 
@@ -443,15 +439,13 @@ describe("Equipped-part visuals (all cars)", () => {
     const frame = CAR_PART_LAYOUTS.bison.reinforced_frame.anchors[0]!;
     // Bake arch faces local +Z; yaw 0 keeps braces leaning aft (−Z), not into the cabin.
     expect(frame.yaw).toBeCloseTo(0);
-    expect(frame.z).toBeLessThan(-0.7);
-    expect(frame.z).toBeGreaterThan(-0.95);
+    expect(frame.z).toBeLessThan(-1.0);
+    expect(frame.z).toBeGreaterThan(-1.25);
     expect(frame.y).toBeGreaterThan(0.55);
     expect(frame.y).toBeLessThan(0.75);
     // Bed rails are ~|x|≤0.70 — keep scaled width inside.
     expect(frame.scale).toBeGreaterThan(0.8);
     expect(frame.scale).toBeLessThanOrEqual(0.95);
-    // Deep Tripo feet are squashed so the arch can sit near the cab without cabin punch-through.
-    expect(frame.scaleZ ?? frame.scale).toBeLessThan(frame.scale);
 
     const { NodeIO } = await import("@gltf-transform/core");
     const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
@@ -462,9 +456,24 @@ describe("Equipped-part visuals (all cars)", () => {
     const b = getBounds(doc.getRoot().listScenes()[0]!);
     const sx = frame.scale;
     const sz = frame.scaleZ ?? frame.scale;
-    // yaw 0: forward extent = anchor.z + local max Z * scaleZ — stay aft of cab rear (~−0.55).
-    expect(frame.z + b.max[2]! * sz).toBeLessThan(-0.55);
+    // Runtime cab rear high verts reach ~z−0.91 — stay aft of that.
+    expect(frame.z + b.max[2]! * sz).toBeLessThan(-0.9);
     expect(Math.max(Math.abs(b.min[0]! * sx), Math.abs(b.max[0]! * sx))).toBeLessThanOrEqual(0.7);
+    // Packed bake: arch near +Z face (feet no longer stick past the hoop).
+    const yArch = b.min[1]! + (b.max[1]! - b.min[1]!) * 0.7;
+    const archZs: number[] = [];
+    for (const mesh of doc.getRoot().listMeshes()) {
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION");
+        if (!pos) continue;
+        for (let i = 0; i < pos.getCount(); i++) {
+          const v = pos.getElement(i, []);
+          if ((v[1] ?? 0) >= yArch) archZs.push(v[2]!);
+        }
+      }
+    }
+    const archMean = archZs.reduce((s, n) => s + n, 0) / archZs.length;
+    expect(b.max[2]! - archMean).toBeLessThan(0.08);
 
     // Straightened bake: mid-height left/right Z means must agree (no ¾ skew).
     const y0 = b.min[1]!;
@@ -605,17 +614,12 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(eng.yaw).toBeCloseTo(0);
   });
 
-  it("hides Donner StockEngine when Großer Motor is equipped", () => {
+  it("does not hide a separate Donner stock engine (block stays welded in the body)", () => {
     const root = new Group();
     const stock = new Group();
     stock.name = STOCK_ENGINE_MESH;
     root.add(stock);
-    applyStockPartVisibility(root, "donnerbuechse", []);
-    expect(stock.visible).toBe(true);
     applyStockPartVisibility(root, "donnerbuechse", ["big_engine"]);
-    expect(stock.visible).toBe(false);
-    stock.visible = true;
-    applyStockPartVisibility(root, "blitz", ["big_engine"]);
     expect(stock.visible).toBe(true);
   });
 
@@ -633,11 +637,12 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(stock.visible).toBe(true);
   });
 
-  it("ships Donner StockEngine mesh in the car GLB", () => {
+  it("ships Donner hot rod without a detached StockEngine node", () => {
     const buf = readFileSync("public/models/cars/donnerbuechse.glb");
     const text = buf.toString("latin1");
-    expect(text).toContain("StockEngine");
+    expect(text).not.toContain("StockEngine");
     expect(text).toContain("BodyPaint");
+    expect(text).not.toContain("Chrome");
   });
 
   it("ships Käferkraft StockCage mesh in the car GLB", () => {
@@ -655,7 +660,8 @@ describe("Equipped-part visuals (all cars)", () => {
     applyEquippedPartVisuals(root, "bison", ["spike_bumper"]);
     const part = root.getObjectByName(blitzPartObjectName("spike_bumper"));
     expect(part).toBeTruthy();
-    expect(part!.position.z).toBeGreaterThan(2.1);
+    expect(part!.position.z).toBeGreaterThan(1.6);
+    expect(part!.position.z).toBeLessThan(1.85);
     const mesh = part!.children[0] as Mesh;
     expect((mesh.material as MeshBasicMaterial).color.getHex()).toBe(0xffffff);
   });

@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from "node:fs";
-import { Box3, BoxGeometry, Group, Mesh, MeshBasicMaterial } from "three";
+import { Box3, BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshToonMaterial } from "three";
 import { describe, expect, it } from "vitest";
 import { CAR_IDS, type CarId } from "../src/data/cars";
 import { carSupportsPart, partsForCar } from "../src/data/partsCatalog";
@@ -7,23 +7,17 @@ import { buildUpgradeWheel } from "../src/render/carPartBuilders";
 import {
   applyEquippedPartVisuals,
   applyStockPartVisibility,
+  BISON_BIG_WHEEL_SCALE,
+  BISON_STOCK_WHEEL_RADIUS,
+  BISON_BIG_WHEEL_ARCH_CLEARANCE,
+  bisonBigWheelHubDrop,
   blitzPartObjectName,
   BLITZ_WHEEL_LIFT,
-  BLITZ_BIG_WHEEL_SCALE,
   CAR_PART_LAYOUTS,
   carStanceLift,
-  KAEFERKRAFT_BIG_WHEEL_SCALE,
-  DONNER_BIG_WHEEL_SCALE,
-  BUNKER_BIG_WHEEL_SCALE,
 } from "../src/render/carParts";
-import { shouldApplyGaragePaint } from "../src/render/loadCarGltf";
-import {
-  applyStockWheelScale,
-  extractStockWheels,
-  groundContactMinY,
-  hasAuthoredStockWheels,
-  stockWheelName,
-} from "../src/render/stockWheels";
+import { collectWheelUvTriangles, shouldApplyGaragePaint } from "../src/render/loadCarGltf";
+import { groundContactMinY, stockWheelName } from "../src/render/stockWheels";
 import { resolve } from "node:path";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
@@ -61,45 +55,128 @@ describe("stock wheels + Große Räder", () => {
     expect(shouldApplyGaragePaint("BodyPaint")).toBe(true);
   });
 
-  it("load path extracts stock wheels from car GLBs", () => {
-    const load = readFileSync("src/render/loadCarGltf.ts", "utf8");
-    expect(load).toContain("extractStockWheels");
+  it("does not feed StockWheel face UVs into BodyPaint skip masks", () => {
+    const geo = new BufferGeometry();
+    geo.setAttribute("position", new Float32BufferAttribute([-1, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+    geo.setAttribute("uv", new Float32BufferAttribute([0, 0, 1, 0, 0.5, 1], 2));
+    const wheel = new Mesh(geo, new MeshToonMaterial({ name: "Tire" }));
+    wheel.name = "StockWheel_FL_2";
+    const root = new Group();
+    root.add(wheel);
+    expect(collectWheelUvTriangles(root)).toEqual([]);
   });
 
-  it("Blitz Große Räder scales detached StockWheel_* (no procedural UpgradeTire)", () => {
+  it("skips all body wheel-UV masks when authored StockWheel_* are present", () => {
+    const bodyGeo = new BufferGeometry();
+    // Low outboard triangle that would otherwise match isWheelPaintVertex.
+    bodyGeo.setAttribute(
+      "position",
+      new Float32BufferAttribute([-0.8, 0.05, 0.2, -0.7, 0.05, -0.2, -0.75, 0.1, 0], 3),
+    );
+    bodyGeo.setAttribute("uv", new Float32BufferAttribute([0.1, 0.1, 0.9, 0.1, 0.5, 0.9], 2));
+    const body = new Mesh(bodyGeo, new MeshToonMaterial({ name: "BodyPaint" }));
+    body.name = "BodyPaint";
+    const wheelGeo = new BufferGeometry();
+    wheelGeo.setAttribute("position", new Float32BufferAttribute([0, 0, 0, 1, 0, 0, 0, 1, 0], 3));
+    wheelGeo.setAttribute("uv", new Float32BufferAttribute([0, 0, 1, 0, 0.5, 1], 2));
+    const wheel = new Mesh(wheelGeo, new MeshToonMaterial({ name: "Tire" }));
+    wheel.name = "StockWheel_FL";
     const root = new Group();
-    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
-    stock.name = stockWheelName("FL");
-    stock.userData.isStockWheel = true;
-    root.add(stock);
+    root.add(body);
+    root.add(wheel);
+    expect(collectWheelUvTriangles(root)).toEqual([]);
+  });
 
-    applyEquippedPartVisuals(root, "blitz", ["big_wheels"]);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(BLITZ_BIG_WHEEL_SCALE);
+  it("load path does not runtime-extract tires from car GLBs", () => {
+    const load = readFileSync("src/render/loadCarGltf.ts", "utf8");
+    expect(load).not.toContain("extractStockWheels(");
+  });
+
+  it("ships Bison with Tripo-segmented StockWheel_* remounted", async () => {
+    expect(existsSync("scripts/bake-bison-segmented-wheels.mjs")).toBe(true);
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/bison.glb"),
+    );
+    const names = doc
+      .getRoot()
+      .listNodes()
+      .map((n) => n.getName())
+      .filter((n) => n?.startsWith("StockWheel_"))
+      .sort();
+    expect(names).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
+  });
+
+  it("ships other cars without StockWheel_* (tires still welded)", async () => {
+    for (const id of ["blitz", "kaeferkraft", "donnerbuechse", "bunker"] as const) {
+      const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+        resolve(`public/models/cars/${id}.glb`),
+      );
+      const names = doc
+        .getRoot()
+        .listNodes()
+        .map((n) => n.getName())
+        .filter((n) => n?.startsWith("StockWheel_"));
+      expect(names, id).toEqual([]);
+    }
+  });
+
+  it("Große Räder mounts procedural UpgradeTire overlays except Bison", () => {
+    for (const id of CAR_IDS as CarId[]) {
+      if (id === "bison") continue;
+      const hints = CAR_PART_LAYOUTS[id].wheelHints;
+      expect(hints.length, id).toBe(4);
+      const root = new Group();
+      applyEquippedPartVisuals(root, id, ["big_wheels"]);
+      expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeTruthy();
+      expect(root.getObjectByName("UpgradeTire"), id).toBeTruthy();
+      applyEquippedPartVisuals(root, id, []);
+      expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeFalsy();
+    }
+  });
+
+  it("Bison Große Räder scales StockWheel_* instead of procedural tires", () => {
+    expect(CAR_PART_LAYOUTS.bison.wheelHints).toHaveLength(0);
+    expect(BISON_BIG_WHEEL_SCALE).toBeCloseTo(1.2);
+    const root = new Group();
+    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
+      const stock = new Mesh(new BoxGeometry(0.4, 0.5, 0.4), new MeshBasicMaterial());
+      stock.name = stockWheelName(corner);
+      stock.userData.isStockWheel = true;
+      stock.position.y = BISON_STOCK_WHEEL_RADIUS;
+      // GLTF multi-primitive child (must not get a second scale).
+      const prim = new Mesh(new BoxGeometry(0.4, 0.5, 0.4), new MeshBasicMaterial());
+      prim.name = `${stockWheelName(corner)}_1`;
+      stock.add(prim);
+      root.add(stock);
+    }
+    applyStockPartVisibility(root, "bison", []);
+    expect(root.children[0]!.scale.x).toBeCloseTo(1);
+    expect(root.children[0]!.position.y).toBeCloseTo(BISON_STOCK_WHEEL_RADIUS);
+    expect(root.children[0]!.children[0]!.scale.x).toBeCloseTo(1);
+    applyStockPartVisibility(root, "bison", ["big_wheels"]);
+    expect(root.children[0]!.scale.x).toBeCloseTo(BISON_BIG_WHEEL_SCALE);
+    expect(root.children[0]!.position.y).toBeCloseTo(
+      BISON_STOCK_WHEEL_RADIUS - bisonBigWheelHubDrop(),
+    );
+    expect(root.children[0]!.children[0]!.scale.x).toBeCloseTo(1);
+    applyEquippedPartVisuals(root, "bison", ["big_wheels"]);
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
     expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
-
-    // Empty equip keeps original StockWheel extracts visible at scale 1.
-    applyEquippedPartVisuals(root, "blitz", []);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(1);
-    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
   });
 
-  it("Bison hides stock wheels and mounts upgrade tires for big_wheels", () => {
-    const root = new Group();
-    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
-    stock.name = stockWheelName("FL");
-    stock.userData.isStockWheel = true;
-    root.add(stock);
-
-    applyEquippedPartVisuals(root, "bison", ["big_wheels"]);
-    expect(stock.visible).toBe(false);
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
-    expect(root.getObjectByName("UpgradeTire")).toBeTruthy();
-
-    applyEquippedPartVisuals(root, "bison", []);
-    expect(stock.visible).toBe(true);
+  it("Bison hub drop clears the wheel arch under scale", () => {
+    const drop = bisonBigWheelHubDrop();
+    expect(drop).toBeCloseTo(
+      BISON_STOCK_WHEEL_RADIUS * (BISON_BIG_WHEEL_SCALE - 1) + BISON_BIG_WHEEL_ARCH_CLEARANCE,
+    );
+    const stockTop = BISON_STOCK_WHEEL_RADIUS * 2;
+    const scaledTop =
+      BISON_STOCK_WHEEL_RADIUS - drop + BISON_STOCK_WHEEL_RADIUS * BISON_BIG_WHEEL_SCALE;
+    expect(scaledTop).toBeLessThan(stockTop);
+    expect(stockTop - scaledTop).toBeCloseTo(BISON_BIG_WHEEL_ARCH_CLEARANCE);
+    expect(CAR_PART_LAYOUTS.bison.wheelLift).toBeCloseTo(
+      drop + BISON_STOCK_WHEEL_RADIUS * (BISON_BIG_WHEEL_SCALE - 1),
+    );
   });
 
   it("groundContactMinY prefers tires over low invisible FX debris", () => {
@@ -120,44 +197,14 @@ describe("stock wheels + Große Räder", () => {
     const fullMin = new Box3().setFromObject(root).min.y;
     const contact = groundContactMinY(root);
     expect(contact).toBeGreaterThan(fullMin);
-    // Tire box height 0.5 centered at y=0.25 → bottom at 0.
     expect(contact).toBeCloseTo(0, 2);
   });
 
-  it("skips garage paint on StockWheel mesh names", () => {
-    expect(shouldApplyGaragePaint("StockWheel_FL")).toBe(false);
-    expect(shouldApplyGaragePaint("Tire")).toBe(false);
-    expect(shouldApplyGaragePaint("BodyPaint")).toBe(true);
-  });
-
-  it("keeps Blitz StockWheel extracts when no big_wheels (original car tires)", () => {
-    const root = new Group();
-    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
-    stock.name = stockWheelName("FL");
-    stock.userData.isStockWheel = true;
-    root.add(stock);
-
-    applyEquippedPartVisuals(root, "blitz", []);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(1);
-    expect(root.getObjectByName(blitzPartObjectName("stock_tires"))).toBeFalsy();
-
-    applyEquippedPartVisuals(root, "blitz", ["big_wheels"]);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(BLITZ_BIG_WHEEL_SCALE);
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
-  });
-
-  it("Blitz upgrade-style cylinders are unused; stock scale is the Große Räder path", () => {
-    expect(BLITZ_BIG_WHEEL_SCALE).toBeGreaterThan(1.1);
-    expect(BLITZ_BIG_WHEEL_SCALE).toBeLessThan(1.5);
-    const bison = buildUpgradeWheel({ radius: 0.46, width: 0.34 });
-    expect(bison.getObjectByName("UpgradeTire")).toBeTruthy();
-  });
-
-  it("Blitz stance lift for big_wheels is small (wider, not taller)", () => {
+  it("Blitz upgrade tires are wider (not taller stance)", () => {
     expect(carStanceLift("blitz", ["big_wheels"])).toBeCloseTo(BLITZ_WHEEL_LIFT);
     expect(BLITZ_WHEEL_LIFT).toBeLessThan(0.05);
+    const w = buildUpgradeWheel({ radius: 0.32, width: 0.4 });
+    expect(w.getObjectByName("UpgradeTire")).toBeTruthy();
   });
 
   it("non-Blitz cars get no offroad suspension lift", () => {
@@ -165,170 +212,5 @@ describe("stock wheels + Große Räder", () => {
     expect(carStanceLift("bison", ["big_wheels", "offroad_suspension"])).toBe(
       CAR_PART_LAYOUTS.bison.wheelLift,
     );
-  });
-
-  it("applyStockPartVisibility scales Blitz stock wheels with big_wheels", () => {
-    const root = new Group();
-    const stock = new Mesh(new BoxGeometry(0.2, 0.2, 0.2), new MeshBasicMaterial());
-    stock.name = stockWheelName("RR");
-    stock.userData.isStockWheel = true;
-    root.add(stock);
-    applyStockPartVisibility(root, "blitz", ["big_wheels"]);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(BLITZ_BIG_WHEEL_SCALE);
-    applyStockPartVisibility(root, "blitz", []);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(1);
-  });
-
-  it("Käferkraft ships baked StockWheel_* and skips re-extract", async () => {
-    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
-      resolve("public/models/cars/kaeferkraft.glb"),
-    );
-    const names = doc
-      .getRoot()
-      .listNodes()
-      .map((n) => n.getName())
-      .filter((n) => n?.startsWith("StockWheel_"));
-    expect(names.sort()).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
-
-    const root = new Group();
-    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
-      const m = new Mesh(new BoxGeometry(0.3, 0.3, 0.3), new MeshBasicMaterial());
-      m.name = stockWheelName(corner);
-      root.add(m);
-    }
-    expect(hasAuthoredStockWheels(root)).toBe(true);
-    extractStockWheels(root);
-    expect(root.userData.stockWheelsExtracted).toBe(true);
-    // Still exactly four authored wheels — no runtime split extras.
-    let count = 0;
-    root.traverse((o) => {
-      if (o.name.startsWith("StockWheel_")) count++;
-    });
-    expect(count).toBe(4);
-  });
-
-  it("Blitz ships baked StockWheel_* and keeps mid-side body faces", async () => {
-    expect(existsSync("scripts/extract-blitz-stock-wheels.mjs")).toBe(true);
-    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
-      resolve("public/models/cars/blitz.glb"),
-    );
-    const names = doc
-      .getRoot()
-      .listNodes()
-      .map((n) => n.getName())
-      .filter((n) => n?.startsWith("StockWheel_"));
-    expect(names.sort()).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
-
-    let midSide = 0;
-    let bodyFaces = 0;
-    for (const mesh of doc.getRoot().listMeshes()) {
-      if (mesh.getName()?.startsWith("StockWheel_")) continue;
-      for (const prim of mesh.listPrimitives()) {
-        const pos = prim.getAttribute("POSITION");
-        const idx = prim.getIndices();
-        if (!pos || !idx) continue;
-        const tri = idx.getCount() / 3;
-        bodyFaces += tri;
-        for (let t = 0; t < tri; t++) {
-          const i0 = idx.getScalar(t * 3);
-          const i1 = idx.getScalar(t * 3 + 1);
-          const i2 = idx.getScalar(t * 3 + 2);
-          const a = pos.getElement(i0, []);
-          const b = pos.getElement(i1, []);
-          const c = pos.getElement(i2, []);
-          const cx = (a[0] + b[0] + c[0]) / 3;
-          const cy = (a[1] + b[1] + c[1]) / 3;
-          const cz = (a[2] + b[2] + c[2]) / 3;
-          if (Math.abs(cz) < 0.7 && Math.abs(cx) > 0.55 && cy > 0.15 && cy < 0.7) midSide++;
-        }
-      }
-    }
-    expect(bodyFaces).toBeGreaterThan(3500);
-    expect(midSide).toBeGreaterThan(150);
-  });
-
-  it("Käferkraft Große Räder scales stock wheels instead of UpgradeTire", () => {
-    const root = new Group();
-    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
-    stock.name = stockWheelName("FL");
-    root.add(stock);
-
-    applyEquippedPartVisuals(root, "kaeferkraft", ["big_wheels"]);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(KAEFERKRAFT_BIG_WHEEL_SCALE);
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
-    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
-
-    applyEquippedPartVisuals(root, "kaeferkraft", []);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(1);
-  });
-
-  it("Donnerbüchse ships baked StockWheel_* (dark tires) and scales them for Große Räder", async () => {
-    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
-      resolve("public/models/cars/donnerbuechse.glb"),
-    );
-    const names = doc
-      .getRoot()
-      .listNodes()
-      .map((n) => n.getName())
-      .filter((n) => n?.startsWith("StockWheel_"));
-    expect(names.sort()).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
-    for (const n of doc.getRoot().listNodes()) {
-      if (!n.getName()?.startsWith("StockWheel_")) continue;
-      expect(n.getMesh()?.listPrimitives()[0]?.getMaterial()?.getName()).toBe("Tire");
-    }
-
-    const root = new Group();
-    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
-    stock.name = stockWheelName("RR");
-    root.add(stock);
-    applyEquippedPartVisuals(root, "donnerbuechse", ["big_wheels"]);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(DONNER_BIG_WHEEL_SCALE);
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
-    applyEquippedPartVisuals(root, "donnerbuechse", []);
-    expect(stock.scale.x).toBeCloseTo(1);
-  });
-
-  it("Bunker ships baked StockWheel_* (grey tires) and scales them for Große Räder", async () => {
-    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
-      resolve("public/models/cars/bunker.glb"),
-    );
-    const names = doc
-      .getRoot()
-      .listNodes()
-      .map((n) => n.getName())
-      .filter((n) => n?.startsWith("StockWheel_"));
-    expect(names.sort()).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
-    for (const n of doc.getRoot().listNodes()) {
-      if (!n.getName()?.startsWith("StockWheel_")) continue;
-      expect(n.getMesh()?.listPrimitives()[0]?.getMaterial()?.getName()).toBe("Tire");
-    }
-
-    const root = new Group();
-    const stock = new Mesh(new BoxGeometry(0.3, 0.5, 0.5), new MeshBasicMaterial());
-    stock.name = stockWheelName("FL");
-    root.add(stock);
-    applyEquippedPartVisuals(root, "bunker", ["big_wheels"]);
-    expect(stock.visible).toBe(true);
-    expect(stock.scale.x).toBeCloseTo(BUNKER_BIG_WHEEL_SCALE);
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
-    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
-    applyEquippedPartVisuals(root, "bunker", []);
-    expect(stock.scale.x).toBeCloseTo(1);
-  });
-
-  it("applyStockWheelScale is uniform on StockWheel meshes", () => {
-    const root = new Group();
-    const stock = new Mesh(new BoxGeometry(0.2, 0.2, 0.2), new MeshBasicMaterial());
-    stock.name = stockWheelName("RL");
-    root.add(stock);
-    applyStockWheelScale(root, 1.5);
-    expect(stock.scale.x).toBeCloseTo(1.5);
-    expect(stock.scale.y).toBeCloseTo(1.5);
-    expect(stock.scale.z).toBeCloseTo(1.5);
   });
 });

@@ -88,6 +88,59 @@ Scripts like `bake-blitz-tripo.mjs` / `bake-bison-tripo.mjs`:
 - Output: `public/models/cars/{carId}.glb`
 - Then: paint bake hooks in `loadCarGltf.ts` / `paintAuthoredWhite.ts`, stickers, outlines
 
+## Mesh segment detach/remount (Bison tires)
+
+Goal: remove a welded sub-part from the car, then add it back as named nodes with **correct color + texture**, without destroying BodyPaint.
+
+### Authoring inputs
+
+| Input | Path / note |
+|-------|-------------|
+| Good body (single atlas) | `assets/tripo-out/bison/bison-pre-wheel-split.glb` |
+| Segment job out | `assets/tripo-out/bison/segment-tires-v2/` (gitignored) |
+| Comic tire albedo | `assets/tripo-concepts/bison-tire-albedo.png` (Asphalt-Comic side-view disk) |
+| Bake | `npm run cars:bake-bison-segmented-wheels` → `public/models/cars/bison.glb` |
+
+### Tripo segment
+
+1. Credits OK (`tripo balance`).
+2. Upload / use file token for the **textured** car GLB (same visual as pre-split body).
+3. Run **mesh segment v2 `simple`** (not `smartsegment` fine — too many body fragments).
+4. Confirm four tire parts (low, compact disks) in the segment `model.glb` / preview.
+
+Exact CLI flags evolve — use `tripo mesh segment --help` / Tripo docs; park outputs under `assets/tripo-out/bison/segment-tires-v2/`.
+
+### Bake contract (`scripts/bake-bison-segmented-wheels.mjs`)
+
+1. Orient segment like car bakes (`flatten`, bake transforms, `facePosZFromTripoX`, cab toward +Z, `centerSitScale`).
+2. Collect 4 tire meshes by bounds; map to corners `FL|FR|RL|RR`.
+3. Load **pre-split body**; punch tire ellipsoids out of BodyPaint (keep atlas + UVs on remaining faces).
+4. Remount each tire as `StockWheel_{corner}` (mesh + node translation = tire center).
+5. **Texture:**
+   - Shared material `Tire` + embedded comic PNG.
+   - Rubber: annulus disk UVs (YZ → UV) so tread samples the albedo ring.
+   - **Both** ±X face disks (full 0–1 albedo) slightly outside half-width — garage ¾ often shows the inboard flank; faces edge-on from pure front.
+6. Do **not** merge segment body shards into BodyPaint.
+
+### Runtime contract
+
+- `convertToComicMaterial`: keep Tire `map`; `NearestFilter` + no mipmaps; unmapped rubber → `ComicPalette.tire`.
+- `hasAuthoredStockWheels` → `collectWheelUvTriangles` returns **empty** (Tire UV space ≠ BodyPaint).
+- Bison Große Räder: `usesScaledStockWheels` + scale **root** `StockWheel_*` only (`BISON_BIG_WHEEL_SCALE` 1.2) + hub drop `radius×(scale−1)` (no procedural overlays; never scale GLTF `…_1` children).
+- Garage paint: `bakeAuthoredGreenToPaint` on BodyPaint only; verify swatches on **owned** Bison.
+
+### Failure modes (segment / wheels)
+
+| Symptom | Likely cause | Fix |
+|---------|--------------|-----|
+| Grey clay wheels | Map stripped / flat toon / UV on rubber ring only | Keep map; face disks + comic albedo; dark `ComicPalette.tire` |
+| Wheels explode into fenders | Scale applied to GLTF `StockWheel_*_1` children too | Scale **root** `StockWheel_FL|FR|RL|RR` only (`isStockWheelRoot`) |
+| Scaled tires clip arch | Hub stays put while radius grows up | Hub drop `radius×(scale−1)+clearance`; stance `wheelLift` matches sink |
+| Body mottled / paint “broken” | StockWheel UVs in paint-skip mask | `collectWheelUvTriangles` empty when StockWheel_* present |
+| Body atlas scrambled | Body rebuilt from segment fragments | Keep pre-split BodyPaint; punch only |
+| Detach looks wrong | BodyPaint UV carve / extract | Use segment + remount (this section) |
+| `smartsegment` unusable | Too many body pieces | Prefer segment v2 `simple` |
+
 ## Failure modes
 
 | Symptom | Likely cause | Fix |

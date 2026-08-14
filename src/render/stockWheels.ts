@@ -23,6 +23,13 @@ export function isStockWheelObject(obj: Object3D): boolean {
   return obj.name.startsWith(STOCK_WHEEL_PREFIX) || obj.userData.isStockWheel === true;
 }
 
+/** Top-level `StockWheel_FL|FR|RL|RR` — not GLTF primitive children (`…_1`). */
+export function isStockWheelRoot(obj: Object3D): boolean {
+  if (!isStockWheelObject(obj)) return false;
+  const parent = obj.parent;
+  return !parent || !isStockWheelObject(parent);
+}
+
 function cornerOf(x: number, z: number): WheelCorner {
   const left = x < 0;
   const front = z >= 0;
@@ -86,11 +93,20 @@ export function extractStockWheels(root: Object3D): void {
   }
 }
 
-/** Uniform scale about each tire's local origin (bake recenters geometry). */
-export function applyStockWheelScale(root: Object3D, scale: number): void {
+/**
+ * Uniform scale about each tire's local origin (bake recenters geometry).
+ * Optional `hubDropY` lowers hubs so growth goes into the ground / stance lift
+ * instead of up into fenders (caller restores drop=0 when scale returns to 1).
+ * Only root StockWheel_* nodes are scaled — nested primitive meshes inherit.
+ */
+export function applyStockWheelScale(root: Object3D, scale: number, hubDropY = 0): void {
   root.traverse((obj) => {
-    if (!isStockWheelObject(obj)) return;
+    if (!isStockWheelRoot(obj)) return;
+    if (typeof obj.userData.stockWheelBaseY !== "number") {
+      obj.userData.stockWheelBaseY = obj.position.y;
+    }
     obj.scale.setScalar(scale);
+    obj.position.y = obj.userData.stockWheelBaseY - hubDropY;
   });
 }
 

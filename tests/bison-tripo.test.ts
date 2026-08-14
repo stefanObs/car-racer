@@ -44,4 +44,53 @@ describe("Bison Tripo arcade bake", () => {
     // Cab greenhouse has more high verts on +Z; open bed is the hollow −Z half.
     expect(highPos).toBeGreaterThan(highNeg);
   });
+
+  it("keeps BodyPaint atlas on body and comic albedo on StockWheel_*", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/bison.glb"),
+    );
+    let bodyMaps = 0;
+    const wheels: string[] = [];
+    for (const mesh of doc.getRoot().listMeshes()) {
+      const name = mesh.getName() ?? "";
+      for (const prim of mesh.listPrimitives()) {
+        const mat = prim.getMaterial();
+        const tex = mat?.getBaseColorTexture();
+        const uv = prim.getAttribute("TEXCOORD_0");
+        if (mat?.getName() === "BodyPaint") {
+          expect(tex, name).toBeTruthy();
+          expect(uv, name).toBeTruthy();
+          if (tex) bodyMaps += 1;
+        }
+      }
+      if (!name.startsWith("StockWheel_")) continue;
+      wheels.push(name);
+      const mats = mesh.listPrimitives().map((p) => p.getMaterial()?.getName());
+      expect(mats.every((m) => m === "Tire"), name).toBe(true);
+      expect(
+        mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
+        name,
+      ).toBe(true);
+      const face = mesh.listPrimitives().find((p) => p.getAttribute("TEXCOORD_0")?.getCount() === 33);
+      expect(face, name).toBeTruthy();
+      const faceUv = face!.getAttribute("TEXCOORD_0")!;
+      let minR = Infinity;
+      let maxR = 0;
+      for (let i = 0; i < faceUv.getCount(); i++) {
+        const [u, v] = faceUv.getElement(i, []);
+        const r = Math.hypot(u! - 0.5, v! - 0.5);
+        minR = Math.min(minR, r);
+        maxR = Math.max(maxR, r);
+      }
+      expect(minR, name).toBeLessThan(0.05);
+      expect(maxR, name).toBeGreaterThan(0.45);
+    }
+    expect(bodyMaps).toBeGreaterThan(0);
+    expect([...new Set(wheels)].sort()).toEqual([
+      "StockWheel_FL",
+      "StockWheel_FR",
+      "StockWheel_RL",
+      "StockWheel_RR",
+    ]);
+  });
 });
