@@ -10,8 +10,8 @@ const FILES: Record<(typeof FX_CHUNK_IDS)[number], { file: string; mat: string; 
   smokePuff: { file: "smoke-puff.glb", mat: "SmokePuff", min: 0.35, max: 0.9 },
   smokeHeavy: { file: "smoke-heavy.glb", mat: "SmokeHeavy", min: 0.5, max: 1.05 },
   repairSpark: { file: "repair-spark.glb", mat: "RepairSpark", min: 0.15, max: 0.4 },
-  nitroOrange: { file: "nitro-orange.glb", mat: "NitroOrange", min: 0.4, max: 0.95 },
-  nitroCyan: { file: "nitro-cyan.glb", mat: "NitroCyan", min: 0.4, max: 0.95 },
+  nitroOrange: { file: "nitro-orange.glb", mat: "NitroOrange", min: 0.55, max: 1.1 },
+  nitroCyan: { file: "nitro-cyan.glb", mat: "NitroCyan", min: 0.55, max: 1.1 },
   lapShield: { file: "lap-shield.glb", mat: "LapShield", min: 0.9, max: 1.7 },
 };
 
@@ -29,7 +29,7 @@ describe("Tripo comic FX bakes", () => {
       const path = resolve("public/models/fx", spec.file);
       expect(existsSync(path), path).toBe(true);
       expect(statSync(path).size).toBeGreaterThan(2_000);
-      expect(statSync(path).size).toBeLessThan(2_000_000);
+      expect(statSync(path).size).toBeLessThan(2_500_000);
       const buf = readFileSync(path);
       expect(buf.subarray(0, 4).toString("ascii")).toBe("glTF");
       expect(buf.toString("latin1")).toContain(spec.mat);
@@ -56,5 +56,15 @@ describe("Tripo comic FX bakes", () => {
       expect(sz).toBeGreaterThan(sx);
       expect(sz).toBeGreaterThan(sy);
     }
+  });
+
+  it("keeps nitro flame taller than a sphere-like blob (Y span reads after gentler simplify)", async () => {
+    const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
+    const doc = await io.read(resolve("public/models/fx/nitro-orange.glb"));
+    const b = getBounds(doc.getRoot().listScenes()[0]!);
+    const sx = b.max[0] - b.min[0];
+    const sy = b.max[1] - b.min[1];
+    // Flame cross-section must not be near-circular (old over-simplified bake).
+    expect(sy / sx).toBeGreaterThan(1.4);
   });
 });

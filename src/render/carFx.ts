@@ -45,8 +45,9 @@ export function applyCarFx(
     child.visible = i < puffCount;
     if (!child.visible) return;
     const t = fxTime * (1.5 + i * 0.2) + i;
-    child.position.set(Math.sin(t) * 0.25, 1.05 + (t % 1.2) * 0.85, fxRearZ - i * 0.12);
-    child.scale.setScalar(0.7 + (t % 1));
+    child.position.set(Math.sin(t) * 0.25, 1.15 + (t % 1.2) * 0.95, fxRearZ - i * 0.12);
+    // Uniform pulse — keep Tripo cloud proportions (not sphere-squash).
+    child.scale.setScalar(1.15 + (t % 1) * 0.35);
   });
 
   const healing = sparksVisible(opts.healFx);
@@ -55,11 +56,14 @@ export function applyCarFx(
     if (!child.visible) return;
     const t = fxTime * 8 + i;
     child.position.set(Math.cos(t + i) * 0.85, 0.5 + Math.abs(Math.sin(t)) * 0.7, Math.sin(t * 1.3) * 0.9);
+    child.scale.setScalar(1.1 + Math.abs(Math.sin(t)) * 0.25);
   });
 
   nitro.children.forEach((child, i) => {
     child.visible = opts.boosting;
-    if (child.visible) child.scale.z = 1 + (i % 3) * 0.15 + Math.sin(fxTime * 20 + i) * 0.1;
+    if (!child.visible) return;
+    const pulse = 1 + (i % 3) * 0.08 + Math.sin(fxTime * 20 + i) * 0.06;
+    child.scale.set(pulse, pulse, pulse * (1.15 + (i % 3) * 0.1));
   });
 
   // Lap immunity is gameplay + Style-Popup only — never show an on-car shield mesh.

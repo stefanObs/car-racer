@@ -30,8 +30,9 @@ const JOBS = [
   { id: "smoke-puff", mat: "SmokePuff", longest: 0.55, sit: true, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   { id: "smoke-heavy", mat: "SmokeHeavy", longest: 0.75, sit: true, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
   { id: "repair-spark", mat: "RepairSpark", longest: 0.25, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.45, error: 0.0012 },
-  { id: "nitro-orange", mat: "NitroOrange", longest: 0.65, sit: false, alignLongZ: true, bluntPosZ: true, ratio: 0.02, error: 0.01 },
-  { id: "nitro-cyan", mat: "NitroCyan", longest: 0.65, sit: false, alignLongZ: true, bluntPosZ: true, ratio: 0.02, error: 0.01 },
+  // Keep flame tails — old ratio 0.02 collapsed the Tripo mesh into a sphere-like blob.
+  { id: "nitro-orange", mat: "NitroOrange", longest: 0.85, sit: false, alignLongZ: true, bluntPosZ: true, ratio: 0.05, error: 0.0025, baseColor: [1, 0.478, 0.094, 1] },
+  { id: "nitro-cyan", mat: "NitroCyan", longest: 0.85, sit: false, alignLongZ: true, bluntPosZ: true, ratio: 0.05, error: 0.0025, baseColor: [0.239, 0.725, 0.78, 1] },
   { id: "lap-shield", mat: "LapShield", longest: 1.4, sit: false, alignLongZ: false, bluntPosZ: false, ratio: 0.4, error: 0.0015 },
 ];
 
@@ -171,12 +172,12 @@ function centerScale(doc, { longest, sit }) {
   return sceneSize(doc);
 }
 
-function comicMaterial(doc, name) {
+function comicMaterial(doc, name, baseColor = [1, 1, 1, 1]) {
   for (const mat of doc.getRoot().listMaterials()) {
     mat.setName(name);
     mat.setMetallicFactor(0);
     mat.setRoughnessFactor(0.85);
-    mat.setBaseColorFactor([1, 1, 1, 1]);
+    mat.setBaseColorFactor(baseColor);
     mat.setNormalTexture(null);
     mat.setMetallicRoughnessTexture(null);
     mat.setOcclusionTexture(null);
@@ -239,7 +240,7 @@ async function bakeOne(job) {
   if (job.alignLongZ) alignLongestToZ(doc);
   if (job.bluntPosZ) bluntTowardPosZ(doc);
   const sized = centerScale(doc, { longest: job.longest, sit: job.sit });
-  comicMaterial(doc, job.mat);
+  comicMaterial(doc, job.mat, job.baseColor ?? [1, 1, 1, 1]);
   await simplifyDoc(doc, job.ratio, job.error);
   mkdirSync(outDir, { recursive: true });
   const dest = join(outDir, `${job.id}.glb`);
