@@ -30,7 +30,7 @@ describe("cup tracks wired to proposals (clear asphalt)", () => {
     expect(layoutFingerprint(CUP_LEVELS[4]!).split("uneven_field").length).toBeGreaterThan(2);
   });
 
-  it("never places solid obstacles on asphalt (walls stay off the racing surface)", () => {
+  it("never places solid obstacles on the racing corridor (median walls exempt at verge)", () => {
     for (const level of CUP_LEVELS) {
       const track = buildTrackFromLevel(level);
       const solids = level.obstacles.filter(
@@ -38,6 +38,13 @@ describe("cup tracks wired to proposals (clear asphalt)", () => {
       );
       for (const o of solids) {
         const near = nearestOnTrack(track, { x: o.position[0]!, z: o.position[1]! });
+        if (o.role === "median") {
+          expect(
+            Math.abs(near.lateral),
+            `${level.displayName} median on center`,
+          ).toBeGreaterThanOrEqual(track.asphaltHalfWidth * 0.5);
+          continue;
+        }
         expect(
           Math.abs(near.lateral),
           `${level.displayName} ${o.type} lat=${near.lateral}`,

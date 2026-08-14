@@ -105,13 +105,20 @@ export function findRibbonPinches(
   return clustered;
 }
 
-/** True when no ribbon-hop pinch exists (layouts + section walls must keep this green). */
+/** True when no ribbon samples violate the ideal separation budget. */
 export function ribbonSeparationOk(track: BuiltTrack, carRadius?: number): boolean {
   return findRibbonPinches(track, { carRadius }).length === 0;
 }
 
-/** True when every pinch midpoint is blocked by the nearest-track wallLimit. */
-export function ribbonPinchMidpointsBlocked(track: BuiltTrack, carRadius?: number): boolean {
-  const pinches = findRibbonPinches(track, { carRadius });
-  return pinches.every((p) => !p.midpointDriveable);
+/** Driveable midpoints — players can hop segments unless a median barrier blocks. */
+export function driveableRibbonPinches(track: BuiltTrack, carRadius?: number): RibbonPinch[] {
+  return findRibbonPinches(track, { carRadius }).filter((p) => p.midpointDriveable);
+}
+
+/**
+ * True when physics wallLimit alone blocks every pinch midpoint
+ * (no free hop corridor). Prefer this over full separationOk for twisted cups.
+ */
+export function ribbonHopBlockedByWallLimit(track: BuiltTrack, carRadius?: number): boolean {
+  return driveableRibbonPinches(track, carRadius).length === 0;
 }

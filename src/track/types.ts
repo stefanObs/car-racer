@@ -34,6 +34,8 @@ export interface LevelDefinition {
     position: [number, number];
     radius?: number;
     intensity?: number;
+    /** Section wall between close ribbons — may sit near asphalt edge. */
+    role?: "median";
   }>;
   spawn: { grid: [number, number][]; headingDeg: number };
   rewards: {

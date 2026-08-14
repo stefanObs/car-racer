@@ -1,5 +1,6 @@
 import type { LevelDefinition, TrackSegment } from "../track/types";
 import { buildTrackFromLevel, nearestOnTrack } from "../track/buildTrack";
+import { planMedianBarriers } from "../track/medianBarriers";
 import { pointOnTrack } from "../track/validateTrack";
 
 /**
@@ -37,56 +38,57 @@ function parabolbogenSegments(): TrackSegment[] {
 }
 
 /**
- * Schikanenring — compact technical ring with dual-line Schikane (risk/reward via
- * inner oil/uneven hot line on a wide ribbon; solids stay in grass — see makeCup).
+ * Schikanenring — technical ring with dual-line Schikane (risk/reward via
+ * inner oil/uneven hot line; solids stay in grass / median — see makeCup).
+ * Wider corners so parallel legs stay farther apart.
  */
 function schikanenringSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 42, width: 14 },
+    { type: "straight", length: 60, width: 13 },
     { type: "s_curve", width: 11 },
-    { type: "straight", length: 30, width: 13 },
-    { type: "curve_r", radius: 18, angleDeg: 90, width: 11 },
-    { type: "straight", length: 36, width: 13 },
+    { type: "straight", length: 42, width: 12 },
+    { type: "curve_r", radius: 32, angleDeg: 90, width: 11 },
+    { type: "straight", length: 55, width: 12 },
     { type: "s_curve", width: 10 },
-    { type: "straight", length: 24, width: 12 },
-    { type: "curve_r", radius: 18, angleDeg: 90, width: 11 },
-    { type: "straight", length: 28, width: 13 },
-    { type: "curve_r", radius: 16, angleDeg: 90, width: 11 },
-    { type: "straight", length: 20, width: 12 },
-    { type: "curve_r", radius: 16, angleDeg: 90, width: 11 },
+    { type: "straight", length: 40, width: 12 },
+    { type: "curve_r", radius: 32, angleDeg: 90, width: 11 },
+    { type: "straight", length: 45, width: 12 },
+    { type: "curve_r", radius: 30, angleDeg: 90, width: 11 },
+    { type: "straight", length: 34, width: 12 },
+    { type: "curve_r", radius: 30, angleDeg: 90, width: 11 },
   ];
 }
 
-/** Omegatal — hairpin, omega lobe (L+R), waterfall uneven; closed non-crossing. */
+/** Omegatal — hairpin, omega lobe (L+R), waterfall uneven; opened so legs do not hop. */
 function omegatalSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 55, width: 12 },
-    { type: "curve_r", radius: 13, angleDeg: 160, width: 9 },
-    { type: "straight", length: 36, width: 11 },
-    { type: "uneven_field", length: 16, width: 11, intensity: 0.55 },
-    { type: "curve_l", radius: 38, angleDeg: 95, width: 11 },
-    { type: "straight", length: 22, width: 11 },
-    { type: "curve_r", radius: 20, angleDeg: 85, width: 10 },
-    { type: "uneven_field", length: 28, width: 11, intensity: 0.75 },
-    { type: "curve_r", radius: 16, angleDeg: 100, width: 10 },
+    { type: "straight", length: 72, width: 12 },
+    { type: "curve_r", radius: 24, angleDeg: 125, width: 9 },
+    { type: "straight", length: 50, width: 11 },
+    { type: "uneven_field", length: 18, width: 11, intensity: 0.55 },
+    { type: "curve_l", radius: 50, angleDeg: 75, width: 11 },
+    { type: "straight", length: 40, width: 11 },
+    { type: "curve_r", radius: 30, angleDeg: 70, width: 10 },
+    { type: "uneven_field", length: 30, width: 11, intensity: 0.75 },
+    { type: "curve_r", radius: 26, angleDeg: 90, width: 10 },
   ];
 }
 
-/** Kuppenfinale — boss: many Kuppen, choke, varied radii (non-crossing). */
+/** Kuppenfinale — boss: Kuppen + choke on a wider stadium so ribbons do not overlap. */
 function kuppenfinaleSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 55, width: 12 },
+    { type: "straight", length: 80, width: 12 },
     { type: "uneven_field", length: 24, width: 12, intensity: 0.7 },
-    { type: "curve_r", radius: 14, angleDeg: 100, width: 9 },
-    { type: "straight", length: 30, width: 12 },
-    { type: "uneven_field", length: 20, width: 11, intensity: 0.75 },
-    { type: "choke", length: 16, width: 8 },
-    { type: "curve_r", radius: 13, angleDeg: 110, width: 9 },
+    { type: "curve_r", radius: 30, angleDeg: 90, width: 10 },
     { type: "straight", length: 40, width: 12 },
+    { type: "uneven_field", length: 20, width: 11, intensity: 0.75 },
+    { type: "choke", length: 14, width: 8 },
+    { type: "curve_r", radius: 28, angleDeg: 90, width: 10 },
+    { type: "straight", length: 65, width: 12 },
     { type: "uneven_field", length: 18, width: 12, intensity: 0.65 },
-    { type: "curve_r", radius: 14, angleDeg: 100, width: 10 },
-    { type: "straight", length: 28, width: 12 },
-    { type: "curve_r", radius: 12, angleDeg: 50, width: 10 },
+    { type: "curve_r", radius: 30, angleDeg: 90, width: 10 },
+    { type: "straight", length: 40, width: 12 },
+    { type: "curve_r", radius: 28, angleDeg: 90, width: 10 },
   ];
 }
 
@@ -180,6 +182,15 @@ function makeCup(
     }
   }
 
+  for (const m of planMedianBarriers(track)) {
+    level.obstacles.push({
+      type: m.type,
+      position: [m.x, m.z],
+      radius: m.type === "tire_stack" ? 1.45 : 1.25,
+      role: "median",
+    });
+  }
+
   return level;
 }
 
@@ -227,22 +238,22 @@ export const CUP_LEVELS: LevelDefinition[] = [
     "Risk/Reward-Schikane: sichere Linie oder Hot Line mit Hindernissen.",
     "city",
     {
-      grass: 2.5,
-      asphaltWidth: 14,
+      grass: 3,
+      asphaltWidth: 13,
       laps: 5,
       // Grass-side markers only — asphalt stays clear for the safe line.
       vergeBlockers: [
-        { type: "tire_stack", along: 42, side: 1 },
-        { type: "tire_stack", along: 48, side: -1 },
-        { type: "concrete_barrier", along: 110, side: 1 },
-        { type: "tire_stack", along: 118, side: -1 },
+        { type: "tire_stack", along: 55, side: 1 },
+        { type: "tire_stack", along: 62, side: -1 },
+        { type: "concrete_barrier", along: 160, side: 1 },
+        { type: "tire_stack", along: 170, side: -1 },
       ],
       // Hot line: passable oil/uneven biased inward (side -1).
       ribbonHazards: [
-        { type: "oil", along: 44, side: -1, radius: 2.2 },
-        { type: "uneven", along: 50, side: -1, intensity: 0.55, radius: 4 },
-        { type: "oil", along: 112, side: -1, radius: 2.1 },
-        { type: "uneven", along: 120, side: -1, intensity: 0.5, radius: 4 },
+        { type: "oil", along: 58, side: -1, radius: 2.2 },
+        { type: "uneven", along: 65, side: -1, intensity: 0.55, radius: 4 },
+        { type: "oil", along: 165, side: -1, radius: 2.1 },
+        { type: "uneven", along: 175, side: -1, intensity: 0.5, radius: 4 },
       ],
     },
   ),

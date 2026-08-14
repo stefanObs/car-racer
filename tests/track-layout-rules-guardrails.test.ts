@@ -1,17 +1,22 @@
 import { describe, expect, it } from "vitest";
+import { CARS } from "../src/data/cars";
 import { CUP_LEVELS } from "../src/data/levels";
 import { generateAdhocLevel } from "../src/track/adhoc";
-import { buildTrackFromLevel } from "../src/track/buildTrack";
+import { buildTrackFromLevel, nearestOnTrack, sampleCenterline } from "../src/track/buildTrack";
 import {
   ALLOWED_NON_TRIPO_SCENERY,
+  driveableRibbonPinches,
   findRibbonPinches,
   isAllowedNonTripoScenery,
   minRibbonSeparation,
+  ribbonHopBlockedByWallLimit,
   ribbonSeparationOk,
   wallLimitFor,
 } from "../src/track/layoutRules";
+import { planMedianBarriers } from "../src/track/medianBarriers";
 import type { BuiltTrack, LevelDefinition, TrackSegment } from "../src/track/types";
 import { isTripoSceneryKind, planSceneryAnchors } from "../src/render/themeScenery";
+import { createCarState, stepCar } from "../src/sim/vehicle";
 
 function ovalLevel(opts: { asphaltWidth: number; grassWidth: number; radius: number }): LevelDefinition {
   const segs: TrackSegment[] = [
@@ -59,7 +64,6 @@ describe("track layoutRules (ribbon separation + scenery allowlist)", () => {
     expect(ribbonSeparationOk(wide)).toBe(true);
     expect(findRibbonPinches(wide)).toEqual([]);
 
-    // Two long parallel legs 14 m apart — wallLimit 9 ⇒ overlapping grass, hop corridor.
     const pts = [
       { x: 0, z: 0 },
       { x: 80, z: 0 },
@@ -90,30 +94,75 @@ describe("track layoutRules (ribbon separation + scenery allowlist)", () => {
     expect(pinches.length).toBeGreaterThan(0);
     expect(ribbonSeparationOk(pinched)).toBe(false);
     expect(pinches.some((p) => p.midpointDriveable)).toBe(true);
+    expect(planMedianBarriers(pinched).length).toBeGreaterThan(0);
   });
 
-  it("keeps Hafenstart and Parabolbogen free of hop pinches", () => {
-    for (const level of CUP_LEVELS.slice(0, 2)) {
+  it("keeps Hafenstart, Parabolbogen, and Omegatal free of hop midpoints", () => {
+    for (const id of ["blitz_cup_01_hafenstart", "blitz_cup_02_kuestenline", "blitz_cup_04_buckelpiste"]) {
+      const level = CUP_LEVELS.find((l) => l.id === id)!;
       const track = buildTrackFromLevel(level);
-      expect(ribbonSeparationOk(track), level.id).toBe(true);
+      expect(ribbonHopBlockedByWallLimit(track), id).toBe(true);
+      expect(driveableRibbonPinches(track), id).toEqual([]);
     }
   });
 
-  it("detects driveable midpoints on Schikanenring / Omegatal / Kuppenfinale (Phase B clears)", () => {
-    const badIds = [
-      "blitz_cup_03_stadtring",
-      "blitz_cup_04_buckelpiste",
-      "blitz_cup_05_cupfinale",
-    ];
-    for (const id of badIds) {
-      const level = CUP_LEVELS.find((l) => l.id === id)!;
+  it("blocks every cup ribbon hop with wallLimit and/or median section barriers", () => {
+    for (const level of CUP_LEVELS) {
       const track = buildTrackFromLevel(level);
-      const pinches = findRibbonPinches(track);
-      expect(pinches.length, id).toBeGreaterThan(0);
-      expect(
-        pinches.some((p) => p.midpointDriveable),
-        `${id} should have a driveable pinch midpoint`,
-      ).toBe(true);
+      const driveable = driveableRibbonPinches(track);
+      const medians = level.obstacles.filter((o) => o.role === "median");
+      if (driveable.length === 0) continue;
+      expect(medians.length, `${level.id} needs median barriers`).toBeGreaterThan(0);
+      for (const p of driveable) {
+        const nearBarrier = medians.some(
+          (m) => Math.hypot(m.position[0]! - p.midX, m.position[1]! - p.midZ) < 14,
+        );
+        expect(nearBarrier, `${level.id} pinch ${p.alongA}<->${p.alongB}`).toBe(true);
+      }
+    }
+  });
+
+  it("prevents a lateral hop onto a far-along ribbon on every cup", () => {
+    for (const level of CUP_LEVELS) {
+      const track = buildTrackFromLevel(level);
+      const driveable = driveableRibbonPinches(track);
+      const pinches = driveable.length ? driveable : findRibbonPinches(track).slice(0, 1);
+      if (!pinches.length) continue;
+      const pinch = pinches[0]!;
+      const a = sampleCenterline(track, pinch.alongA).position;
+      const b = sampleCenterline(track, pinch.alongB).position;
+      const heading = Math.atan2(b.z - a.z, b.x - a.x);
+      const car = createCarState({
+        id: "player",
+        x: a.x,
+        z: a.z,
+        heading,
+        isPlayer: true,
+        paint: "#e03131",
+        sticker: "none",
+        stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
+        speed: 18,
+      });
+      car.vx = Math.cos(heading) * 18;
+      car.vz = Math.sin(heading) * 18;
+      const startAlong = nearestOnTrack(track, { x: car.x, z: car.z }).distanceAlong;
+      for (let t = 0; t < 90; t++) {
+        stepCar(
+          car,
+          { throttle: 1, brake: 0, steer: 0, nitro: false },
+          track,
+          1 / 60,
+          { accel: 1, topSpeed: 1 },
+          level.obstacles,
+        );
+      }
+      const endAlong = nearestOnTrack(track, { x: car.x, z: car.z }).distanceAlong;
+      const nearTarget =
+        Math.min(Math.abs(endAlong - pinch.alongB), track.totalLength - Math.abs(endAlong - pinch.alongB)) <
+        30;
+      const jumped =
+        Math.min(Math.abs(endAlong - startAlong), track.totalLength - Math.abs(endAlong - startAlong)) > 35;
+      expect(nearTarget && jumped, `${level.id} hopped ${startAlong}->${endAlong}`).toBe(false);
     }
   });
 
