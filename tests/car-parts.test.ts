@@ -463,8 +463,16 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(wing.y).toBeLessThan(1.85);
   });
 
-  it("places Donner nitro on the driver side (−X)", () => {
-    expect(CAR_PART_LAYOUTS.donnerbuechse.nitro_kit.anchors[0]!.x).toBeLessThan(-0.8);
+  it("places Donner nitro on the driver side rail (−X), ahead of the rear arch", () => {
+    const nitro = CAR_PART_LAYOUTS.donnerbuechse.nitro_kit.anchors[0]!;
+    // Rear quarter panel (look sheet panel 7) — flush on −X, ahead of rear tire.
+    expect(nitro.x).toBeLessThan(-0.9);
+    expect(nitro.x).toBeGreaterThan(-1.1);
+    expect(nitro.y).toBeGreaterThan(0.8);
+    expect(nitro.y).toBeLessThan(1.1);
+    expect(nitro.z).toBeLessThan(-0.55);
+    expect(nitro.z).toBeGreaterThan(-0.9);
+    expect(nitro.yaw).toBeCloseTo(-Math.PI / 2);
     expect(CAR_PART_LAYOUTS.donnerbuechse.reinforced_frame.preferGlb).toBe(true);
   });
 

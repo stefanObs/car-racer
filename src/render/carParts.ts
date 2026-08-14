@@ -84,6 +84,8 @@ export type PartAnchor = {
   scale: number;
   /** Optional non-uniform Y scale (default = `scale`). */
   scaleY?: number;
+  /** Optional pitch (rotation.x) in radians. */
+  pitch?: number;
   /**
    * Sit part bottom on body surface at (x,z). Default depends on mount call.
    * Prefer false for bumpers / frames / wheel-well springs.
@@ -374,8 +376,8 @@ function layoutDonner(): CarVisualLayout {
       preferGlb: true,
     },
     nitro_kit: {
-      // Driver side (DE LHD = −X), behind door / above rear arch.
-      anchors: [{ x: -1.05, y: 0.7, z: -0.45, yaw: -Math.PI / 2, scale: 1.05, snap: false }],
+      // Look sheet panel 7: on driver rear quarter above the arch, pressed to BodyPaint.
+      anchors: [{ x: -1.0, y: 0.88, z: -0.68, yaw: -Math.PI / 2, scale: 0.95, snap: false }],
       build: () => buildNitroKit("side"),
       preferGlb: true,
     },
@@ -892,6 +894,7 @@ function placeAnchored(
     const inst = factory();
     inst.name = blitzPartObjectName(partId, copy);
     markPartUserData(inst, partId);
+    inst.rotation.x = anchor.pitch ?? 0;
     inst.rotation.y = anchor.yaw;
     const sy = anchor.scaleY ?? anchor.scale;
     inst.scale.set(anchor.scale, sy, anchor.scale);
