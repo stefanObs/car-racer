@@ -7,6 +7,7 @@ import {
   garageInspectLiftAmount,
   garageOrbitAxesForPointer,
   garageOrbitPivotY,
+  garagePitchAfterInspectChange,
   GARAGE_ORBIT_SENSITIVITY,
   GARAGE_PITCH_DEFAULT,
   GARAGE_PITCH_LIMIT,
@@ -43,6 +44,14 @@ describe("garage orbit yaw + pitch", () => {
 
   it("documents pitch default as flat (inspect release snaps here)", () => {
     expect(GARAGE_PITCH_DEFAULT).toBe(0);
+  });
+
+  it("snaps pitch flat when inspect ends (RMB / 2-finger release)", () => {
+    expect(garagePitchAfterInspectChange(true, false, 1.2)).toBe(0);
+    expect(garagePitchAfterInspectChange(true, false, -0.8)).toBe(GARAGE_PITCH_DEFAULT);
+    expect(garagePitchAfterInspectChange(false, false, 0.5)).toBe(0);
+    expect(garagePitchAfterInspectChange(true, true, 0.7)).toBe(0.7);
+    expect(garageOrbitPivotY(1.52, false, 0.48)).toBeCloseTo(1.52, 5);
   });
 
   it("drag right decreases yaw (turntable)", () => {

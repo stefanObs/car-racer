@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.72 Garage inspect release snaps flat on pad
+- Trigger: user — bring car back horizontal + to floor when RMB released
+- Decision: Harden release (lostpointercapture / mouse idle clear); snap pitch to 0 and drop lift immediately on inspect end (CONCEPT §9)
+- CONCEPT §9 already stated Loslassen → flach; implementation hardened
+
 ### 2026-08-14 — v3.71 Garage inspect lift to mid-screen
 - Trigger: user — vertical pitch lift too high; should sit mid-screen
 - Decision: Inspect hover targets fixed mid-frame Y (~2) instead of half-extent clearance; camera lookAt follows pivot while held

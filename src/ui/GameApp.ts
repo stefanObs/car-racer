@@ -213,6 +213,14 @@ export class GameApp {
       syncOrbitClass();
     };
 
+    /** RMB / mouse can lose capture without a canvas pointerup — still drop to the pad. */
+    const releaseMouseIfIdle = (buttons: number): void => {
+      if (buttons !== 0) return;
+      for (const [id, p] of [...pointers.entries()]) {
+        if (p.type === "mouse") release(id);
+      }
+    };
+
     canvas.addEventListener("contextmenu", (e) => {
       if (this.screen !== "garage") return;
       e.preventDefault();
@@ -249,8 +257,15 @@ export class GameApp {
       if (dx !== 0 || dy !== 0) this.renderer.addGarageOrbitFromDrag(dx, dy, axes);
     });
 
-    canvas.addEventListener("pointerup", (e) => release(e.pointerId));
+    canvas.addEventListener("pointerup", (e) => {
+      release(e.pointerId);
+      releaseMouseIfIdle(e.buttons);
+    });
     canvas.addEventListener("pointercancel", (e) => release(e.pointerId));
+    canvas.addEventListener("lostpointercapture", (e) => release(e.pointerId));
+    window.addEventListener("pointerup", (e) => {
+      if (e.pointerType === "mouse") releaseMouseIfIdle(e.buttons);
+    });
   }
 
   tick(now: number, dt: number): void {

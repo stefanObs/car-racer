@@ -49,6 +49,7 @@ import {
   garageDisplayYaw,
   garageInspectLiftAmount,
   garageOrbitPivotY,
+  garagePitchAfterInspectChange,
   GARAGE_PITCH_DEFAULT,
   GARAGE_YAW_DEFAULT,
 } from "../ui/garageOrbit";
@@ -280,12 +281,16 @@ export class RaceRenderer {
     this.garageDragging = dragging;
   }
 
-  /** Hover lift while RMB / two-finger tumble is held; releasing snaps pitch flat. */
+  /** Hover lift while RMB / two-finger tumble is held; releasing snaps flat on the pad. */
   setGaragePitchInspect(active: boolean): void {
-    if (this.garagePitchInspect && !active) {
-      this.garagePitch = GARAGE_PITCH_DEFAULT;
-    }
+    this.garagePitch = garagePitchAfterInspectChange(
+      this.garagePitchInspect,
+      active,
+      this.garagePitch,
+    );
     this.garagePitchInspect = active;
+    // Apply immediately so release does not wait a frame (stuck mid-air / tilted).
+    this.applyGarageOrbitPose();
   }
 
   /** Pointer drag — LMB yaw; RMB / 2-finger free tumble. */

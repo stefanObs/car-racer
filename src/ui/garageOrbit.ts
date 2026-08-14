@@ -49,6 +49,20 @@ export function garageOrbitPivotY(sitCenterY: number, inspectActive: boolean, li
 }
 
 /**
+ * Ending inspect (RMB / 2-finger up) must flatten pitch — CONCEPT §9
+ * „Loslassen stellt flach auf den Boden“.
+ */
+export function garagePitchAfterInspectChange(
+  wasInspecting: boolean,
+  nowInspecting: boolean,
+  pitch: number,
+): number {
+  if (wasInspecting && !nowInspecting) return GARAGE_PITCH_DEFAULT;
+  if (!nowInspecting) return GARAGE_PITCH_DEFAULT;
+  return pitch;
+}
+
+/**
  * Drag right → show the car's left side (clockwise yaw when Y is up).
  * Works for mouse and touch (pointer deltaX).
  */
