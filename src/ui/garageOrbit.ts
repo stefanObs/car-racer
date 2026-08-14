@@ -9,8 +9,8 @@ export const GARAGE_ORBIT_SENSITIVITY = 0.0075;
 /** Full tumble allowed; keep pitch in ±π so Euler YXZ stays readable. */
 export const GARAGE_PITCH_LIMIT = Math.PI;
 
-/** Extra pad clearance while RMB / 2-finger inspect is held. */
-export const GARAGE_PITCH_INSPECT_LIFT = 0.35;
+/** Extra clearance above half-extent when hovering for inspect tumble. */
+export const GARAGE_INSPECT_LIFT_PADDING = 0.45;
 
 export type GarageOrbitAxes = { yaw: boolean; pitch: boolean };
 
@@ -32,34 +32,14 @@ export function garageOrbitAxesForPointer(
   return { yaw: false, pitch: false };
 }
 
-/** True when this pointer mode can pitch (and should hover the car). */
-export function garageOrbitPitchCapable(axes: GarageOrbitAxes): boolean {
-  return axes.pitch;
+/** Fixed hover lift so the car clears the pad while tumbling around its center. */
+export function garageInspectLiftAmount(halfLen: number, halfHeight: number): number {
+  return Math.max(halfLen, halfHeight) + GARAGE_INSPECT_LIFT_PADDING;
 }
 
-/**
- * Lift so pitched/tumbled mesh clears the pad.
- * halfLen / halfHeight are world half-extents of the sitting car.
- */
-export function garagePitchFloorClearance(
-  pitch: number,
-  halfLen: number,
-  halfHeight: number,
-): number {
-  const p = Math.abs(pitch);
-  return halfLen * Math.abs(Math.sin(p)) + halfHeight * (1 - Math.cos(p));
-}
-
-/** Total hover above sit Y: pitch clearance + optional inspect lift while pitching. */
-export function garagePitchHoverY(
-  pitch: number,
-  halfLen: number,
-  halfHeight: number,
-  inspectActive: boolean,
-): number {
-  const clearance = garagePitchFloorClearance(pitch, halfLen, halfHeight);
-  const inspect = inspectActive ? GARAGE_PITCH_INSPECT_LIFT : 0;
-  return clearance + inspect;
+/** Pivot Y: sit-center, or raised by a fixed lift while inspect is held. */
+export function garageOrbitPivotY(sitCenterY: number, inspectActive: boolean, liftAmount: number): number {
+  return sitCenterY + (inspectActive ? liftAmount : 0);
 }
 
 /**

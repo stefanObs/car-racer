@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
-  "description": "Crash Circuit — arcade racer (non-commercial project; free OSS dependencies)",
+  "description": "Crash Circuit \u2014 arcade racer (non-commercial project; free OSS dependencies)",
   "scripts": {
     "start": "vite",
     "dev": "vite",

@@ -15,6 +15,7 @@ import {
   Scene,
   SphereGeometry,
   SRGBColorSpace,
+  Vector3,
   WebGLRenderer,
 } from "three";
 import { stageFromHp } from "../sim/damage";
@@ -46,7 +47,8 @@ import { buildSmoothTrack } from "./trackMesh";
 import {
   applyGarageDragOrbit,
   garageDisplayYaw,
-  garagePitchHoverY,
+  garageInspectLiftAmount,
+  garageOrbitPivotY,
   GARAGE_PITCH_DEFAULT,
   GARAGE_YAW_DEFAULT,
 } from "../ui/garageOrbit";
@@ -66,6 +68,8 @@ export class RaceRenderer {
   private celebrateSeed = -1;
   private idleGroup = new Group();
   private idleCar: Group | null = null;
+  /** Pivot at car geometric center — yaw/pitch rotate here so tumble stays on the spot. */
+  private idleOrbit: Group | null = null;
   private idleLookKey = "";
   /** Look key waiting on per-car Tripo kit load (rebuild when ready). */
   private pendingGarageLookKey: string | null = null;
@@ -75,8 +79,10 @@ export class RaceRenderer {
   /** RMB / 2-finger inspect — hover the car off the pad. */
   private garagePitchInspect = false;
   private garageSitY = 0;
-  private garageHalfLen = 1.4;
-  private garageHalfHeight = 0.55;
+  private garageSitCenterY = 0;
+  private garageOrbitX = GARAGE_PAD_CENTER.x;
+  private garageOrbitZ = GARAGE_PAD_CENTER.z;
+  private garageInspectLift = 1.2;
   private fxTime = 0;
   /** True while track/scenery from the last race are still meant to be shown. */
   private raceFieldActive = false;
@@ -138,6 +144,7 @@ export class RaceRenderer {
     disposeObject(this.idleGroup);
     this.idleGroup = buildGarageBay();
     this.idleCar = null;
+    this.idleOrbit = null;
 
     const paint = look?.paint ?? "#E03131";
     const sticker = look?.sticker ?? "none";
@@ -169,9 +176,7 @@ export class RaceRenderer {
     const pad = this.idleGroup.getObjectByName("garagePad");
     const deckY = pad ? garagePadDeckY(pad) : GARAGE_PAD_DECK_FALLBACK_Y;
     visual.root.position.set(GARAGE_PAD_CENTER.x, deckY, GARAGE_PAD_CENTER.z);
-    visual.root.rotation.order = "YXZ";
-    visual.root.rotation.y = this.garageYaw;
-    visual.root.rotation.x = 0;
+    visual.root.rotation.set(0, 0, 0);
     visual.root.scale.setScalar(1.35);
     this.idleGroup.add(visual.root);
     // Sit on tire contact — not full Box3 (invisible FX chunks under the origin sink the body).
@@ -181,22 +186,40 @@ export class RaceRenderer {
       visual.root.position.y += deckY + 0.02 - carMinY;
     }
     this.garageSitY = visual.root.position.y;
+    visual.root.updateMatrixWorld(true);
     const bounds = new Box3().setFromObject(visual.root);
-    this.garageHalfLen = Math.max(0.6, (bounds.max.z - bounds.min.z) * 0.5);
-    this.garageHalfHeight = Math.max(0.35, (bounds.max.y - bounds.min.y) * 0.5);
-    visual.root.rotation.x = this.garagePitch;
-    this.applyGarageHoverY(visual.root);
+    const center = bounds.getCenter(new Vector3());
+    const halfLen = Math.max(0.6, (bounds.max.z - bounds.min.z) * 0.5);
+    const halfHeight = Math.max(0.35, (bounds.max.y - bounds.min.y) * 0.5);
+    this.garageInspectLift = garageInspectLiftAmount(halfLen, halfHeight);
+    this.garageSitCenterY = center.y;
+    this.garageOrbitX = center.x;
+    this.garageOrbitZ = center.z;
+
+    const localCenter = visual.root.worldToLocal(center.clone());
+    const pivot = new Group();
+    pivot.name = "garageOrbitPivot";
+    pivot.rotation.order = "YXZ";
+    this.idleGroup.remove(visual.root);
+    pivot.add(visual.root);
+    visual.root.position.set(-localCenter.x, -localCenter.y, -localCenter.z);
+    visual.root.rotation.set(0, 0, 0);
+    this.idleGroup.add(pivot);
+    this.idleOrbit = pivot;
+    this.idleCar = visual.root;
+    this.applyGarageOrbitPose();
     visual.root.userData.carPartsSitY = this.garageSitY;
     visual.root.userData.blitzSitY = this.garageSitY;
-    this.idleCar = visual.root;
     this.scene.add(this.idleGroup);
     if (import.meta.env.DEV) {
       const w = window as unknown as {
         __idleCar?: Group;
         __garageBay?: Group;
+        __garageOrbit?: Group;
       };
       w.__idleCar = visual.root;
       w.__garageBay = this.idleGroup;
+      w.__garageOrbit = pivot;
     }
 
     this.applyGarageEnvironment();
@@ -274,15 +297,19 @@ export class RaceRenderer {
     this.garagePitch = next.pitch;
   }
 
-  private applyGarageHoverY(car: Group): void {
-    car.position.y =
-      this.garageSitY +
-      garagePitchHoverY(
-        this.garagePitch,
-        this.garageHalfLen,
-        this.garageHalfHeight,
-        this.garagePitchInspect,
-      );
+  /** Pivot at car center: fixed hover while inspect; rotate in place. */
+  private applyGarageOrbitPose(): void {
+    const pivot = this.idleOrbit;
+    if (!pivot) return;
+    pivot.position.set(
+      this.garageOrbitX,
+      garageOrbitPivotY(this.garageSitCenterY, this.garagePitchInspect, this.garageInspectLift),
+      this.garageOrbitZ,
+    );
+    pivot.rotation.order = "YXZ";
+    pivot.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
+    pivot.rotation.x = this.garagePitchInspect ? this.garagePitch : GARAGE_PITCH_DEFAULT;
+    pivot.rotation.z = 0;
   }
 
   renderIdle(): void {
@@ -295,12 +322,7 @@ export class RaceRenderer {
     });
     this.fxTime += 1 / 60;
     this.idleGroup.visible = true;
-    if (this.idleCar) {
-      this.idleCar.rotation.order = "YXZ";
-      this.idleCar.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
-      this.idleCar.rotation.x = this.garagePitch;
-      this.applyGarageHoverY(this.idleCar);
-    }
+    this.applyGarageOrbitPose();
     // Slightly right of the pad so left heroes and right stock both read
     this.camera.position.set(3.4, 2.7, 9.2);
     this.camera.lookAt(1.5, 0.95, 0.2);

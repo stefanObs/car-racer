@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.68 Garage inspect pivots at car center
+- Trigger: user — vertical pitch in air not good; lift and turn on the spot around car middle
+- Decision: Orbit pivot at bbox center; fixed inspect lift (not pitch-dependent clearance); yaw/pitch on pivot so tumble stays in place
+- CONCEPT §9 → v3.68
+
 ### 2026-08-14 — v3.67 Garage pitch mode release snaps flat
 - Trigger: user — releasing vertical pitch mode should put the car horizontal again
 - Decision: Ending RMB / 2-finger inspect resets `garagePitch` to 0 (sit back on pad); yaw kept
