@@ -154,7 +154,8 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
     { x: 0.7, y: 0.06, z: -1.08, yaw: 0, scale: 0.7, snap: false },
     { x: -0.7, y: 0.06, z: -1.08, yaw: Math.PI, scale: 0.7, snap: false },
   ],
-  // Look sheet sill armor between arches — rear half-cage removed from the bake.
+  // Sill armor strictly between wheel arches (look sheet). Mesh half-Z is ~0.86;
+  // scaleZ fits ends at the tire/arch openings (~±0.72), not into the wheels.
   reinforced_frame: [
     {
       x: 0,
@@ -163,7 +164,7 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
       yaw: 0,
       scale: 1.1,
       scaleY: 1,
-      scaleZ: 1.08,
+      scaleZ: 0.84,
       snap: false,
     },
   ],

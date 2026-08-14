@@ -190,8 +190,7 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(existsSync("public/models/parts/blitz-reinforced_frame.glb")).toBe(true);
     const a = BLITZ_PART_PLACEMENT.reinforced_frame[0]!;
     // Rocker plates between arches — cage stripped from the bake.
-    expect(a.z).toBeGreaterThan(-0.1);
-    expect(a.z).toBeLessThan(0.1);
+    expect(a.z).toBeCloseTo(0);
     expect(a.y).toBeGreaterThan(0.08);
     expect(a.y).toBeLessThan(0.18);
     expect(a.scale).toBeGreaterThan(1.05);
@@ -210,6 +209,19 @@ describe("Equipped-part visuals (all cars)", () => {
     // Sill-only — no roll-cage height.
     expect(sy).toBeGreaterThan(0.08);
     expect(sy).toBeLessThan(0.4);
+
+    // Mounted length must sit in the clear span between Blitz wheel hubs
+    // (wheelHints ±1.15; tire/arch inners ~±0.74) — no Z intersection with tires.
+    const meshHalfZ = (b.max[2]! - b.min[2]!) / 2;
+    const mountedHalfZ = meshHalfZ * (a.scaleZ ?? a.scale);
+    const frontHubZ = CAR_PART_LAYOUTS.blitz.wheelHints[0]!.z;
+    const rearHubZ = CAR_PART_LAYOUTS.blitz.wheelHints[2]!.z;
+    expect(frontHubZ).toBeGreaterThan(1.1);
+    expect(rearHubZ).toBeLessThan(-1.1);
+    expect(mountedHalfZ).toBeLessThan(0.75);
+    expect(mountedHalfZ).toBeGreaterThan(0.65);
+    expect(a.z + mountedHalfZ).toBeLessThan(frontHubZ - 0.35);
+    expect(a.z - mountedHalfZ).toBeGreaterThan(rearHubZ + 0.35);
   });
 
   it("does not seal Blitz cabin with opaque glass planes", () => {
