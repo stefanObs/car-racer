@@ -91,6 +91,7 @@ tests/
 
 - Damage smoke, repair sparks, and nitro trails are **shared** Tripo meshes (`public/models/fx/`), not per-car cosmetics and not stickers.
 - Boot: `preloadFxModels()`. `upgradeCarFx` swaps placeholder spheres after `buildComicCar` using the car mesh rear (−Z).
+- Nitro uses orange/cyan exhaust jets with **A/B flicker poses** (`nitro-*-b.glb`) swapped while boosting.
 - Sim contract unchanged: `RaceRenderer` shows/hides/animates from damage stage, `healFx`, and nitro drain. Nitro is orange/cyan (`#FF7A18` / `#3DB9C7`) — no purple bloom.
 - Authoring bake: `fx:bake-tripo` from `assets/tripo-out/fx/` (gitignored). Provenance: `public/models/fx/README.md`.
 
