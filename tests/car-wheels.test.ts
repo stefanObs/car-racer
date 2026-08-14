@@ -39,16 +39,14 @@ describe("parts catalog (per-car)", () => {
     }
   });
 
-  it("drops Bessere Bremsen on Blitz, Bison, and Käferkraft; keeps big_wheels on every car", () => {
-    for (const id of ["blitz", "bison", "kaeferkraft"] as CarId[]) {
+  it("drops Bessere Bremsen on Blitz, Bison, Käferkraft, and Bunker; keeps big_wheels on every car", () => {
+    for (const id of ["blitz", "bison", "kaeferkraft", "bunker"] as CarId[]) {
       expect(carSupportsPart(id, "better_brakes")).toBe(false);
       expect(partsForCar(id)).not.toContain("better_brakes");
       expect(CAR_PART_LAYOUTS[id].brakes).toHaveLength(0);
     }
+    expect(partsForCar("donnerbuechse")).toContain("better_brakes");
     for (const id of CAR_IDS as CarId[]) {
-      if (id !== "blitz" && id !== "bison" && id !== "kaeferkraft") {
-        expect(partsForCar(id)).toContain("better_brakes");
-      }
       expect(partsForCar(id)).toContain("big_wheels");
     }
   });

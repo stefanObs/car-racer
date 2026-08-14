@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-14 — v3.62 Drop Bessere Bremsen on Bunker
+- Trigger: user — bunker: remove the art for the better brakes
+- Decision: `better_brakes` dropped for Bunker (like Blitz/Bison/Käferkraft): shop/kits strip via `carSupportsPart`; empty brake anchors / no caliper meshes. Only Donnerbüchse keeps the part.
+- CONCEPT §6.3 Sichtbarkeit → v3.62
+
 ### 2026-08-14 — v3.61 Bunker wheels detached + scaled for Große Räder
 - Trigger: user — bunker: detach grey wheels and make them bigger for big wheels
 - Decision: Bake `StockWheel_FL/FR/RL/RR` (Tire mat) out of Bunker BodyPaint dark-grey islands. Große Räder scales those meshes (~1.55×) instead of procedural UpgradeTire — same path as Käferkraft/Donnerbüchse.

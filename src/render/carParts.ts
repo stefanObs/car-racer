@@ -406,12 +406,7 @@ function layoutBunker(): CarVisualLayout {
   return {
     wheelLift: 0.14,
     suspensionLift: 0,
-    brakes: [
-      { x: 0.88, y: 0.5, z: 1.2, yaw: 0, scale: 1.05, snap: false },
-      { x: -0.88, y: 0.5, z: 1.2, yaw: Math.PI, scale: 1.05, snap: false },
-      { x: 0.88, y: 0.5, z: -1.15, yaw: 0, scale: 1.05, snap: false },
-      { x: -0.88, y: 0.5, z: -1.15, yaw: Math.PI, scale: 1.05, snap: false },
-    ],
+    brakes: [],
     springs: [],
     // Große Räder scales baked StockWheel_* — no procedural anchor tires.
     wheelHints: [],
