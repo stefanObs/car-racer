@@ -193,21 +193,31 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(nitro.y + 0.42 * nitro.scale).toBeLessThan(wing.y);
   });
 
-  it("ships Blitz reinforced frame as Tripo sill+cage GLB", () => {
+  it("ships Blitz reinforced frame as Tripo sill-armor GLB (no rear cage)", async () => {
     expect(CAR_PART_LAYOUTS.blitz.reinforced_frame.preferGlb).not.toBe(false);
     expect(existsSync("public/models/parts/blitz-reinforced_frame.glb")).toBe(true);
     const a = BLITZ_PART_PLACEMENT.reinforced_frame[0]!;
-    // Look sheet: rocker plates between arches + cage behind cabin on rear deck.
-    expect(a.z).toBeGreaterThan(-0.25);
-    expect(a.z).toBeLessThan(0.0);
+    // Rocker plates between arches — cage stripped from the bake.
+    expect(a.z).toBeGreaterThan(-0.1);
+    expect(a.z).toBeLessThan(0.1);
     expect(a.y).toBeGreaterThan(0.08);
     expect(a.y).toBeLessThan(0.18);
     expect(a.scale).toBeGreaterThan(1.05);
     expect(a.scale).toBeLessThan(1.2);
-    expect(a.scaleY ?? a.scale).toBeLessThan(a.scale);
-    expect(a.scaleZ ?? a.scale).toBeGreaterThan(1.0);
     expect(a.yaw).toBeCloseTo(0);
     expect(a.snap).toBe(false);
+
+    const { NodeIO } = await import("@gltf-transform/core");
+    const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
+    const { getBounds } = await import("@gltf-transform/functions");
+    const doc = await new NodeIO()
+      .registerExtensions(ALL_EXTENSIONS)
+      .read("public/models/parts/blitz-reinforced_frame.glb");
+    const b = getBounds(doc.getRoot().listScenes()[0]!);
+    const sy = b.max[1]! - b.min[1]!;
+    // Sill-only — no roll-cage height.
+    expect(sy).toBeGreaterThan(0.08);
+    expect(sy).toBeLessThan(0.4);
   });
 
   it("does not seal Blitz cabin with opaque glass planes", () => {

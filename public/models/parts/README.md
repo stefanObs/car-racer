@@ -11,7 +11,7 @@ Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching
 | `blitz-nitro_kit.glb` | Nitro-Kit |
 | `blitz-spike_bumper.glb` | Spike-Stoßstange |
 | `blitz-offroad_suspension.glb` | Gelände-Federung (+ ride lift) |
-| `blitz-reinforced_frame.glb` | Verstärkter Rahmen (sill armor + half-cage) |
+| `blitz-reinforced_frame.glb` | Verstärkter Rahmen (sill armor; rear cage removed) |
 | `blitz-lightweight_body.glb` | Leichtbau |
 
 ## Other cars (Bison, Käferkraft, Donnerbüchse, Bunker)

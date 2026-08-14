@@ -42,16 +42,17 @@ const JOBS = [
   { id: "nitro_kit", material: "NitroKit", toward: "-z", targetSpan: 0.9, maxH: 0.42, simplify: 0.4 },
   { id: "spike_bumper", material: "Spike", toward: "+z", targetSpan: 1.68, maxH: 0.32, simplify: 0.4 },
   { id: "offroad_suspension", material: "Spring", toward: "+z", targetSpan: 0.5, maxH: 0.34, simplify: 0.45 },
-  // Sill armor + rear V-cage; squeeze width; lift aft hoop onto rear deck.
+  // Sill armor only (rear half-cage stripped in bake via dropAboveY).
   {
     id: "reinforced_frame",
     material: "Grey",
     toward: "+z",
     targetSpan: 1.72,
     targetWidth: 1.52,
-    maxH: 0.88,
+    maxH: 0.28,
     simplify: 0.35,
-    liftAft: { fromZ: -0.2, lift: 0.55 },
+    // Keep bottom ~28% of Tripo height (rocker plates); discard roll-cage tubes.
+    dropAboveYFrac: 0.28,
   },
   { id: "lightweight_body", material: "Carbon", toward: "+z", targetSpan: 0.85, maxH: 0.24, simplify: 0.4 },
 ];
@@ -212,6 +213,52 @@ function liftAftRegion(doc, { fromZ, lift }) {
   });
 }
 
+/** Drop triangles that touch any vertex above `cutY` (e.g. roll-cage tubes). */
+function dropFacesAboveY(doc, cutY) {
+  const root = doc.getRoot();
+  const buffer = root.listBuffers()[0] ?? doc.createBuffer();
+  for (const mesh of root.listMeshes()) {
+    for (const prim of mesh.listPrimitives()) {
+      const pos = prim.getAttribute("POSITION");
+      if (!pos) continue;
+      const idx = prim.getIndices();
+      const vcount = pos.getCount();
+      const faces = [];
+      if (idx) {
+        const arr = idx.getArray();
+        for (let i = 0; i + 2 < arr.length; i += 3) {
+          faces.push([arr[i], arr[i + 1], arr[i + 2]]);
+        }
+      } else {
+        for (let i = 0; i + 2 < vcount; i += 3) faces.push([i, i + 1, i + 2]);
+      }
+      const kept = [];
+      for (const [a, b, c] of faces) {
+        const ya = pos.getElement(a, [])[1];
+        const yb = pos.getElement(b, [])[1];
+        const yc = pos.getElement(c, [])[1];
+        if (ya > cutY || yb > cutY || yc > cutY) continue;
+        kept.push(a, b, c);
+      }
+      if (kept.length === faces.length * 3) continue;
+      if (!kept.length) throw new Error(`dropFacesAboveY(${cutY}) removed every face`);
+      prim.setIndices(
+        doc.createAccessor().setType("SCALAR").setArray(new Uint32Array(kept)).setBuffer(buffer),
+      );
+    }
+  }
+}
+
+function sitOnMinY(doc) {
+  const s = sceneSize(doc);
+  const minY = s.min[1];
+  if (Math.abs(minY) < 1e-6) return s;
+  forEachPosition(doc, (v) => {
+    v[1] -= minY;
+  });
+  return sceneSize(doc);
+}
+
 async function simplifyDoc(doc, ratio) {
   await MeshoptSimplifier.ready;
   const steps = [weld({ tolerance: 0.0002 }), dedup()];
@@ -268,6 +315,12 @@ async function bakeJob(job) {
   const doc = await loadPrepared(src);
   facePosZFromTripoX(doc);
   if (job.toward === "-z") rotateY180(doc);
+  if (job.dropAboveYFrac != null) {
+    const s0 = sceneSize(doc);
+    const cut = s0.min[1] + Math.max(1e-3, s0.size[1] * job.dropAboveYFrac);
+    dropFacesAboveY(doc, cut);
+    sitOnMinY(doc);
+  }
   const sized = centerSitScale(doc, {
     targetSpan: job.targetSpan,
     maxH: job.maxH,

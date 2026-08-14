@@ -154,16 +154,15 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
     { x: 0.7, y: 0.06, z: -1.08, yaw: 0, scale: 0.7, snap: false },
     { x: -0.7, y: 0.06, z: -1.08, yaw: Math.PI, scale: 0.7, snap: false },
   ],
-  // Look sheet: sill armor between arches + rear half-cage on the deck (bolted plates).
-  // Raise/widen so rocker plates sit outside the body; Z so hoop sits behind the cabin.
+  // Look sheet sill armor between arches — rear half-cage removed from the bake.
   reinforced_frame: [
     {
       x: 0,
       y: 0.12,
-      z: -0.15,
+      z: 0,
       yaw: 0,
       scale: 1.1,
-      scaleY: 0.9,
+      scaleY: 1,
       scaleZ: 1.08,
       snap: false,
     },
