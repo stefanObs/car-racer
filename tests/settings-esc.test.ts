@@ -28,4 +28,19 @@ describe("settings Esc + garage button", () => {
   it("mentions Esc in the settings hint", () => {
     expect(renderSettingsPanelHtml({ easyMode: false }, false)).toContain("Esc");
   });
+
+  it("marks active toggles for comic on-state styling", () => {
+    const easy = renderSettingsPanelHtml({ easyMode: true }, false);
+    expect(easy).toContain("settings-toggle is-on");
+    expect(easy).toContain(">AN<");
+    const muted = renderSettingsPanelHtml({ easyMode: false }, true);
+    expect(muted).not.toMatch(/data-act="toggle-mute"[^>]*is-on/);
+    expect(muted).toContain(">AUS<");
+  });
+
+  it("uses Asphalt-Comic chrome classes", () => {
+    const html = renderSettingsPanelHtml({ easyMode: false }, false);
+    expect(html).toContain("settings-kicker");
+    expect(html).toContain("settings-hazard");
+  });
 });
