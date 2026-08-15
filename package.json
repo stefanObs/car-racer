@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.218",
+  "version": "0.3.219",
   "private": true,
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -12,6 +12,7 @@
     "preview": "vite preview",
     "free:dev": "node scripts/free-dev-port.mjs",
     "test": "vitest run",
+    "test:arch": "node scripts/check-architecture.mjs",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "test:all": "vitest run && playwright test",

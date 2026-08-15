@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-15 — Architecture skill + static layer guard
+
+- Trigger: user — keep post-refactor architecture/guidelines always followed; add static analysis
+- Decision: `.cursor/skills/architecture/` + Cursor subagents in `.cursor/agents/`; `scripts/check-architecture.mjs` (`npm run test:arch`) locks one-way imports, type ownership, one WebGL renderer, rAF homes. CONCEPT unchanged.
+- Skills: architecture (new), router/AGENTS, clean-programming, arcade-physics (do not split `vehicle.ts` for size)
+
 ### 2026-08-15 — Fast KO + 3s racing-line respawn (CONCEPT v3.92)
 
 - Trigger: user — cars should break way faster, then respawn in the middle of the track in ~3 s

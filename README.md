@@ -49,7 +49,8 @@ Die Skripte:
 ## Develop
 
 ```bash
-npm test          # unit
+npm test          # unit (includes architecture layer guard)
+npm run test:arch # one-way imports / type ownership only
 npm run test:e2e  # Playwright: starts server + browser smoke
 npm run free:dev  # free :5173 safely (never pkill -f vite — kills agent shells)
 npm run test:all

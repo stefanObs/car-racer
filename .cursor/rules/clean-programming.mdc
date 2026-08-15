@@ -14,5 +14,6 @@ Hard rules:
 - **Always test**
 - **Always reproduce first before fixing an issue**
 - **Always perform a root cause analysis, verify it, then fix** when fixing a bug
+- **Architecture** — one-way imports; see `.cursor/skills/architecture/SKILL.md`; `npm run test:arch`
 
 Do not ship bug fixes without: reliable repro → written RCA → verified RCA → failing test where practical → targeted fix.

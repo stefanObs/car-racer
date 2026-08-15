@@ -1,0 +1,13 @@
+---
+description: Route src/ module and import work to the architecture skill.
+globs: src/**/*.ts
+alwaysApply: false
+---
+
+# Architecture (src files)
+
+When editing anything under `src/`:
+
+1. Read `.cursor/skills/architecture/SKILL.md` if imports, new files, or GameApp/RaceRenderer/vehicle shape change
+2. Keep one-way layers; `ui/` must not import `render/`
+3. Run `npm run test:arch` before claiming done

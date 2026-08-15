@@ -42,6 +42,7 @@ Details and checklists: [practices.md](practices.md).
 - Bug fix → failing test that reproduces the bug, then fix until green
 - Refactor → existing tests must stay green; add coverage if gaps blocked the refactor
 - Run the relevant test command before claiming done
+- After `src/` import, new-file, or type-ownership edits: **`npm run test:arch`** (layer guard) must pass
 - If no harness exists yet, add a minimal one before non-trivial logic ships
 
 ## Bug workflow: reproduce → root cause → verify → fix
@@ -89,6 +90,7 @@ If verification fails, revise the RCA — do not ship a speculative fix.
 - [ ] Code is easy to read and scoped to the task
 - [ ] Touchpoints are clearer / simpler where you edited
 - [ ] Tests cover the change; suite (or relevant subset) is green
+- [ ] Architecture: one-way imports / type ownership; `npm run test:arch` green when `src/` layers moved
 - [ ] For bugs: repro → **RCA written** → **RCA verified** → fix → re-verified
 - [ ] Step is **versioned**, **committed on `master`**, and **pushed** (no feature branches)
 - [ ] Player-facing changes: **server started** and **verified in browser** (review-testing)

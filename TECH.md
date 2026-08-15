@@ -41,7 +41,7 @@ Each **implementation step**:
 | Input | **Keyboard** + **Gamepad API** + **Touch** layer (one action map) | Web standards | Concept §4.2 — one logical actions → three devices |
 | Audio | **Web Audio** (native; Howler optional) | MIT / web platform | Free SFX/music playback |
 | State / save | Modules + **localStorage** (optional later: file export) | — | No backend required for MVP |
-| Tests | **Vitest** (unit) + **Playwright** (smoke/e2e, free) | MIT | Always-test + review-testing automation |
+| Tests | **Vitest** (unit + `npm run test:arch` layer guard) + **Playwright** (smoke/e2e, free) | MIT | Always-test + architecture lock + review-testing automation |
 | Lint/format | **ESLint** + **Prettier** | MIT | Clarity/maintainability |
 | Hosting (optional) | **GitHub Pages** / **Cloudflare Pages** | free tiers | Static web build; no paid host required |
 | CI (optional) | **GitHub Actions** | free for public repos | Test on PR |
@@ -75,6 +75,8 @@ tests/
 ```
 
 **One-way imports:** `data` → `track` → `sim` → `meta` → `app` → (`ui` | `render` | `audio` | `input`). Lower layers never import `ui/`, `render/`, or `audio/` implementations. `meta/` never imports `ui/` or `render/`. `ui/` never imports `render/` (HUD/theme hex lives in `data/`). `data/` owns catalogs (paint hex, nose-vs-sticker); render/UI read them. Cosmetics never enter `mergeStats`. Sim never calls `gameAudio`. Render never writes `CarState`. `GameApp` is the only frame driver (`src/app/GameApp.ts`); next features land in the extracted modules, not back into GameApp or RaceRenderer.
+
+**Skill:** `.cursor/skills/architecture/`. **Static lock:** `npm run test:arch` (`scripts/check-architecture.mjs`, also run by `npm test`). Do not split `CarState` / `vehicle.ts` for size; do not add a second WebGL canvas.
 
 ### Car visuals (GLB import)
 

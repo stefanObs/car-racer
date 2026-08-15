@@ -13,9 +13,9 @@ description: >-
 **Implementation home:** `src/sim/vehicle.ts` (+ `zones.ts`, `damage.ts`, `catchup.ts`, `race.ts`)  
 **Feel lock tests:** `tests/arcade-physics.test.ts`, `tests/arcade-feel.test.ts`, wall/impact suites
 
-This skill is the **physics subagent**: own the feel, evolve it deliberately, keep Eigenschaften mapping honest. Do not invent parallel physics docs outside this skill + CONCEPT.
+This skill is the **physics owner**. Cursor subagent: `.cursor/agents/arcade-physics.md`. Own the feel, evolve it deliberately, keep Eigenschaften mapping honest. Do not invent parallel physics docs outside this skill + CONCEPT.
 
-Also read when coding: `.cursor/skills/clean-programming/`. When rules change: `.cursor/skills/game-concept/`. Player-facing feel: `.cursor/skills/review-testing/` (server + browser).
+**Do not** split `CarState` or rewrite `vehicle.ts` because the file is large — see `.cursor/skills/architecture/`. Also read when coding: `.cursor/skills/clean-programming/` + architecture. When rules change: `.cursor/skills/game-concept/`. Player-facing feel: `.cursor/skills/review-testing/` (server + browser).
 
 Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolution.md](evolution.md).
 

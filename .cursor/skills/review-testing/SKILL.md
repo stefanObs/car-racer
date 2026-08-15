@@ -10,7 +10,7 @@ description: >-
 
 # Review & Testing (Crash Circuit)
 
-Source of truth: `CONCEPT.md`. Cross-check art with `.cursor/skills/asphalt-comic-art/`, tracks with `.cursor/skills/level-editor/`, bugs with `.cursor/skills/clean-programming/` (reproduce → failing test → fix).
+Source of truth: `CONCEPT.md`. Cross-check art with `.cursor/skills/asphalt-comic-art/`, tracks with `.cursor/skills/level-editor/`, bugs with `.cursor/skills/clean-programming/` (reproduce → failing test → fix), layers with `.cursor/skills/architecture/` (`npm run test:arch`).
 
 **Most important characteristics:**
 

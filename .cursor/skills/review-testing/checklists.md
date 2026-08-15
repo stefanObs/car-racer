@@ -13,6 +13,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] If racing was in scope: start one race; HUD + track/canvas visible
 - [ ] Note WebGL vs `2D-Fallback` if shown
 - [ ] Automated smoke: `npm run test:e2e` green when changing boot/menu/race entry
+- [ ] Architecture guard: `npm run test:arch` (or full `npm test`) green when `src/` imports or type ownership changed
 
 ## A. Doability (10+ player)
 

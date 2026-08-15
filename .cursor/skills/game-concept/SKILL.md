@@ -25,6 +25,7 @@ Sibling skills must stay aligned when concept changes:
 | Levels | `.cursor/skills/level-editor/` |
 | Arcade physics / race feel | `.cursor/skills/arcade-physics/` |
 | Code quality | `.cursor/skills/clean-programming/` |
+| Architecture / layers | `.cursor/skills/architecture/` |
 | QA / UX / regression | `.cursor/skills/review-testing/` |
 
 ## Hard invariants (change only with explicit user OK)

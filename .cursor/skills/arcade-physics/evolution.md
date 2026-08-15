@@ -7,6 +7,11 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-15 — Do not split vehicle.ts for architecture
+
+- Trigger: architecture cleanup — `vehicle.ts` size is not a modularization failure
+- Decision: Keep `CarState` + `stepCar` in `src/sim/vehicle.ts`. Architecture skill + `npm run test:arch` own layer leaks; this skill still owns feel.
+
 ### 2026-08-15 — Fast KO + 3s racing-line respawn
 
 - Trigger: user — break way faster; respawn mid-track in ~3 s

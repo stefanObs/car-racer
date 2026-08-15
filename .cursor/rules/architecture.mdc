@@ -1,0 +1,19 @@
+---
+description: Enforce Crash Circuit layered architecture, type ownership, and architecture skill.
+alwaysApply: true
+---
+
+# Architecture
+
+For any `src/` change (imports, new files, growing GameApp / RaceRenderer / vehicle), **read** `.cursor/skills/architecture/SKILL.md` (see also `skills-router`).
+
+Hard rules:
+
+- **One-way imports** (`data` → `track` → `sim` → `meta` → `app` → ui|render|audio|input)
+- **`ui/` must not import `render/`** — shared hex/ids live in `data/`
+- **`meta/` must not import `ui/` or `render/`**
+- **Types owned once** (`GarageLook`, `StickerId`); no duplicate unions
+- **Do not** split `CarState` / rewrite `vehicle.ts` for size; **do not** add a second WebGL canvas
+- After import/ownership edits: **`npm run test:arch`** must pass
+
+Cursor subagent: `.cursor/agents/architecture.md` (use when moving modules or adding layers).

@@ -22,6 +22,8 @@ Allowed quick wins without profiling: remove duplicate work in a hot loop you al
 
 Forbidden: rewriting architecture “while here”; optimizing unread code paths; adding caches without an ownership story.
 
+Layer imports, type ownership, and “what not to split” live in `.cursor/skills/architecture/`. Do not invent a parallel stack (ECS, React, second WebGL canvas). Static lock: `npm run test:arch`.
+
 ## Test expectations
 
 | Change type | Minimum |
