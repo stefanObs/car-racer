@@ -50,6 +50,8 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(shouldApplyGaragePaint("Skull")).toBe(false);
     expect(shouldApplyGaragePaint("Seat")).toBe(false);
     expect(shouldApplyGaragePaint("Dark")).toBe(false);
+    expect(shouldApplyGaragePaint("Spoiler")).toBe(false);
+    expect(shouldApplyGaragePaint("StockSpoiler")).toBe(false);
   });
 
   it("detects Käferkraft roll-bar lamp pods by local bounds", () => {

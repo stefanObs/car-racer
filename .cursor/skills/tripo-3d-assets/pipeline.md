@@ -59,7 +59,7 @@ Pipeline steps per job:
 7. meshopt `simplify` + weld/dedup/prune
 8. Write `public/models/parts/blitz-{id}.glb`
 
-**Not in JOBS:** `rear_spoiler` — `scripts/extract-blitz-stock-and-spoiler.mjs` cuts wing faces from a historical Blitz GLB (`git show 292c6a6:…` or `--from=`).
+**Not in JOBS:** `rear_spoiler` — remounted from Tripo mesh segment (`npm run cars:bake-blitz-segmented-parts`) as `StockSpoiler` + `public/models/parts/blitz-rear_spoiler.glb`.
 
 ## Extending to another car’s Teile
 
@@ -142,6 +142,10 @@ Exact CLI flags evolve — use `tripo mesh segment --help` / Tripo docs; park ou
 | Body atlas scrambled | Body rebuilt from segment fragments | Keep pre-split BodyPaint; punch only |
 | Detach looks wrong | BodyPaint UV carve / extract | Use segment + remount (this section) |
 | `smartsegment` unusable | Too many body pieces | Prefer segment v2 `simple` |
+
+### Mesh segment detach/remount (Blitz wheels + spoiler)
+
+Same punch/remount contract as Bison. Body: `blitz-pre-wheel-split.glb`. Segment: `assets/tripo-out/blitz/segment-wheels-spoiler-v1/`. Bake: `npm run cars:bake-blitz-segmented-parts`. Runtime: `StockWheel_*` roll/steer; `StockSpoiler` visible only with Heckspoiler.
 
 ## Failure modes
 

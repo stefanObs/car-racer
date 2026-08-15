@@ -1,4 +1,4 @@
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { NodeIO } from "@gltf-transform/core";
@@ -67,19 +67,28 @@ describe("Blitz Tripo arcade bake", () => {
     expect(src).not.toContain("Opaque dark cabin glass");
   });
 
-  it("keeps the full Blitz coupe (stock lip) so unequipping spoiler leaves no hole", async () => {
-    const src = readFileSync("scripts/extract-blitz-stock-and-spoiler.mjs", "utf8");
-    expect(src).toContain("allFaces");
-    expect(src).toContain("FULL coupe");
+  it("keeps the full Blitz coupe deck (wing lives on StockSpoiler)", async () => {
+    expect(existsSync("scripts/bake-blitz-segmented-parts.mjs")).toBe(true);
 
     const path = resolve("public/models/cars/blitz.glb");
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
-    const pos = doc.getRoot().listMeshes()[0]!.listPrimitives()[0]!.getAttribute("POSITION")!;
-    let highRear = 0;
+    const body = doc.getRoot().listMeshes().find((m) => m.getName() === "BodyPaint");
+    expect(body).toBeTruthy();
+    const pos = body!.listPrimitives()[0]!.getAttribute("POSITION")!;
+    let highRearBody = 0;
+    let deck = 0;
     for (let i = 0; i < pos.getCount(); i++) {
       const v = pos.getElement(i, []);
-      if (v[2]! < -1.22 && v[1]! >= 0.88) highRear++;
+      if (v[2]! < -1.22 && v[1]! >= 0.88) highRearBody++;
+      if (v[2]! < -1.2 && v[1]! >= 0.65 && v[1]! < 0.85) deck++;
     }
-    expect(highRear).toBeGreaterThan(40);
+    expect(highRearBody).toBe(0);
+    expect(deck).toBeGreaterThan(40);
+
+    const spoiler = doc.getRoot().listNodes().find((n) => n.getName() === "StockSpoiler");
+    expect(spoiler).toBeTruthy();
+    const t = spoiler!.getTranslation();
+    expect(t[2]).toBeLessThan(-1.4);
+    expect(t[1]).toBeGreaterThan(0.7);
   });
 });

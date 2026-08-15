@@ -26,6 +26,7 @@ import {
   registerCarPartTemplate,
   STOCK_ENGINE_MESH,
   STOCK_CAGE_MESH,
+  STOCK_SPOILER_MESH,
 } from "../src/render/carParts";
 
 function fakePartTemplate(): Group {
@@ -240,11 +241,11 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(root.getObjectByName("blitzWindshield")).toBeUndefined();
   });
 
-  it("mounts Heckspoiler on the rear deck from the original car wing", () => {
+  it("mounts Heckspoiler on the rear deck from the segmented GT wing", () => {
     expect(BLITZ_PART_PLACEMENT.rear_spoiler[0]!.z).toBeLessThan(-1.4);
-    expect(BLITZ_PART_PLACEMENT.rear_spoiler[0]!.y).toBeGreaterThan(0.75);
+    expect(BLITZ_PART_PLACEMENT.rear_spoiler[0]!.y).toBeGreaterThan(0.65);
     expect(existsSync("public/models/parts/blitz-rear_spoiler.glb")).toBe(true);
-    expect(existsSync("scripts/extract-blitz-stock-and-spoiler.mjs")).toBe(true);
+    expect(existsSync("scripts/bake-blitz-segmented-parts.mjs")).toBe(true);
   });
 
   it("attaches Teile on every car class", () => {
@@ -749,6 +750,20 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(stock.visible).toBe(false);
     stock.visible = true;
     applyStockPartVisibility(root, "bison", ["reinforced_frame"]);
+    expect(stock.visible).toBe(true);
+  });
+
+  it("shows Blitz StockSpoiler only when Heckspoiler is equipped", () => {
+    const root = new Group();
+    const stock = new Group();
+    stock.name = STOCK_SPOILER_MESH;
+    root.add(stock);
+    applyStockPartVisibility(root, "blitz", []);
+    expect(stock.visible).toBe(false);
+    applyStockPartVisibility(root, "blitz", ["rear_spoiler"]);
+    expect(stock.visible).toBe(true);
+    applyEquippedPartVisuals(root, "blitz", ["rear_spoiler"]);
+    expect(root.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeUndefined();
     expect(stock.visible).toBe(true);
   });
 

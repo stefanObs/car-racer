@@ -521,6 +521,7 @@ function isNonPaintMaterial(name: string): boolean {
     name.includes("rubber") ||
     name.includes("wheel") ||
     name.includes("stockwheel") ||
+    name.includes("spoiler") ||
     name.includes("rim") ||
     name.includes("hubcap") ||
     name.includes("chrome") ||

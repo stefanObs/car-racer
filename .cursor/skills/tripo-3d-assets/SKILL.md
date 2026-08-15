@@ -115,11 +115,7 @@ npm run cars:bake-blitz-parts-tripo
 
 Script: `scripts/bake-blitz-parts-tripo.mjs` — flatten, face +Z, optional 180° for rear-facing props, sit/scale, comic material name, meshopt simplify → `public/models/parts/blitz-{id}.glb`.
 
-**Exception — Heckspoiler:** not Tripo. Extract original wing:
-
-```bash
-npm run cars:extract-blitz-spoiler
-```
+**Exception — Heckspoiler:** Tripo-segmented from the GT body (`StockSpoiler` + `npm run cars:bake-blitz-segmented-parts`). Historical UV extract (`npm run cars:extract-blitz-spoiler`) is superseded.
 
 ### 4. Mount in game
 
@@ -141,6 +137,7 @@ npm run cars:extract-blitz-spoiler
 | Cars | `*-concept-3q.png` | `tripo-out/{carId}/` | `cars:bake-{carId}-tripo` |
 | Bison segmented wheels | `bison-tire-albedo.png` + segment out | `tripo-out/bison/segment-tires-v2/` | `cars:bake-bison-segmented-wheels` |
 | Käferkraft segmented wheels | original body + wheels-only segment (keep cage in BodyPaint) | `tripo-out/kaeferkraft/segment-wheels-only-v4/` | `cars:bake-kaeferkraft-segmented-parts` |
+| Blitz segmented wheels + spoiler | pre-split body + segment v2 simple | `tripo-out/blitz/segment-wheels-spoiler-v1/` | `cars:bake-blitz-segmented-parts` |
 | Blitz parts | `blitz-part-*.png` | `tripo-out/parts/blitz/{id}/` | `cars:bake-blitz-parts-tripo` |
 | FX | `fx-*.png` | `tripo-out/fx/` | `fx:bake-tripo` |
 | Track kit | `track-*.png` (walls, scenery, **obstacles**: ramp/rumble/oil/tire-stack/barrier) | `tripo-out/track/` | `track:bake-tripo` |

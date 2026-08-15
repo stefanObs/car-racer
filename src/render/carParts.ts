@@ -2,7 +2,7 @@
  * Equipped-Teile visuals for every car (CONCEPT §6.3 + parts-look sheets).
  * Silhouette Teile (engine/scoop, spike, nitro, spoiler, frame, lightweight)
  * use per-car Tripo/extracted GLBs (`preferGlb: true`). Procedural: better_brakes
- * calipers + big_wheels overlays (except Bison: scales Tripo-segmented StockWheel_*).
+ * calipers + big_wheels overlays (except Bison/Käferkraft: scale Tripo StockWheel_*).
  * Hood/deck parts surface-snap. Meshes are cosmetic — stats stay in mergeStats.
  */
 import {
@@ -52,6 +52,8 @@ export const BLITZ_CABIN_GLASS = "blitzCabinGlass";
 export const STOCK_ENGINE_MESH = "StockEngine";
 /** Käferkraft replaceable stock roll-cage top — hidden when Verstärkter Rahmen is equipped. */
 export const STOCK_CAGE_MESH = "StockCage";
+/** Blitz GT wing punched from BodyPaint — shown when Heckspoiler is equipped. */
+export const STOCK_SPOILER_MESH = "StockSpoiler";
 
 export const WHEEL_LIFT = 0.1;
 /** Blitz goes wider, not taller — tiny ride lift only. */
@@ -138,8 +140,8 @@ export type BlitzPartAnchor = PartAnchor;
  * Käferkraft child is still nose −X (parent yaw π/2) — see KAEFERKRAFT layout.
  */
 export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
-  // Extracted wing sits flush on the stock lip (body keeps the full coupe).
-  rear_spoiler: [{ x: 0, y: 0.78, z: -1.48, yaw: 0, scale: 0.92, snap: false }],
+  // Segmented wing fallback (StockSpoiler on the car GLB is the live mount).
+  rear_spoiler: [{ x: 0, y: 0.71, z: -1.62, yaw: 0, scale: 1, snap: false }],
   // Hood scoop — bake tip (low red flange) is local +Z; yaw 0 aims tip + intakes at the nose.
   // Fixed Y + mild nose-up pitch: bury aft flange, keep black scoop above the deck.
   big_engine: [
@@ -1027,6 +1029,7 @@ function skipForSurfaceSample(obj: Object3D): boolean {
       p.name === CAR_PARTS_GROUP ||
       p.name === "blitzParts" ||
       p.name === BLITZ_CABIN_GLASS ||
+      p.name === STOCK_SPOILER_MESH ||
       p.userData.carParts === true ||
       p.userData.blitzCabinGlass === true ||
       p.userData.carPartId
@@ -1150,8 +1153,10 @@ function placeAnchored(
 /** Hide replaceable stock meshes when a Teil supersedes them. */
 export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedParts: readonly PartId[]): void {
   const hideCage = carId === "kaeferkraft" && equippedParts.includes("reinforced_frame");
+  const showBlitzSpoiler = carId === "blitz" && equippedParts.includes("rear_spoiler");
   root.traverse((obj) => {
     if (obj.name === STOCK_CAGE_MESH) obj.visible = !hideCage;
+    if (obj.name === STOCK_SPOILER_MESH) obj.visible = carId === "blitz" ? showBlitzSpoiler : true;
   });
   if (usesScaledStockWheels(carId)) {
     applyStockWheelVisibility(root, false);
@@ -1327,17 +1332,21 @@ export function applyEquippedPartVisuals(
     );
   }
   if (equipped.has("rear_spoiler")) {
-    mountGlbOrProc(
-      group,
-      root,
-      carId,
-      "rear_spoiler",
-      layout.rear_spoiler.anchors,
-      layout.rear_spoiler.build,
-      true,
-      layout.rear_spoiler.preferGlb !== false,
-      layout.rear_spoiler.tint,
-    );
+    // Blitz ships the segmented wing on the car (`StockSpoiler`) — do not overlay a second copy.
+    const useStockSpoiler = carId === "blitz" && Boolean(root.getObjectByName(STOCK_SPOILER_MESH));
+    if (!useStockSpoiler) {
+      mountGlbOrProc(
+        group,
+        root,
+        carId,
+        "rear_spoiler",
+        layout.rear_spoiler.anchors,
+        layout.rear_spoiler.build,
+        true,
+        layout.rear_spoiler.preferGlb !== false,
+        layout.rear_spoiler.tint,
+      );
+    }
   }
   if (equipped.has("offroad_suspension") && carSupportsPart(carId, "offroad_suspension")) {
     const springCol = springColorFor(carId);

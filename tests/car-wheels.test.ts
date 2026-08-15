@@ -91,6 +91,8 @@ describe("stock wheels + Große Räder", () => {
     expect(shouldApplyGaragePaint("Tire")).toBe(false);
     expect(shouldApplyGaragePaint("Wheel")).toBe(false);
     expect(shouldApplyGaragePaint("StockWheel_FL")).toBe(false);
+    expect(shouldApplyGaragePaint("Spoiler")).toBe(false);
+    expect(shouldApplyGaragePaint("StockSpoiler")).toBe(false);
     expect(shouldApplyGaragePaint("BodyPaint")).toBe(true);
   });
 
@@ -319,8 +321,66 @@ describe("stock wheels + Große Räder", () => {
     }
   });
 
-  it("ships other cars without StockWheel_* (tires still welded)", async () => {
-    for (const id of ["blitz", "donnerbuechse", "bunker"] as const) {
+  it("ships Blitz with Tripo-segmented StockWheel_* and StockSpoiler", async () => {
+    expect(existsSync("scripts/bake-blitz-segmented-parts.mjs")).toBe(true);
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/blitz.glb"),
+    );
+    const names = doc
+      .getRoot()
+      .listNodes()
+      .map((n) => n.getName())
+      .filter((n) => n?.startsWith("StockWheel_"))
+      .sort();
+    expect(names).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
+    expect(doc.getRoot().listNodes().some((n) => n.getName() === "StockSpoiler")).toBe(true);
+    for (const mesh of doc.getRoot().listMeshes()) {
+      const name = mesh.getName() ?? "";
+      if (!name.startsWith("StockWheel_")) continue;
+      expect(mesh.listPrimitives().every((p) => p.getMaterial()?.getName() === "Tire"), name).toBe(true);
+      expect(
+        mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
+        name,
+      ).toBe(true);
+      const pos = mesh.listPrimitives()[0]?.getAttribute("POSITION");
+      expect(pos?.getCount(), name).toBeGreaterThan(400);
+    }
+  });
+
+  it("Blitz BodyPaint has no leftover hub rubber after wheel punch", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/blitz.glb"),
+    );
+    const hubs = [
+      { name: "FL", x: -0.673, y: 0.286, z: 1.021 },
+      { name: "FR", x: 0.677, y: 0.286, z: 1.021 },
+      { name: "RL", x: -0.71, y: 0.286, z: -1.079 },
+      { name: "RR", x: 0.717, y: 0.286, z: -1.079 },
+    ];
+    const leftover: Record<string, number> = { FL: 0, FR: 0, RL: 0, RR: 0 };
+    for (const mesh of doc.getRoot().listMeshes()) {
+      if (mesh.getName()?.startsWith("StockWheel_") || mesh.getName() === "StockSpoiler") continue;
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION");
+        if (!pos) continue;
+        for (let i = 0; i < pos.getCount(); i++) {
+          const v = pos.getElement(i, []);
+          for (const h of hubs) {
+            const dx = v[0]! - h.x;
+            const dy = v[1]! - h.y;
+            const dz = v[2]! - h.z;
+            if (dx * dx + dy * dy + dz * dz < 0.12 * 0.12) leftover[h.name]! += 1;
+          }
+        }
+      }
+    }
+    for (const h of hubs) {
+      expect(leftover[h.name], `${h.name} BodyPaint leftover`).toBeLessThan(40);
+    }
+  });
+
+  it("ships remaining cars without StockWheel_* (tires still welded)", async () => {
+    for (const id of ["donnerbuechse", "bunker"] as const) {
       const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
         resolve(`public/models/cars/${id}.glb`),
       );

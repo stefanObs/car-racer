@@ -6,7 +6,7 @@ Small Asphalt-Comic GLBs attached when `kit.equippedParts` includes the matching
 
 | File | Part |
 |------|------|
-| `blitz-rear_spoiler.glb` | Heckspoiler — original wing extracted from the Blitz body (`npm run cars:extract-blitz-spoiler`; not overwritten by Tripo bake) |
+| `blitz-rear_spoiler.glb` | Heckspoiler — Tripo-segmented GT wing (`npm run cars:bake-blitz-segmented-parts`; live mount is `StockSpoiler` on the car) |
 | `blitz-big_engine.glb` | Großer Motor (tall hood scoop) |
 | `blitz-nitro_kit.glb` | Nitro-Kit |
 | `blitz-spike_bumper.glb` | Spike-Stoßstange |

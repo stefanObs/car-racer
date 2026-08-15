@@ -1,5 +1,5 @@
 /**
- * Spin + front-steer for authored StockWheel_* (Bison, Käferkraft, …).
+ * Spin + front-steer for authored StockWheel_* (Blitz, Bison, Käferkraft, …).
  * Axle = thinnest **local** AABB axis (Bison X, Käferkraft Z after bake).
  */
 import { Box3, Group, Matrix4, Mesh, Object3D, Vector3 } from "three";
