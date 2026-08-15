@@ -44,10 +44,10 @@ const RADIUS = 0.025;
 const INTO = 0.08;
 /** Diagonals / stays — still on the inner cage plane until those poles are retuned. */
 const SIDE_Z = 0.43;
-/** Waist: buried in the teal cabin flank (y≈1.05, |z|≈0.30). 0.70/1.14 sat
- * on wheel-arch flares and rode the rail top instead of the paint. */
-const WAIST_Z = 0.3;
-const WAIST_Y = 1.05;
+/** Waist: hip-height in the teal side panel — outboard of the seats (z≈0.1),
+ * not the 0.70 fender flares and not through the cabin. */
+const WAIST_Z = 0.52;
+const WAIST_Y = 0.8;
 const GREY = 0x6a7078;
 
 function extendEnds(a, b, extra) {

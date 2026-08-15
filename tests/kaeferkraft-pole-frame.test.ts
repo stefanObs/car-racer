@@ -23,8 +23,10 @@ function gltfPositions(doc: Document): [number, number, number][] {
   return out;
 }
 
+const POLE_R = 0.025;
+
 describe("Käferkraft pole-frame waist", () => {
-  it("vanishes into the teal cabin side, not outboard of the paint", async () => {
+  it("clears the seats and still meets the teal cabin flank", async () => {
     const { NodeIO } = await import("@gltf-transform/core");
     const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
     const { MeshoptDecoder } = await import("meshoptimizer");
@@ -34,25 +36,41 @@ describe("Käferkraft pole-frame waist", () => {
     expect(waist.length).toBe(2);
     for (const n of waist) {
       const [, y, z] = n.getTranslation();
-      expect(Math.abs(z!)).toBeGreaterThan(0.27);
-      expect(Math.abs(z!)).toBeLessThan(0.36);
-      expect(y!).toBeGreaterThan(1.02);
-      expect(y!).toBeLessThan(1.1);
+      expect(Math.abs(z!)).toBeGreaterThan(0.48);
+      expect(Math.abs(z!)).toBeLessThan(0.56);
+      expect(y!).toBeGreaterThan(0.74);
+      expect(y!).toBeLessThan(0.86);
     }
 
     const carIo = new NodeIO()
       .registerExtensions(ALL_EXTENSIONS)
       .registerDependencies({ "meshopt.decoder": MeshoptDecoder });
     const bodyVerts = gltfPositions(await carIo.read("public/models/cars/kaeferkraft.glb"));
-    // Narrow teal cabin strip (x≈−0.3) — not the front/rear fender flares.
-    const cabinStrip = bodyVerts.filter(
-      (v) => v[0] >= -0.38 && v[0] <= -0.22 && v[1] >= 1.02 && v[1] <= 1.08 && Math.abs(v[2]) >= 0.2,
+    const seats = bodyVerts.filter(
+      (v) =>
+        v[0] >= -0.2 &&
+        v[0] <= 0.4 &&
+        v[1] >= 0.45 &&
+        v[1] <= 0.95 &&
+        Math.abs(v[2]) >= 0.15 &&
+        Math.abs(v[2]) <= 0.36,
     );
-    const stripOuterZ = Math.max(...cabinStrip.map((v) => Math.abs(v[2])));
+    const seatOuterZ = Math.max(...seats.map((v) => Math.abs(v[2])));
     const waistZ = Math.max(...waist.map((n) => Math.abs(n.getTranslation()[2]!)));
-    const poleR = 0.025;
-    expect(waistZ + poleR).toBeLessThanOrEqual(stripOuterZ);
-    expect(waistZ).toBeGreaterThan(0.27);
+    expect(waistZ - POLE_R).toBeGreaterThan(seatOuterZ);
+
+    const sidePanel = bodyVerts.filter(
+      (v) =>
+        v[0] >= -0.4 &&
+        v[0] <= 0.4 &&
+        v[1] >= 0.7 &&
+        v[1] <= 0.9 &&
+        Math.abs(v[2]) >= 0.45 &&
+        Math.abs(v[2]) <= 0.65,
+    );
+    const panelOuterZ = Math.max(...sidePanel.map((v) => Math.abs(v[2])));
+    expect(waistZ + POLE_R).toBeLessThanOrEqual(panelOuterZ);
+    expect(waistZ - POLE_R).toBeGreaterThan(0.45);
   });
 
   it("keeps the procedural buggy fallback on the same waist plane", () => {
@@ -60,10 +78,10 @@ describe("Käferkraft pole-frame waist", () => {
     const waist = g.children.filter((c) => c.name === "Waist");
     expect(waist.length).toBe(2);
     for (const n of waist) {
-      expect(Math.abs(n.position.z)).toBeGreaterThan(0.27);
-      expect(Math.abs(n.position.z)).toBeLessThan(0.36);
-      expect(n.position.y).toBeGreaterThan(1.02);
-      expect(n.position.y).toBeLessThan(1.1);
+      expect(Math.abs(n.position.z)).toBeGreaterThan(0.48);
+      expect(Math.abs(n.position.z)).toBeLessThan(0.56);
+      expect(n.position.y).toBeGreaterThan(0.74);
+      expect(n.position.y).toBeLessThan(0.86);
     }
   });
 });

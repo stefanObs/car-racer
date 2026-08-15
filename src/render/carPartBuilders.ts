@@ -204,8 +204,8 @@ export function buildReinforcedFrame(
     const r = 0.025;
     const into = 0.08;
     const sideZ = 0.43;
-    const waistZ = 0.3;
-    const waistY = 1.05;
+    const waistZ = 0.52;
+    const waistY = 0.8;
     for (const side of [-1, 1] as const) {
       const z = sideZ * side;
       addStraightPole(
