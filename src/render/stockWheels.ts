@@ -66,7 +66,7 @@ export function hasAuthoredStockWheels(root: Object3D): boolean {
   return found;
 }
 
-const SKIP_WHEEL_EXTRACT = new Set(["StockEngine", "StockCage", "StockSpoiler"]);
+const SKIP_WHEEL_EXTRACT = new Set(["StockEngine", "StockCage", "StockSpoiler", "StockStrut_L", "StockStrut_R"]);
 
 /**
  * Split low outboard wheel-arch triangles off each mesh into `StockWheel_*` children

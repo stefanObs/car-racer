@@ -1030,6 +1030,7 @@ function skipForSurfaceSample(obj: Object3D): boolean {
       p.name === "blitzParts" ||
       p.name === BLITZ_CABIN_GLASS ||
       p.name === STOCK_SPOILER_MESH ||
+      p.name.startsWith("StockStrut_") ||
       p.userData.carParts === true ||
       p.userData.blitzCabinGlass === true ||
       p.userData.carPartId

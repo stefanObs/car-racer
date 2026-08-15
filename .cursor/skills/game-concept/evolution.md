@@ -17,7 +17,7 @@ Append newest first.
 ### 2026-08-15 — Blitz segmented wheels + Heckspoiler
 
 - Trigger: user — Blitz wheels should spin/steer like Bison/Käferkraft; segment the GT wing away from the body
-- Decision: Tripo mesh segment v2 simple on `blitz-pre-wheel-split.glb`; bake remounts `StockWheel_*` (segment Tire albedo) + `StockSpoiler`. Punch volumes keep BodyPaint. Runtime: wheels roll/steer; `StockSpoiler` shows only with Heckspoiler (no overlay double). Große Räder still hides stock and mounts wider procedural tires.
+- Decision: Tripo mesh segment v2 simple on `blitz-pre-wheel-split.glb`; bake remounts `StockWheel_*` (segment Tire albedo) + `StockSpoiler`. Punch wing vertices only (not a spoiler AABB — that deleted the trunk lid and left a hole when `StockSpoiler` is hidden). Runtime: wheels roll/steer; `StockSpoiler` shows only with Heckspoiler (no overlay double). Große Räder still hides stock and mounts wider procedural tires.
 - CONCEPT §6.3 Sichtbarkeit; `npm run cars:bake-blitz-segmented-parts`
 
 ### 2026-08-15 — Architecture skill + static layer guard

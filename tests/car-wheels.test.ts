@@ -359,7 +359,7 @@ describe("stock wheels + Große Räder", () => {
     ];
     const leftover: Record<string, number> = { FL: 0, FR: 0, RL: 0, RR: 0 };
     for (const mesh of doc.getRoot().listMeshes()) {
-      if (mesh.getName()?.startsWith("StockWheel_") || mesh.getName() === "StockSpoiler") continue;
+      if (mesh.getName()?.startsWith("StockWheel_") || mesh.getName() === "StockSpoiler" || mesh.getName()?.startsWith("StockStrut_")) continue;
       for (const prim of mesh.listPrimitives()) {
         const pos = prim.getAttribute("POSITION");
         if (!pos) continue;

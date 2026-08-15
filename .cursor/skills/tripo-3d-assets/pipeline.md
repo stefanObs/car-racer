@@ -145,7 +145,7 @@ Exact CLI flags evolve — use `tripo mesh segment --help` / Tripo docs; park ou
 
 ### Mesh segment detach/remount (Blitz wheels + spoiler)
 
-Same punch/remount contract as Bison. Body: `blitz-pre-wheel-split.glb`. Segment: `assets/tripo-out/blitz/segment-wheels-spoiler-v1/`. Bake: `npm run cars:bake-blitz-segmented-parts`. Runtime: `StockWheel_*` roll/steer; `StockSpoiler` visible only with Heckspoiler.
+Same punch/remount contract as Bison. Body: `blitz-pre-wheel-split.glb`. Segment: `assets/tripo-out/blitz/segment-wheels-spoiler-v1/`. Bake: `npm run cars:bake-blitz-segmented-parts`. Punch the GT wing with the vertex rule (blade / endplates only) — **not** a spoiler AABB, which deletes the trunk lid. Runtime: `StockWheel_*` roll/steer; `StockSpoiler` visible only with Heckspoiler; stock coupe keeps a closed rear deck.
 
 ## Failure modes
 
@@ -154,6 +154,7 @@ Same punch/remount contract as Bison. Body: `blitz-pre-wheel-split.glb`. Segment
 | Bake exits missing GLB | Tripo not finished / wrong `-o` | Re-run make; check `findSourceGlb` paths |
 | Part faces sideways | Forgot face+Z or wrong `toward` | Adjust bake job; remount yaw |
 | Scoop on roof | Snap max-Y near windshield | Set `preferY` / smaller `snapRadius` |
+| Blitz trunk hole / invisible rear | Spoiler punch AABB or y≥0.84 “lip” rule deletes the wing underside; remaining lid faces point −Y (backface culled) | Punch blade y≥0.88 + outer endplates only; flip rear-lid winding to +Y |
 | Wrong car silhouette | Reused Blitz kit | Per-car GLB or procedural; `preferGlb: false` |
 | 0 credits | Empty Tripo balance | Ask user to `tripo topup` |
 
