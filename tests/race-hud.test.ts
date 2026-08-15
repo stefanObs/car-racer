@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { CUP_LEVELS } from "../src/data/levels";
+import { CUP_LEVELS, asTrainingLevel } from "../src/data/levels";
 import { RaceSession } from "../src/sim/race";
 import { sampleCenterline } from "../src/track/buildTrack";
 import { renderFieldStripSvg, renderMiniMapSvg, trackBounds, fieldProgress01 } from "../src/ui/miniMap";
@@ -10,6 +10,7 @@ import { renderNitroMeterHtml } from "../src/ui/nitroHud";
 import { renderDamageHudHtml } from "../src/ui/damageHud";
 import { NITRO_ENGAGE_MIN } from "../src/sim/vehicle";
 import { StylePopupQueue } from "../src/ui/stylePopups";
+import { renderRaceHudHtml, syncRaceHud } from "../src/ui/raceHud";
 
 function makeRace(): RaceSession {
   return new RaceSession({
@@ -128,5 +129,33 @@ describe("race HUD UI (CONCEPT §9)", () => {
     expect(map).not.toMatch(/^\s*top:/m);
     const chrome = css.match(/\.race-mute,\s*\n\.race-settings\s*\{[^}]+\}/)?.[0] ?? "";
     expect(chrome).toContain("top:");
+  });
+
+  it("renders the composed race HUD with place, nitro, map, and countdown", () => {
+    const race = makeRace();
+    const html = renderRaceHudHtml(race, new StylePopupQueue(), 0);
+    expect(html).toContain('data-dev-name="hud.cluster"');
+    expect(html).toContain('data-dev-name="hud.place"');
+    expect(html).toContain("Platz ");
+    expect(html).toContain('data-dev-name="hud.nitro"');
+    expect(html).toContain('data-dev-name="hud.minimap-wrap"');
+    expect(html).toContain('data-dev-name="hud.field-wrap"');
+    expect(html).toContain('data-dev-name="hud.countdown"');
+    expect(html).toContain('data-dev-name="hud.style-popups"');
+  });
+
+  it("training HUD omits place and field strip", () => {
+    const race = new RaceSession({
+      level: asTrainingLevel(CUP_LEVELS[0]!),
+      playerCarId: "blitz",
+      playerParts: [],
+      playerPaint: "#E03131",
+      playerSticker: "none",
+    });
+    const html = renderRaceHudHtml(race, new StylePopupQueue(), 0);
+    expect(html).toContain('data-dev-name="hud.training"');
+    expect(html).not.toContain('data-dev-name="hud.place"');
+    expect(html).not.toContain('data-dev-name="hud.field-wrap"');
+    expect(html).toContain('data-dev-name="hud.minimap-wrap"');
   });
 });

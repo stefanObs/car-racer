@@ -18,7 +18,7 @@ import {
 } from "../meta/cosmeticsShop";
 import { buyPart, selectPartInGarage, showcaseParts } from "../meta/partsShop";
 import { applyRaceRewards } from "../meta/raceRewards";
-import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
+import { loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
 import {
   applyEasyModeThrottle,
   loadGameSettings,
@@ -41,10 +41,7 @@ import { renderResultsHtml } from "./resultsHtml";
 import { renderSettingsPanelHtml } from "./settingsHtml";
 import { escapeOpensSettings } from "./settingsEsc";
 import { renderCarStatsPopup } from "./carStatsPopup";
-import { renderLapCounterHtml } from "./lapHud";
-import { renderNitroMeterHtml } from "./nitroHud";
-import { renderDamageHudHtml } from "./damageHud";
-import { renderFieldStripSvg, renderMiniMapSvg } from "./miniMap";
+import { syncRaceHud } from "./raceHud";
 import {
   advanceFinishCelebrate,
   createFinishCelebrate,
@@ -534,78 +531,11 @@ export class GameApp {
   private updateHud(): void {
     const hud = this.uiRoot.querySelector<HTMLElement>("#race-hud");
     if (!hud || !this.race) return;
-    const p = this.race.player();
     const now = performance.now();
     for (const ev of this.race.consumeStyleEvents()) {
       this.stylePops.push(ev.amount, ev.reason, now);
     }
-    const wrongWay = this.race.playerWrongWay();
-    const countdown = this.race.countdownLabel();
-    hud.innerHTML = `
-      <div class="hud-cluster" data-dev-name="hud.cluster">
-        <div class="hud-stats">
-          <div class="hud-row hud-row--top" data-dev-name="hud.place-lap">
-            ${
-              this.race.track.debugPad
-                ? `<strong data-dev-name="hud.debug-pad">Debug-Raster</strong>`
-                : this.race.level.kind === "training"
-                  ? `<strong data-dev-name="hud.training">Training</strong>
-            ${renderLapCounterHtml(p.lap, this.race.level.laps)}`
-                  : `<strong data-dev-name="hud.place">Platz ${p.place}/${this.race.cars.length}</strong>
-            ${renderLapCounterHtml(p.lap, this.race.level.laps)}`
-            }
-          </div>
-          ${renderDamageHudHtml(p.hp, p.koTimer, p.healFx)}
-          <div class="bars" data-dev-name="hud.bars">
-            ${renderNitroMeterHtml(p.nitro, p.nitroHeld)}
-            <div class="bar" data-dev-name="hud.hp"><span>Karosserie</span><i class="hp" style="width:${Math.round(p.hp * 100)}%"></i></div>
-          </div>
-          ${
-            p.drift > 0.35
-              ? `<div class="hud-row hud-drift" data-dev-name="hud.drift">DRIFT${p.driftTime >= 0.55 ? " · Turbo bereit" : ""}</div>`
-              : ""
-          }
-          ${
-            p.lapShield > 0.05
-              ? `<div class="hud-row hud-shield" data-dev-name="hud.shield">SCHILD</div>`
-              : ""
-          }
-          ${
-            this.race.track.debugPad || this.race.level.kind === "training"
-              ? ""
-              : `<div class="hud-row hud-style" data-dev-name="hud.style-total">Style ${formatChf(this.race.styleBonus)}</div>`
-          }
-        </div>
-        ${
-          this.race.track.debugPad
-            ? ""
-            : `${
-                this.race.level.kind === "training"
-                  ? ""
-                  : `<div class="hud-field" data-dev-name="hud.field-wrap">${renderFieldStripSvg(this.race)}</div>`
-              }
-        <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>`
-        }
-      </div>
-      ${
-        countdown
-          ? `<div class="race-countdown${countdown === "GO" ? " race-countdown--go" : ""}" data-dev-name="hud.countdown" role="status" aria-live="assertive">
-              <span class="race-countdown__label">${countdown}</span>
-            </div>`
-          : ""
-      }
-      ${
-        wrongWay
-          ? `<div class="wrong-way" data-dev-name="hud.wrong-way" role="alert">
-              <span class="wrong-way__arrow" aria-hidden="true">↺</span>
-              <strong>Falsche Richtung!</strong>
-              <span class="wrong-way__hint">Dreh um — der Pfeil zeigt die Rennrichtung</span>
-            </div>`
-          : ""
-      }
-      <div class="style-popups" data-dev-name="hud.style-popups">${this.stylePops.renderHtml(now)}</div>
-    `;
-    hud.dataset.devName = "#race-hud";
+    syncRaceHud(hud, this.race, this.stylePops, now);
     this.dev.tagUi(this.uiRoot);
   }
 
