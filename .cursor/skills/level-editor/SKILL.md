@@ -51,6 +51,7 @@ Obstacles support racing — they are not a demolition derby. Prefer 1–2 signa
 |------|---------|
 | `cup` | Handcrafted career race (~10 per vehicle class) |
 | `free` | Unlocked track selectable in Freier Modus |
+| `training` | Same layouts as cup, all selectable, solo / no ranking |
 | `adhoc` | Segment-built from seed + parameters |
 
 ### Cup beat (per class, ~10 races)

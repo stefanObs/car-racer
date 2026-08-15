@@ -24,6 +24,8 @@ export interface RaceResult {
   purseChf: number;
   styleBonus: number;
   starsEarned: boolean;
+  /** False in Training: no podium / CHF / place copy. */
+  ranked: boolean;
 }
 
 export type StyleEvent = { amount: number; reason: string };
@@ -95,7 +97,7 @@ export class RaceSession {
       }),
     );
 
-    if (this.track.debugPad) return;
+    if (this.track.debugPad || this.level.kind === "training") return;
 
     aiSpecs.forEach((ai, index) => {
       const along = 2 + index * 7;
@@ -139,6 +141,7 @@ export class RaceSession {
   }
 
   private addStyle(amount: number, reason: string): void {
+    if (this.level.kind === "training") return;
     const before = this.styleBonus;
     this.styleBonus = Math.min(STYLE_CAP, this.styleBonus + amount);
     const gained = this.styleBonus - before;
@@ -327,14 +330,16 @@ export class RaceSession {
 
   result(): RaceResult {
     const player = this.cars.find((c) => c.isPlayer)!;
-    const place = player.finishPlace || player.place;
-    const purse = this.level.rewards.placePurse[place - 1] ?? 60;
-    const style = Math.min(STYLE_CAP, this.styleBonus);
+    const ranked = this.level.kind !== "training";
+    const place = ranked ? player.finishPlace || player.place : 0;
+    const purse = ranked ? (this.level.rewards.placePurse[place - 1] ?? 60) : 0;
+    const style = ranked ? Math.min(STYLE_CAP, this.styleBonus) : 0;
     return {
       place,
       purseChf: purse + style,
       styleBonus: style,
-      starsEarned: this.level.rewards.starsOnTop3 && place <= 3,
+      starsEarned: ranked && this.level.rewards.starsOnTop3 && place <= 3,
+      ranked,
     };
   }
 

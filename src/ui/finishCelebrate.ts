@@ -15,7 +15,11 @@ export type FinishCelebrate = {
   duration: number;
   place: number;
   startedAtMs: number;
+  /** False for Training: short Ziel flash, no podium movie. */
+  ranked: boolean;
 };
+
+export const TRAINING_FINISH_SECONDS = 1.2;
 
 export function isPodiumPlace(place: number): boolean {
   return place >= 1 && place <= 3;
@@ -26,12 +30,18 @@ export function finishCelebrateDuration(place: number): number {
   return podiumMovieDuration(place);
 }
 
-export function createFinishCelebrate(place: number, startedAtMs = 0): FinishCelebrate {
+export function createFinishCelebrate(
+  place: number,
+  startedAtMs = 0,
+  opts?: { ranked?: boolean },
+): FinishCelebrate {
+  const ranked = opts?.ranked !== false;
   return {
     t: 0,
-    duration: finishCelebrateDuration(place),
-    place,
+    duration: ranked ? finishCelebrateDuration(place) : TRAINING_FINISH_SECONDS,
+    place: ranked ? place : 0,
     startedAtMs,
+    ranked,
   };
 }
 
@@ -46,6 +56,16 @@ export function finishCelebrateProgress(fx: FinishCelebrate): number {
 }
 
 export function finishOverlayHtml(fx: FinishCelebrate): string {
+  if (!fx.ranked) {
+    return `
+    <div
+      class="finish-fx finish-fx--training"
+      data-dev-name="finish.overlay"
+      data-ranked="0"
+    >
+      <p class="finish-fx__training">Ziel!</p>
+    </div>`;
+  }
   const kind = podiumMovieKind(fx.place);
   const p = finishCelebrateProgress(fx);
   const flash = p < 0.12 ? 1 - p / 0.12 : Math.max(0, 1 - (p - 0.12) / 0.2);

@@ -185,7 +185,7 @@ assets) when shipping. Project license: `LICENSE` (PolyForm Noncommercial 1.0.0)
 | Controller | Gamepad polling → ActionMap; UI focus trap in HTML |
 | Tablet | Touch controls overlay; `pointer` events; CSS `dvh` / landscape layout |
 | Ad-hoc tracks | Segment stitch from `track-spec.md`; seed string |
-| Cup / free modes | Data-driven from `levels/` |
+| Cup / free / training | Data-driven from `levels/` (training = solo, unranked) |
 
 ---
 

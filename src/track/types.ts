@@ -13,7 +13,7 @@ export interface TrackSegment {
 
 export interface LevelDefinition {
   id: string;
-  kind: "cup" | "free" | "adhoc";
+  kind: "cup" | "free" | "training" | "adhoc";
   displayName: string;
   description: string;
   theme: string;

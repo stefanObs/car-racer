@@ -2,7 +2,7 @@ import { type CarId } from "../data/cars";
 import { gameAudio } from "../audio/GameAudio";
 import { playRaceAudioEvent } from "../audio/raceEvents";
 import { APP_CREDIT, APP_VERSION } from "../core/version";
-import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
+import { CUP_LEVELS, asTrainingLevel, freeLevels, levelById, trainingLevels } from "../data/levels";
 import { debugPadLevel } from "../data/debugPad";
 import { type PartId } from "../data/parts";
 import { DevTools } from "../dev/DevTools";
@@ -55,7 +55,7 @@ import {
 } from "./panelScroll";
 import { StylePopupQueue } from "./stylePopups";
 
-type Screen = "menu" | "cup" | "free" | "adhoc" | "garage" | "race" | "results";
+type Screen = "menu" | "cup" | "free" | "training" | "adhoc" | "garage" | "race" | "results";
 
 export class GameApp {
   private save: SaveData = loadSave();
@@ -333,7 +333,8 @@ export class GameApp {
         this.updateHud();
         if (this.race.done) {
           gameAudio.stopEngine();
-          this.finishCelebrate = createFinishCelebrate(this.race.result().place, now);
+          const outcome = this.race.result();
+          this.finishCelebrate = createFinishCelebrate(outcome.place, now, { ranked: outcome.ranked });
           this.updateFinishOverlay();
         }
       }
@@ -477,6 +478,7 @@ export class GameApp {
   }
 
   private applyRaceRewards(result: NonNullable<typeof this.lastResult>, levelId: string): void {
+    if (!result.ranked) return;
     this.save.chf += result.purseChf;
     if (result.starsEarned) {
       const prev = this.save.cupStars[levelId] ?? 0;
@@ -528,6 +530,12 @@ export class GameApp {
     this.startRaceWithLevel(level);
   }
 
+  private startTraining(levelId: string): void {
+    const source = levelById(levelId);
+    if (!source) return;
+    this.startRaceWithLevel(asTrainingLevel(source));
+  }
+
   private updateHud(): void {
     const hud = this.uiRoot.querySelector<HTMLElement>("#race-hud");
     if (!hud || !this.race) return;
@@ -546,7 +554,10 @@ export class GameApp {
             ${
               this.race.track.debugPad
                 ? `<strong data-dev-name="hud.debug-pad">Debug-Raster</strong>`
-                : `<strong data-dev-name="hud.place">Platz ${p.place}/${this.race.cars.length}</strong>
+                : this.race.level.kind === "training"
+                  ? `<strong data-dev-name="hud.training">Training</strong>
+            ${renderLapCounterHtml(p.lap, this.race.level.laps)}`
+                  : `<strong data-dev-name="hud.place">Platz ${p.place}/${this.race.cars.length}</strong>
             ${renderLapCounterHtml(p.lap, this.race.level.laps)}`
             }
           </div>
@@ -565,12 +576,20 @@ export class GameApp {
               ? `<div class="hud-row hud-shield" data-dev-name="hud.shield">SCHILD</div>`
               : ""
           }
-          <div class="hud-row hud-style" data-dev-name="hud.style-total">Style ${formatChf(this.race.styleBonus)}</div>
+          ${
+            this.race.track.debugPad || this.race.level.kind === "training"
+              ? ""
+              : `<div class="hud-row hud-style" data-dev-name="hud.style-total">Style ${formatChf(this.race.styleBonus)}</div>`
+          }
         </div>
         ${
           this.race.track.debugPad
             ? ""
-            : `<div class="hud-field" data-dev-name="hud.field-wrap">${renderFieldStripSvg(this.race)}</div>
+            : `${
+                this.race.level.kind === "training"
+                  ? ""
+                  : `<div class="hud-field" data-dev-name="hud.field-wrap">${renderFieldStripSvg(this.race)}</div>`
+              }
         <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>`
         }
       </div>
@@ -676,6 +695,20 @@ export class GameApp {
         })
         .join("");
       body = `<h2>Freier Modus</h2><div class="stack track-pick-list">${rows || "<p>Noch keine Strecken freigeschaltet.</p>"}</div><button data-nav data-act="garage">Garage</button>`;
+    } else if (this.screen === "training") {
+      const rows = trainingLevels()
+        .map((l) => {
+          const plan = renderTrackPlanSvg(l, 132);
+          return `<button data-nav data-act="race" data-level="${l.id}" class="track-pick">
+            ${plan}
+            <span class="track-pick__meta">
+              <strong>${l.displayName}</strong>
+              <span class="dim">${l.description}</span>
+            </span>
+          </button>`;
+        })
+        .join("");
+      body = `<h2>Training</h2><p class="tag">Alle Strecken, allein — ohne Platzierung.</p><div class="stack track-pick-list">${rows}</div><button data-nav data-act="garage">Garage</button>`;
     } else if (this.screen === "adhoc") {
       const preview = generateAdhocLevel({ seed: this.adhocSeed, length: this.adhocLength });
       this.lastAdhoc = preview;
@@ -732,7 +765,8 @@ export class GameApp {
         </div>
       `;
     } else if (this.screen === "results" && this.lastResult) {
-      body = `
+      body = this.lastResult.ranked
+        ? `
         <h2>Ergebnis</h2>
         ${resultsPodiumHtml(this.lastResult.place)}
         <p>${formatChf(this.lastResult.purseChf)} <span class="dim">(inkl. Style ${formatChf(this.lastResult.styleBonus)})</span></p>
@@ -741,6 +775,14 @@ export class GameApp {
           <button data-nav data-act="cup">Weiter Cup</button>
           <button data-nav data-act="garage">Garage</button>
           <button data-nav data-act="menu">Hilfe</button>
+        </div>
+      `
+        : `
+        <h2>Training</h2>
+        <p class="tag" data-dev-name="results.training">Runden geschafft — ohne Wertung.</p>
+        <div class="stack">
+          <button data-nav data-act="training">Weiter Training</button>
+          <button data-nav data-act="garage">Garage</button>
         </div>
       `;
     }
@@ -856,8 +898,13 @@ export class GameApp {
     }
 
     const isBuy = act === "buy-car" || act === "buy-paint" || act === "buy-sticker" || act === "buy-part";
-    const isConfirm =
-      act === "race" || act === "adhoc-start" || act === "cup" || act === "free" || act === "adhoc";
+      const isConfirm =
+      act === "race" ||
+      act === "adhoc-start" ||
+      act === "cup" ||
+      act === "free" ||
+      act === "training" ||
+      act === "adhoc";
     if (!isBuy) {
       if (isConfirm) gameAudio.playUiConfirm();
       else gameAudio.playUiClick();
@@ -866,6 +913,7 @@ export class GameApp {
     if (act === "menu") this.screen = "menu";
     if (act === "cup") this.screen = "cup";
     if (act === "free") this.screen = "free";
+    if (act === "training") this.screen = "training";
     if (act === "adhoc") this.screen = "adhoc";
     if (act === "garage") this.screen = "garage";
     if (act === "adhoc-roll") {
@@ -883,6 +931,10 @@ export class GameApp {
       return;
     }
     if (act === "race" && btn.dataset.level) {
+      if (this.screen === "training") {
+        this.startTraining(btn.dataset.level);
+        return;
+      }
       this.startRace(btn.dataset.level);
       return;
     }

@@ -1347,6 +1347,24 @@ html[data-touch="1"] .hud-minimap {
   border: 0;
 }
 
+.finish-fx--training {
+  width: auto;
+}
+
+.finish-fx__training {
+  margin: 0;
+  font-size: clamp(2.6rem, 9vw, 4.8rem);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #fff8e8;
+  text-shadow:
+    0 4px 0 #1c1c1c,
+    4px 0 0 #1c1c1c,
+    -2px 0 0 #1c1c1c,
+    0 0 18px rgba(28, 28, 28, 0.45);
+}
+
 .podium-movie {
   position: relative;
   z-index: 1;

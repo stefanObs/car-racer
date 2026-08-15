@@ -331,6 +331,27 @@ export function freeLevels(unlockedIds: string[]): LevelDefinition[] {
   }));
 }
 
+/** All cup layouts, unlocked, for solo unranked practice (CONCEPT §8.5). */
+export function asTrainingLevel(level: LevelDefinition): LevelDefinition {
+  return {
+    ...level,
+    kind: "training",
+    rewards: {
+      ...level.rewards,
+      starsOnTop3: false,
+      placePurse: level.rewards.placePurse.map(() => 0),
+    },
+  };
+}
+
+export function trainingLevels(): LevelDefinition[] {
+  return CUP_LEVELS.map(asTrainingLevel);
+}
+
+export function isTrainingLevel(level: { kind: string }): boolean {
+  return level.kind === "training";
+}
+
 /** For tests: segment-type fingerprint of a cup layout. */
 export function layoutFingerprint(level: LevelDefinition): string {
   return level.track.segments.map((s) => `${s.type}:${s.length ?? s.angleDeg ?? 0}`).join("|");

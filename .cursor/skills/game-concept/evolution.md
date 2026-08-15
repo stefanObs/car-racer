@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-15 — Training mode (CONCEPT v3.90)
+
+- Trigger: user — training where every track can be selected, no other cars, no position at the end
+- Decision: New player mode. All cup layouts unlocked. Solo field. 5 laps + countdown + real track. No place/podium/CHF/stars/cup unlock. Mini-map stays (DU only). Not the F4 debug raster.
+- CONCEPT §§3, 8.5, 9, 13 → v3.90
+
 ### 2026-08-15 — Race HUD: who is where (CONCEPT v3.89)
 
 - Trigger: user — HUD showing self and other players on the track

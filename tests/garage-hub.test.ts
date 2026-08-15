@@ -24,6 +24,7 @@ describe("garage hub", () => {
     expect(html).toContain("Ablegen");
     expect(html).toContain("Anschauen");
     expect(html).toContain('data-act="cup"');
+    expect(html).toContain('data-act="training"');
     expect(html).toContain("Laden");
     expect(html).toContain("is-on");
     const equipAt = html.indexOf("Ausrüsten");

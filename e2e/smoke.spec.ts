@@ -7,6 +7,7 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.getByRole("heading", { name: "Garage" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Cup" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Freier Modus" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Training" })).toBeVisible();
     await expect(page.getByRole("button", { name: "Ad-hoc" })).toBeVisible();
     await expect(page.getByRole("heading", { name: /Ausrüsten/ })).toBeVisible();
 

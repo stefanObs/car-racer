@@ -38,7 +38,7 @@ Do not “quietly” reverse these in code, levels, or copy:
 5. **Damage** heals over time with visible FX; K.O. respawns
 6. **Currency** = **CHF**; cosmetics (paint/stickers) grant **no** stats
 7. **Parts** always have advantage **and** disadvantage; synergies can offset cons
-8. **Modes** = Cup + Freier Modus + Ad-hoc; catch-up helps trailing cars but clean play can still lead
+8. **Modes** = Cup + Freier Modus + Training + Ad-hoc; catch-up helps trailing cars but clean play can still lead; Training is solo and unranked
 9. **Art lock** = Asphalt-Comic
 10. **Input / platform** = fully playable with **keyboard**, **controller/gamepad**, and **tablet (touch)** — race + all menus/garage; not desktop-only
 11. **Free-only tech** = no paid engines or paid runtime dependencies; see `TECH.md`

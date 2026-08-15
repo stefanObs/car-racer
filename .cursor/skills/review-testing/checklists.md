@@ -7,7 +7,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Dev server started (`./start.sh` or `npm run dev`) **or** `npm run test:e2e` (Playwright starts it)
 - [ ] Port free via `npm run free:dev` if needed — **never** `pkill -f vite` (kills the agent)
 - [ ] URL opens (default http://127.0.0.1:5173/)
-- [ ] Browser snapshot/screenshot: **Garage-Hub** visible (Crash Circuit + Cup / Freier Modus / Ad-hoc + Ausrüsten)
+- [ ] Browser snapshot/screenshot: **Garage-Hub** visible (Crash Circuit + Cup / Freier Modus / Training / Ad-hoc + Ausrüsten)
 - [ ] Not stuck on blank/dark screen or unexplained boot-error
 - [ ] Click through at least: Garage → Cup or Hilfe → back to Garage
 - [ ] If racing was in scope: start one race; HUD + track/canvas visible
@@ -37,7 +37,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 ### Garage (Start-Hub)
 - [ ] Einstellungen (Rechtsklick / Button): Einfacher Modus toggles auto-Vollgas
 - [ ] Boots here by default (not a separate Hauptmenü)
-- [ ] Cup / Freier Modus / Ad-hoc CTAs present; focus defaults to Cup
+- [ ] Cup / Freier Modus / Training / Ad-hoc CTAs present; focus defaults to Cup
 - [ ] Ausrüsten / Laden clearly above Schmücken
 - [ ] Comic garage bay visible behind the panel (car turntable)
 - [ ] Unowned car: marked **Vorschau** (not instant buy) + **Kaufen**
@@ -52,6 +52,11 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Track list or seed field works
 - [ ] Laps / AI options understandable
 - [ ] Seed shown for ad-hoc share/replay
+
+### Training
+- [ ] Every cup track listed, none locked
+- [ ] Solo field (no rivals, no place HUD / field strip)
+- [ ] Finish: Ziel without Platz / podium / CHF
 
 ### Garage (tuning detail)
 - [ ] Car turntable / preview

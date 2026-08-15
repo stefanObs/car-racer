@@ -30,6 +30,7 @@ describe("dev cheats", () => {
     expect(race.done).toBe(true);
     expect(race.player().finishPlace).toBe(2);
     expect(race.result().place).toBe(2);
+    expect(race.result().ranked).toBe(true);
     const places = race.cars.map((c) => c.finishPlace).sort((a, b) => a - b);
     expect(places).toEqual([1, 2, 3, 4, 5, 6]);
   });

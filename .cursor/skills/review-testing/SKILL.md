@@ -55,7 +55,7 @@ Prefer `npm run test:e2e` for automated smoke (Playwright starts/stops its own s
 
 | Step | Pass if |
 |------|---------|
-| Load `/` | Title Crash Circuit; menu heading + Cup / Freier Modus / Garage |
+| Load `/` | Title Crash Circuit; menu heading + Cup / Freier Modus / Training / Garage |
 | Open Cup | Level list visible; can select an unlocked race |
 | Start race | HUD shows place/lap; canvas draws track or 2D fallback |
 | Open Garage | Parts/paint/CHF visible |
@@ -100,7 +100,7 @@ Task Progress:
 
 Walk the **Kernschleife** as a new player **in the browser**:
 
-Menü → Cup/Frei/Ad-hoc → Rennen → Ergebnis → Garage (Schmuck/Kauf/Tuning) → nächstes Rennen.
+Menü → Cup/Frei/Training/Ad-hoc → Rennen → Ergebnis → Garage (Schmuck/Kauf/Tuning) → nächstes Rennen.
 
 Check:
 
@@ -141,9 +141,9 @@ Against Asphalt-Comic (`reference.png` / style bible), judged from **browser scr
 
 Screens from concept §9 must exist and flow cleanly **in the browser**:
 
-1. Garage (Start-Hub) — Cup / Freier Modus / Ad-hoc CTAs; Ausrüsten / Laden; Schmücken; comic bay  
+1. Garage (Start-Hub) — Cup / Freier Modus / Training / Ad-hoc CTAs; Ausrüsten / Laden; Schmücken; comic bay  
 2. Cup-Karte — nodes, stars, recommended class  
-3. Freier Modus / Ad-hoc — track or seed, options, start  
+3. Freier Modus / Training / Ad-hoc — track or seed, options, start  
 4. Hilfe — slim help (optional), Esc back to Garage  
 5. Renn-HUD — place, lap, mini-map, damage (+ heal hint), nitro, style popups (`+50 CHF`)  
 6. Ergebnis — podium, CHF breakdown, continue / garage  

@@ -184,6 +184,7 @@ export function renderGarageHtml(opts: {
       <div class="garage-race__row">
         <button data-nav data-act="cup" class="garage-cta garage-cta--primary">Cup</button>
         <button data-nav data-act="free" class="garage-cta">Freier Modus</button>
+        <button data-nav data-act="training" class="garage-cta">Training</button>
         <button data-nav data-act="adhoc" class="garage-cta">Ad-hoc</button>
       </div>
     </section>

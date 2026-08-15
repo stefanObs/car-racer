@@ -35,9 +35,10 @@ Du baust in der Garage dein Auto so, dass die Teile **zusammenpassen**, und fäh
 
 ```
 Garage / Menü
-    → Modus wählen: Cup / Freier Modus / Ad-hoc-Strecke
+    → Modus wählen: Cup / Freier Modus / Training / Ad-hoc-Strecke
         → Rennen (**5 Runden**, ca. 2–5 Min)
-            → Platzierung + Style-Boni → CHF
+            → Cup/Frei/Ad-hoc: Platzierung + Style-Boni → CHF
+            → Training: solo, kein Platz, kein CHF
         → Ergebnis-Screen
     → Garage: Auto schmücken / kaufen / teilen
     → nächstes Rennen / nächste Klasse
@@ -238,7 +239,7 @@ Am **Angreifer**:
 
 **Runden-Schild (Start/Ziel)**
 
-- Jedes Rennen hat **5 Runden** (Cup, Freier Modus, Ad-hoc).
+- Jedes Rennen hat **5 Runden** (Cup, Freier Modus, Training, Ad-hoc).
 - Beim Durchfahren der Start/Ziel-Linie (neue Runde) bekommt das Auto kurz ein **Runden-Schild**: ~2 s **kein Schaden** von Mauer / Hindernis / Kontakt (Schub bleibt).
 - Sichtbar als Style-Popup „Schild!“ (+ SFX); **kein** Mesh am Auto. Die Tripo-**Lap-Shield**-Plakette ist nur der Runden-Flash **über** dem Auto.
 
@@ -428,7 +429,7 @@ Kids lesen Gegner und passen Taktik an — Fokus bleibt Tempo und Linie.
 
 ---
 
-## 8. Strecken, Cups, Freier Modus, Ad-hoc
+## 8. Strecken, Cups, Freier Modus, Training, Ad-hoc
 
 **Level-Autorenschaft:** Skill `.cursor/skills/level-editor/` (Spec: `track-spec.md`, Beispiellevel unter `levels/`).
 
@@ -475,7 +476,15 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 **Technisch:** Piecewise-Track aus Segmenten (Gerade, Kurve L/R, S-Kurve, Buckelfeld, Engstelle) + Theme-Overlay — nicht endlos-prozedural-Chaos, sondern kontrollierte Variation.
 
-### 8.5 Weitere optionale Modi
+### 8.5 Training
+
+- **Alle** handgemachten Strecken wählbar (nicht an Cup-Freischaltung gebunden).
+- **Keine KI** — nur das Garage-Auto.
+- Gleiche Runden, Countdown, Gras/Mauer/Hindernisse wie im Cup (kein Debug-Raster).
+- **Keine Platzierung** am Ziel: kein Podium-Film, kein Platz auf dem Ergebnis-Screen, **kein CHF**, keine Sterne, kein Cup-Fortschritt.
+- HUD ohne Platz/Streckenleiste; Mini-Map nur DU. Zum Üben von Linie, Drift und Teilen.
+
+### 8.6 Weitere optionale Modi
 
 - **Zeitjagd:** Uhr + Geisterfahrzeug — Feintuning-Tests.
 - **Pokal-Wochenende:** Drei Rennen, Gesamtwertung.
@@ -486,13 +495,13 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ## 9. UX / Screens (Spielerfluss)
 
-1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch frei drehen** (LMB / 1 Finger = gieren; **RMB** / **2 Finger** = anheben und um die **Auto-Mitte** drehen; Loslassen stellt flach auf den Boden), **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Ad-hoc starten  
+1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch frei drehen** (LMB / 1 Finger = gieren; **RMB** / **2 Finger** = anheben und um die **Auto-Mitte** drehen; Loslassen stellt flach auf den Boden), **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Training / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
-3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
-4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz, **Runden-Zähler** (aktuell / gesamt im HUD); beim **Überfahren der Start/Ziel-Linie** kurz die Tripo-**Lap-Shield**-Plakette **über dem Auto** (klein, Kamera-Facing) mit Runden-Zahl; **Mini-Map** (Streckenform, **alle** Autos, Spieler = **DU**); **Streckenleiste** (wer wo im Rennen liegt); Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Esc, Rechtsklick oder Button; darin **Rennen verlassen** → Garage ohne Preisgeld)
-5. **Ergebnis** — Zielbanner/-linie; **~7.5 s 2D-Asphalt-Comic-Film** (gemalte Panels, **gleiche Podium-Bühne** für Platz 1/2/3/Feld; Auto steht auf dem Asphalt, nicht auf den Blöcken) bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation** (~2.5 s); dann Podium-Landung / CHF; weiter / Garage  
+3. **Freier Modus / Training / Ad-hoc** — Strecke (Training: alle, ohne Sperre) oder Seed, Optionen, Start  
+4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz (nicht im Training), **Runden-Zähler** (aktuell / gesamt im HUD); beim **Überfahren der Start/Ziel-Linie** kurz die Tripo-**Lap-Shield**-Plakette **über dem Auto** (klein, Kamera-Facing) mit Runden-Zahl; **Mini-Map** (Streckenform, **alle** Autos, Spieler = **DU**); **Streckenleiste** (wer wo im Rennen liegt — nicht im Training); Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`, nicht im Training); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Esc, Rechtsklick oder Button; darin **Rennen verlassen** → Garage ohne Preisgeld)
+5. **Ergebnis** — Cup/Frei/Ad-hoc: Zielbanner/-linie; **~7.5 s 2D-Asphalt-Comic-Film** (gemalte Panels, **gleiche Podium-Bühne** für Platz 1/2/3/Feld; Auto steht auf dem Asphalt, nicht auf den Blöcken) bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation** (~2.5 s); dann Podium-Landung / CHF; weiter / Garage. **Training:** kurzes „Ziel!“ ohne Platz/Podium/CHF, zurück zur Streckenliste.  
 6. **Hilfe** — Steuerungshinweise (optional; inkl. Bremse halten = Rückwärts); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
-7. **Einstellungen** — per **Esc** (Garage + Rennen; erneut Esc schließt), **Rechtsklick** (außer Garage-Canvas-Orbit), Garage-Button oder HUD-Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste). **Im Rennen:** zusätzlicher Button **Rennen verlassen** → zurück zur Garage, **kein** Preisgeld / Freischalten für den abgebrochenen Lauf. In Untermenüs (Cup/Hilfe/Ergebnis) bleibt Esc = Zurück zur Garage.  
+7. **Einstellungen** — per **Esc** (Garage + Rennen; erneut Esc schließt), **Rechtsklick** (außer Garage-Canvas-Orbit), Garage-Button oder HUD-Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste). **Im Rennen:** zusätzlicher Button **Rennen verlassen** → zurück zur Garage, **kein** Preisgeld / Freischalten für den abgebrochenen Lauf. In Untermenüs (Cup/Training/Hilfe/Ergebnis) bleibt Esc = Zurück zur Garage.  
 
 **Audio (SFX):** Arcade-Effekte (Motor-Loop, Nitro, Mauer/Kontakt, Runde/Schild, K.O., Ziel, UI-Klicks) — **CC0**-Samples, Web Audio, Mute speichert lokal. Keine Pflicht-Musik im MVP.
 
@@ -508,7 +517,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 - **Schaden mit Comeback:** Heilt über Zeit + Effekt; K.O. selten und fair.  
 - **Stolz:** Aufkleber + benannte Builds = Identität.  
 - **Fairness:** Kosmetik powerfrei; Catch-up hält Spannung, Skill darf davonfahren.  
-- **Viel Content:** Cups + Freier Modus + Ad-hoc-Strecken.
+- **Viel Content:** Cups + Freier Modus + Training + Ad-hoc-Strecken.
 
 ---
 
@@ -527,6 +536,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 - 6–8 Teile inkl. Federung + 2–3 Synergien  
 - Garage: 2. Auto, Lack, Aufkleber-Basis, **CHF**  
 - Freier Modus auf freigeschalteten Strecken  
+- Training: alle Strecken solo, ohne Platz/CHF  
 - Deutsche UI  
 - **Controller-Support** (Rennen + Menüs)  
 - **Tablet-Touch** (Rennen + Menüs, Landscape)  
@@ -588,7 +598,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 | Sitzungs-Pacing | **7–15 min** → Freischalten oder sinnvolles Garage-Upgrade |
 | Schmücken / Teile | Lack + Aufkleber + Teile — **pro Auto**; jeweils Vorschau → CHF-Kauf (Serien-Lack / Kein gratis) |
 | Fahrzeug-Art | Kategorie-treue Silhouetten (nah an echten Klassen-Autos), Asphalt-Comic, engine-renderbar |
-| Modi | Cup + **Freier Modus** + **Ad-hoc-generierte Strecken** |
+| Modi | Cup + **Freier Modus** + **Training** (solo, ohne Platz) + **Ad-hoc-generierte Strecken** |
 | Eingabe / Plattform | **Tastatur + Controller + Tablet (Touch)** — gleichwertig spielbar |
 | Tech (Empfehlung) | **TS + Vite + three.js + HTML-UI** übernommen; nur Free/OSS — siehe `TECH.md` |
 | Audio | **SFX** (CC0) via Web Audio; Mute; Motor/Nitro/Treffer/Runde/UI — Musik später optional |
@@ -596,4 +606,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.89 — Renn-HUD Mini-Map + Streckenleiste zeigen alle Autos (Spieler = DU).*
+*Dokumentstand: Konzept v3.90 — Training: alle Strecken solo, ohne Platzierung/CHF.*

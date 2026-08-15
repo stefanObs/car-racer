@@ -587,7 +587,7 @@ export class RaceRenderer {
     }
 
     const player = session.player();
-    if (celebrate) {
+    if (celebrate && celebrate.ranked) {
       this.ensureCelebrateBurst(session, celebrate);
       const p = finishCelebrateProgress(celebrate);
       const podium = isPodiumPlace(celebrate.place);
