@@ -21,6 +21,9 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.locator("[data-dev-name='hud.lap']")).toContainText(/Runde/);
     await expect(page.locator("[data-dev-name='hud.lap.current']")).toHaveText("1");
     await expect(page.locator("#race-hud")).toContainText(/Runde/);
+    await expect(page.locator("[data-dev-name='hud.minimap']")).toBeVisible();
+    await expect(page.locator("[data-dev-name='hud.minimap']")).toContainText("DU");
+    await expect(page.locator("[data-dev-name='hud.field-strip']")).toBeVisible();
     await expect(page.locator("#game-canvas")).toBeVisible();
   });
 

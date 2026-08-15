@@ -38,7 +38,7 @@ import { renderSettingsPanelHtml } from "./settingsHtml";
 import { escapeOpensSettings } from "./settingsEsc";
 import { renderCarStatsPopup } from "./carStatsPopup";
 import { renderLapCounterHtml } from "./lapHud";
-import { renderMiniMapSvg } from "./miniMap";
+import { renderFieldStripSvg, renderMiniMapSvg } from "./miniMap";
 import {
   advanceFinishCelebrate,
   createFinishCelebrate,
@@ -556,6 +556,7 @@ export class GameApp {
           }
           <div class="hud-row hud-style" data-dev-name="hud.style-total">Style ${formatChf(this.race.styleBonus)}</div>
         </div>
+        <div class="hud-field" data-dev-name="hud.field-wrap">${renderFieldStripSvg(this.race)}</div>
         <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>
       </div>
       ${
@@ -623,7 +624,7 @@ export class GameApp {
         <p class="tag">Hilfe & Infos</p>
         <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}</p>
         <p class="credit">${APP_CREDIT}</p>
-        <p class="help">Tastatur: WASD / Pfeile (S halten = Rückwärts), Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LT Bremse/Rückwärts, LB Drift, A/RB Nitro · Tablet: Touch</p>
+        <p class="help">Tastatur: WASD / Pfeile (S halten = Rückwärts), Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LT Bremse/Rückwärts, LB Drift, A/RB Nitro · Tablet: Touch · Mini-Map: DU + die anderen</p>
         <div class="stack">
           <button data-nav data-act="open-settings">Einstellungen</button>
           <button data-nav data-act="toggle-mute">${gameAudio.muted ? "Ton aus" : "Ton an"}</button>

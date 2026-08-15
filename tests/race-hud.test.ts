@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CUP_LEVELS } from "../src/data/levels";
 import { RaceSession } from "../src/sim/race";
 import { sampleCenterline } from "../src/track/buildTrack";
-import { renderMiniMapSvg, trackBounds } from "../src/ui/miniMap";
+import { renderFieldStripSvg, renderMiniMapSvg, trackBounds, fieldProgress01 } from "../src/ui/miniMap";
 import { StylePopupQueue } from "../src/ui/stylePopups";
 
 function makeRace(): RaceSession {
@@ -27,16 +27,42 @@ function placeCar(race: RaceSession, carId: string, along: number): void {
 }
 
 describe("race HUD UI (CONCEPT §9)", () => {
-  it("builds a mini-map SVG with track and player marker", () => {
+  it("builds a mini-map SVG with track, player DU, and every rival", () => {
     const race = makeRace();
     const b = trackBounds(race);
     expect(b.maxX).toBeGreaterThan(b.minX);
-    const svg = renderMiniMapSvg(race, 128);
+    const svg = renderMiniMapSvg(race);
     expect(svg).toContain("<svg");
     expect(svg).toContain("polygon");
+    expect(svg).toContain(">DU<");
+    expect(svg).toContain('data-player="1"');
+    expect(svg).toContain('data-start="1"');
     expect(svg).toContain("#4A4F57");
-    expect(svg).toContain("#2f6f9e"); // harbor basin infield on mini-map
+    expect(svg).toContain("#2f6f9e");
     expect(svg).toContain('data-dev-name="hud.minimap"');
+    const rivals = race.cars.filter((c) => !c.isPlayer);
+    expect(rivals.length).toBeGreaterThan(0);
+    for (const c of rivals) {
+      expect(svg).toContain(`data-car="${c.id}"`);
+    }
+    expect((svg.match(/<circle /g) ?? []).length).toBe(rivals.length);
+  });
+
+  it("field strip places a leading car to the right of the player", () => {
+    const race = makeRace();
+    const len = race.track.totalLength;
+    placeCar(race, "player", 10);
+    const rival = race.cars.find((c) => !c.isPlayer)!;
+    placeCar(race, rival.id, len * 0.6);
+    race.player().progress = 10;
+    rival.progress = len * 0.6;
+    expect(fieldProgress01(rival, race)).toBeGreaterThan(fieldProgress01(race.player(), race));
+    const svg = renderFieldStripSvg(race);
+    expect(svg).toContain('data-dev-name="hud.field-strip"');
+    expect(svg).toContain(">DU<");
+    const playerProg = Number(svg.match(/data-car="player"[^>]*data-progress="([\d.]+)"/)?.[1]);
+    const rivalProg = Number(svg.match(new RegExp(`data-car="${rival.id}"[^>]*data-progress="([\\d.]+)"`))?.[1]);
+    expect(playerProg).toBeLessThan(rivalProg);
   });
 
   it("renders floating style popups with CHF amount", () => {

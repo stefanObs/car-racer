@@ -980,22 +980,64 @@ button[data-act="race"]:not(:disabled) {
 }
 
 .hud-cluster {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
+  display: block;
   width: 100%;
+  min-height: 0;
 }
 
 .hud-stats {
   display: inline-block;
-  max-width: min(360px, 100%);
+  max-width: min(360px, calc(100% - 24px));
   padding: 10px 12px;
   background: var(--ui-bg);
   border: 3px solid var(--outline);
   border-radius: 4px;
   box-shadow: 4px 4px 0 rgba(27, 27, 31, 0.35);
+}
+
+.hud-field {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  line-height: 0;
+  pointer-events: none;
+}
+
+.hud-minimap {
+  position: absolute;
+  right: max(10px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  z-index: 5;
+  padding: 4px;
+  background: var(--ui-bg);
+  border: 3px solid var(--outline);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0 rgba(27, 27, 31, 0.35);
+  line-height: 0;
+}
+
+html[data-touch="1"] .hud-minimap {
+  bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+}
+
+.mini-map-svg,
+.field-strip-svg {
+  display: block;
+  shape-rendering: geometricPrecision;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+}
+
+@media (max-width: 1100px) {
+  .hud-field {
+    position: relative;
+    top: auto;
+    left: auto;
+    transform: none;
+    display: block;
+    margin: 8px 0 0;
+  }
 }
 
 .hud-row--top {
@@ -1043,21 +1085,6 @@ button[data-act="race"]:not(:disabled) {
   margin: 0 0.12em;
   opacity: 0.65;
   font-weight: 700;
-}
-
-.hud-minimap {
-  flex: 0 0 auto;
-  padding: 4px;
-  background: var(--ui-bg);
-  border: 3px solid var(--outline);
-  border-radius: 4px;
-  box-shadow: 4px 4px 0 rgba(27, 27, 31, 0.35);
-  line-height: 0;
-}
-
-.mini-map-svg {
-  display: block;
-  shape-rendering: geometricPrecision;
 }
 
 .hud-style {

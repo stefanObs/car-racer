@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-15 — Race HUD: who is where (CONCEPT v3.89)
+
+- Trigger: user — HUD showing self and other players on the track
+- Decision: Mini-Map (layout + all cars, player labeled DU) plus Streckenleiste (field order / race progress). Glanceable for 10+; map bottom-right, strip top-center so the racing line stays clear.
+- CONCEPT §9 dokumentstand → v3.89
+
 ### 2026-08-15 — Faster result movies + locked podium stage (v0.3.194 / CONCEPT v3.88)
 - Trigger: user — half the animation time; redo 1st-place car; same podium across images
 - Decision: Podium 7.5s / field 2.5s. Shared 2–1–3 block stage. Car always on asphalt behind the podium (never on the blocks). Gold/silver/bronze/field panels regenerated from that stage.

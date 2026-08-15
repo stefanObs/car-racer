@@ -62,7 +62,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] Prices in CHF
 
 ### Renn-HUD
-- [ ] Place, lap, mini-map
+- [ ] Place, lap, mini-map (all cars; player = DU) + field strip
 - [ ] Damage + heal hint
 - [ ] Nitro meter
 - [ ] Style popup uses CHF
