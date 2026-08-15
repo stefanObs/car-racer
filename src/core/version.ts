@@ -1,5 +1,5 @@
 /** Mirrors package.json version — bump both on each implementation step. */
-export const APP_VERSION = "0.3.193";
+export const APP_VERSION = "0.3.194";
 
 /** Short player-visible credit — German UI, near version / Hilfe. */
 export const APP_CREDIT = "Mit KI erstellt · menschliche Anleitung";

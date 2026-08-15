@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-15 — Faster result movies + locked podium stage (v0.3.194 / CONCEPT v3.88)
+- Trigger: user — half the animation time; redo 1st-place car; same podium across images
+- Decision: Podium 7.5s / field 2.5s. Shared 2–1–3 block stage. Car always on asphalt behind the podium (never on the blocks). Gold/silver/bronze/field panels regenerated from that stage.
+- CONCEPT dokumentstand → v3.88
+
 ### 2026-08-15 — Painted Asphalt-Comic result movies (v0.3.192 / CONCEPT v3.87)
 - Trigger: user — make new result animations in the game’s asphalt style
 - Decision: Replace stick-figure SVG reels with painted cel-shaded panels (gold 3 cuts, silver 3, bronze 3, field 1) + Ken-Burns. Captions stay German. Results screen shows a still from the matching reel.

@@ -21,7 +21,7 @@ export function isPodiumPlace(place: number): boolean {
   return place >= 1 && place <= 3;
 }
 
-/** Podium: ~15s 2D movie; field: short disappointed beat. */
+/** Podium: ~7.5s 2D movie; field: short disappointed beat. */
 export function finishCelebrateDuration(place: number): number {
   return podiumMovieDuration(place);
 }

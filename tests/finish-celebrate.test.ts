@@ -41,7 +41,7 @@ describe("finish line and celebrate", () => {
     expect(Math.hypot(finish.position.x, finish.position.z)).toBeLessThan(2);
   });
 
-  it("uses ~15s podium movies and a shorter field disappointment beat", () => {
+  it("uses ~7.5s podium movies and a shorter field disappointment beat", () => {
     expect(isPodiumPlace(1)).toBe(true);
     expect(isPodiumPlace(3)).toBe(true);
     expect(isPodiumPlace(4)).toBe(false);
@@ -50,6 +50,8 @@ describe("finish line and celebrate", () => {
     expect(finishCelebrateDuration(3)).toBe(PODIUM_MOVIE_SECONDS);
     expect(finishCelebrateDuration(5)).toBe(FIELD_MOVIE_SECONDS);
     expect(finishCelebrateDuration(1)).toBeGreaterThan(finishCelebrateDuration(5));
+    expect(PODIUM_MOVIE_SECONDS).toBe(7.5);
+    expect(FIELD_MOVIE_SECONDS).toBe(2.5);
   });
 
   it("renders distinct 2D movies for 1st, 2nd, 3rd, and field", () => {
@@ -102,8 +104,8 @@ describe("finish line and celebrate", () => {
     expect(f).toContain("pm-scene--sad");
     expect(g).not.toContain("pm-scene--sad");
     expect(g).toContain("pm-art");
-    expect(podiumMovieDuration(1)).toBe(15);
-    expect(podiumMovieDuration(4)).toBe(5);
+    expect(podiumMovieDuration(1)).toBe(7.5);
+    expect(podiumMovieDuration(4)).toBe(2.5);
     expect(podiumMovieTitle(2)).toBe("SILBER!");
   });
 

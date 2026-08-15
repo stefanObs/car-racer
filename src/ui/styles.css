@@ -1386,23 +1386,23 @@ button[data-act="race"]:not(:disabled) {
 .podium-movie--gold .pm-scene--a,
 .podium-movie--silver .pm-scene--a,
 .podium-movie--bronze .pm-scene--a {
-  animation: pm-scene-a calc(var(--movie-s, 15) * 1s) linear both;
+  animation: pm-scene-a calc(var(--movie-s, 7.5) * 1s) linear both;
 }
 
 .podium-movie--gold .pm-scene--b,
 .podium-movie--silver .pm-scene--b,
 .podium-movie--bronze .pm-scene--b {
-  animation: pm-scene-b calc(var(--movie-s, 15) * 1s) linear both;
+  animation: pm-scene-b calc(var(--movie-s, 7.5) * 1s) linear both;
 }
 
 .podium-movie--gold .pm-scene--c,
 .podium-movie--silver .pm-scene--c,
 .podium-movie--bronze .pm-scene--c {
-  animation: pm-scene-c calc(var(--movie-s, 15) * 1s) linear both;
+  animation: pm-scene-c calc(var(--movie-s, 7.5) * 1s) linear both;
 }
 
 .podium-movie--field .pm-scene--sad {
-  animation: pm-scene-sad calc(var(--movie-s, 5) * 1s) linear both;
+  animation: pm-scene-sad calc(var(--movie-s, 2.5) * 1s) linear both;
   opacity: 1;
 }
 
@@ -1478,19 +1478,19 @@ button[data-act="race"]:not(:disabled) {
 }
 
 .pm-scene--a .pm-art {
-  animation: pm-ken-a calc(var(--movie-s, 15) * 1s) linear both;
+  animation: pm-ken-a calc(var(--movie-s, 7.5) * 1s) linear both;
 }
 
 .pm-scene--b .pm-art {
-  animation: pm-ken-b calc(var(--movie-s, 15) * 1s) linear both;
+  animation: pm-ken-b calc(var(--movie-s, 7.5) * 1s) linear both;
 }
 
 .pm-scene--c .pm-art {
-  animation: pm-ken-c calc(var(--movie-s, 15) * 1s) linear both;
+  animation: pm-ken-c calc(var(--movie-s, 7.5) * 1s) linear both;
 }
 
 .pm-scene--sad .pm-art {
-  animation: pm-ken-sad calc(var(--movie-s, 5) * 1s) ease-in-out both;
+  animation: pm-ken-sad calc(var(--movie-s, 2.5) * 1s) ease-in-out both;
 }
 
 @keyframes pm-ken-a {

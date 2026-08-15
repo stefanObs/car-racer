@@ -1,10 +1,10 @@
 /**
  * Asphalt-Comic 2D “movies” after the finish line.
- * Painted track/podium panels (not stick-figure SVG). Podium 1–3: ~15s reels. Field: short beat.
+ * Painted track/podium panels (not stick-figure SVG). Podium 1–3: ~7.5s reels. Field: short beat.
  */
 
-export const PODIUM_MOVIE_SECONDS = 15;
-export const FIELD_MOVIE_SECONDS = 5;
+export const PODIUM_MOVIE_SECONDS = 7.5;
+export const FIELD_MOVIE_SECONDS = 2.5;
 
 export type PodiumMovieKind = "gold" | "silver" | "bronze" | "field";
 
