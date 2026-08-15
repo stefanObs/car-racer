@@ -23,6 +23,6 @@ describe("free-dev-port", () => {
     expect(sh).toContain("scripts/free-dev-port.mjs 5173");
     expect(sh.indexOf("free-dev-port")).toBeLessThan(sh.indexOf("npm run dev"));
     expect(ps1).toContain("scripts/free-dev-port.mjs 5173");
-    expect(ps1.indexOf("free-dev-port")).toBeLessThan(ps1.indexOf("npm run dev"));
+    expect(ps1.indexOf("free-dev-port")).toBeLessThan(ps1.indexOf("run dev"));
   });
 });

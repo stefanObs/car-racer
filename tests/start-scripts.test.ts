@@ -45,4 +45,19 @@ describe("start scripts", () => {
     expect(helper).toContain("ss");
     expect(helper).toContain("netstat");
   });
+
+  it("Windows launcher does not require a preinstalled npm on PATH", () => {
+    const bat = readFileSync(resolve(root, "start.bat"), "utf8");
+    const ps1 = readFileSync(resolve(root, "start.ps1"), "utf8");
+    expect(bat).not.toMatch(/^\s*npm\b/im);
+    expect(bat.toLowerCase()).not.toContain("call npm");
+    expect(bat).toContain("%SystemRoot%\\System32\\WindowsPowerShell\\v1.0\\powershell.exe");
+    expect(bat).toContain("start.ps1");
+    // Portable Node zip ships npm.cmd next to node.exe; PowerShell's Get-Command npm
+    // often hits the Unix shim and fails when no system npm is installed.
+    expect(ps1).toContain("npm.cmd");
+    expect(ps1).toMatch(/function\s+Get-NpmCmd/);
+    expect(ps1).not.toMatch(/^\s*npm install/m);
+    expect(ps1).not.toMatch(/^\s*npm run dev/m);
+  });
 });

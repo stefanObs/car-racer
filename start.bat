@@ -2,13 +2,14 @@
 setlocal EnableExtensions
 cd /d "%~dp0"
 
-REM Windows-Einstieg: nutzt PowerShell-Bootstrap (lädt Node bei Bedarf nach .tools\)
-where powershell >nul 2>&1
-if errorlevel 1 (
-  echo Fehler: PowerShell fehlt. Unter Windows ist PowerShell fuer den automatischen Node-Download noetig.
-  echo Installiere Node.js manuell von https://nodejs.org und starte start.bat erneut.
+REM Windows-Einstieg: PowerShell laedt Node bei Bedarf nach .tools\ (kein vorinstalliertes npm noetig).
+set "PS=%SystemRoot%\System32\WindowsPowerShell\v1.0\powershell.exe"
+if not exist "%PS%" (
+  echo Fehler: PowerShell nicht gefunden (%PS%).
+  echo Unter Windows wird PowerShell fuer den automatischen Node-Download benoetigt.
+  echo Alternativ Node.js ^>= 20 von https://nodejs.org installieren und start.bat erneut starten.
   exit /b 1
 )
 
-powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0start.ps1"
+"%PS%" -NoProfile -ExecutionPolicy Bypass -File "%~dp0start.ps1"
 exit /b %ERRORLEVEL%

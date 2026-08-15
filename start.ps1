@@ -34,16 +34,25 @@ function Test-NodeMajorOk([string]$NodeExe) {
   }
 }
 
+# Portable Node zip ships npm.cmd next to node.exe. Bare `npm` in PowerShell often
+# resolves the extensionless Unix shim and fails when no system npm is on PATH.
+function Get-NpmCmd {
+  $nodeCmd = Get-Command node -ErrorAction SilentlyContinue
+  if (-not $nodeCmd) { return $null }
+  $npmCmd = Join-Path (Split-Path -Parent $nodeCmd.Source) "npm.cmd"
+  if (Test-Path -LiteralPath $npmCmd) { return $npmCmd }
+  return $null
+}
+
 function Ensure-NodeOnPath {
   $cmd = Get-Command node -ErrorAction SilentlyContinue
   if ($cmd -and (Test-NodeMajorOk $cmd.Source)) {
-    $npm = Get-Command npm -ErrorAction SilentlyContinue
-    if ($npm) { return $true }
+    if (Get-NpmCmd) { return $true }
   }
   $portable = Join-Path $NodeHome "node.exe"
   if ((Test-Path $portable) -and (Test-NodeMajorOk $portable)) {
     $env:Path = "$NodeHome;$env:Path"
-    return $true
+    return [bool](Get-NpmCmd)
   }
   return $false
 }
@@ -84,13 +93,14 @@ if (-not (Ensure-NodeOnPath)) {
   Bootstrap-Node
 }
 
-if (-not (Get-Command npm -ErrorAction SilentlyContinue)) {
-  Die "npm fehlt auch nach dem Node-Bootstrap."
+$NpmCmd = Get-NpmCmd
+if (-not $NpmCmd) {
+  Die "npm.cmd fehlt auch nach dem Node-Bootstrap (wird neben node.exe erwartet)."
 }
 
 if (-not (Test-Path "node_modules") -or -not (Test-Path "node_modules\vite")) {
   Write-Host "Installiere Abhängigkeiten…"
-  npm install
+  & $NpmCmd install
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
@@ -106,5 +116,5 @@ try {
     Where-Object { $_.IPAddress -notlike "127.*" } |
     ForEach-Object { Write-Host ("Versuch: http://{0}:5173/" -f $_.IPAddress) }
 } catch {}
-npm run dev
+& $NpmCmd run dev
 exit $LASTEXITCODE
