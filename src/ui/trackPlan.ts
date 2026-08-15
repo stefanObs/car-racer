@@ -3,8 +3,8 @@
  */
 import type { LevelDefinition } from "../track/types";
 import { buildTrackFromLevel } from "../track/buildTrack";
-import { ComicPaletteCss } from "../render/palette";
-import { themeLook } from "../render/themeLook";
+import { ComicPaletteCss } from "../data/comicPalette";
+import { themeSurface } from "../data/themeColors";
 
 function hexCss(n: number): string {
   return `#${n.toString(16).padStart(6, "0")}`;
@@ -18,7 +18,7 @@ export type TrackPlanThemeTint = {
 
 /** Theme-matched plan colors (backgrounds only — asphalt/grass stay concept palette). */
 export function trackPlanTint(theme: string): TrackPlanThemeTint {
-  const look = themeLook(theme);
+  const look = themeSurface(theme);
   switch (theme) {
     case "harbor":
       return { bg: hexCss(look.skyLow), trim: "#2f6f9a", accent: "#ff922b" };

@@ -74,7 +74,7 @@ public/models/cars/  # GLB car visuals (Blender exports); collision = silhouette
 tests/
 ```
 
-**One-way imports:** `data` → `track` → `sim` → `meta` → `app` → (`ui` | `render` | `audio` | `input`). Lower layers never import `ui/`, `render/`, or `audio/` implementations. `data/` owns catalogs (paint hex, nose-vs-sticker); render/UI read them. Cosmetics never enter `mergeStats`. Sim never calls `gameAudio`. Render never writes `CarState`. `GameApp` is the only frame driver (`src/app/GameApp.ts`); next features land in the extracted modules, not back into GameApp or RaceRenderer.
+**One-way imports:** `data` → `track` → `sim` → `meta` → `app` → (`ui` | `render` | `audio` | `input`). Lower layers never import `ui/`, `render/`, or `audio/` implementations. `meta/` never imports `ui/` or `render/`. `ui/` never imports `render/` (HUD/theme hex lives in `data/`). `data/` owns catalogs (paint hex, nose-vs-sticker); render/UI read them. Cosmetics never enter `mergeStats`. Sim never calls `gameAudio`. Render never writes `CarState`. `GameApp` is the only frame driver (`src/app/GameApp.ts`); next features land in the extracted modules, not back into GameApp or RaceRenderer.
 
 ### Car visuals (GLB import)
 

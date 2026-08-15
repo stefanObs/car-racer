@@ -1,8 +1,8 @@
 import type { CarState } from "../sim/vehicle";
 import type { RaceSession } from "../sim/race";
 import { sampleCenterline } from "../track/buildTrack";
-import { ComicPaletteCss } from "../render/palette";
-import { themeLook } from "../render/themeLook";
+import { ComicPaletteCss } from "../data/comicPalette";
+import { themeSurface } from "../data/themeColors";
 
 export const MINI_MAP_SIZE = 176;
 export const FIELD_STRIP_WIDTH = 320;
@@ -33,7 +33,7 @@ function miniMapFill(theme: string): string {
   const t = theme.toLowerCase();
   if (t === "harbor") return "#2f6f9e";
   if (t === "beach") return "#6ec6f0";
-  const look = themeLook(theme);
+  const look = themeSurface(theme);
   return `#${look.ground.toString(16).padStart(6, "0")}`;
 }
 

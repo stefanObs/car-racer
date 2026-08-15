@@ -3,8 +3,10 @@ import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CAR_IDS, carUsesNoseVariants } from "../src/data/cars";
+import { ComicPaletteCss } from "../src/data/comicPalette";
 import { CAR_PAINT_BLACK } from "../src/data/paintColors";
 import { STICKER_IDS, sanitizeSticker } from "../src/data/stickers";
+import { themeSurface } from "../src/data/themeColors";
 import { displayLap } from "../src/sim/laps";
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "../src");
@@ -47,8 +49,33 @@ describe("layer import boundaries", () => {
     expect(leaks).toEqual([]);
   });
 
+  it("keeps src/meta free of ui and render imports", () => {
+    const leaks: string[] = [];
+    for (const file of listTs(join(SRC, "meta"))) {
+      for (const spec of forbiddenImports(file, /\/(ui|render)\//)) {
+        leaks.push(`${relative(SRC, file)} → ${spec}`);
+      }
+    }
+    expect(leaks).toEqual([]);
+  });
+
+  it("keeps src/ui free of render imports", () => {
+    const leaks: string[] = [];
+    for (const file of listTs(join(SRC, "ui"))) {
+      for (const spec of forbiddenImports(file, /\/render\//)) {
+        leaks.push(`${relative(SRC, file)} → ${spec}`);
+      }
+    }
+    expect(leaks).toEqual([]);
+  });
+
   it("owns garage black paint in data", () => {
     expect(CAR_PAINT_BLACK).toBe("#52545e");
+  });
+
+  it("owns comic palette and theme surface hex in data", () => {
+    expect(ComicPaletteCss.asphalt).toBe("#4A4F57");
+    expect(themeSurface("harbor").ground).toBe(0x6e7580);
   });
 
   it("owns sticker ids in data", () => {

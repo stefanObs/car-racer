@@ -26,7 +26,7 @@ import { generateAdhocLevel, randomSeed, type AdhocLength } from "../track/adhoc
 import type { LevelDefinition } from "../track/types";
 import { renderAdhocHtml } from "../ui/adhocHtml";
 import { renderGarageHtml } from "../ui/garageHtml";
-import { garageOrbitAxesForPointer } from "../ui/garageOrbit";
+import { garageOrbitAxesForPointer } from "../render/garageOrbit";
 import { renderMenuHtml } from "../ui/menuHtml";
 import { renderCupPickHtml, renderFreePickHtml, renderTrainingPickHtml } from "../ui/modePickHtml";
 import { renderRaceChromeHtml } from "../ui/raceChromeHtml";

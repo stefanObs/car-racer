@@ -1,3 +1,5 @@
+import { knownThemeIds, themeSurface } from "../data/themeColors";
+
 /** Theme look — backgrounds only; asphalt/grass/wall stay concept-readable. */
 export type ThemeLook = {
   sky: number;
@@ -9,12 +11,15 @@ export type ThemeLook = {
   hemiGround: number;
 };
 
-const LOOKS: Record<string, ThemeLook> = {
+type ThemeLighting = {
+  fogNear: number;
+  fogFar: number;
+  hemiSky: number;
+  hemiGround: number;
+};
+
+const LIGHTING: Record<string, ThemeLighting> = {
   harbor: {
-    sky: 0x4aa3d9,
-    skyLow: 0x2f7eb8,
-    // Pier / dock concrete — never grass-green (that read as a “green wall” in the oval infield).
-    ground: 0x6e7580,
     // Push fog out so the harbor panorama cylinder / sky dome stay readable.
     fogNear: 120,
     fogFar: 420,
@@ -22,37 +27,24 @@ const LOOKS: Record<string, ThemeLook> = {
     hemiGround: 0x5a6a78,
   },
   beach: {
-    sky: 0x6ec6f0,
-    skyLow: 0x4aa3d4,
-    ground: 0xc2a66a,
     fogNear: 95,
     fogFar: 300,
     hemiSky: 0xd8f0ff,
     hemiGround: 0xb8955a,
   },
   city: {
-    sky: 0x7a92a8,
-    skyLow: 0x5a7088,
-    ground: 0x4a4f57,
     fogNear: 70,
     fogFar: 240,
     hemiSky: 0xb8c8d8,
     hemiGround: 0x5a5f66,
   },
   factory: {
-    // Kuppenfinale forest bowl — green ground, soft cool sky
-    sky: 0x7eb8e8,
-    skyLow: 0x5a9acc,
-    ground: 0x4f6b45,
     fogNear: 70,
     fogFar: 250,
     hemiSky: 0xd0e8ff,
     hemiGround: 0x5a6b48,
   },
   canyon: {
-    sky: 0x6eb0e0,
-    skyLow: 0x4a8cbc,
-    ground: 0xa0785a,
     fogNear: 85,
     fogFar: 280,
     hemiSky: 0xd0e8ff,
@@ -61,9 +53,12 @@ const LOOKS: Record<string, ThemeLook> = {
 };
 
 export function themeLook(theme: string): ThemeLook {
-  return LOOKS[theme.toLowerCase()] ?? LOOKS.harbor!;
+  const key = theme.toLowerCase();
+  const surface = themeSurface(key);
+  const light = LIGHTING[key] ?? LIGHTING.harbor!;
+  return { ...surface, ...light };
 }
 
 export function knownThemes(): string[] {
-  return Object.keys(LOOKS);
+  return knownThemeIds();
 }

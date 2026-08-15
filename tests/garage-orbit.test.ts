@@ -13,7 +13,7 @@ import {
   GARAGE_PITCH_LIMIT,
   GARAGE_INSPECT_TARGET_Y,
   GARAGE_YAW_DEFAULT,
-} from "../src/ui/garageOrbit";
+} from "../src/render/garageOrbit";
 
 describe("garage orbit yaw + pitch", () => {
   it("starts from a 3/4-front default", () => {
