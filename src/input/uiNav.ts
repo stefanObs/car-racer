@@ -31,3 +31,16 @@ export function nextFocusIndex(
 export function risingEdge(current: boolean, previous: boolean): boolean {
   return current && !previous;
 }
+
+/** First enabled control, or a preferred `act` (garage Cup — not Settings above it). */
+export function defaultFocusIndex(
+  items: readonly { disabled?: boolean; act?: string }[],
+  preferredAct?: string,
+): number {
+  if (preferredAct) {
+    const preferred = items.findIndex((item) => !item.disabled && item.act === preferredAct);
+    if (preferred >= 0) return preferred;
+  }
+  const first = items.findIndex((item) => !item.disabled);
+  return first >= 0 ? first : 0;
+}

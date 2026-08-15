@@ -9,7 +9,7 @@ import { debugPadLevel } from "../data/debugPad";
 import { CUP_LEVELS, freeLevels, trainingLevels } from "../data/levels";
 import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
-import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
+import { defaultFocusIndex, nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
 import { showcaseCarId, showcaseKit } from "../meta/carShop";
 import { showcasePaint, showcaseSticker } from "../meta/cosmeticsShop";
 import { showcaseParts } from "../meta/partsShop";
@@ -66,6 +66,7 @@ export class GameApp {
   private stylePops = new StylePopupQueue();
   private settings: GameSettings = loadGameSettings();
   private settingsOpen = false;
+  private uiRenderFrame = 0;
   private lastUi = {
     confirm: false,
     back: false,
@@ -476,6 +477,8 @@ export class GameApp {
   }
 
   private async beginRace(level: LevelDefinition): Promise<void> {
+    cancelAnimationFrame(this.uiRenderFrame);
+    this.uiRenderFrame = 0;
     this.stylePops.clear();
     this.finishCelebrate = null;
     this.race = createRaceSession(this.save, level);
@@ -585,6 +588,16 @@ export class GameApp {
     this.dev.tagUi(this.uiRoot);
   }
 
+  /** Replace the panel after the current pointer/click finishes (avoids detaching the button mid-click). */
+  private scheduleRenderUi(): void {
+    if (this.screen === "race") return;
+    cancelAnimationFrame(this.uiRenderFrame);
+    this.uiRenderFrame = requestAnimationFrame(() => {
+      this.uiRenderFrame = 0;
+      if (this.screen !== "race") this.renderUi();
+    });
+  }
+
   private wireUi(opts?: { preserveFocus?: boolean; focusIndex?: number }): void {
     this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-act]").forEach((btn) => {
       btn.addEventListener("click", () => this.onAction(btn));
@@ -630,8 +643,12 @@ export class GameApp {
       this.applyFocus(opts.focusIndex ?? this.focusIndex, { scrollIntoView: false });
       return;
     }
-    const firstEnabled = navButtons.findIndex((b) => !b.disabled);
-    this.applyFocus(firstEnabled >= 0 ? firstEnabled : 0);
+    this.applyFocus(
+      defaultFocusIndex(
+        navButtons.map((b) => ({ disabled: b.disabled, act: b.dataset.act })),
+        this.screen === "garage" ? "cup" : undefined,
+      ),
+    );
   }
 
   private menuState() {
@@ -713,6 +730,17 @@ export class GameApp {
       this.startRaceWithLevel(out.startLevel);
       return;
     }
-    if (this.screen !== "race") this.renderUi();
+    if (out.render === false) return;
+    this.scheduleRenderUi();
+  }
+
+  /** Coalesce garage/menu redraws so a pointerup cannot rebuild the panel under the same click. */
+  private scheduleRenderUi(): void {
+    if (this.screen === "race") return;
+    const frame = ++this.uiRenderFrame;
+    queueMicrotask(() => {
+      if (frame !== this.uiRenderFrame) return;
+      this.renderUi();
+    });
   }
 }

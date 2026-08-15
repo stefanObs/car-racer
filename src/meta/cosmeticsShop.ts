@@ -29,9 +29,7 @@ export function selectPaintInGarage(
   if (ownsPaint(kit, color)) {
     return { paint: color, previewPaint: null };
   }
-  if (previewPaint === color) {
-    return { paint: kit.paint, previewPaint: null };
-  }
+  // Stay in preview on repeat click so a pointer retry does not toggle off (DOM replace loop).
   return { paint: kit.paint, previewPaint: color };
 }
 
@@ -44,9 +42,6 @@ export function selectStickerInGarage(
   const sticker = sanitizeSticker(stickerRaw);
   if (ownsSticker(kit, sticker)) {
     return { sticker, previewSticker: null };
-  }
-  if (previewSticker === sticker) {
-    return { sticker: kit.sticker, previewSticker: null };
   }
   return { sticker: kit.sticker, previewSticker: sticker };
 }

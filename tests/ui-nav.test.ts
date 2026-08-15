@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nextFocusIndex, risingEdge } from "../src/input/uiNav";
+import { defaultFocusIndex, nextFocusIndex, risingEdge } from "../src/input/uiNav";
 
 describe("uiNav", () => {
   const items = [{}, {}, { disabled: true }, {}];
@@ -19,5 +19,15 @@ describe("uiNav", () => {
     expect(risingEdge(true, false)).toBe(true);
     expect(risingEdge(true, true)).toBe(false);
     expect(risingEdge(false, true)).toBe(false);
+  });
+
+  it("prefers Cup over an earlier Settings button on the garage hub", () => {
+    const items = [
+      { act: "open-settings" },
+      { act: "cup" },
+      { act: "free" },
+    ];
+    expect(defaultFocusIndex(items, "cup")).toBe(1);
+    expect(defaultFocusIndex(items)).toBe(0);
   });
 });

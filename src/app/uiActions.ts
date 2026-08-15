@@ -29,6 +29,8 @@ export type MenuActionResult = {
   startLevel?: LevelDefinition;
   bought?: boolean;
   persist?: boolean;
+  /** False when the click did not change garage state (avoid replacing the panel mid-pointerup). */
+  render?: boolean;
   /** Action consumed; skip remaining handlers. */
   handled: boolean;
 };
@@ -104,8 +106,10 @@ export function applyMenuAction(
   if (act === "paint" && dataset.color) {
     const kit = activeKit(state.save);
     const next = selectPaintInGarage(kit, dataset.color, state.preview.paint);
+    const unchanged = next.paint === kit.paint && next.previewPaint === state.preview.paint;
     kit.paint = next.paint;
     state.preview.paint = next.previewPaint;
+    if (unchanged) return { handled: true, render: false };
     if (next.previewPaint == null) return { handled: true, persist: true };
     return { handled: true };
   }
@@ -120,8 +124,10 @@ export function applyMenuAction(
   if (act === "sticker" && dataset.sticker) {
     const kit = activeKit(state.save);
     const next = selectStickerInGarage(kit, dataset.sticker as StickerId, state.preview.sticker);
+    const unchanged = next.sticker === kit.sticker && next.previewSticker === state.preview.sticker;
     kit.sticker = next.sticker;
     state.preview.sticker = next.previewSticker;
+    if (unchanged) return { handled: true, render: false };
     if (next.previewSticker == null) return { handled: true, persist: true };
     return { handled: true };
   }
