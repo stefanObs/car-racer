@@ -92,6 +92,8 @@ const COAST_BRAKE = 3.5;
 const COAST_HIGH_SPEED = 22;
 const AIR_STEER_SCALE = 0.35;
 const AIRBORNE_EPS = 0.04;
+/** Need to be well onto the wedge before punching — fringe launches steal the hop. */
+export const RAMP_LAUNCH_GATE = 0.6;
 const DRIFT_MIN_SPEED = 11;
 const OVERSTEER_MIN_SPEED = 17;
 const MINI_TURBO_TIME = 0.45;
@@ -748,7 +750,7 @@ export function continuousAlong(prev: number, next: number, totalLength: number,
 export function stepJump(car: CarState, rampLaunch: number, dt: number): void {
   const grounded = !isAirborne(car);
 
-  if (grounded && rampLaunch > 0.12 && car.speed > 8) {
+  if (grounded && rampLaunch >= RAMP_LAUNCH_GATE && car.speed > 8) {
     // Comic hop: punchy launch; Federung only softens a little.
     const suspEase = Math.min(0.22, Math.max(0, (car.stats.suspension - 0.7) * 0.18));
     const launch = (10.5 + car.speed * 0.38) * rampLaunch * (1 - suspEase);

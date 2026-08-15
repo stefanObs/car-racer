@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { CUP_LEVELS } from "../src/data/levels";
-import { obstacleYaw } from "../src/render/levelObstacles";
+import { kitObstacleScale, obstacleYaw, RAMP_COMIC_HEIGHT } from "../src/render/levelObstacles";
 import { SFX_URLS } from "../src/audio/catalog";
 
 describe("nitro SFX + obstacle orientation polish", () => {
@@ -29,6 +29,13 @@ describe("nitro SFX + obstacle orientation polish", () => {
   it("yaws jersey barriers parallel to the ribbon", () => {
     expect(obstacleYaw("concrete_barrier", 0)).toBeCloseTo(Math.PI / 2);
     expect(obstacleYaw("ramp", 0.4)).toBeCloseTo(0.4);
+  });
+
+  it("keeps Tripo ramps a low comic wedge instead of a tall wall", () => {
+    const s = kitObstacleScale("ramp", 5, 2, { x: 2.22, y: 1.05, z: 2.24 });
+    expect(1.05 * s.y).toBeCloseTo(RAMP_COMIC_HEIGHT, 2);
+    expect(2.24 * s.z).toBeLessThan(12);
+    expect(2.24 * s.z).toBeGreaterThan(6);
   });
 
   it("bakes ramp so the high end faces +Z (climb with travel)", async () => {

@@ -1,4 +1,4 @@
-import { Group, Mesh } from "three";
+import { Box3, Group, Mesh } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { OBSTACLE_PROP_BY_TYPE } from "../data/trackModels";
 import type { LevelDefinition } from "../track/types";
@@ -16,6 +16,23 @@ import { ComicPalette } from "./palette";
  * (across) so we yaw +π/2 to run parallel to the ribbon.
  */
 const BARRIER_YAW_OFFSET = Math.PI / 2;
+/** Comic Schanze wedge height — hops must clear the mesh, not clip through a wall. */
+export const RAMP_COMIC_HEIGHT = 0.58;
+
+export function kitObstacleScale(
+  type: string,
+  radius: number,
+  refRadius: number,
+  baked: { x: number; y: number; z: number },
+): { x: number; y: number; z: number } {
+  if (type === "ramp" && baked.y > 0.01) {
+    const span = Math.max(baked.x, baked.z, 0.01);
+    const sXZ = Math.max(0.35, (radius * 1.7) / span);
+    return { x: sXZ, y: RAMP_COMIC_HEIGHT / baked.y, z: sXZ };
+  }
+  const s = Math.max(0.35, radius / Math.max(refRadius, 0.01));
+  return { x: s, y: s, z: s };
+}
 
 export function buildLevelObstacles(level: LevelDefinition): Group {
   const root = new Group();
@@ -68,8 +85,15 @@ function tryTripoObstacle(
   const g = cloneTrackProp(map.id);
   if (!g) return null;
   const r = radius ?? map.refRadius;
-  const s = Math.max(0.35, r / map.refRadius);
-  g.scale.multiplyScalar(s);
+  g.updateMatrixWorld(true);
+  const box = new Box3().setFromObject(g);
+  const baked = {
+    x: Math.max(0.01, box.max.x - box.min.x),
+    y: Math.max(0.01, box.max.y - box.min.y),
+    z: Math.max(0.01, box.max.z - box.min.z),
+  };
+  const s = kitObstacleScale(type, r, map.refRadius, baked);
+  g.scale.set(s.x, s.y, s.z);
   g.position.set(x, 0, z);
   g.rotation.y = yaw;
   g.userData.obstacle = type;

@@ -16,7 +16,7 @@ import {
   yawRateFor,
   type MergedVehicleStats,
 } from "../src/sim/vehicle";
-import { buildTrackFromLevel } from "../src/track/buildTrack";
+import { buildTrackFromLevel, nearestOnTrack, sampleCenterline } from "../src/track/buildTrack";
 
 const catchUp = { accel: 1, topSpeed: 1 };
 
@@ -304,5 +304,68 @@ describe("arcade physics — Eigenschaften scaling", () => {
     stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, catchUp, level!.obstacles);
     expect(car.y).toBeGreaterThan(0.05);
     expect(car.vy).toBeGreaterThan(2);
+  });
+
+  it("does not spend the Schanze punch on the ramp fringe", () => {
+    const car = createCarState({
+      id: "jumper",
+      x: 0,
+      z: 0,
+      heading: 0,
+      isPlayer: true,
+      paint: "#e03131",
+      sticker: "none",
+      stats: merged("blitz"),
+      speed: 24,
+      vx: 24,
+      vz: 0,
+    });
+    stepJump(car, 0.15, 1 / 60);
+    expect(isAirborne(car)).toBe(false);
+    expect(car.vy).toBe(0);
+    stepJump(car, 0.85, 1 / 60);
+    expect(isAirborne(car)).toBe(true);
+    expect(car.vy).toBeGreaterThan(10);
+  });
+
+  it("driving the racing line over cup ramps still gets a comic hop", () => {
+    const hops: number[] = [];
+    for (const level of CUP_LEVELS) {
+      const ramps = level.obstacles.filter((o) => o.type === "ramp");
+      if (!ramps.length) continue;
+      const track = buildTrackFromLevel(level);
+      for (const ramp of ramps) {
+        const near = nearestOnTrack(track, { x: ramp.position[0], z: ramp.position[1] });
+        const approach = sampleCenterline(
+          track,
+          (near.distanceAlong - 18 + track.totalLength) % track.totalLength,
+        );
+        const heading = Math.atan2(approach.tangent.z, approach.tangent.x);
+        const car = createCarState({
+          id: "player",
+          x: approach.position.x,
+          z: approach.position.z,
+          heading,
+          isPlayer: true,
+          paint: "#e03131",
+          sticker: "none",
+          stats: merged("blitz"),
+          speed: 24,
+        });
+        car.vx = Math.cos(heading) * 24;
+        car.vz = Math.sin(heading) * 24;
+        let peakY = 0;
+        let peakVy = 0;
+        for (let i = 0; i < 240; i++) {
+          stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, catchUp, level.obstacles);
+          peakY = Math.max(peakY, car.y);
+          peakVy = Math.max(peakVy, car.vy);
+        }
+        hops.push(peakY);
+        expect(peakVy, `${level.id} ramp vy`).toBeGreaterThan(8);
+        expect(peakY, `${level.id} ramp hop`).toBeGreaterThan(2.2);
+      }
+    }
+    expect(hops.length).toBeGreaterThan(0);
   });
 });

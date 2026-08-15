@@ -7,6 +7,13 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-15 — Schanze fringe launch steal
+
+- Trigger: user — jumps no longer working
+- RCA: `stepJump` fired at `rampLaunch > 0.12` (outer fringe) and set `y` airborne, so the car never received the full center punch; hops stayed ~1 m and clipped the tall Tripo wedge
+- Decision: gate launch at `RAMP_LAUNCH_GATE` 0.6; scale ramp kits to `RAMP_COMIC_HEIGHT` 0.58 m so hops clear the mesh
+- Tests: fringe must not launch; racing-line cup ramps peakY>2.2
+
 ### 2026-08-14 — Comic Schanze launch + float
 
 - Trigger: user — jumps more extreme / comic
