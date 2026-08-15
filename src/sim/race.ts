@@ -252,12 +252,6 @@ export class RaceSession {
           car.vy = 0;
           car.y = 0;
         }
-        if (car.koTimer > 0 && car.hp <= 0) {
-          const s = sampleCenterline(this.track, Math.max(0, along - 8));
-          car.x = s.position.x;
-          car.z = s.position.z;
-          car.heading = Math.atan2(s.tangent.z, s.tangent.x);
-        }
         this.prevProgress.set(car.id, along);
       }
     }

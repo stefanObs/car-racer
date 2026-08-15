@@ -42,7 +42,7 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 |------|--------|
 | Car–car | CONCEPT §4.5: mass split + closing-speed impulse; **hit direction** (frontal / schräg / streifend) + **hit zone** (Bug / Flanke / Heck) bias shove, yaw torque, and damage; `ramBonus` spices impulse; soft separating contacts = separation only |
 | Car–obstacle | Fixed ≈ ∞ mass; rebound scales `1/mass` |
-| Car–wall | Reflect outward velocity; mass affects bounce; damage on cooldown |
+| Car–wall | Reflect outward velocity; mass affects bounce; strong damage on cooldown; KO → 3 s on racing line |
 
 ## Test anchors
 

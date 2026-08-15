@@ -1103,6 +1103,13 @@ html[data-touch="1"] .hud-minimap {
   text-shadow: 0 0 0 #1b1b1f;
 }
 
+.hud-ko {
+  margin-top: 4px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: #ff7a18;
+}
+
 .wrong-way {
   position: absolute;
   left: 50%;

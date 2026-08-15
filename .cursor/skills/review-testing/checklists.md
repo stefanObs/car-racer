@@ -23,7 +23,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 - [ ] At standstill, steering does not spin the car in place (front-steer / no tank pivot)
 - [ ] Knows why they got slower (grass / uneven / damage) from visuals alone
 - [ ] Heal-over-time is noticeable
-- [ ] After K.O., understands they are back and can still place
+- [ ] After K.O. (~3 s), comes back on the racing line and can still place
 - [ ] Garage: can equip a part and see both pro and con
 - [ ] Synergy/combo name appears when relevant and is understandable
 - [ ] Winning feels earned; losing after mistakes feels fair

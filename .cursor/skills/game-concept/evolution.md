@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-15 — Fast KO + 3s racing-line respawn (CONCEPT v3.92)
+
+- Trigger: user — cars should break way faster, then respawn in the middle of the track in ~3 s
+- Decision: Wall/obstacle hits deal much more damage (cooldown still blocks frame-spam). K.O. lasts 3 s. Comeback on the racing line (centerline), facing forward, full HP. HUD shows „K.O. · Comeback n“.
+- CONCEPT §§4.4–4.5, §9 HUD, summary → v3.92
+
 ### 2026-08-15 — Nitro min charge + slower refill (CONCEPT v3.91)
 
 - Trigger: user — nitro resupplies too fast; players can spray it all the time

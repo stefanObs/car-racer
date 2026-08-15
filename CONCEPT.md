@@ -127,7 +127,7 @@ Querschnitt der Piste (von innen nach außen):
 |------|--------|----------|
 | **Asphalt** | Normale Stats | — |
 | **Gras** | Deutlich langsamer, etwas schwammigeres Handling | Gute Federung **reduziert** den Malus merklich, **entfernt ihn nicht** |
-| **Mauer** | Harter Aufprall, **mäßiger** Schaden, **Abprall** zurück auf die Bahn (kein Dauer-Schaden-Spam) | Federung mildert Bounce etwas; Schaden bleibt relevant |
+| **Mauer** | Harter Aufprall, **starker** Schaden (Tempo-Crash → schnelles K.O.), **Abprall** zurück auf die Bahn (Cooldown verhindert Frame-Spam) | Federung mildert Bounce etwas; Schaden bleibt relevant |
 
 **Mauer-Varianten:**
 
@@ -228,7 +228,7 @@ Am **Angreifer**:
 | 1 | Beulen | Leicht schlechteres Lenken, etwas mehr Schleudern |
 | 2 | ramponiert | Deutlich weniger Grip, Boost schwächer, Rauch |
 | 3 | kritisch | Lenkung träge, Max-Speed runter, Funken |
-| 4 | **K.O.** | Kurze Auszeit, dann Comeback unbeschädigt |
+| 4 | **K.O.** | ~3 s Auszeit, Comeback unbeschädigt auf der Streckenmitte |
 
 **Schaden regeneriert sich über Zeit**
 
@@ -245,9 +245,8 @@ Am **Angreifer**:
 
 **Respawn nach K.O.**
 
-- Nach ~3–5 Sekunden kehrt das Auto **unbeschädigt** zurück.
-- Positionsnachteil bleibt (hinten / Rand, kleiner Speed-Nachteil).
-- K.O. ist selten das Ziel — eher Konsequenz von Kettenfehlern oder hartem Mauer-Kontakt bei schon kritischem Zustand.
+- Nach **~3 Sekunden** kehrt das Auto **unbeschädigt** auf der **Streckenmitte** (Racing-Line / Centerline) zurück, Nase in Fahrtrichtung.
+- K.O. folgt schnell aus Tempo-Mauerhits und Hindernis-Crashs; es bleibt Konsequenz, nicht das Spielziel.
 
 ### 4.6 Hindernisse auf der Strecke
 
@@ -258,8 +257,8 @@ Hindernisse ergänzen Tempo-Fahren; sie sind lesbar und build-relevant:
 | **Unebene Piste** (Segment) | Wagen „hüpft“ / wackelt, Tempo stockt | Wellen / Buckel auf der Bahn | **Gute Federung dämpft stark** |
 | **Rüttelstreifen** (`uneven` Prop) | Passierbar, flach, klar gestreift; Tempo stockt | Gelb/schwarz Zebra | Federung dämpft |
 | **Ölspur** | Passierbar, flach; Grip weg | Dunkle Pfütze + Schimmer | Kaum Hilfe |
-| **Reifenstapel** | Bounce + leichter Schaden — **nicht** passierbar | Orange/schwarz, hoch | Leicht |
-| **Betonsperren** | Harter Bounce — **nicht** passierbar | Grau + gelber Streifen, hoch | Kaum |
+| **Reifenstapel** | Bounce + spürbarer Schaden — **nicht** passierbar | Orange/schwarz, hoch | Leicht |
+| **Betonsperren** | Harter Bounce + starker Schaden — **nicht** passierbar | Grau + gelber Streifen, hoch | Kaum |
 | Rollende Fässer | Bewegliche Gefahr | Metallglanz | — |
 | Sprungschanzen | Echte Luftzeit (Y); comic-hohe Bögen; Landung braucht Grip/Federung | Rampe | Federung stabilisiert Landung |
 
@@ -498,7 +497,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch frei drehen** (LMB / 1 Finger = gieren; **RMB** / **2 Finger** = anheben und um die **Auto-Mitte** drehen; Loslassen stellt flach auf den Boden), **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Training / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Training / Ad-hoc** — Strecke (Training: alle, ohne Sperre) oder Seed, Optionen, Start  
-4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz (nicht im Training), **Runden-Zähler** (aktuell / gesamt im HUD); beim **Überfahren der Start/Ziel-Linie** kurz die Tripo-**Lap-Shield**-Plakette **über dem Auto** (klein, Kamera-Facing) mit Runden-Zahl; **Mini-Map** (Streckenform, **alle** Autos, Spieler = **DU**); **Streckenleiste** (wer wo im Rennen liegt — nicht im Training); Schaden (inkl. Heil-Hinweis), Nitro-Balken **mit Start-Marke (~35 %)**, Style-Popups (`+50 CHF`, nicht im Training); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Esc, Rechtsklick oder Button; darin **Rennen verlassen** → Garage ohne Preisgeld)
+4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz (nicht im Training), **Runden-Zähler** (aktuell / gesamt im HUD); beim **Überfahren der Start/Ziel-Linie** kurz die Tripo-**Lap-Shield**-Plakette **über dem Auto** (klein, Kamera-Facing) mit Runden-Zahl; **Mini-Map** (Streckenform, **alle** Autos, Spieler = **DU**); **Streckenleiste** (wer wo im Rennen liegt — nicht im Training); Schaden (inkl. Heil-Hinweis; bei K.O. **Comeback-Zähler ~3 s**), Nitro-Balken **mit Start-Marke (~35 %)**, Style-Popups (`+50 CHF`, nicht im Training); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Esc, Rechtsklick oder Button; darin **Rennen verlassen** → Garage ohne Preisgeld)
 5. **Ergebnis** — Cup/Frei/Ad-hoc: Zielbanner/-linie; **~7.5 s 2D-Asphalt-Comic-Film** (gemalte Panels, **gleiche Podium-Bühne** für Platz 1/2/3/Feld; Auto steht auf dem Asphalt, nicht auf den Blöcken) bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation** (~2.5 s); dann Podium-Landung / CHF; weiter / Garage. **Training:** kurzes „Ziel!“ ohne Platz/Podium/CHF, zurück zur Streckenliste.  
 6. **Hilfe** — Steuerungshinweise (optional; inkl. Bremse halten = Rückwärts); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
 7. **Einstellungen** — per **Esc** (Garage + Rennen; erneut Esc schließt), **Rechtsklick** (außer Garage-Canvas-Orbit), Garage-Button oder HUD-Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste). **Im Rennen:** zusätzlicher Button **Rennen verlassen** → zurück zur Garage, **kein** Preisgeld / Freischalten für den abgebrochenen Lauf. In Untermenüs (Cup/Training/Hilfe/Ergebnis) bleibt Esc = Zurück zur Garage.  
@@ -514,7 +513,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 - **Sofort-Spaß:** Tempo, Boost, knackiges Handling, sichtbares Tuning.  
 - **Würze ohne Fokusverlust:** Kontakt macht Chaos, entscheidet aber nicht die Fantasy.  
 - **Tiefe ohne Excel:** Trade-offs und Kombos belohnen Nachdenken.  
-- **Schaden mit Comeback:** Heilt über Zeit + Effekt; K.O. selten und fair.  
+- **Schaden mit Comeback:** Heilt über Zeit + Effekt; K.O. nach hartem Crash, 3 s, zurück auf die Streckenmitte.  
 - **Stolz:** Aufkleber + benannte Builds = Identität.  
 - **Fairness:** Kosmetik powerfrei; Catch-up hält Spannung, Skill darf davonfahren.  
 - **Viel Content:** Cups + Freier Modus + Training + Ad-hoc-Strecken.
@@ -589,7 +588,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 | Kerndynamik | Getunte Autos möglichst schnell fahren |
 | Fahrphysik | Arcade Front-Steer (kein Tank-Pivot); Bremse → Rückwärts nach Stillstand; Kart-Drift bleibt Würze; Nitro mit Mindestfüllstand + langsamem Nachladen |
 | Rammen | Nebeneffekt; Auto↔Auto nach Masse + Schließspeed + Richtung + Bug/Flanke/Heck; keine Rammtaste |
-| Schaden | Regeneriert über Zeit mit sichtbarem Heil-Effekt; K.O. mit Comeback |
+| Schaden | Regeneriert über Zeit mit sichtbarem Heil-Effekt; K.O. in ~3 s Comeback auf der Streckenmitte |
 | Unebene Piste | Hüpf-/Wackleffekt; Federung dämpft |
 | Gras | Langsamer; Federung mildert, entfernt nicht |
 | Rand | Gras → Mauer (Reifen in Kurven, Beton sonst); **kein Self-Cross** ohne Brücke; klare Passierbarkeit |
@@ -606,4 +605,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.91 — Nitro: Mindestfüllstand (~35 %) + langsames Nachladen.*
+*Dokumentstand: Konzept v3.92 — K.O. schnell, 3 s Comeback auf der Streckenmitte.*

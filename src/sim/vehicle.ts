@@ -5,6 +5,7 @@ import { collisionRadiusFor } from "../data/carModels";
 import type { BuiltTrack, LevelDefinition } from "../track/types";
 import { applyHeal, applyHit, damageMultipliers, stageFromHp, type DamageStage } from "./damage";
 import { surfaceAt } from "./zones";
+import { sampleCenterline } from "../track/buildTrack";
 
 export type TrackObstacle = LevelDefinition["obstacles"][number];
 
@@ -12,6 +13,14 @@ export type TrackObstacle = LevelDefinition["obstacles"][number];
 export const IMPACT_DAMAGE_COOLDOWN = 0.55;
 /** Damage immunity after crossing start/finish (CONCEPT §4.5 Runden-Schild). */
 export const LAP_SHIELD_DURATION = 2;
+/** Out time after K.O. before the car returns on the racing line. */
+export const KO_RESPAWN_SECONDS = 3;
+/** Wall hit HP (before armor) at full impact. */
+export const WALL_HIT_CONCRETE = 1.15;
+export const WALL_HIT_TIRE = 0.95;
+/** Obstacle hit HP (before armor) at full impact. */
+export const OBSTACLE_HIT_CONCRETE = 0.9;
+export const OBSTACLE_HIT_TIRE = 0.7;
 
 export interface DriverInput {
   throttle: number; // 0..1
@@ -229,6 +238,27 @@ export function isLapShieldActive(car: Pick<CarState, "lapShield">): boolean {
   return car.lapShield > 0;
 }
 
+/** Snap the car onto the racing line (asphalt center), facing forward. */
+export function placeOnRacingLine(car: CarState, track: BuiltTrack): void {
+  const s = sampleCenterline(track, car.distanceAlong);
+  car.x = s.position.x;
+  car.z = s.position.z;
+  car.heading = Math.atan2(s.tangent.z, s.tangent.x);
+}
+
+function freezeKoMotion(car: CarState): void {
+  car.speed = 0;
+  car.steer = 0;
+  car.vx = 0;
+  car.vz = 0;
+  car.vy = 0;
+  car.y = 0;
+  car.drift = 0;
+  car.driftTime = 0;
+  car.miniTurboGrace = 0;
+  car.nitroHeld = false;
+}
+
 /** Apply hit unless Runden-Schild is up (shove/bounce still apply elsewhere). */
 export function damageCar(car: CarState, amount: number): boolean {
   if (isLapShieldActive(car) || amount <= 0) return false;
@@ -429,17 +459,9 @@ export function stepCar(
   }
 
   if (car.koTimer > 0) {
-    car.koTimer -= dt;
-    car.speed = 0;
-    car.steer = 0;
-    car.vx = 0;
-    car.vz = 0;
-    car.vy = 0;
-    car.y = 0;
-    car.drift = 0;
-    car.driftTime = 0;
-    car.miniTurboGrace = 0;
-    car.nitroHeld = false;
+    car.koTimer = Math.max(0, car.koTimer - dt);
+    freezeKoMotion(car);
+    placeOnRacingLine(car, track);
     if (car.koTimer <= 0) {
       car.hp = 1;
       car.healFx = 0.6;
@@ -734,22 +756,15 @@ export function stepCar(
   if (car.hp > before) car.healFx = Math.min(1, car.healFx + dt * 2);
   else car.healFx = Math.max(0, car.healFx - dt);
 
-  if (car.hp <= 0) {
-    car.koTimer = 3.5;
-    car.speed = 0;
-    car.vx = 0;
-    car.vz = 0;
-    car.vy = 0;
-    car.y = 0;
-    car.drift = 0;
-    car.driftTime = 0;
-    car.miniTurboGrace = 0;
-    car.nitroHeld = false;
-  }
-
   // Progress: reject snaps onto a parallel ribbon (Phase C corridor lock).
   car.distanceAlong = continuousAlong(car.distanceAlong, resolved.distanceAlong, track.totalLength, dt);
   car.progress = car.distanceAlong + (car.lap - 1) * track.totalLength;
+
+  if (car.hp <= 0) {
+    car.koTimer = KO_RESPAWN_SECONDS;
+    freezeKoMotion(car);
+    placeOnRacingLine(car, track);
+  }
 
   return { hitWall: hitWall || hitObstacle, stage: stageFromHp(car.hp) };
 }
@@ -801,7 +816,7 @@ export function stepJump(car: CarState, rampLaunch: number, dt: number): void {
 
 /**
  * Separate from wall, reflect outward velocity back onto the track, apply capped damage.
- * RCA: old code damaged every frame while clamped (no bounce) → KO in ~1.5s grinding.
+ * Cooldown blocks per-frame grind spam; each tick is still a hard hit (fast KO).
  * Soft mode (airborne): project + damp without impact damage so jumps cannot exit the world.
  */
 export function applyWallBounce(
@@ -854,8 +869,8 @@ export function applyWallBounce(
   let damaged = false;
   if (!soft && car.impactCooldown <= 0) {
     const impact = Math.min(1, Math.max(0, outwardVel) / BASE_TOP);
-    const base = afterMove.wallKind === "concrete" ? 0.07 : 0.045;
-    const amount = base * (0.35 + 0.65 * impact);
+    const base = afterMove.wallKind === "concrete" ? WALL_HIT_CONCRETE : WALL_HIT_TIRE;
+    const amount = base * (0.2 + 0.8 * impact);
     damaged = damageCar(car, amount);
     car.impactCooldown = IMPACT_DAMAGE_COOLDOWN;
   }
@@ -909,9 +924,9 @@ export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boo
     }
 
     if (car.impactCooldown <= 0) {
-      const base = o.type === "concrete_barrier" ? 0.055 : 0.035;
+      const base = o.type === "concrete_barrier" ? OBSTACLE_HIT_CONCRETE : OBSTACLE_HIT_TIRE;
       const impact = Math.min(1, car.speed / BASE_TOP);
-      damageCar(car, base * (0.4 + 0.6 * impact));
+      damageCar(car, base * (0.2 + 0.8 * impact));
       car.impactCooldown = IMPACT_DAMAGE_COOLDOWN;
     }
     hit = true;

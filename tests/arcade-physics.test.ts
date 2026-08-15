@@ -187,6 +187,8 @@ describe("arcade physics — Eigenschaften scaling", () => {
     const coast = onTrackCar(merged("blitz"), 16);
     hold.car.nitro = 0;
     coast.car.nitro = 0;
+    hold.car.lapShield = 10;
+    coast.car.lapShield = 10;
     for (let i = 0; i < 180; i++) {
       stepCar(hold.car, { throttle: 1, brake: 0, steer: 0, nitro: true }, hold.track, 1 / 60, catchUp);
       stepCar(coast.car, { throttle: 1, brake: 0, steer: 0, nitro: false }, coast.track, 1 / 60, catchUp);
@@ -200,6 +202,7 @@ describe("arcade physics — Eigenschaften scaling", () => {
   it("nitro refills slowly and can finish a burst below the engage mark", () => {
     const idle = onTrackCar(merged("blitz"), 8);
     idle.car.nitro = 0;
+    idle.car.lapShield = 10;
     for (let i = 0; i < 60; i++) {
       stepCar(idle.car, { throttle: 1, brake: 0, steer: 0, nitro: false }, idle.track, 1 / 60, catchUp);
     }

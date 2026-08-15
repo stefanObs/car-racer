@@ -7,6 +7,13 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-15 — Fast KO + 3s racing-line respawn
+
+- Trigger: user — break way faster; respawn mid-track in ~3 s
+- RCA: wall hit ~0.07 HP/tick + 0.55 s cooldown → ~8 s grind to KO; race.ts snapped KO cars `along-8` instead of the racing line
+- Decision: `WALL_HIT_*` ~6×; `KO_RESPAWN_SECONDS` 3; `placeOnRacingLine` in `stepCar` for the whole out
+- Tests: `tests/ko-respawn.test.ts`; grind test now expects Blitz KO
+
 ### 2026-08-15 — Nitro min charge + slower refill
 
 - Trigger: user — nitro resupplies too fast; cannot spray all the time

@@ -7,6 +7,7 @@ import { RaceSession } from "../src/sim/race";
 import { sampleCenterline } from "../src/track/buildTrack";
 import { renderFieldStripSvg, renderMiniMapSvg, trackBounds, fieldProgress01 } from "../src/ui/miniMap";
 import { renderNitroMeterHtml } from "../src/ui/nitroHud";
+import { renderDamageHudHtml } from "../src/ui/damageHud";
 import { NITRO_ENGAGE_MIN } from "../src/sim/vehicle";
 import { StylePopupQueue } from "../src/ui/stylePopups";
 
@@ -96,6 +97,11 @@ describe("race HUD UI (CONCEPT §9)", () => {
     expect(events.some((e) => e.reason === "Überholt!" && e.amount > 0)).toBe(true);
     expect(race.styleBonus).toBeGreaterThan(0);
     expect(race.styleBonus).toBeLessThanOrEqual(120);
+  });
+
+  it("damage HUD shows Comeback seconds while K.O.", () => {
+    expect(renderDamageHudHtml(0, 3, 0)).toContain("K.O. · Comeback 3");
+    expect(renderDamageHudHtml(0.4, 0, 0.5)).toContain("Reparatur");
   });
 
   it("nitro meter shows the engage mark and dim fill below it", () => {

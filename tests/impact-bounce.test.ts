@@ -25,30 +25,36 @@ function wallGrindSetup(track: ReturnType<typeof buildTrackFromLevel>) {
 }
 
 describe("wall bounce + fair impact damage", () => {
-  it("does not KO Blitz from ~2s of wall grinding (impact cooldown + bounce)", () => {
-    const track = buildTrackFromLevel(CUP_LEVELS[0]!);
-    const { x, z, outwardHeading } = wallGrindSetup(track);
+  it("a high-speed wall slam KOs Blitz; cooldown still applies only one tick", () => {
     const car = createCarState({
       id: "player",
-      x,
-      z,
-      heading: outwardHeading,
+      x: 0,
+      z: 0,
+      heading: Math.PI / 2,
       isPlayer: true,
       paint: "#e03131",
       sticker: "none",
       stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
       speed: 28,
     });
-
-    for (let i = 0; i < 120; i++) {
-      stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, {
-        accel: 1,
-        topSpeed: 1,
-      });
-    }
-
-    expect(car.koTimer).toBe(0);
-    expect(car.hp).toBeGreaterThan(0.15);
+    car.vx = 0;
+    car.vz = 28;
+    applyWallBounce(
+      car,
+      {
+        zone: "wall",
+        speedFactor: 0.35,
+        gripFactor: 0.4,
+        wallKind: "concrete",
+        bump: 0,
+        lateral: 12,
+        distanceAlong: 10,
+        tangent: { x: 1, z: 0 },
+      },
+      2,
+    );
+    expect(car.hp).toBe(0);
+    expect(car.impactCooldown).toBeGreaterThan(0);
   });
 
   it("bounces heading/speed away from the wall on impact", () => {
@@ -62,7 +68,7 @@ describe("wall bounce + fair impact damage", () => {
       isPlayer: true,
       paint: "#e03131",
       sticker: "none",
-      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
+      stats: { ...CARS.bunker.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
       speed: 22,
     });
 
@@ -79,6 +85,7 @@ describe("wall bounce + fair impact damage", () => {
     expect(outAfter).toBeLessThan(0.1);
     expect(car.speed).toBeLessThan(22);
     expect(car.hp).toBeLessThan(1);
+    expect(car.koTimer).toBe(0);
     const velOut = car.vx * outwardX + car.vz * outwardZ;
     expect(velOut).toBeLessThan(0);
   });

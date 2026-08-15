@@ -28,7 +28,6 @@ import {
 import { ensureCarPartTemplates } from "../render/carParts";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
 import { preloadTrackModels } from "../render/loadTrackGltf";
-import { DAMAGE_LABELS } from "../sim/damage";
 import { RaceSession } from "../sim/race";
 import { renderTrackPlanSvg } from "./trackPlan";
 import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
@@ -40,6 +39,7 @@ import { escapeOpensSettings } from "./settingsEsc";
 import { renderCarStatsPopup } from "./carStatsPopup";
 import { renderLapCounterHtml } from "./lapHud";
 import { renderNitroMeterHtml } from "./nitroHud";
+import { renderDamageHudHtml } from "./damageHud";
 import { renderFieldStripSvg, renderMiniMapSvg } from "./miniMap";
 import {
   advanceFinishCelebrate,
@@ -550,7 +550,6 @@ export class GameApp {
     const hud = this.uiRoot.querySelector<HTMLElement>("#race-hud");
     if (!hud || !this.race) return;
     const p = this.race.player();
-    const stage = this.race.playerDamageStage();
     const now = performance.now();
     for (const ev of this.race.consumeStyleEvents()) {
       this.stylePops.push(ev.amount, ev.reason, now);
@@ -571,7 +570,7 @@ export class GameApp {
             ${renderLapCounterHtml(p.lap, this.race.level.laps)}`
             }
           </div>
-          <div class="hud-row" data-dev-name="hud.damage">Schaden: ${DAMAGE_LABELS[stage]}${p.healFx > 0.2 ? " · Reparatur…" : ""}</div>
+          ${renderDamageHudHtml(p.hp, p.koTimer, p.healFx)}
           <div class="bars" data-dev-name="hud.bars">
             ${renderNitroMeterHtml(p.nitro, p.nitroHeld)}
             <div class="bar" data-dev-name="hud.hp"><span>Karosserie</span><i class="hp" style="width:${Math.round(p.hp * 100)}%"></i></div>
