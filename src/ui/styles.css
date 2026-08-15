@@ -1904,6 +1904,55 @@ html[data-touch="1"] .hud-minimap {
   color: var(--ui-text);
 }
 
+.dev-dialog--parts {
+  left: max(12px, env(safe-area-inset-left));
+  right: auto;
+  top: auto;
+  bottom: max(12px, env(safe-area-inset-bottom));
+  transform: none;
+  min-width: 220px;
+  max-width: 280px;
+  max-height: min(70vh, 440px);
+  overflow: auto;
+  padding: 10px 12px;
+}
+
+.dev-dialog--parts h3 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.dev-dialog--parts .dim {
+  margin: 0 0 8px;
+  font-size: 0.78rem;
+}
+
+.dev-parts {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0 0 10px;
+}
+
+.dev-part {
+  text-align: left;
+  min-height: 36px;
+  padding: 6px 10px;
+  font-size: 0.82rem;
+  background: #2b2f36;
+  color: #f8f9fa;
+  border: 2px solid #1b1b1f;
+}
+
+.dev-part.is-on {
+  background: #ffe066;
+  color: #1b1b1f;
+}
+
+html[data-touch="1"] .dev-dialog--parts {
+  bottom: calc(80px + env(safe-area-inset-bottom, 0px));
+}
+
 html.dev-show-names [data-dev-name] {
   outline: 1px dashed rgba(255, 224, 102, 0.7);
   outline-offset: 1px;
@@ -1935,6 +1984,10 @@ html.dev-show-names .touch-controls,
 html.dev-show-names .bar,
 html.dev-show-names .dev-dialog {
   position: relative;
+}
+
+html.dev-show-names .dev-dialog--parts {
+  position: absolute;
 }
 
 /* Desktop mouse without touch: hide race touch pad */

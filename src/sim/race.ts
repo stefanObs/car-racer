@@ -1,6 +1,7 @@
 import type { RaceAudioEvent } from "../audio/raceEvents";
 import { CARS, type CarId } from "../data/cars";
 import { mergeStats, type PartId } from "../data/parts";
+import { carSupportsPart } from "../data/partsCatalog";
 import { DEBUG_PAD_EXTENT_M } from "../data/debugPad";
 import { buildTrackFromLevel, sampleCenterline } from "../track/buildTrack";
 import type { BuiltTrack, LevelDefinition } from "../track/types";
@@ -377,6 +378,15 @@ export class RaceSession {
 
   player(): CarState {
     return this.cars.find((c) => c.isPlayer)!;
+  }
+
+  /** Live Teile swap for the F5 dev panel — this race only, no save. */
+  setPlayerParts(parts: readonly PartId[]): void {
+    const allowed = parts.filter((id) => carSupportsPart(this.config.playerCarId, id));
+    this.config.playerParts = allowed;
+    const player = this.player();
+    player.equippedParts = [...allowed];
+    player.stats = mergeStats(CARS[this.config.playerCarId].stats, allowed);
   }
 
   playerDamageStage() {

@@ -34,4 +34,21 @@ describe("dev cheats", () => {
     const places = race.cars.map((c) => c.finishPlace).sort((a, b) => a - b);
     expect(places).toEqual([1, 2, 3, 4, 5, 6]);
   });
+
+  it("swaps player Teile mid-race without changing the saved kit", () => {
+    const race = new RaceSession({
+      level: CUP_LEVELS[0]!,
+      playerCarId: "blitz",
+      playerParts: [],
+      playerPaint: "#e03131",
+      playerSticker: "none",
+    });
+    const stockAccel = race.player().stats.accel;
+    race.setPlayerParts(["big_engine", "better_brakes"]);
+    expect(race.player().equippedParts).toEqual(["big_engine"]);
+    expect(race.player().stats.accel).toBeGreaterThan(stockAccel);
+    race.setPlayerParts([]);
+    expect(race.player().equippedParts).toEqual([]);
+    expect(race.player().stats.accel).toBe(stockAccel);
+  });
 });

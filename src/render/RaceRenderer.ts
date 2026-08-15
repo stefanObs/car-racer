@@ -18,12 +18,13 @@ import {
 } from "three";
 import { stageFromHp } from "../sim/damage";
 import type { RaceSession } from "../sim/race";
-import { createCarState, forwardSpeedAlongHeading } from "../sim/vehicle";
+import { createCarState, forwardSpeedAlongHeading, type CarState } from "../sim/vehicle";
 import { surfaceAt } from "../sim/zones";
 import { sampleCenterline } from "../track/buildTrack";
 import { CARS, type CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
 import { carPartTemplatesReady, ensureCarPartTemplates, garageLookCacheKey } from "./carParts";
+import { carStateLookKey } from "./carLookKey";
 import type { FinishCelebrate } from "../ui/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../ui/finishCelebrate";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
@@ -447,6 +448,7 @@ export class RaceRenderer {
     for (const car of session.cars) {
       const visual = buildComicCar(car);
       upgradeCarFx(visual);
+      visual.root.userData.lookKey = carStateLookKey(car);
       this.carVisuals.set(car.id, visual);
       this.scene.add(visual.root);
     }
@@ -492,12 +494,19 @@ export class RaceRenderer {
 
     for (const car of session.cars) {
       let visual = this.carVisuals.get(car.id);
+      const lookKey = carStateLookKey(car);
+      if (visual && visual.root.userData.lookKey !== lookKey) {
+        this.replaceCarVisual(car);
+        visual = this.carVisuals.get(car.id);
+      }
       if (!visual) {
         visual = buildComicCar(car);
         upgradeCarFx(visual);
+        visual.root.userData.lookKey = lookKey;
         this.carVisuals.set(car.id, visual);
         this.scene.add(visual.root);
       }
+      if (!visual) continue;
       const { root } = visual;
       const stage = stageFromHp(car.hp);
       root.visible = !(car.koTimer > 0 && car.hp <= 0 && Math.sin(car.koTimer * 20) <= 0);
@@ -644,5 +653,19 @@ export class RaceRenderer {
     this.lapBillboardLastLap.clear();
     this.lapBillboardFlashUntil.clear();
     this.clearCelebrate();
+  }
+
+  private replaceCarVisual(car: CarState): void {
+    const old = this.carVisuals.get(car.id);
+    if (old) {
+      this.scene.remove(old.root);
+      disposeObject(old.root);
+      this.carVisuals.delete(car.id);
+    }
+    const visual = buildComicCar(car);
+    upgradeCarFx(visual);
+    visual.root.userData.lookKey = carStateLookKey(car);
+    this.carVisuals.set(car.id, visual);
+    this.scene.add(visual.root);
   }
 }

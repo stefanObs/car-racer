@@ -1,6 +1,9 @@
+import type { CarId } from "../data/cars";
+import type { PartId } from "../data/parts";
 import { assignDevNames, clampFinishPlace, parseChfAmount } from "./cheats";
+import { allPartsForCar, renderDevPartsPanelHtml, toggleEquippedPart } from "./partsPanel";
 
-export type DevDialog = "none" | "money" | "finish";
+export type DevDialog = "none" | "money" | "finish" | "parts";
 
 type DevHooks = {
   getChf: () => number;
@@ -10,10 +13,14 @@ type DevHooks = {
   forceFinish: (place: number) => void;
   startDebugPad: () => void;
   onUiRefresh: () => void;
+  canSwapParts: () => boolean;
+  partsCarId: () => CarId | null;
+  equippedParts: () => PartId[];
+  setEquippedParts: (parts: PartId[]) => void;
 };
 
 /**
- * F1 name overlay, F2 CHF setter, F3 force-finish place picker, F4 raster pad.
+ * F1 name overlay, F2 CHF setter, F3 force-finish place picker, F4 raster pad, F5 Teile.
  * Mounts outside the main UI so GameApp re-renders do not wipe dialogs.
  */
 export class DevTools {
@@ -39,6 +46,12 @@ export class DevTools {
     const canvas = document.querySelector<HTMLElement>("#game-canvas");
     if (canvas && !canvas.dataset.devName) canvas.dataset.devName = "#game-canvas";
     this.syncNameClass();
+  }
+
+  closePartsPanel(): void {
+    if (this.dialog !== "parts") return;
+    this.dialog = "none";
+    this.render();
   }
 
   private syncNameClass(): void {
@@ -76,6 +89,13 @@ export class DevTools {
       this.dialog = "none";
       this.render();
       this.hooks.startDebugPad();
+      return;
+    }
+    if (e.code === "F5") {
+      if (!this.hooks.canSwapParts()) return;
+      e.preventDefault();
+      this.dialog = this.dialog === "parts" ? "none" : "parts";
+      this.render();
     }
   }
 
@@ -110,10 +130,14 @@ export class DevTools {
           <button type="button" data-dev-close data-dev-name="dev.finish.close">Abbrechen</button>
         </div>
       `;
+    } else if (this.dialog === "parts") {
+      const carId = this.hooks.partsCarId();
+      if (carId) dialog = renderDevPartsPanelHtml(carId, this.hooks.equippedParts());
+      else this.dialog = "none";
     }
 
     this.root.innerHTML = `
-      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster</div>
+      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster · F5 Teile</div>
       ${dialog}
     `;
     this.root.querySelector("[data-dev-close]")?.addEventListener("click", () => {
@@ -140,6 +164,25 @@ export class DevTools {
         this.dialog = "none";
         this.render();
       });
+    });
+    this.root.querySelectorAll<HTMLButtonElement>("[data-dev-part]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const carId = this.hooks.partsCarId();
+        const partId = btn.dataset.devPart as PartId | undefined;
+        if (!carId || !partId) return;
+        this.hooks.setEquippedParts(toggleEquippedPart(carId, this.hooks.equippedParts(), partId));
+        this.render();
+      });
+    });
+    this.root.querySelector("[data-dev-parts-none]")?.addEventListener("click", () => {
+      this.hooks.setEquippedParts([]);
+      this.render();
+    });
+    this.root.querySelector("[data-dev-parts-all]")?.addEventListener("click", () => {
+      const carId = this.hooks.partsCarId();
+      if (!carId) return;
+      this.hooks.setEquippedParts(allPartsForCar(carId));
+      this.render();
     });
     if (moneyInput && this.dialog === "money") moneyInput.focus();
   }

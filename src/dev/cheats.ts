@@ -1,4 +1,4 @@
-/** Dev-only helpers for F1–F3 cheats (not player-facing). */
+/** Dev-only helpers for F1–F5 cheats (not player-facing). */
 
 export function parseChfAmount(raw: string): number | null {
   const cleaned = raw.replace(/[^\d]/g, "");

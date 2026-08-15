@@ -121,6 +121,15 @@ export class GameApp {
         if (this.screen !== "race") this.renderUi();
         else this.updateHud();
       },
+      canSwapParts: () => this.screen === "race" && !!this.race,
+      partsCarId: () => {
+        const id = this.race?.player().modelId;
+        return id ? (id as CarId) : null;
+      },
+      equippedParts: () => this.race?.player().equippedParts ?? [],
+      setEquippedParts: (parts) => {
+        this.race?.setPlayerParts(parts);
+      },
     });
     this.renderUi();
   }
@@ -647,6 +656,7 @@ export class GameApp {
   }
 
   private renderUi(): void {
+    if (this.screen !== "race") this.dev.closePartsPanel();
     document.documentElement.dataset.screen = this.screen;
     const preserveScroll = shouldPreservePanelScroll(panelScreenOf(this.uiRoot), this.screen);
     const savedScrollTop = preserveScroll ? readPanelScrollTop(this.uiRoot) : 0;
