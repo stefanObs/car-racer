@@ -44,10 +44,9 @@ const RADIUS = 0.025;
 const INTO = 0.08;
 /** Diagonals / stays — still on the inner cage plane until those poles are retuned. */
 const SIDE_Z = 0.43;
-/** Waist: hip-height in the teal side panel — outboard of the seats (z≈0.1),
- * not the 0.70 fender flares and not through the cabin. */
-const WAIST_Z = 0.52;
-const WAIST_Y = 0.8;
+/** Waist: a bit above hip, slightly outboard of 0.52 — still outside the seats. */
+const WAIST_Z = 0.55;
+const WAIST_Y = 0.96;
 const GREY = 0x6a7078;
 
 function extendEnds(a, b, extra) {
