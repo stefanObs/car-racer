@@ -18,6 +18,7 @@ import {
   showcaseSticker,
 } from "../meta/cosmeticsShop";
 import { buyPart, selectPartInGarage, showcaseParts } from "../meta/partsShop";
+import { applyRaceRewards } from "../meta/raceRewards";
 import { formatChf, loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
 import {
   applyEasyModeThrottle,
@@ -321,7 +322,8 @@ export class GameApp {
         this.updateFinishOverlay();
         if (this.finishCelebrate.t >= this.finishCelebrate.duration) {
           this.lastResult = this.race.result();
-          this.applyRaceRewards(this.lastResult, this.race.level.id);
+          applyRaceRewards(this.save, this.lastResult, this.race.level.id);
+          writeSave(this.save);
           this.finishCelebrate = null;
           this.screen = "results";
           this.renderUi();
@@ -485,25 +487,6 @@ export class GameApp {
         this.renderUi();
       }
     }
-  }
-
-  private applyRaceRewards(result: NonNullable<typeof this.lastResult>, levelId: string): void {
-    if (!result.ranked) return;
-    this.save.chf += result.purseChf;
-    if (result.starsEarned) {
-      const prev = this.save.cupStars[levelId] ?? 0;
-      this.save.cupStars[levelId] = Math.max(prev, result.place === 1 ? 3 : result.place === 2 ? 2 : 1);
-    }
-    const level = levelById(levelId);
-    if (level?.cupIndex && result.place <= 3) {
-      const next = level.cupIndex + 1;
-      if (next > this.save.cupIndexUnlocked) this.save.cupIndexUnlocked = next;
-      const nextLevel = CUP_LEVELS.find((l) => l.cupIndex === next);
-      if (nextLevel && !this.save.unlockedLevels.includes(nextLevel.id)) {
-        this.save.unlockedLevels.push(nextLevel.id);
-      }
-    }
-    writeSave(this.save);
   }
 
   private startRaceWithLevel(level: LevelDefinition): void {
