@@ -61,6 +61,7 @@ describe("Käferkraft pole-frame waist", () => {
     const waistZ = Math.max(...waist.map((n) => Math.abs(n.getTranslation()[2]!)));
     expect(waistZ - POLE_R).toBeGreaterThan(seatOuterZ);
     expect(waistZ + POLE_R).toBeLessThan(0.62);
+    expect(doc.getRoot().listNodes().some((n) => n.getName().startsWith("XRearToDash"))).toBe(false);
   });
 
   it("keeps the procedural buggy fallback on the same waist plane", () => {
@@ -74,5 +75,6 @@ describe("Käferkraft pole-frame waist", () => {
       expect(n.position.y).toBeLessThan(1);
       expect(n.position.x).toBeGreaterThan(0.08);
     }
+    expect(g.children.some((c) => c.name === "XRearToDash")).toBe(false);
   });
 });

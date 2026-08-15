@@ -2,8 +2,8 @@
 /**
  * Käferkraft Verstärkter Rahmen: straight Grey cylinders in mesh space (nose −X).
  * Replaces the Tripo blob. Layout matches the garage red-line overlay
- * (waist rail, rear→dash diagonal, rear stay) — mirrored ±Z. No front-sill
- * diagonal. Radius matches the welded stock cage; ends extend into the joints.
+ * (waist rail, rear stay) — mirrored ±Z. No dash-to-rear-hoop diagonal.
+ * Radius matches the welded stock cage; ends extend into the joints.
  *
  *   node scripts/bake-kaeferkraft-pole-frame.mjs
  */
@@ -90,7 +90,6 @@ for (const side of [-1, 1]) {
   const z = SIDE_Z * side;
   const waistZ = WAIST_Z * side;
   addPole(g, [WAIST_FRONT_X, WAIST_Y, waistZ], [WAIST_REAR_X + INTO, WAIST_Y, waistZ], "Waist");
-  addPole(g, ...extendEnds([0.48, 1.54, z], [-0.5, 0.8, z], INTO), "XRearToDash");
   addPole(g, ...extendEnds([0.48, 1.54, z], [1.36, 0.7, Math.sign(z) * 0.36], INTO), "RearStay");
 }
 

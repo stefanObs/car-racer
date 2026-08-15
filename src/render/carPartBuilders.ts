@@ -218,7 +218,6 @@ export function buildReinforcedFrame(
         GREY,
         "Waist",
       );
-      addStraightPole(g, ...extendPoleEnds([0.48, 1.54, z], [-0.5, 0.8, z], into), r, GREY, "XRearToDash");
       addStraightPole(
         g,
         ...extendPoleEnds([0.48, 1.54, z], [1.36, 0.7, Math.sign(z) * 0.36], into),
