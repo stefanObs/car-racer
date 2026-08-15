@@ -60,4 +60,14 @@ describe("start scripts", () => {
     expect(ps1).not.toMatch(/^\s*npm install/m);
     expect(ps1).not.toMatch(/^\s*npm run dev/m);
   });
+
+  it("start.ps1 is ASCII so Windows PowerShell 5.1 -File can parse it", () => {
+    const ps1 = readFileSync(resolve(root, "start.ps1"));
+    const bat = readFileSync(resolve(root, "start.bat"), "utf8");
+    for (let i = 0; i < ps1.length; i++) {
+      expect(ps1[i], `non-ASCII at start.ps1 offset ${i}`).toBeLessThan(128);
+    }
+    // If PowerShell parses the .bat, skip cmd syntax (v1.0 / start.bat dots).
+    expect(bat).toContain("# 2>nul & goto :bat");
+  });
 });

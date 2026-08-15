@@ -1,5 +1,6 @@
-# Crash Circuit — start (Windows PowerShell)
+# Crash Circuit - start (Windows PowerShell)
 # Bootstraps a portable Node.js into .tools\ if none is available.
+# ASCII-only: Windows PowerShell 5.1 -File misparses UTF-8 without BOM.
 $ErrorActionPreference = "Stop"
 Set-Location -Path $PSScriptRoot
 
@@ -22,7 +23,7 @@ function Get-NodePlatform {
 }
 
 $Platform = Get-NodePlatform
-# Official Node zip extracts to node-vVERSION-win-ARCH\
+# Official Node zip extracts to node-vVERSION-win-ARCH
 $NodeHome = Join-Path $ToolsDir "node-v$NodeVersion-$Platform"
 
 function Test-NodeMajorOk([string]$NodeExe) {
@@ -34,7 +35,7 @@ function Test-NodeMajorOk([string]$NodeExe) {
   }
 }
 
-# Portable Node zip ships npm.cmd next to node.exe. Bare `npm` in PowerShell often
+# Portable Node zip ships npm.cmd next to node.exe. Bare npm in PowerShell often
 # resolves the extensionless Unix shim and fails when no system npm is on PATH.
 function Get-NpmCmd {
   $nodeCmd = Get-Command node -ErrorAction SilentlyContinue
@@ -63,14 +64,14 @@ function Bootstrap-Node {
   $archive = "$folderName.zip"
   $url = "https://nodejs.org/dist/v$NodeVersion/$archive"
 
-  Write-Host "Node.js >= 20 nicht gefunden — lade portable Node v$NodeVersion ($Platform)…"
+  Write-Host "Node.js >= 20 nicht gefunden - lade portable Node v$NodeVersion ($Platform)..."
   New-Item -ItemType Directory -Force -Path $ToolsDir | Out-Null
   $zipPath = Join-Path $ToolsDir $archive
 
   try {
     Invoke-WebRequest -Uri $url -OutFile $zipPath -UseBasicParsing
   } catch {
-    Die "Download von Node.js fehlgeschlagen. Internetverbindung nötig für den Erststart. $_"
+    Die "Download von Node.js fehlgeschlagen. Internetverbindung noetig fuer den Erststart. $_"
   }
 
   if (Test-Path $NodeHome) {
@@ -99,16 +100,16 @@ if (-not $NpmCmd) {
 }
 
 if (-not (Test-Path "node_modules") -or -not (Test-Path "node_modules\vite")) {
-  Write-Host "Installiere Abhängigkeiten…"
+  Write-Host "Installiere Abhaengigkeiten..."
   & $NpmCmd install
   if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 }
 
-# Vite uses strictPort — free leftover listener by port (never pkill -f vite).
+# Vite uses strictPort - free leftover listener by port (never pkill -f vite).
 node scripts/free-dev-port.mjs 5173
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-Write-Host "Starte Crash Circuit (Dev-Server)…"
+Write-Host "Starte Crash Circuit (Dev-Server)..."
 Write-Host "Lokal:  http://127.0.0.1:5173/"
 Write-Host "Im LAN: http://<VM-IP>:5173/"
 try {

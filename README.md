@@ -38,7 +38,7 @@ Die Skripte:
 3. Führen bei Bedarf `npm install` aus und starten den Dev-Server auf **allen Interfaces** (`0.0.0.0:5173`)
 
 **Unix-Fallback-Downloader:** `curl`, sonst `wget`, sonst `python3` (+ `tar` zum Entpacken).  
-**Windows:** eingebautes PowerShell (`start.bat` startet es fest aus `System32`). Portable Node bringt `npm.cmd` mit — ein vorinstalliertes npm ist nicht nötig.
+**Windows:** In PowerShell `.\start.ps1` nutzen. `start.bat` geht in cmd; aus PowerShell startet es `pwsh` oder Windows PowerShell 5.1. Portable Node bringt `npm.cmd` mit — kein vorinstalliertes npm nötig.
 
 ### Vom Haupt-PC (Hyper-V-Host)
 
