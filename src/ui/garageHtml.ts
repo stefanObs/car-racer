@@ -11,7 +11,7 @@ import {
 } from "../meta/cosmeticsShop";
 import { isUnownedPreview, showcaseCarId } from "../meta/carShop";
 import { formatChf, type CarKit, type StickerId } from "../meta/save";
-import { carUsesNoseVariants } from "../render/carStickers";
+import { carUsesNoseVariants } from "../data/cars";
 
 function cosmeticsForCar(carId: CarId): { ids: StickerId[]; labels: Record<StickerId, string>; title: string } {
   if (carUsesNoseVariants(carId)) {

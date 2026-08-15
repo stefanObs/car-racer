@@ -3,8 +3,10 @@
  * Painted track/podium panels (not stick-figure SVG). Podium 1–3: ~7.5s reels. Field: short beat.
  */
 
-export const PODIUM_MOVIE_SECONDS = 7.5;
-export const FIELD_MOVIE_SECONDS = 2.5;
+import { FIELD_CELEBRATE_SECONDS, PODIUM_CELEBRATE_SECONDS } from "../core/finishCelebrate";
+
+export const PODIUM_MOVIE_SECONDS = PODIUM_CELEBRATE_SECONDS;
+export const FIELD_MOVIE_SECONDS = FIELD_CELEBRATE_SECONDS;
 
 export type PodiumMovieKind = "gold" | "silver" | "bronze" | "field";
 

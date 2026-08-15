@@ -28,5 +28,4 @@ export const ComicPaletteCss = {
   sky: "#5BA3D9",
 } as const;
 
-/** Garage black — charcoal so cel steps stay readable (ink-black crushes toon). */
-export const CAR_PAINT_BLACK = "#52545e";
+export { CAR_PAINT_BLACK } from "../data/paintColors";

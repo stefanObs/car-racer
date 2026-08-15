@@ -1,7 +1,7 @@
 import type { CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
 import type { RaceSession } from "../sim/race";
-import type { FinishCelebrate } from "../ui/finishCelebrate";
+import type { FinishCelebrate } from "../core/finishCelebrate";
 import { RaceRenderer } from "./RaceRenderer";
 
 export type GarageLook = {

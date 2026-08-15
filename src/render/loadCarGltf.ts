@@ -12,11 +12,11 @@ import {
   type Texture,
 } from "three";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { CAR_IDS, type CarId } from "../data/cars";
+import { CAR_IDS, carUsesNoseVariants, type CarId } from "../data/cars";
 import { CAR_MODELS, type CarModelSpec } from "../data/carModels";
 import { applyBuggyNoseVariant, isBuggySkullHornMesh } from "./buggyNose";
 import { buggyNoseTexture } from "./buggyNoseTextures";
-import { applyCarStickers, carUsesNoseVariants } from "./carStickers";
+import { applyCarStickers } from "./carStickers";
 import { comicToon, outlineMaterial, inflateGeometry } from "./comicMaterials";
 import { ComicPalette } from "./palette";
 import {

@@ -7,7 +7,7 @@ import {
   type Camera,
   type Object3D,
 } from "three";
-import { displayLap } from "../ui/lapHud";
+import { displayLap } from "../sim/laps";
 import { carBodyWorldBox } from "./garageSit";
 import { cloneFxChunk, hasFxModels } from "./loadFxGltf";
 

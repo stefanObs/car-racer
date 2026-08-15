@@ -129,3 +129,8 @@ export const CAR_IDS = Object.keys(CARS) as CarId[];
 export function gearClassOf(carId: CarId): GearClass {
   return CARS[carId].gearClass;
 }
+
+/** Käferkraft uses bumper nose ornaments instead of side/hood stickers. */
+export function carUsesNoseVariants(id: CarId): boolean {
+  return id === "kaeferkraft";
+}

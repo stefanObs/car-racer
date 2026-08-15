@@ -59,18 +59,22 @@ Each **implementation step**:
 
 ```
 src/
-  core/           # game loop, time, rng
+  core/           # time, version, celebrate DTO
+  app/            # screen machine, race start/end (GameApp)
   input/          # ActionMap: throttle, brake, steer, nitro, ui*
   sim/            # vehicle, damage, catch-up, zones (grass/wall)
+  meta/           # save, CHF, shops, race rewards
   render/         # three.js scene, toon materials, VFX
   track/          # JSON load, segment mesh, ad-hoc generator
   ui/             # HTML menus, garage, HUD
   audio/
-  data/           # cars, parts, i18n/de.json
+  data/           # cars, parts, cosmetics, i18n/de.json
 levels/           # already present
 public/models/cars/  # GLB car visuals (Blender exports); collision = silhouette radius
 tests/
 ```
+
+**One-way imports:** `data` → `track` → `sim` → `meta` → `app` → (`ui` | `render` | `audio` | `input`). Lower layers never import `ui/`, `render/`, or `audio/` implementations. `data/` owns catalogs (paint hex, nose-vs-sticker); render/UI read them. Cosmetics never enter `mergeStats`. Sim never calls `gameAudio`. Render never writes `CarState`.
 
 ### Car visuals (GLB import)
 

@@ -1,9 +1,6 @@
-/** Current lap for HUD — clamp only the finish overrun; negatives stay visible. */
-export function displayLap(lap: number, totalLaps: number): number {
-  const total = Math.max(1, totalLaps);
-  if (lap > total) return total;
-  return lap;
-}
+import { displayLap } from "../sim/laps";
+
+export { displayLap };
 
 /** Kid-readable lap line: current / total. */
 export function formatLapCounter(lap: number, totalLaps: number): string {

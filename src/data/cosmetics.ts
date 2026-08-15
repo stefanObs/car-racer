@@ -1,4 +1,4 @@
-import { CAR_PAINT_BLACK } from "../render/palette";
+import { CAR_PAINT_BLACK } from "./paintColors";
 
 /** Shop swatches — same order as garage UI. */
 export const GARAGE_PAINTS = [

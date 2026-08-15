@@ -161,10 +161,6 @@ export function stickerSlotsForCar(id: CarId): StickerSlot[] {
   }
 }
 
-export function carUsesNoseVariants(id: CarId): boolean {
-  return id === "kaeferkraft";
-}
-
 function ink(): string {
   return ComicPaletteCss.outline;
 }
