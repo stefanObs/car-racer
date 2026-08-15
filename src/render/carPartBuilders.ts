@@ -180,19 +180,6 @@ function addStraightPole(
 
 type PoleEnd = readonly [number, number, number];
 
-/** Push both endpoints along the segment so they pierce the stock cage joints. */
-function extendPoleEnds(a: PoleEnd, b: PoleEnd, extra: number): [PoleEnd, PoleEnd] {
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const dz = b[2] - a[2];
-  const len = Math.hypot(dx, dy, dz);
-  const s = extra / len;
-  return [
-    [a[0] - dx * s, a[1] - dy * s, a[2] - dz * s],
-    [b[0] + dx * s, b[1] + dy * s, b[2] + dz * s],
-  ];
-}
-
 /** Sill plates + rear half-cage / hoop — class-specific silhouettes. */
 export function buildReinforcedFrame(
   style: "sport" | "pickup" | "buggy" | "hotrod" | "armor" = "sport",
@@ -203,27 +190,21 @@ export function buildReinforcedFrame(
     // Same spec as scripts/bake-kaeferkraft-pole-frame.mjs (stock cage r ≈ 0.025).
     const r = 0.025;
     const into = 0.08;
-    const sideZ = 0.43;
     const waistZ = 0.55;
     const waistY = 0.96;
     const waistFrontX = -0.32;
     const waistRearX = 0.5;
+    const cageFrontTop = { x: -0.24, y: 1.48, z: 0.48 };
     for (const side of [-1, 1] as const) {
-      const z = sideZ * side;
+      const rear: PoleEnd = [waistRearX + into, waistY, waistZ * side];
+      addStraightPole(g, [waistFrontX, waistY, waistZ * side], rear, r, GREY, "Waist");
       addStraightPole(
         g,
-        [waistFrontX, waistY, waistZ * side],
-        [waistRearX + into, waistY, waistZ * side],
+        rear,
+        [cageFrontTop.x, cageFrontTop.y, cageFrontTop.z * side],
         r,
         GREY,
-        "Waist",
-      );
-      addStraightPole(
-        g,
-        ...extendPoleEnds([0.48, 1.54, z], [1.36, 0.7, Math.sign(z) * 0.36], into),
-        r,
-        GREY,
-        "RearStay",
+        "WaistToFrontTop",
       );
     }
     return g;

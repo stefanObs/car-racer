@@ -2,8 +2,8 @@
 /**
  * Käferkraft Verstärkter Rahmen: straight Grey cylinders in mesh space (nose −X).
  * Replaces the Tripo blob. Layout matches the garage red-line overlay
- * (waist rail, rear stay) — mirrored ±Z. No dash-to-rear-hoop diagonal.
- * Radius matches the welded stock cage; ends extend into the joints.
+ * (waist rail + diagonal from the waist’s rear insertion to the cage top-front).
+ * Radius matches the welded stock cage.
  *
  *   node scripts/bake-kaeferkraft-pole-frame.mjs
  */
@@ -42,27 +42,15 @@ const outPath = join(rootDir, "public/models/parts/kaeferkraft-reinforced_frame.
 
 const RADIUS = 0.025;
 const INTO = 0.08;
-/** Diagonals / stays — still on the inner cage plane until those poles are retuned. */
-const SIDE_Z = 0.43;
 /** Waist: a bit above hip, slightly outboard of 0.52 — still outside the seats. */
 const WAIST_Z = 0.55;
 const WAIST_Y = 0.96;
 /** Front (−X) stops short of the teal cowl; only the rear is extended into the joint. */
 const WAIST_FRONT_X = -0.32;
 const WAIST_REAR_X = 0.5;
+/** Stock cage top-front tube (mesh space, nose −X). */
+const CAGE_FRONT_TOP = { x: -0.24, y: 1.48, z: 0.48 };
 const GREY = 0x6a7078;
-
-function extendEnds(a, b, extra) {
-  const dx = b[0] - a[0];
-  const dy = b[1] - a[1];
-  const dz = b[2] - a[2];
-  const len = Math.hypot(dx, dy, dz);
-  const s = extra / len;
-  return [
-    [a[0] - dx * s, a[1] - dy * s, a[2] - dz * s],
-    [b[0] + dx * s, b[1] + dy * s, b[2] + dz * s],
-  ];
-}
 
 function addPole(parent, a, b, name) {
   const ax = new Vector3(...a);
@@ -87,10 +75,10 @@ function addPole(parent, a, b, name) {
 const g = new Group();
 g.name = "kaeferkraft-reinforced_frame";
 for (const side of [-1, 1]) {
-  const z = SIDE_Z * side;
   const waistZ = WAIST_Z * side;
-  addPole(g, [WAIST_FRONT_X, WAIST_Y, waistZ], [WAIST_REAR_X + INTO, WAIST_Y, waistZ], "Waist");
-  addPole(g, ...extendEnds([0.48, 1.54, z], [1.36, 0.7, Math.sign(z) * 0.36], INTO), "RearStay");
+  const rear = [WAIST_REAR_X + INTO, WAIST_Y, waistZ];
+  addPole(g, [WAIST_FRONT_X, WAIST_Y, waistZ], rear, "Waist");
+  addPole(g, rear, [CAGE_FRONT_TOP.x, CAGE_FRONT_TOP.y, CAGE_FRONT_TOP.z * side], "WaistToFrontTop");
 }
 
 const exporter = new GLTFExporter();

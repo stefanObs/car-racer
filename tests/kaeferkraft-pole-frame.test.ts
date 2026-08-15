@@ -32,7 +32,10 @@ describe("Käferkraft pole-frame waist", () => {
     const { MeshoptDecoder } = await import("meshoptimizer");
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
     const doc = await io.read("public/models/parts/kaeferkraft-reinforced_frame.glb");
-    const waist = doc.getRoot().listNodes().filter((n) => n.getMesh() && n.getName().startsWith("Waist"));
+    const waist = doc.getRoot().listNodes().filter((n) => {
+      const name = n.getMesh() && n.getName();
+      return name === "Waist" || name === "Waist_1";
+    });
     expect(waist.length).toBe(2);
     for (const n of waist) {
       const [x, y, z] = n.getTranslation();
@@ -62,6 +65,18 @@ describe("Käferkraft pole-frame waist", () => {
     expect(waistZ - POLE_R).toBeGreaterThan(seatOuterZ);
     expect(waistZ + POLE_R).toBeLessThan(0.62);
     expect(doc.getRoot().listNodes().some((n) => n.getName().startsWith("XRearToDash"))).toBe(false);
+    expect(doc.getRoot().listNodes().some((n) => n.getName().startsWith("RearStay"))).toBe(false);
+    const stay = doc.getRoot().listNodes().filter((n) => n.getMesh() && n.getName().startsWith("WaistToFrontTop"));
+    expect(stay.length).toBe(2);
+    for (const n of stay) {
+      const [x, y, z] = n.getTranslation();
+      expect(y!).toBeGreaterThan(1.15);
+      expect(y!).toBeLessThan(1.3);
+      expect(x!).toBeGreaterThan(0.05);
+      expect(x!).toBeLessThan(0.3);
+      expect(Math.abs(z!)).toBeGreaterThan(0.48);
+      expect(Math.abs(z!)).toBeLessThan(0.55);
+    }
   });
 
   it("keeps the procedural buggy fallback on the same waist plane", () => {
@@ -76,5 +91,14 @@ describe("Käferkraft pole-frame waist", () => {
       expect(n.position.x).toBeGreaterThan(0.08);
     }
     expect(g.children.some((c) => c.name === "XRearToDash")).toBe(false);
+    expect(g.children.some((c) => c.name === "RearStay")).toBe(false);
+    const stay = g.children.filter((c) => c.name === "WaistToFrontTop");
+    expect(stay.length).toBe(2);
+    for (const n of stay) {
+      expect(n.position.y).toBeGreaterThan(1.15);
+      expect(n.position.y).toBeLessThan(1.3);
+      expect(n.position.x).toBeGreaterThan(0.05);
+      expect(n.position.x).toBeLessThan(0.3);
+    }
   });
 });
