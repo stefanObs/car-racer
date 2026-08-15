@@ -7,6 +7,13 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-15 — Omegatal wall seal + tire bumper + corridor lock
+
+- Trigger: user — holes in Omegatal walls; walls should bounce like bumpers; jumped a wall onto another stretch
+- RCA: `planWallPlacements` skipped modules that failed dual-ribbon asphalt clearance → ~car-sized along gaps. `nearestOnTrack` could snap to a parallel far-along ribbon once you left the verge; `alongWeight>1` then froze `distanceAlong` on centerline vertices so progress never caught up. Physics walls are a lateral limit — tire restitution was a scrape, so holes + mild bounce felt like ghosting through.
+- Decision: tile walls on this ribbon's wall line (nudge outward, never skip a stretch); hard `maxAlongGap` corridor (not a heavy alongWeight); tire walls restitution 0.88 / damp 0.78
+- Tests: Omegatal along-gap seal; airborne hop stays on ribbon; Hafenstart along advances; tire bumper outbound vel
+
 ### 2026-08-15 — Schanze fringe launch steal
 
 - Trigger: user — jumps no longer working

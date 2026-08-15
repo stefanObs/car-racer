@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { CARS } from "../src/data/cars";
 import { CUP_LEVELS } from "../src/data/levels";
 import { buildTrackFromLevel, nearestOnTrack, sampleCenterline } from "../src/track/buildTrack";
-import { findRibbonPinches } from "../src/track/layoutRules";
+import { findRibbonPinches, CORRIDOR_ALONG_WINDOW_M, RIBBON_PINCH_MIN_ALONG_GAP_M } from "../src/track/layoutRules";
 import { createCarState, stepCar } from "../src/sim/vehicle";
 
 describe("track corridor physics (Phase C)", () => {
@@ -51,7 +51,7 @@ describe("track corridor physics (Phase C)", () => {
     expect(pinches.length).toBeGreaterThan(0);
     const p = pinches[0]!;
     const plain = nearestOnTrack(track, { x: p.midX, z: p.midZ });
-    const biased = nearestOnTrack(track, { x: p.midX, z: p.midZ }, { preferAlong: p.alongA });
+    const biased = nearestOnTrack(track, { x: p.midX, z: p.midZ }, { preferAlong: p.alongA, maxAlongGap: CORRIDOR_ALONG_WINDOW_M });
     const gapPlain = Math.min(
       Math.abs(plain.distanceAlong - p.alongA),
       track.totalLength - Math.abs(plain.distanceAlong - p.alongA),
@@ -114,5 +114,83 @@ describe("track corridor physics (Phase C)", () => {
     // Must remain associated with the bottom leg, not snap onto z=14.
     expect(car.distanceAlong).toBeLessThan(90);
     expect(Math.abs(car.z)).toBeLessThan(10);
+  });
+
+  it("Omegatal airborne run at a wall cannot snap onto a far ribbon", () => {
+    const level = CUP_LEVELS.find((l) => l.id.includes("buckelpiste"))!;
+    const track = buildTrackFromLevel(level);
+    let worst: { d: number; e: number; dist: number } | null = null;
+    for (let d = 0; d < track.totalLength; d += 5) {
+      const a = sampleCenterline(track, d);
+      for (let e = d + 45; e < track.totalLength; e += 5) {
+        const alongGap = Math.min(e - d, track.totalLength - (e - d));
+        if (alongGap < RIBBON_PINCH_MIN_ALONG_GAP_M) continue;
+        const b = sampleCenterline(track, e);
+        const dist = Math.hypot(a.position.x - b.position.x, a.position.z - b.position.z);
+        if (!worst || dist < worst.dist) worst = { d, e, dist };
+      }
+    }
+    expect(worst).toBeTruthy();
+    const a = sampleCenterline(track, worst!.d);
+    const b = sampleCenterline(track, worst!.e);
+    const heading = Math.atan2(b.position.z - a.position.z, b.position.x - a.position.x);
+    const car = createCarState({
+      id: "player",
+      x: a.position.x,
+      z: a.position.z,
+      heading,
+      isPlayer: true,
+      paint: "#e03131",
+      sticker: "none",
+      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
+      speed: 22,
+      distanceAlong: worst!.d,
+      y: 2.2,
+      vy: 8,
+    });
+    car.vx = Math.cos(heading) * 22;
+    car.vz = Math.sin(heading) * 22;
+    for (let i = 0; i < 120; i++) {
+      stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, { accel: 1, topSpeed: 1 }, level.obstacles);
+    }
+    const end = nearestOnTrack(track, { x: car.x, z: car.z }, { preferAlong: car.distanceAlong, maxAlongGap: CORRIDOR_ALONG_WINDOW_M });
+    const alongGap = Math.min(
+      Math.abs(end.distanceAlong - worst!.d),
+      track.totalLength - Math.abs(end.distanceAlong - worst!.d),
+    );
+    expect(alongGap, `snapped ${worst!.d}→${end.distanceAlong}`).toBeLessThan(35);
+    const limit = track.asphaltHalfWidth + track.grassWidth;
+    expect(Math.abs(end.lateral)).toBeLessThanOrEqual(limit + 0.6);
+  });
+
+  it("racing-line throttle on Hafenstart advances along (no corridor freeze)", () => {
+    const level = CUP_LEVELS.find((l) => l.id === "blitz_cup_01_hafenstart")!;
+    const track = buildTrackFromLevel(level);
+    const s = sampleCenterline(track, 8);
+    const car = createCarState({
+      id: "player",
+      x: s.position.x,
+      z: s.position.z,
+      heading: Math.atan2(s.tangent.z, s.tangent.x),
+      isPlayer: true,
+      paint: "#e03131",
+      sticker: "none",
+      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
+      speed: 16,
+      distanceAlong: 8,
+    });
+    car.vx = s.tangent.x * 16;
+    car.vz = s.tangent.z * 16;
+    for (let i = 0; i < 90; i++) {
+      stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, {
+        accel: 1,
+        topSpeed: 1,
+      }, level.obstacles);
+    }
+    const gained = Math.min(
+      Math.abs(car.distanceAlong - 8),
+      track.totalLength - Math.abs(car.distanceAlong - 8),
+    );
+    expect(gained).toBeGreaterThan(20);
   });
 });

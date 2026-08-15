@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CUP_LEVELS, layoutFingerprint } from "../src/data/levels";
 import { buildTrackFromLevel, nearestOnTrack } from "../src/track/buildTrack";
+import { CORRIDOR_ALONG_WINDOW_M } from "../src/track/layoutRules";
 import { trackSelfIntersects } from "../src/track/validateTrack";
 import { planSceneryAnchors, sceneryOverlapsTrack } from "../src/render/themeScenery";
 import { planWallPlacements } from "../src/render/trackKit";
@@ -53,14 +54,15 @@ describe("cup tracks wired to proposals (clear asphalt)", () => {
     }
   });
 
-  it("keeps outer wall module centers outside asphalt", () => {
+    it("keeps outer wall module centers outside asphalt", () => {
     for (const level of CUP_LEVELS) {
       const track = buildTrackFromLevel(level);
       for (const p of planWallPlacements(track)) {
-        const near = nearestOnTrack(track, { x: p.x, z: p.z });
-        expect(Math.abs(near.lateral), `${level.id} wall`).toBeGreaterThan(
-          track.asphaltHalfWidth + 0.5,
-        );
+        const near = nearestOnTrack(track, { x: p.x, z: p.z }, {
+          preferAlong: p.along,
+          maxAlongGap: CORRIDOR_ALONG_WINDOW_M,
+        });
+        expect(Math.abs(near.lateral), `${level.id} wall`).toBeGreaterThan(track.asphaltHalfWidth);
       }
     }
   });

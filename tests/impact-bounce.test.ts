@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CARS } from "../src/data/cars";
 import { CUP_LEVELS } from "../src/data/levels";
-import { createCarState, resolveObstacles, stepCar } from "../src/sim/vehicle";
+import { applyWallBounce, createCarState, resolveObstacles, stepCar } from "../src/sim/vehicle";
 import { buildTrackFromLevel, nearestOnTrack } from "../src/track/buildTrack";
 import type { LevelDefinition } from "../src/track/types";
 
@@ -79,6 +79,42 @@ describe("wall bounce + fair impact damage", () => {
     expect(outAfter).toBeLessThan(0.1);
     expect(car.speed).toBeLessThan(22);
     expect(car.hp).toBeLessThan(1);
+    const velOut = car.vx * outwardX + car.vz * outwardZ;
+    expect(velOut).toBeLessThan(0);
+  });
+
+  it("tire walls bounce outbound like bumpers, not a scrape", () => {
+    const car = createCarState({
+      id: "player",
+      x: 0,
+      z: 0,
+      heading: Math.PI / 2,
+      isPlayer: true,
+      paint: "#e03131",
+      sticker: "none",
+      stats: { ...CARS.blitz.stats, nitroBonus: 0, ramBonus: 0, grassMitigation: 0, brakeBonus: 0 },
+      speed: 20,
+    });
+    car.vx = 0;
+    car.vz = 20;
+    const inbound = 20;
+    applyWallBounce(
+      car,
+      {
+        zone: "wall",
+        speedFactor: 0.35,
+        gripFactor: 0.4,
+        wallKind: "tire",
+        bump: 0,
+        lateral: 12,
+        distanceAlong: 10,
+        tangent: { x: 1, z: 0 },
+      },
+      2,
+    );
+    const velOut = car.vz;
+    expect(velOut).toBeLessThan(0);
+    expect(-velOut).toBeGreaterThan(inbound * 0.45);
   });
 });
 

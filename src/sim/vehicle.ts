@@ -799,7 +799,7 @@ export function applyWallBounce(
   const outwardX = sign * leftX;
   const outwardZ = sign * leftZ;
 
-  // Push clearly inside the grass edge so we don't re-hit next frame.
+  // Bumper: fully separate from the wall. Tire walls bounce harder than concrete.
   const push = overflow + (soft ? 0.35 : 0.2);
   car.x -= outwardX * push;
   car.z -= outwardZ * push;
@@ -807,7 +807,7 @@ export function applyWallBounce(
   let vx = car.vx;
   let vz = car.vz;
   const outwardVel = vx * outwardX + vz * outwardZ;
-  const restitution = soft ? 0.25 : afterMove.wallKind === "concrete" ? 0.55 : 0.7;
+  const restitution = soft ? 0.25 : afterMove.wallKind === "concrete" ? 0.55 : 0.88;
   const suspEase = Math.min(0.2, Math.max(0, (car.stats.suspension - 0.7) * 0.15));
   // Light cars bounce harder; heavy cars dump more speed into the wall.
   const massBounce = 1.15 - Math.min(0.35, car.stats.mass * 0.2);
@@ -816,12 +816,11 @@ export function applyWallBounce(
     vx -= outwardX * bounce;
     vz -= outwardZ * bounce;
   } else {
-    // Scraping: nudge slightly back onto track
     vx -= outwardX * (soft ? 1.2 : 2);
     vz -= outwardZ * (soft ? 1.2 : 2);
   }
 
-  const damp = soft ? 0.82 : afterMove.wallKind === "concrete" ? 0.52 : 0.68;
+  const damp = soft ? 0.82 : afterMove.wallKind === "concrete" ? 0.52 : 0.78;
   car.vx = vx * damp;
   car.vz = vz * damp;
   syncSpeedFromVelocity(car);

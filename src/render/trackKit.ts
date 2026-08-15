@@ -1,6 +1,6 @@
 import { Group, InstancedMesh, Mesh, Object3D } from "three";
 import { TRACK_PROPS, type TrackPropId } from "../data/trackModels";
-import { nearestOnTrack, sampleCenterline } from "../track/buildTrack";
+import { sampleCenterline } from "../track/buildTrack";
 import { clearsAllRibbonAsphalt } from "../track/medianBarriers";
 import type { BuiltTrack } from "../track/types";
 import { cloneTrackProp, hasTrackProp, propHeightFor, tileAlongFor, trackPropTemplate } from "./loadTrackGltf";
@@ -16,57 +16,99 @@ export type WallPlacement = {
 
 /**
  * Tile tire modules on corners and concrete (+fence) on straights.
- * Push outward until clear of *all* ribbon asphalts (tight loops can otherwise
- * land a wall module inside another parallel segment).
+ * Sit on this ribbon's wall line. Never skip a stretch — dropping modules
+ * for dual-ribbon clearance left holes you could drive through onto another leg.
  */
 export function planWallPlacements(track: BuiltTrack): WallPlacement[] {
   const tireAlong = tileAlongFor("tire-wall");
   const concreteAlong = tileAlongFor("concrete-wall");
-  const minClear = track.asphaltHalfWidth + track.grassWidth + 0.45;
-  const startOff = track.asphaltHalfWidth + track.grassWidth + 0.65;
+  const startOff = track.asphaltHalfWidth + track.grassWidth + 0.35;
   const out: WallPlacement[] = [];
 
   for (const side of [-1, 1] as const) {
     const start = out.length;
     let lastD = -1e9;
-    for (let d = 0; d < track.totalLength; d += 0.32) {
+    for (let d = 0; d < track.totalLength; d += 0.28) {
       const s = sampleCenterline(track, d);
       const spacing = s.wall === "tire" ? tireAlong : concreteAlong;
-      if (d - lastD < spacing * 0.92) continue;
-      const angle = Math.atan2(s.tangent.z, s.tangent.x);
-      const yaw = -angle + (side > 0 ? Math.PI : 0);
-      let dist = startOff;
-      let x = 0;
-      let z = 0;
-      for (let push = 0; push < 48; push++) {
-        x = s.position.x + -s.tangent.z * dist * side;
-        z = s.position.z + s.tangent.x * dist * side;
-        const near = nearestOnTrack(track, { x, z });
-        if (
-          Math.abs(near.lateral) >= minClear &&
-          clearsAllRibbonAsphalt(track, x, z, { selfAlong: d, padding: 0.55 })
-        ) {
-          break;
-        }
-        dist += 2.5;
-      }
-      // Drop modules that still sit on any asphalt after push (pathological pinch).
-      if (!clearsAllRibbonAsphalt(track, x, z, { selfAlong: d, padding: 0.55 })) continue;
-      const near = nearestOnTrack(track, { x, z });
-      if (Math.abs(near.lateral) < track.asphaltHalfWidth + 0.5) continue;
-      out.push({
-        kind: s.wall,
-        x,
-        z,
-        yaw,
-        side,
-        along: d,
-      });
+      if (d - lastD < spacing * 0.78) continue;
+      const pose = wallPoseForSample(track, s, d, side, startOff);
+      if (!pose) continue;
+      out.push(pose);
       lastD = d;
     }
-    dropLoopOverlap(out, start, tireAlong, concreteAlong);
+    fillWallGaps(out, start, track, side, tireAlong, concreteAlong, startOff);
+    dropLoopOverlap(out, start, tireAlong, concreteAlong, track.totalLength);
   }
   return out;
+}
+
+function offsetOnRibbon(
+  s: ReturnType<typeof sampleCenterline>,
+  dist: number,
+  side: 1 | -1,
+): { x: number; z: number } {
+  return {
+    x: s.position.x + -s.tangent.z * dist * side,
+    z: s.position.z + s.tangent.x * dist * side,
+  };
+}
+
+function wallYaw(s: ReturnType<typeof sampleCenterline>, side: 1 | -1): number {
+  const angle = Math.atan2(s.tangent.z, s.tangent.x);
+  return -angle + (side > 0 ? Math.PI : 0);
+}
+
+function wallPoseForSample(
+  track: BuiltTrack,
+  s: ReturnType<typeof sampleCenterline>,
+  along: number,
+  side: 1 | -1,
+  startOff: number,
+): WallPlacement | null {
+  const tryDists = [startOff, startOff + 0.55, startOff + 1.3, startOff + 2.4, startOff + 4];
+  for (const dist of tryDists) {
+    const p = offsetOnRibbon(s, dist, side);
+    if (!clearsAllRibbonAsphalt(track, p.x, p.z, { selfAlong: along, padding: 0.2 })) continue;
+    return { kind: s.wall, x: p.x, z: p.z, yaw: wallYaw(s, side), side, along };
+  }
+  return null;
+}
+
+function alongDelta(total: number, a: number, b: number): number {
+  const d = Math.abs(a - b);
+  return Math.min(d, total - d);
+}
+
+function fillWallGaps(
+  out: WallPlacement[],
+  start: number,
+  track: BuiltTrack,
+  side: 1 | -1,
+  tireAlong: number,
+  concreteAlong: number,
+  startOff: number,
+): void {
+  const seq = out.slice(start).sort((a, b) => a.along - b.along);
+  if (seq.length < 2) return;
+  const extras: WallPlacement[] = [];
+  for (let i = 0; i < seq.length; i++) {
+    const a = seq[i]!;
+    const b = seq[(i + 1) % seq.length]!;
+    let gap = b.along - a.along;
+    if (gap < 0) gap += track.totalLength;
+    const spacing = a.kind === "tire" ? tireAlong : concreteAlong;
+    if (gap <= spacing * 1.22) continue;
+    const steps = Math.max(1, Math.round(gap / spacing) - 1);
+    for (let k = 1; k <= steps; k++) {
+      const d = (a.along + (gap * k) / (steps + 1)) % track.totalLength;
+      if (seq.some((w) => alongDelta(track.totalLength, w.along, d) < spacing * 0.4)) continue;
+      const s = sampleCenterline(track, d);
+      const pose = wallPoseForSample(track, s, d, side, startOff);
+      if (pose) extras.push(pose);
+    }
+  }
+  if (extras.length) out.splice(start, out.length - start, ...seq, ...extras);
 }
 
 function dropLoopOverlap(
@@ -74,13 +116,21 @@ function dropLoopOverlap(
   start: number,
   tireAlong: number,
   concreteAlong: number,
+  totalLength: number,
 ): void {
   if (out.length - start < 2) return;
-  const first = out[start]!;
-  const last = out[out.length - 1]!;
-  const dist = Math.hypot(first.x - last.x, first.z - last.z);
+  const slice = out.slice(start).sort((a, b) => a.along - b.along);
+  const first = slice[0]!;
+  const last = slice[slice.length - 1]!;
+  let alongGap = first.along - last.along;
+  if (alongGap < 0) alongGap += totalLength;
   const spacing = last.kind === "tire" ? tireAlong : concreteAlong;
-  if (dist < spacing * 0.7) out.pop();
+  if (alongGap > spacing * 1.5) return;
+  const dist = Math.hypot(first.x - last.x, first.z - last.z);
+  if (dist < spacing * 0.7) {
+    const idx = out.findIndex((w, i) => i >= start && w.along === last.along && w.side === last.side);
+    if (idx >= 0) out.splice(idx, 1);
+  }
 }
 
 export function instanceTrackProp(

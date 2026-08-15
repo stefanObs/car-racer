@@ -1,5 +1,6 @@
 import type { BuiltTrack } from "../track/types";
 import { nearestOnTrack, unevenIntensityAt } from "../track/buildTrack";
+import { CORRIDOR_ALONG_WINDOW_M } from "../track/layoutRules";
 
 export type SurfaceZone = "asphalt" | "grass" | "wall";
 
@@ -23,7 +24,9 @@ export function surfaceAt(
   const near = nearestOnTrack(
     track,
     { x, z },
-    preferAlong === undefined ? undefined : { preferAlong },
+    preferAlong === undefined
+      ? undefined
+      : { preferAlong, maxAlongGap: CORRIDOR_ALONG_WINDOW_M },
   );
   const absLat = Math.abs(near.lateral);
   const asphaltEdge = track.asphaltHalfWidth;

@@ -8,6 +8,9 @@ export const RIBBON_MEDIAN_MARGIN_M = 4;
 /** Along-track distance below which samples are the same stretch (not a parallel hop). */
 export const RIBBON_PINCH_MIN_ALONG_GAP_M = 40;
 
+/** Hard corridor: nearest-track may not snap onto a ribbon farther than this. */
+export const CORRIDOR_ALONG_WINDOW_M = 28;
+
 /**
  * Only flat water discs remain procedural (readable beach basins; not a Tripo mesh).
  * dune / lamp / stack were replaced by scrub / towers / spires from the shipped kit.

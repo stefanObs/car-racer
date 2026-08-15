@@ -29,6 +29,7 @@ function onTrackCar(stats: MergedVehicleStats, speed = 0, modelId = "blitz") {
   const p = track.centerline[8]!;
   const n = track.centerline[9]!;
   const heading = Math.atan2(n.z - p.z, n.x - p.x);
+  const along = nearestOnTrack(track, { x: p.x, z: p.z }).distanceAlong;
   const car = createCarState({
     id: "player",
     x: p.x,
@@ -40,6 +41,7 @@ function onTrackCar(stats: MergedVehicleStats, speed = 0, modelId = "blitz") {
     modelId,
     stats,
     speed,
+    distanceAlong: along,
   });
   return { track, car };
 }
@@ -288,6 +290,7 @@ describe("arcade physics — Eigenschaften scaling", () => {
     const ramp = level!.obstacles.find((o) => o.type === "ramp")!;
     const track = buildTrackFromLevel(level!);
     const [ox, oz] = ramp.position;
+    const along = nearestOnTrack(track, { x: ox, z: oz }).distanceAlong;
     const car = createCarState({
       id: "player",
       x: ox,
@@ -300,6 +303,7 @@ describe("arcade physics — Eigenschaften scaling", () => {
       speed: 24,
       vx: 24,
       vz: 0,
+      distanceAlong: along,
     });
     stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, catchUp, level!.obstacles);
     expect(car.y).toBeGreaterThan(0.05);
@@ -351,6 +355,7 @@ describe("arcade physics — Eigenschaften scaling", () => {
           sticker: "none",
           stats: merged("blitz"),
           speed: 24,
+          distanceAlong: (near.distanceAlong - 18 + track.totalLength) % track.totalLength,
         });
         car.vx = Math.cos(heading) * 24;
         car.vz = Math.sin(heading) * 24;
