@@ -49,6 +49,14 @@ describe("cosmetics preview + buy", () => {
     expect(next.previewPaint).toBeNull();
   });
 
+  it("keeps an unowned paint in preview if selected again", () => {
+    const kit = emptyKit("blitz");
+    const once = selectPaintInGarage(kit, "#339af0", null);
+    const again = selectPaintInGarage(kit, "#339af0", once.previewPaint);
+    expect(again.previewPaint).toBe("#339af0");
+    expect(again.paint).toBe("#e03131");
+  });
+
   it("buying a sticker works the same; none stays free", () => {
     const kit = emptyKit("blitz");
     const save = defaultSave();

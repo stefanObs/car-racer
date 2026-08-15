@@ -20,7 +20,7 @@ export function ownsSticker(kit: CarKit, sticker: StickerId): boolean {
   return kit.ownedStickers.includes(sticker);
 }
 
-/** Click a paint: owned → equip; locked → toggle preview (no CHF yet). */
+/** Click a paint: owned → equip; locked → preview (repeat click stays in preview). */
 export function selectPaintInGarage(
   kit: CarKit,
   color: string,
@@ -33,7 +33,7 @@ export function selectPaintInGarage(
   return { paint: kit.paint, previewPaint: color };
 }
 
-/** Click a sticker/nose: owned → equip; locked → toggle preview. */
+/** Click a sticker/nose: owned → equip; locked → preview (repeat click stays in preview). */
 export function selectStickerInGarage(
   kit: CarKit,
   stickerRaw: string,

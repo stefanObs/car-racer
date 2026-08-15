@@ -733,14 +733,4 @@ export class GameApp {
     if (out.render === false) return;
     this.scheduleRenderUi();
   }
-
-  /** Coalesce garage/menu redraws so a pointerup cannot rebuild the panel under the same click. */
-  private scheduleRenderUi(): void {
-    if (this.screen === "race") return;
-    const frame = ++this.uiRenderFrame;
-    queueMicrotask(() => {
-      if (frame !== this.uiRenderFrame) return;
-      this.renderUi();
-    });
-  }
 }

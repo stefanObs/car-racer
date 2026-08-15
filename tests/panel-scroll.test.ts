@@ -15,6 +15,13 @@ describe("panel scroll preserve", () => {
     expect(shouldPreservePanelScroll(null, "garage")).toBe(false);
   });
 
+  it("does not treat the boot placeholder as a garage panel", () => {
+    const root = document.createElement("div");
+    root.innerHTML = `<div class="panel"><h1>Garage</h1><p>Lädt…</p></div>`;
+    expect(panelScreenOf(root)).toBeNull();
+    expect(shouldPreservePanelScroll(panelScreenOf(root), "garage")).toBe(false);
+  });
+
   it("reads and writes .panel scrollTop across an innerHTML rebuild", () => {
     const root = document.createElement("div");
     root.innerHTML = `<div class="panel garage" style="height:40px;overflow:auto">

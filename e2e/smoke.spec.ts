@@ -34,6 +34,7 @@ test.describe("Crash Circuit smoke", () => {
     await expect(page.locator("html")).toHaveAttribute("data-screen", "garage");
     await expect(page.locator("[data-dev-name='garage.wallet']")).toContainText(/CHF|Fr/);
     await expect(page.getByRole("button", { name: /Großer Motor/ })).toBeVisible();
+    await page.getByRole("button", { name: /Großer Motor/ }).click();
     await expect(page.getByRole("button", { name: /Kaufen/ }).first()).toBeVisible();
     await expect(page.getByRole("button", { name: /Blitz Sportwagen/ })).toBeVisible();
 

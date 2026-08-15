@@ -58,6 +58,16 @@ describe("applyMenuAction", () => {
     expect(s.preview.car).toBeNull();
   });
 
+  it("does not rebuild UI when the same locked paint is clicked again", () => {
+    const s = state();
+    const first = applyMenuAction(s, "paint", { color: "#339af0" });
+    expect(first.render).not.toBe(false);
+    expect(s.preview.paint).toBe("#339af0");
+    const second = applyMenuAction(s, "paint", { color: "#339af0" });
+    expect(second.render).toBe(false);
+    expect(s.preview.paint).toBe("#339af0");
+  });
+
   it("normalizes adhoc seeds", () => {
     const s = state();
     applyAdhocSeed(s, "ab");
