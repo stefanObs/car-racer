@@ -24,7 +24,7 @@ import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import type { CarId } from "../data/cars";
 import { ComicPaletteCss } from "./palette";
 
-export type StickerId = "none" | "flames" | "bolt" | "star";
+export type { StickerId } from "../data/stickers";
 
 export type StickerSlot = "side" | "hood" | "door";
 

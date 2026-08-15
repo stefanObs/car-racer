@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CAR_IDS, carUsesNoseVariants } from "../src/data/cars";
 import { CAR_PAINT_BLACK } from "../src/data/paintColors";
+import { STICKER_IDS, sanitizeSticker } from "../src/data/stickers";
 import { displayLap } from "../src/sim/laps";
 
 const SRC = join(dirname(fileURLToPath(import.meta.url)), "../src");
@@ -48,6 +49,11 @@ describe("layer import boundaries", () => {
 
   it("owns garage black paint in data", () => {
     expect(CAR_PAINT_BLACK).toBe("#52545e");
+  });
+
+  it("owns sticker ids in data", () => {
+    expect(STICKER_IDS).toEqual(["none", "flames", "bolt", "star"]);
+    expect(sanitizeSticker("lightning")).toBe("bolt");
   });
 
   it("marks only Käferkraft as nose-variant car", () => {

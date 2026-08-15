@@ -10,13 +10,13 @@ import {
   type Scene,
   type WebGLRenderer,
 } from "three";
-import { CARS, type CarId } from "../data/cars";
-import type { PartId } from "../data/parts";
+import { CARS } from "../data/cars";
 import { createCarState } from "../sim/vehicle";
 import { upgradeCarFx } from "./attachCarFx";
 import { buildComicCar } from "./comicCarMesh";
 import { disposeObject } from "./comicMaterials";
 import { carPartTemplatesReady, ensureCarPartTemplates, garageLookCacheKey } from "./carParts";
+import type { GarageLook } from "./garageLook";
 import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
 import {
   applyGarageDragOrbit,
@@ -30,12 +30,7 @@ import {
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
 import { carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
 
-export type GarageLook = {
-  paint: string;
-  sticker: string;
-  modelId: CarId;
-  equippedParts?: readonly PartId[];
-};
+export type { GarageLook } from "./garageLook";
 
 export type GaragePresenterHost = {
   scene: Scene;

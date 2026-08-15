@@ -1,15 +1,9 @@
-import type { CarId } from "../data/cars";
-import type { PartId } from "../data/parts";
 import type { RaceSession } from "../sim/race";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { RaceRenderer } from "./RaceRenderer";
+import type { GarageLook } from "./garageLook";
 
-export type GarageLook = {
-  paint: string;
-  sticker: string;
-  modelId: CarId;
-  equippedParts?: readonly PartId[];
-};
+export type { GarageLook } from "./garageLook";
 
 export type GameRenderer = {
   buildTrack: (session: RaceSession) => void;
