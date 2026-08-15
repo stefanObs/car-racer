@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Käferkraft Leichtbau: keep thin side panels on mesh +X (right when looking from
- * behind after yaw π/2), drop chunky mass, mirror the good panels to −X, sit on y=0.
+ * Käferkraft Leichtbau: keep thin outer hole flanks on mesh +X (→ car ±Z after
+ * yaw π/2), drop chunky interior mass, mirror to −X, sit on y=0.
+ * Nose/hood plates need a different yaw — not included in this kit mesh.
  *
  *   node scripts/fix-kaeferkraft-lightweight.mjs
  */
@@ -70,18 +71,26 @@ for (let i = 0; i < nV; i++) {
   }
 }
 
-/** One outer slim flank (mesh +X); mirror to −X. Extra near-duplicate plates read as chunky. */
-const keepRoot = new Set();
-let best = null;
-for (const [root, g] of comps) {
+const listed = [...comps.entries()].map(([root, g]) => {
   const size = g.min.map((m, i) => g.max[i] - m);
   const center = g.min.map((m, i) => (m + g.max[i]) / 2);
-  const outerRight = center[0] >= 0.55;
-  const slimFlank = size[0] < 0.08 && size[2] > 1.0 && size[1] < 0.35 && g.verts >= 20;
-  if (!outerRight || !slimFlank) continue;
-  if (!best || g.verts > best.verts) best = { root, verts: g.verts };
+  return { root, verts: g.verts, size, center };
+});
+
+/** Outer side-rail flanks (slightly thicker than a single paper plate). */
+function isRightFlank(c) {
+  return (
+    c.center[0] >= 0.55 &&
+    c.size[0] < 0.14 &&
+    c.size[2] > 0.75 &&
+    c.size[1] < 0.4 &&
+    c.verts >= 20
+  );
 }
-if (best) keepRoot.add(best.root);
+
+const keepRoot = new Set();
+const rightFlanks = listed.filter(isRightFlank).sort((a, b) => b.verts - a.verts);
+for (const c of rightFlanks.slice(0, 2)) keepRoot.add(c.root);
 
 const keepVert = new Set();
 for (let i = 0; i < nV; i++) {
@@ -189,12 +198,23 @@ await doc.transform(weld(), dedup(), prune());
 await io.write(glbPath, doc);
 
 let maxY = 0;
-for (let i = 1; i < outPos.length; i += 3) maxY = Math.max(maxY, outPos[i]);
+minX = Infinity;
+maxX = -Infinity;
+minZ = Infinity;
+maxZ = -Infinity;
+for (let i = 0; i < outPos.length; i += 3) {
+  maxY = Math.max(maxY, outPos[i + 1]);
+  minX = Math.min(minX, outPos[i]);
+  maxX = Math.max(maxX, outPos[i]);
+  minZ = Math.min(minZ, outPos[i + 2]);
+  maxZ = Math.max(maxZ, outPos[i + 2]);
+}
 console.log(
   JSON.stringify(
     {
       source: sourcePath,
       keptComponents: keepRoot.size,
+      rightFlanks: rightFlanks.length,
       keptFaces: keptFaces.length,
       droppedFaces: dropped,
       outVerts: outPos.length / 3,

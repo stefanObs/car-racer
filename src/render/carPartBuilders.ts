@@ -9,6 +9,7 @@ import {
   Group,
   Mesh,
   type Object3D,
+  Vector3,
 } from "three";
 import { comicToon } from "./comicMaterials";
 import { ComicPalette } from "./palette";
@@ -159,6 +160,39 @@ export function buildBrakeUnit(caliperColor: number = CALIPER_RED): Group {
   return g;
 }
 
+function addStraightPole(
+  parent: Group,
+  a: readonly [number, number, number],
+  b: readonly [number, number, number],
+  radius: number,
+  color: number,
+  name: string,
+): void {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const dz = b[2] - a[2];
+  const len = Math.hypot(dx, dy, dz);
+  const mesh = cyl(radius, radius, len, color, name, 8);
+  mesh.position.set((a[0] + b[0]) / 2, (a[1] + b[1]) / 2, (a[2] + b[2]) / 2);
+  mesh.quaternion.setFromUnitVectors(new Vector3(0, 1, 0), new Vector3(dx, dy, dz).normalize());
+  parent.add(mesh);
+}
+
+type PoleEnd = readonly [number, number, number];
+
+/** Push both endpoints along the segment so they pierce the stock cage joints. */
+function extendPoleEnds(a: PoleEnd, b: PoleEnd, extra: number): [PoleEnd, PoleEnd] {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const dz = b[2] - a[2];
+  const len = Math.hypot(dx, dy, dz);
+  const s = extra / len;
+  return [
+    [a[0] - dx * s, a[1] - dy * s, a[2] - dz * s],
+    [b[0] + dx * s, b[1] + dy * s, b[2] + dz * s],
+  ];
+}
+
 /** Sill plates + rear half-cage / hoop — class-specific silhouettes. */
 export function buildReinforcedFrame(
   style: "sport" | "pickup" | "buggy" | "hotrod" | "armor" = "sport",
@@ -166,20 +200,30 @@ export function buildReinforcedFrame(
   const g = new Group();
   g.name = "proc-reinforced_frame";
   if (style === "buggy") {
-    for (const z of [-0.55, 0.55]) {
-      const rail = cyl(0.04, 0.04, 1.6, CARBON, "CageRail", 6);
-      rail.rotation.z = Math.PI / 2;
-      rail.position.set(0, 0.55, z);
-      g.add(rail);
+    // Same spec as scripts/bake-kaeferkraft-pole-frame.mjs (stock cage r ≈ 0.025).
+    const r = 0.025;
+    const into = 0.08;
+    const sideZ = 0.43;
+    const waistZ = 0.7;
+    const waistY = 1.14;
+    for (const side of [-1, 1] as const) {
+      const z = sideZ * side;
+      addStraightPole(
+        g,
+        ...extendPoleEnds([-0.48, waistY, waistZ * side], [0.5, waistY, waistZ * side], into),
+        r,
+        GREY,
+        "Waist",
+      );
+      addStraightPole(g, ...extendPoleEnds([0.48, 1.54, z], [-0.5, 0.8, z], into), r, GREY, "XRearToDash");
+      addStraightPole(
+        g,
+        ...extendPoleEnds([0.48, 1.54, z], [1.36, 0.7, Math.sign(z) * 0.36], into),
+        r,
+        GREY,
+        "RearStay",
+      );
     }
-    const cross = cyl(0.04, 0.04, 1.1, CARBON, "CageCross", 6);
-    cross.rotation.x = Math.PI / 2;
-    cross.position.set(0.2, 0.85, 0);
-    g.add(cross);
-    const diag = cyl(0.035, 0.035, 0.9, CARBON, "CageDiag", 6);
-    diag.rotation.set(0.4, 0, Math.PI / 2.5);
-    diag.position.set(0.05, 0.7, 0.35);
-    g.add(diag);
     return g;
   }
   if (style === "pickup") {

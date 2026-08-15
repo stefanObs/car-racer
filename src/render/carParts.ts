@@ -74,7 +74,8 @@ export function bisonBigWheelHubDrop(scale = BISON_BIG_WHEEL_SCALE): number {
 
 /** Käferkraft Tripo StockWheel_* (axle along local Z; radius from bake AABB). */
 export const KAEFERKRAFT_STOCK_WHEEL_RADIUS = 0.41;
-export const KAEFERKRAFT_BIG_WHEEL_SCALE = 1.3;
+/** Same clear size jump as Bison Große Räder. */
+export const KAEFERKRAFT_BIG_WHEEL_SCALE = 1.35;
 export function kaeferkraftBigWheelHubDrop(scale = KAEFERKRAFT_BIG_WHEEL_SCALE): number {
   if (scale <= 1) return 0;
   return KAEFERKRAFT_STOCK_WHEEL_RADIUS * (scale - 1);
@@ -335,29 +336,56 @@ function layoutKaeferkraft(): CarVisualLayout {
     brakes: [],
     springs: [],
     // Große Räder scales Tripo StockWheel_* — no procedural overlays.
+    // Gelände-Federung is shop/stats-only (empty springs = no coil art).
     wheelHints: [],
     big_engine: {
-      // Look sheet panel 1: fat block on open rear deck; scoop clears top cage tubes.
-      anchors: [{ x: 1.28, y: 0.95, z: 0, yaw: 0, scale: 1.35, scaleY: 1.5, snap: false }],
-      build: () => buildRearEngineBlock(),
+      // Blitz scoop, tip local +Z → yaw −π/2 toward nose (−X). Sit on the teal
+      // hood aft of the nose cavity (the two round intakes). Pitch 0 keeps it
+      // body-aligned; Y in the deck so the red flange is only a lip.
+      anchors: [
+        {
+          x: -0.88,
+          y: 0.5,
+          z: 0,
+          yaw: -Math.PI / 2,
+          pitch: 0,
+          scale: 0.72,
+          snap: false,
+        },
+      ],
+      build: () => buildHoodScoop("triple"),
       preferGlb: true,
     },
     spike_bumper: {
       // Spikes local +Z → yaw −π/2 toward nose (−X). Sit on front crossbar.
-      anchors: [{ x: -1.52, y: 0.42, z: 0, yaw: -Math.PI / 2, scale: 0.45, snap: false }],
+      // Bigger than 0.45; mesh |Z| half (0.555×scale) stays under big-wheel tire inners (~0.52).
+      anchors: [{ x: -1.55, y: 0.45, z: 0, yaw: -Math.PI / 2, scale: 0.85, snap: false }],
       build: () => buildSpikeBumper(4, 1.2),
       preferGlb: true,
       tint: 0x2c3136,
     },
     reinforced_frame: {
-      // Fills StockCage slot; nudged toward nose (−X) so Tripo cage sits over seats.
-      anchors: [{ x: 0.0, y: 0.55, z: 0, yaw: Math.PI / 2, scale: 1.5, scaleY: 1.35, snap: false }],
+      // Straight pole kit is authored in mesh space (nose −X).
+      anchors: [{ x: 0, y: 0, z: 0, yaw: 0, scale: 1, snap: false }],
       build: () => buildReinforcedFrame("buggy"),
       preferGlb: true,
+      tint: 0x8b929a,
     },
     lightweight_body: {
-      // Single hole flank mirrored onto both blue rails (fix-kaeferkraft-lightweight).
-      anchors: [{ x: 0, y: 0.88, z: 0, yaw: Math.PI / 2, scale: 1.35, snap: false }],
+      // Hole flanks on outer BodyPaint rails (mesh ±X → mesh ±Z after yaw π/2).
+      // Target |z|≈0.90 (paint flare), y≈0.50…0.95 — not inset at 0.72 / floating at y0.88.
+      anchors: [
+        {
+          x: 0.2,
+          y: 0.5,
+          z: 0,
+          yaw: Math.PI / 2,
+          scale: 1.12,
+          scaleY: 1.35,
+          scaleZ: 1.5,
+          snap: false,
+        },
+      ],
       build: () => buildLightweightBody("holes"),
       preferGlb: true,
       tint: 0x22b8cf,
@@ -369,8 +397,8 @@ function layoutKaeferkraft(): CarVisualLayout {
       preferGlb: true,
     },
     rear_spoiler: {
-      // Heckspoiler on rearmost top cage tube (look sheet panel 9) — aft of cabin, above cage.
-      anchors: [{ x: 0.95, y: 1.7, z: 0, yaw: -Math.PI / 2, scale: 1.05, snap: false }],
+      // Compact Tripo wing: feet slightly into the aft teal lip (triangle top ~y1.025).
+      anchors: [{ x: 1.55, y: 1.0, z: 0, yaw: -Math.PI / 2, scale: 1.08, snap: false }],
       build: () => buildRearSpoiler("tall"),
       preferGlb: true,
     },
@@ -534,6 +562,10 @@ export function partGlbUrl(carId: CarId, partId: BlitzPartMeshId): string {
   if (carId === "bison" && partId === "offroad_suspension") {
     return PART_URLS.offroad_suspension;
   }
+  // Käferkraft Großer Motor reuses Blitz hood scoop (front mount, not rear block).
+  if (carId === "kaeferkraft" && partId === "big_engine") {
+    return PART_URLS.big_engine;
+  }
   return `/models/parts/${carId}-${partId}.glb`;
 }
 
@@ -608,6 +640,10 @@ export function ensureCarPartTemplates(carId: CarId): Promise<void> {
         if (id !== "offroad_suspension" && CAR_PART_LAYOUTS[carId][id].preferGlb === false) {
           return;
         }
+        // Stats-only Gelände-Federung (Käferkraft): no spring anchors → no kit fetch.
+        if (id === "offroad_suspension" && CAR_PART_LAYOUTS[carId].springs.length === 0) {
+          return;
+        }
         try {
           const gltf = await loader.loadAsync(partGlbUrl(carId, id));
           const root = gltf.scene;
@@ -655,9 +691,12 @@ function toonifyPart(root: Object3D, fallbackName: string): void {
     const next = mats.map((m) => {
       const std = m as MeshToonMaterial & { map?: Texture | null; name?: string };
       const name = (std.name || fallbackName).toLowerCase();
-      // Chrome without a map → flat silver; with a map keep white so albedo stays neutral.
       const chrome = name.includes("chrome") || name.includes("metal");
-      const toon = comicToon(chrome && !std.map ? 0xdce2e8 : 0xffffff);
+      const grey = name.includes("grey") || name.includes("gray");
+      let fill = 0xffffff;
+      if (chrome && !std.map) fill = 0xdce2e8;
+      else if (grey && !std.map) fill = 0x8b929a;
+      const toon = comicToon(fill);
       toon.name = std.name || fallbackName;
       if (std.map) {
         const map = std.map;

@@ -1,4 +1,15 @@
-/** Dev-only helpers for F1–F5 cheats (not player-facing). */
+/** Dev-only helpers for F1–F6 cheats (not player-facing). */
+
+/** Hides garage/HUD chrome so agents can screenshot the 3D canvas alone. */
+export const PHOTO_MODE_CLASS = "dev-photo-mode";
+
+export function applyPhotoMode(target: Element, on: boolean): void {
+  target.classList.toggle(PHOTO_MODE_CLASS, on);
+}
+
+export function isPhotoMode(target: Element): boolean {
+  return target.classList.contains(PHOTO_MODE_CLASS);
+}
 
 export function parseChfAmount(raw: string): number | null {
   const cleaned = raw.replace(/[^\d]/g, "");

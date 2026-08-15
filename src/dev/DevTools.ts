@@ -1,6 +1,6 @@
 import type { CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
-import { assignDevNames, clampFinishPlace, parseChfAmount } from "./cheats";
+import { applyPhotoMode, assignDevNames, clampFinishPlace, isPhotoMode, parseChfAmount } from "./cheats";
 import { allPartsForCar, renderDevPartsPanelHtml, toggleEquippedPart } from "./partsPanel";
 
 export type DevDialog = "none" | "money" | "finish" | "parts";
@@ -19,8 +19,13 @@ type DevHooks = {
   setEquippedParts: (parts: PartId[]) => void;
 };
 
+type PhotoModeWindow = Window & {
+  __ccPhotoMode?: boolean;
+  __ccSetPhotoMode?: (on: boolean) => void;
+};
+
 /**
- * F1 name overlay, F2 CHF setter, F3 force-finish place picker, F4 raster pad, F5 Teile.
+ * F1 name overlay, F2 CHF setter, F3 force-finish place picker, F4 raster pad, F5 Teile, F6 Foto.
  * Mounts outside the main UI so GameApp re-renders do not wipe dialogs.
  */
 export class DevTools {
@@ -38,6 +43,15 @@ export class DevTools {
     this.root.dataset.devName = "#dev-root";
     host.appendChild(this.root);
     window.addEventListener("keydown", (e) => this.onKeyDown(e));
+    const w = window as PhotoModeWindow;
+    w.__ccSetPhotoMode = (on) => this.setPhotoMode(on);
+    w.__ccPhotoMode = isPhotoMode(document.documentElement);
+    this.render();
+  }
+
+  setPhotoMode(on: boolean): void {
+    applyPhotoMode(document.documentElement, on);
+    (window as PhotoModeWindow).__ccPhotoMode = on;
     this.render();
   }
 
@@ -96,10 +110,21 @@ export class DevTools {
       e.preventDefault();
       this.dialog = this.dialog === "parts" ? "none" : "parts";
       this.render();
+      return;
+    }
+    if (e.code === "F6") {
+      e.preventDefault();
+      this.setPhotoMode(!isPhotoMode(document.documentElement));
+      return;
+    }
+    if (e.code === "Escape" && isPhotoMode(document.documentElement)) {
+      e.preventDefault();
+      this.setPhotoMode(false);
     }
   }
 
   private render(): void {
+    const photo = isPhotoMode(document.documentElement) ? "F6 Foto AN" : "F6 Foto";
     const badge = this.showNames ? "F1 Namen AN" : "F1 Namen AUS";
     let dialog = "";
     if (this.dialog === "money") {
@@ -137,7 +162,7 @@ export class DevTools {
     }
 
     this.root.innerHTML = `
-      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster · F5 Teile</div>
+      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster · F5 Teile · ${photo}</div>
       ${dialog}
     `;
     this.root.querySelector("[data-dev-close]")?.addEventListener("click", () => {

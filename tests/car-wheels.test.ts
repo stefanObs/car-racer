@@ -1,8 +1,9 @@
 import { existsSync, readFileSync } from "node:fs";
 import { Box3, BoxGeometry, BufferGeometry, Float32BufferAttribute, Group, Mesh, MeshBasicMaterial, MeshToonMaterial } from "three";
 import { describe, expect, it } from "vitest";
-import { CAR_IDS, type CarId } from "../src/data/cars";
+import { CAR_IDS, CARS, type CarId } from "../src/data/cars";
 import { carSupportsPart, partsForCar } from "../src/data/partsCatalog";
+import { mergeStats } from "../src/data/parts";
 import { buildUpgradeWheel } from "../src/render/carPartBuilders";
 import {
   applyEquippedPartVisuals,
@@ -37,19 +38,32 @@ import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 
 describe("parts catalog (per-car)", () => {
-  it("keeps Gelände-Federung on Blitz and Bison (Blitz Tripo springs)", () => {
+  it("keeps Gelände-Federung on Blitz/Bison (Tripo springs) and Käferkraft (stats-only)", () => {
     expect(carSupportsPart("blitz", "offroad_suspension")).toBe(true);
     expect(carSupportsPart("bison", "offroad_suspension")).toBe(true);
+    expect(carSupportsPart("kaeferkraft", "offroad_suspension")).toBe(true);
     expect(existsSync("public/models/parts/blitz-offroad_suspension.glb")).toBe(true);
     expect(partsForCar("bison")).toContain("offroad_suspension");
+    expect(partsForCar("kaeferkraft")).toContain("offroad_suspension");
     expect(CAR_PART_LAYOUTS.bison.springs).toHaveLength(4);
+    expect(CAR_PART_LAYOUTS.kaeferkraft.springs).toHaveLength(0);
     expect(partGlbUrl("bison", "offroad_suspension")).toBe("/models/parts/blitz-offroad_suspension.glb");
     for (const id of CAR_IDS as CarId[]) {
-      if (id === "blitz" || id === "bison") continue;
+      if (id === "blitz" || id === "bison" || id === "kaeferkraft") continue;
       expect(carSupportsPart(id, "offroad_suspension")).toBe(false);
       expect(partsForCar(id)).not.toContain("offroad_suspension");
       expect(CAR_PART_LAYOUTS[id].springs).toHaveLength(0);
     }
+  });
+
+  it("Käferkraft Gelände-Federung applies stats without mounting spring art", () => {
+    const root = new Group();
+    applyEquippedPartVisuals(root, "kaeferkraft", ["offroad_suspension"]);
+    expect(root.getObjectByName(blitzPartObjectName("offroad_suspension"))).toBeUndefined();
+    expect(carStanceLift("kaeferkraft", ["offroad_suspension"])).toBe(0);
+    const bare = mergeStats(CARS.kaeferkraft.stats, []);
+    const tuned = mergeStats(CARS.kaeferkraft.stats, ["offroad_suspension"]);
+    expect(tuned.suspension).toBeGreaterThan(bare.suspension);
   });
 
   it("drops Bessere Bremsen on Blitz, Bison, Käferkraft, and Bunker; keeps big_wheels on every car", () => {
@@ -131,7 +145,57 @@ describe("stock wheels + Große Räder", () => {
     expect(names).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
   });
 
-  it("ships Käferkraft with Tripo-segmented StockWheel_* + StockCage (comic tire albedo)", async () => {
+  it("Käferkraft BodyPaint keeps chassis after wheel punch", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/kaeferkraft.glb"),
+    );
+    let bodyFaces = 0;
+    let cabinInboard = 0;
+    let outboard = 0;
+    let roofRail = 0;
+    for (const mesh of doc.getRoot().listMeshes()) {
+      if (mesh.getName()?.startsWith("StockWheel_")) continue;
+      for (const prim of mesh.listPrimitives()) {
+        if (prim.getMaterial()?.getName() !== "BodyPaint") continue;
+        const pos = prim.getAttribute("POSITION")!;
+        const idx = prim.getIndices();
+        if (!pos || !idx) continue;
+        for (let t = 0; t < idx.getCount() / 3; t++) {
+          const a = pos.getElement(idx.getScalar(t * 3), []);
+          const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
+          const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
+          const cy = (a[1]! + b[1]! + c[1]!) / 3;
+          const cz = (a[2]! + b[2]! + c[2]!) / 3;
+          const cx = (a[0]! + b[0]! + c[0]!) / 3;
+          bodyFaces++;
+          if (cy >= 0.7 && cy < 1.2 && Math.abs(cz) < 0.5) cabinInboard++;
+          if (Math.abs(cz) >= 0.55) outboard++;
+          if (cy >= 1.25 && cy <= 1.65 && Math.abs(cx) < 0.55 && Math.abs(cz) >= 0.35 && Math.abs(cz) <= 0.65) {
+            roofRail++;
+          }
+        }
+      }
+    }
+    // Pre-split ~13264; punch the full tire cylinder so Große Räder has no leftover shell.
+    expect(bodyFaces).toBeGreaterThan(7200);
+    expect(cabinInboard).toBeGreaterThan(2000);
+    expect(outboard).toBeGreaterThan(900);
+    expect(roofRail).toBeGreaterThan(80);
+    for (const mesh of doc.getRoot().listMeshes()) {
+      const name = mesh.getName() ?? "";
+      if (!name.startsWith("StockWheel_")) continue;
+      const verts = mesh.listPrimitives().reduce((n, p) => n + (p.getAttribute("POSITION")?.getCount() ?? 0), 0);
+      const faces = mesh.listPrimitives().reduce((n, p) => {
+        const idx = p.getIndices();
+        return n + (idx ? idx.getCount() / 3 : 0);
+      }, 0);
+      expect(verts, name).toBeGreaterThan(1400);
+      expect(verts, name).toBeLessThan(2800);
+      expect(faces, name).toBeGreaterThan(800);
+    }
+  });
+
+  it("ships Käferkraft with Tripo-segmented StockWheel_* (original buggy tires)", async () => {
     expect(existsSync("scripts/bake-kaeferkraft-segmented-parts.mjs")).toBe(true);
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
       resolve("public/models/cars/kaeferkraft.glb"),
@@ -140,68 +204,119 @@ describe("stock wheels + Große Räder", () => {
       .getRoot()
       .listNodes()
       .map((n) => n.getName())
-      .filter((n) => n?.startsWith("StockWheel_") || n === "StockCage")
+      .filter((n) => n?.startsWith("StockWheel_"))
       .sort();
-    expect(names).toEqual([
-      "StockCage",
-      "StockWheel_FL",
-      "StockWheel_FR",
-      "StockWheel_RL",
-      "StockWheel_RR",
-    ]);
+    expect(names).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
+    expect(doc.getRoot().listNodes().some((n) => n.getName() === "StockCage")).toBe(false);
+    const bodyPaint = doc.getRoot().listMaterials().find((m) => m.getName() === "BodyPaint");
+    const bodyTex = bodyPaint?.getBaseColorTexture();
+    expect(bodyTex).toBeTruthy();
     for (const mesh of doc.getRoot().listMeshes()) {
       const name = mesh.getName() ?? "";
       if (!name.startsWith("StockWheel_")) continue;
+      expect(mesh.listPrimitives().length, name).toBeGreaterThanOrEqual(1);
       expect(mesh.listPrimitives().every((p) => p.getMaterial()?.getName() === "Tire"), name).toBe(true);
       expect(
         mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
         name,
       ).toBe(true);
-      // Comic face disks (33 verts) + rubber with annulus UVs.
-      const face = mesh.listPrimitives().find((p) => p.getAttribute("TEXCOORD_0")?.getCount() === 33);
-      expect(face, name).toBeTruthy();
-    }
-    const cage = doc.getRoot().listMeshes().find((m) => m.getName() === "StockCage");
-    expect(cage).toBeTruthy();
-    expect(cage!.listPrimitives().every((p) => p.getMaterial()?.getName() === "StockCage")).toBe(true);
-    // Same Tripo body atlas as pre-segmentation (not flat grey).
-    const bodyPaint = doc.getRoot().listMaterials().find((m) => m.getName() === "BodyPaint");
-    const bodyTex = bodyPaint?.getBaseColorTexture();
-    expect(bodyTex).toBeTruthy();
-    for (const prim of cage!.listPrimitives()) {
-      const mat = prim.getMaterial();
-      expect(mat?.getBaseColorTexture(), "StockCage atlas").toBeTruthy();
-      expect(prim.getAttribute("TEXCOORD_0"), "StockCage UV").toBeTruthy();
-      const img = mat?.getBaseColorTexture()?.getImage();
-      expect(img?.byteLength, "StockCage atlas bytes").toBe(bodyTex!.getImage()!.byteLength);
-      // Valid JPEG/PNG — a corrupted atlas loads as flat grey in Three.js.
-      const head = img ? [...img.slice(0, 3)] : [];
-      const jpeg = head[0] === 0xff && head[1] === 0xd8;
-      const png = head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e;
-      expect(jpeg || png, "StockCage atlas magic").toBe(true);
-    }
-
-    // Front-right roof rail must remount (was filtered as "too thick" → visible hole).
-    let fr = 0;
-    let fl = 0;
-    for (const prim of cage!.listPrimitives()) {
-      const pos = prim.getAttribute("POSITION")!;
-      const idx = prim.getIndices();
-      if (!pos || !idx) continue;
-      for (let t = 0; t < idx.getCount() / 3; t++) {
-        const a = pos.getElement(idx.getScalar(t * 3), []);
-        const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
-        const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
-        const cx = (a[0]! + b[0]! + c[0]!) / 3;
-        const cy = (a[1]! + b[1]! + c[1]!) / 3;
-        const cz = (a[2]! + b[2]! + c[2]!) / 3;
-        if (cy < 1.25 || cy > 1.65 || cx < -0.45 || cx > 0.55) continue;
-        if (cz >= 0.35 && cz <= 0.65) fr++;
-        if (cz <= -0.35 && cz >= -0.65) fl++;
+      // Segment tire atlas + UVs — not Bison comic face disks (33 verts).
+      expect(
+        mesh.listPrimitives().some((p) => p.getAttribute("TEXCOORD_0")?.getCount() === 33),
+        name,
+      ).toBe(false);
+      const rubberVerts = mesh
+        .listPrimitives()
+        .map((p) => p.getAttribute("POSITION")?.getCount() ?? 0)
+        .reduce((a, b) => Math.max(a, b), 0);
+      expect(rubberVerts, `${name} rubber`).toBeGreaterThan(1400);
+      for (const prim of mesh.listPrimitives()) {
+        expect(prim.getAttribute("TEXCOORD_0"), `${name} UV`).toBeTruthy();
+        const img = prim.getMaterial()?.getBaseColorTexture()?.getImage();
+        const verts = prim.getAttribute("POSITION")?.getCount() ?? 0;
+        expect(img?.byteLength, `${name} atlas`).toBeGreaterThan(verts > 800 ? 20_000 : 200);
+        const head = img ? [...img.slice(0, 3)] : [];
+        const jpeg = head[0] === 0xff && head[1] === 0xd8;
+        const png = head[0] === 0x89 && head[1] === 0x50 && head[2] === 0x4e;
+        expect(jpeg || png, `${name} atlas magic`).toBe(true);
       }
     }
-    expect(fr).toBeGreaterThan(40);
-    expect(fr).toBeGreaterThanOrEqual(fl * 0.55);
+    // Welded stock tires must be punched out of BodyPaint — otherwise Große Räder
+    // scales StockWheel_* on top of leftover small wheels.
+    const hubs = doc
+      .getRoot()
+      .listNodes()
+      .filter((n) => n.getName()?.startsWith("StockWheel_"))
+      .map((n) => {
+        const mesh = n.getMesh()!;
+        let min = [Infinity, Infinity, Infinity];
+        let max = [-Infinity, -Infinity, -Infinity];
+        let rubberVerts = 0;
+        for (const prim of mesh.listPrimitives()) {
+          const pos = prim.getAttribute("POSITION")!;
+          const count = pos.getCount();
+          if (count <= rubberVerts) continue;
+          rubberVerts = count;
+          min = [Infinity, Infinity, Infinity];
+          max = [-Infinity, -Infinity, -Infinity];
+          for (let i = 0; i < count; i++) {
+            const v = pos.getElement(i, []);
+            for (let k = 0; k < 3; k++) {
+              min[k] = Math.min(min[k]!, v[k]!);
+              max[k] = Math.max(max[k]!, v[k]!);
+            }
+          }
+        }
+        const t = n.getTranslation();
+        return {
+          name: n.getName(),
+          cx: t[0]! + (min[0]! + max[0]!) / 2,
+          cy: t[1]! + (min[1]! + max[1]!) / 2,
+          cz: t[2]! + (min[2]! + max[2]!) / 2,
+          hx: (max[0]! - min[0]!) / 2,
+          hy: (max[1]! - min[1]!) / 2,
+          hz: (max[2]! - min[2]!) / 2,
+        };
+      });
+    const leftover: Record<string, number> = {};
+    const hubTube: Record<string, number> = {};
+    for (const h of hubs) {
+      leftover[h.name!] = 0;
+      hubTube[h.name!] = 0;
+    }
+    for (const mesh of doc.getRoot().listMeshes()) {
+      if (mesh.getName()?.startsWith("StockWheel_")) continue;
+      for (const prim of mesh.listPrimitives()) {
+        if (prim.getMaterial()?.getName() !== "BodyPaint") continue;
+        const pos = prim.getAttribute("POSITION")!;
+        const idx = prim.getIndices();
+        if (!pos || !idx) continue;
+        for (let t = 0; t < idx.getCount() / 3; t++) {
+          const a = pos.getElement(idx.getScalar(t * 3), []);
+          const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
+          const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
+          const cx = (a[0]! + b[0]! + c[0]!) / 3;
+          const cy = (a[1]! + b[1]! + c[1]!) / 3;
+          const cz = (a[2]! + b[2]! + c[2]!) / 3;
+          for (const h of hubs) {
+            const dx = cx - h.cx;
+            const dy = cy - h.cy;
+            const dz = cz - h.cz;
+            if (Math.abs(dx) <= h.hx && Math.abs(dy) <= h.hy && Math.abs(dz) <= h.hz) {
+              leftover[h.name!]! += 1;
+            }
+            const radial = dx * dx + dy * dy;
+            if (radial <= (h.hx * 0.55) ** 2 && Math.abs(dz) <= 0.3) {
+              hubTube[h.name!]! += 1;
+            }
+          }
+        }
+      }
+    }
+    for (const h of hubs) {
+      expect(leftover[h.name!], `${h.name} BodyPaint leftover`).toBeLessThan(40);
+      expect(hubTube[h.name!], `${h.name} inner hub leftover`).toBeLessThan(40);
+    }
   });
 
   it("ships other cars without StockWheel_* (tires still welded)", async () => {
@@ -260,6 +375,7 @@ describe("stock wheels + Große Räder", () => {
 
   it("Käferkraft Große Räder scales StockWheel_* instead of procedural tires", () => {
     expect(CAR_PART_LAYOUTS.kaeferkraft.wheelHints).toHaveLength(0);
+    expect(KAEFERKRAFT_BIG_WHEEL_SCALE).toBeCloseTo(BISON_BIG_WHEEL_SCALE);
     const root = new Group();
     for (const corner of ["FL", "FR", "RL", "RR"] as const) {
       const stock = new Mesh(new BoxGeometry(0.35, 0.8, 0.8), new MeshBasicMaterial());
@@ -268,6 +384,8 @@ describe("stock wheels + Große Räder", () => {
       stock.position.y = KAEFERKRAFT_STOCK_WHEEL_RADIUS;
       root.add(stock);
     }
+    applyStockPartVisibility(root, "kaeferkraft", []);
+    expect(root.children[0]!.scale.x).toBeCloseTo(1);
     applyStockPartVisibility(root, "kaeferkraft", ["big_wheels"]);
     expect(root.children[0]!.scale.x).toBeCloseTo(KAEFERKRAFT_BIG_WHEEL_SCALE);
     expect(root.children[0]!.position.y).toBeCloseTo(
@@ -491,5 +609,32 @@ describe("StockWheel spin + front steer", () => {
     expect(fl.scale.x).toBeCloseTo(BISON_BIG_WHEEL_SCALE);
     expect(fl.position.y).toBeCloseTo(0);
     expect(root.getObjectByName("WheelSteer_FL")!.position.y).toBeCloseTo(beforeY);
+  });
+
+  it("Käferkraft Große Räder keeps scale after mount like Bison", () => {
+    const root = new Group();
+    for (const [name, x, y, z] of [
+      ["StockWheel_FL", -1.23, KAEFERKRAFT_STOCK_WHEEL_RADIUS, -0.79],
+      ["StockWheel_FR", -1.18, KAEFERKRAFT_STOCK_WHEEL_RADIUS, 0.77],
+      ["StockWheel_RL", 1.21, KAEFERKRAFT_STOCK_WHEEL_RADIUS, -0.78],
+      ["StockWheel_RR", 1.2, KAEFERKRAFT_STOCK_WHEEL_RADIUS, 0.78],
+    ] as const) {
+      // Thin Z = axle (Käferkraft bake), wide XY = tire disk.
+      const mesh = new Mesh(new BoxGeometry(0.82, 0.82, 0.38), new MeshBasicMaterial({ name: "Tire" }));
+      mesh.name = name;
+      mesh.userData.isStockWheel = true;
+      mesh.position.set(x, y, z);
+      root.add(mesh);
+    }
+    applyEquippedPartVisuals(root, "kaeferkraft", ["big_wheels"]);
+    const beforeY = root.getObjectByName("StockWheel_FL")!.position.y;
+    expect(beforeY).toBeCloseTo(KAEFERKRAFT_STOCK_WHEEL_RADIUS - kaeferkraftBigWheelHubDrop());
+    const wheels = mountCarWheels(root);
+    expect(wheels).toHaveLength(4);
+    const fl = root.getObjectByName("StockWheel_FL")!;
+    expect(fl.scale.x).toBeCloseTo(KAEFERKRAFT_BIG_WHEEL_SCALE);
+    expect(fl.position.y).toBeCloseTo(0);
+    expect(root.getObjectByName("WheelSteer_FL")!.position.y).toBeCloseTo(beforeY);
+    expect(wheels.find((w) => w.spinner.name === "WheelSpin_FL")!.axis).toBe(2);
   });
 });

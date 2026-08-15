@@ -32,7 +32,7 @@ Full CLI / path cookbook: [pipeline.md](pipeline.md).
 
 | Prefer Tripo (required on cars) | Prefer procedural (`carPartBuilders.ts`) |
 |--------------|------------------------------------------|
-| Full cars, FX blobs, track walls, garage props | `better_brakes` calipers; `big_wheels` procedural overlays (except Bison: Tripo-segmented `StockWheel_*` scaled for Große Räder) |
+| Full cars, FX blobs, track walls, garage props | `better_brakes` calipers; `big_wheels` procedural overlays (except Bison / Käferkraft: Tripo-segmented `StockWheel_*` scaled for Große Räder) |
 | Silhouette Teile: `big_engine`, `spike_bumper`, `nitro_kit`, `rear_spoiler`, `reinforced_frame`, `lightweight_body` | Load-time fallback if a GLB failed to load (never leave `preferGlb: false` once a kit ships); `better_brakes` calipers; procedural `big_wheels` where stock tires stay welded |
 | Per-class kits matching parts-look sheets | Temporary authoring only until bake lands — then flip `preferGlb: true` |
 
@@ -76,7 +76,7 @@ Canonical example: **Bison tires** (`npm run cars:bake-bison-segmented-wheels`).
 5. **Runtime** (`loadCarGltf.ts` / `carParts.ts` / `stockWheels.ts`):
    - Keep authored maps on Tire; flat rubber only if no map (`ComicPalette.tire`).
    - Cars with authored `StockWheel_*`: **`collectWheelUvTriangles` returns `[]`** — never feed Tire-atlas UVs into BodyPaint paint-skip (causes blotches / “paint broken”).
-   - Bison Große Räder: **scale** root `StockWheel_*` only (`BISON_BIG_WHEEL_SCALE` = 1.35; do not scale GLTF `…_1` children) and **drop hubs** by `radius×(scale−1)` so tops stay on the stock fender line and growth goes down; no procedural `UpgradeTire` overlays.
+   - Bison / Käferkraft Große Räder: **scale** root `StockWheel_*` only (`BISON_BIG_WHEEL_SCALE` / `KAEFERKRAFT_BIG_WHEEL_SCALE` = 1.35; do not scale GLTF `…_1` children) and **drop hubs** by `radius×(scale−1)` so tops stay on the stock fender line and growth goes down; no procedural `UpgradeTire` overlays.
 6. **Tests**: `tests/bison-tripo.test.ts`, `tests/car-wheels.test.ts`, garage paint recolor on BodyPaint atlas.
 
 Detail + CLI notes: [pipeline.md](pipeline.md) § Mesh segment detach/remount.
@@ -140,7 +140,7 @@ npm run cars:extract-blitz-spoiler
 |--------|----------|---------|----------|
 | Cars | `*-concept-3q.png` | `tripo-out/{carId}/` | `cars:bake-{carId}-tripo` |
 | Bison segmented wheels | `bison-tire-albedo.png` + segment out | `tripo-out/bison/segment-tires-v2/` | `cars:bake-bison-segmented-wheels` |
-| Käferkraft segmented wheels + cage | `bison-tire-albedo.png` + segment out | `tripo-out/kaeferkraft/segment-wheels-cage-v2/` | `cars:bake-kaeferkraft-segmented-parts` |
+| Käferkraft segmented wheels | original body + wheels-only segment (keep cage in BodyPaint) | `tripo-out/kaeferkraft/segment-wheels-only-v4/` | `cars:bake-kaeferkraft-segmented-parts` |
 | Blitz parts | `blitz-part-*.png` | `tripo-out/parts/blitz/{id}/` | `cars:bake-blitz-parts-tripo` |
 | FX | `fx-*.png` | `tripo-out/fx/` | `fx:bake-tripo` |
 | Track kit | `track-*.png` (walls, scenery, **obstacles**: ramp/rumble/oil/tire-stack/barrier) | `tripo-out/track/` | `track:bake-tripo` |

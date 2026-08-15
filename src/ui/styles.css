@@ -1882,6 +1882,12 @@ html[data-touch="1"] .hud-minimap {
   }
 }
 
+html.dev-photo-mode .ui-root,
+html.dev-photo-mode .dev-root {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
 .dev-root {
   pointer-events: none;
   position: absolute;

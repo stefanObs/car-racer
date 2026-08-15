@@ -153,6 +153,8 @@ function meshBoxInRootLocal(root: Object3D, mesh: Mesh): Box3 | null {
  * Feet on the thin bumper tube that runs between left/right headlights.
  * Käferkraft has several BodyPaint Z-tubes on the nose — pick the one whose
  * top is nearest the bumper lamp midlines (not a lower lip / skid bar).
+ * Never use StockCage poles (segment remount adds cabin rails that match the
+ * tube shape and previously parked ornaments mid-car).
  */
 export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
   root.updateMatrixWorld(true);
@@ -189,6 +191,22 @@ export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
   root.traverse((obj) => {
     const mesh = obj as Mesh;
     if (!mesh.isMesh || !mesh.geometry) return;
+    // StockCage poles are thin Z-tubes too — after Tripo segment remount they steal
+    // the bumper perch and park skull/bird/dog on the cabin rail.
+    const meshName = (mesh.name ?? "").toLowerCase();
+    if (
+      meshName.startsWith("stockcage") ||
+      meshName.startsWith("stockwheel") ||
+      mesh.userData.isStockWheel === true
+    ) {
+      return;
+    }
+    let p: Object3D | null = mesh.parent;
+    while (p) {
+      const pn = (p.name ?? "").toLowerCase();
+      if (pn === "stockcage" || pn.startsWith("stockwheel")) return;
+      p = p.parent;
+    }
     const local = meshBoxInRootLocal(root, mesh);
     if (!local) return;
     const size = new Vector3();
@@ -196,7 +214,8 @@ export function bumperHeadlightPerchLocal(root: Object3D): Vector3 {
     const center = new Vector3();
     local.getCenter(center);
     // Thin Z-tube on the nose (exclude thick Dark cage). Root-local so yaw π/2 is safe.
-    if (center.x < 0 && size.z > 0.35 && size.y < 0.18 && size.x < 0.18) {
+    // Only accept bars on the bumper nose (forward of cabin) so mid-cage rails never win.
+    if (center.x < -1.0 && size.z > 0.35 && size.y < 0.18 && size.x < 0.18) {
       const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       const paint = mats.some((m) => ((m as MeshToonMaterial)?.name ?? "").toLowerCase().includes("body"));
       bars.push({ x: center.x, yTop: local.max.y, paint });

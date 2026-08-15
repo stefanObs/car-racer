@@ -89,6 +89,20 @@ describe("buggy nose helpers", () => {
     expect(perch.x).toBeLessThan(-1.2);
   });
 
+  it("ignores StockCage rails so noses stay on the bumper after cage remount", () => {
+    const root = bumperFixture();
+    // Cabin crossbar shaped like the bumper tube — must not win perch.
+    const cageBar = new Mesh(new BoxGeometry(0.06, 0.08, 0.45), new MeshBasicMaterial({ name: "StockCage" }));
+    cageBar.name = "StockCage";
+    cageBar.position.set(-0.46, 0.92, 0);
+    root.add(cageBar);
+    root.updateMatrixWorld(true);
+    const perch = bumperHeadlightPerchLocal(root);
+    expect(perch.x).toBeCloseTo(-1.305, 1);
+    expect(perch.x).toBeLessThan(-1.2);
+    expect(perch.y).toBeLessThan(0.2);
+  });
+
   it("keeps the dog head at baked bumper-ornament size", () => {
     expect(DOG_HEAD_SCALE).toBe(1);
   });

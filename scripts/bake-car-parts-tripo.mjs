@@ -44,7 +44,8 @@ const MAT = {
  */
 const CAR_JOBS = {
   bison: [
-    { id: "big_engine", toward: "+z", targetSpan: 0.95, maxH: 0.42, simplify: 0.4 },
+    // Tripo concept faces the closed back at camera; −z flip puts the open grill on race +Z.
+    { id: "big_engine", toward: "-z", targetSpan: 0.95, maxH: 0.42, simplify: 0.4 },
     { id: "spike_bumper", toward: "+z", targetSpan: 1.55, maxH: 0.4, simplify: 0.4 },
     { id: "nitro_kit", toward: "+z", targetSpan: 0.85, maxH: 0.7, simplify: 0.4 },
     { id: "rear_spoiler", toward: "-z", targetSpan: 1.2, maxH: 0.75, simplify: 0.4 },
