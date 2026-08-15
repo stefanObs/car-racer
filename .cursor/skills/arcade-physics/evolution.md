@@ -7,6 +7,12 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-15 — F4 Debug-Raster pad
+
+- Trigger: user — debug track that is only a big plane + white grid to see turning
+- Decision: Dev-only (F4). 1 km asphalt square, 5 m white raster, no AI/walls/countdown. Not in Cup/Free. Yellow +X / cyan +Z origin marks.
+- Tests: `tests/debug-pad.test.ts`
+
 ### 2026-08-15 — Omegatal wall seal + tire bumper + corridor lock
 
 - Trigger: user — holes in Omegatal walls; walls should bounce like bumpers; jumped a wall onto another stretch

@@ -115,6 +115,16 @@ tests/
 - Implementation: `src/sim/vehicle.ts` (zones/damage/catchup/race helpers).
 - **Agent skill:** `.cursor/skills/arcade-physics/` — evolve feel via Eigenschaften mapping + feel tests; do not grow a parallel physics design doc.
 - Lock tests: `tests/arcade-physics.test.ts`, `tests/arcade-feel.test.ts`.
+- **Dev pad (F4):** 1 km asphalt square + white 5 m raster (`src/data/debugPad.ts`) — handling sandbox, not a cup track. No AI, no walls, no countdown.
+
+### Dev cheats (always-on overlay)
+
+| Key | Action |
+|-----|--------|
+| F1 | Toggle `data-dev-name` overlay |
+| F2 | Set CHF |
+| F3 | Force-finish current race at a chosen place |
+| F4 | Start Debug-Raster pad (handling) |
 
 ---
 

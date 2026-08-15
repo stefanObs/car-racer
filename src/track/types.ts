@@ -28,6 +28,8 @@ export interface LevelDefinition {
     grassWidth: number;
     segments: TrackSegment[];
     walls: { rule: string };
+    /** Dev-only infinite-feel asphalt pad (no grass/wall). */
+    debugPad?: boolean;
   };
   obstacles: Array<{
     type: string;
@@ -57,4 +59,6 @@ export interface BuiltTrack {
   wallKind: Array<"tire" | "concrete">;
   unevenMasks: Array<{ startDist: number; endDist: number; intensity: number }>;
   spawnHeading: number;
+  /** Dev raster pad — always asphalt, no walls. */
+  debugPad?: boolean;
 }

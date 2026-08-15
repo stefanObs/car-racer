@@ -1,4 +1,5 @@
 import type { BuiltTrack, LevelDefinition, TrackSegment, Vec2 } from "./types";
+import { DEBUG_PAD_EXTENT_M } from "../data/debugPad";
 
 function pushPoint(points: Vec2[], x: number, z: number): void {
   const last = points[points.length - 1];
@@ -6,8 +7,39 @@ function pushPoint(points: Vec2[], x: number, z: number): void {
   points.push({ x, z });
 }
 
+function buildDebugPadTrack(level: LevelDefinition): BuiltTrack {
+  const half = DEBUG_PAD_EXTENT_M;
+  const points: Vec2[] = [];
+  const wallKind: Array<"tire" | "concrete"> = [];
+  for (let x = -half; x <= half; x += 8) {
+    points.push({ x, z: 0 });
+    wallKind.push("concrete");
+  }
+  const cumulativeDistances: number[] = [0];
+  let total = 0;
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]!;
+    const b = points[i]!;
+    total += Math.hypot(b.x - a.x, b.z - a.z);
+    cumulativeDistances.push(total);
+  }
+  return {
+    centerline: points,
+    cumulativeDistances,
+    totalLength: Math.max(total, 1),
+    asphaltHalfWidth: half,
+    grassWidth: 0,
+    wallKind,
+    unevenMasks: [],
+    spawnHeading: (level.spawn.headingDeg * Math.PI) / 180,
+    debugPad: true,
+  };
+}
+
 /** Build a closed centerline from level segments (x/z plane). */
 export function buildTrackFromLevel(level: LevelDefinition): BuiltTrack {
+  if (level.track.debugPad) return buildDebugPadTrack(level);
+
   const points: Vec2[] = [{ x: 0, z: 0 }];
   let x = 0;
   let z = 0;
@@ -77,7 +109,7 @@ export function buildTrackFromLevel(level: LevelDefinition): BuiltTrack {
 
   const first = points[0]!;
   const last = points[points.length - 1]!;
-  if (Math.hypot(first.x - last.x, first.z - last.z) > 1) {
+  if (level.track.closedLoop && Math.hypot(first.x - last.x, first.z - last.z) > 1) {
     const steps = 8;
     for (let i = 1; i <= steps; i++) {
       const t = i / steps;

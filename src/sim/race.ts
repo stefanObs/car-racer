@@ -1,6 +1,7 @@
 import type { RaceAudioEvent } from "../audio/raceEvents";
 import { CARS, type CarId } from "../data/cars";
 import { mergeStats, type PartId } from "../data/parts";
+import { DEBUG_PAD_EXTENT_M } from "../data/debugPad";
 import { buildTrackFromLevel, sampleCenterline } from "../track/buildTrack";
 import type { BuiltTrack, LevelDefinition } from "../track/types";
 import { catchUpMultipliers } from "./catchup";
@@ -57,6 +58,7 @@ export class RaceSession {
     this.level = config.level;
     this.track = buildTrackFromLevel(config.level);
     this.spawnField();
+    if (this.track.debugPad) this.countdownLeft = 0;
   }
 
   private spawnField(): void {
@@ -70,8 +72,11 @@ export class RaceSession {
       { id: "ai-olli", paint: "#868e96", carId: "bunker", skill: 0.9 },
     ];
 
-    const start = sampleCenterline(this.track, 8);
-    const head = Math.atan2(start.tangent.z, start.tangent.x);
+    const start = this.track.debugPad
+      ? { position: { x: 0, z: 0 }, tangent: { x: 1, z: 0 } }
+      : sampleCenterline(this.track, 8);
+    const head = this.track.debugPad ? 0 : Math.atan2(start.tangent.z, start.tangent.x);
+    const along = this.track.debugPad ? DEBUG_PAD_EXTENT_M : 8;
 
     this.cars.push(
       createCarState({
@@ -85,10 +90,12 @@ export class RaceSession {
         modelId: this.config.playerCarId,
         equippedParts: this.config.playerParts,
         stats: playerStats,
-        distanceAlong: 8,
-        progress: 8,
+        distanceAlong: along,
+        progress: along,
       }),
     );
+
+    if (this.track.debugPad) return;
 
     aiSpecs.forEach((ai, index) => {
       const along = 2 + index * 7;
@@ -212,46 +219,47 @@ export class RaceSession {
       }
 
       // Lap / finish via crossing start line (forward +1, wrong-way −1, may go negative)
-      const prevAlong = this.prevProgress.get(car.id) ?? car.distanceAlong;
-      const along = car.distanceAlong;
-      const cross = finishLineCross(prevAlong, along, this.track.totalLength, car.speed);
-      if (cross === "forward") {
-        car.lap += 1;
-        if (car.lap <= this.level.laps) {
-          grantLapShield(car);
-          if (car.isPlayer) {
-            this.addStyle(15, "Schild!");
-            this.pushAudio({ kind: "shield" });
-            this.addStyle(20, "Runde!");
-            this.pushAudio({ kind: "lap" });
+      if (!this.track.debugPad) {
+        const prevAlong = this.prevProgress.get(car.id) ?? car.distanceAlong;
+        const along = car.distanceAlong;
+        const cross = finishLineCross(prevAlong, along, this.track.totalLength, car.speed);
+        if (cross === "forward") {
+          car.lap += 1;
+          if (car.lap <= this.level.laps) {
+            grantLapShield(car);
+            if (car.isPlayer) {
+              this.addStyle(15, "Schild!");
+              this.pushAudio({ kind: "shield" });
+              this.addStyle(20, "Runde!");
+              this.pushAudio({ kind: "lap" });
+            }
           }
+        } else if (cross === "backward") {
+          car.lap -= 1;
         }
-      } else if (cross === "backward") {
-        car.lap -= 1;
+        car.progress = along + (car.lap - 1) * this.track.totalLength;
+        if (car.lap > this.level.laps && !car.finished) {
+          car.finished = true;
+          this.finishedCount += 1;
+          car.finishPlace = this.finishedCount;
+          car.speed = 0;
+          car.vx = 0;
+          car.vz = 0;
+          car.vy = 0;
+          car.y = 0;
+        }
+        if (car.koTimer > 0 && car.hp <= 0) {
+          const s = sampleCenterline(this.track, Math.max(0, along - 8));
+          car.x = s.position.x;
+          car.z = s.position.z;
+          car.heading = Math.atan2(s.tangent.z, s.tangent.x);
+        }
+        this.prevProgress.set(car.id, along);
       }
-      car.progress = along + (car.lap - 1) * this.track.totalLength;
-      if (car.lap > this.level.laps && !car.finished) {
-        car.finished = true;
-        this.finishedCount += 1;
-        car.finishPlace = this.finishedCount;
-        car.speed = 0;
-        car.vx = 0;
-        car.vz = 0;
-        car.vy = 0;
-        car.y = 0;
-      }
-      // KO respawn snap to track
-      if (car.koTimer > 0 && car.hp <= 0) {
-        const s = sampleCenterline(this.track, Math.max(0, along - 8));
-        car.x = s.position.x;
-        car.z = s.position.z;
-        car.heading = Math.atan2(s.tangent.z, s.tangent.x);
-      }
-      this.prevProgress.set(car.id, along);
     }
 
     const playerCar = this.player();
-    if (!playerCar.finished && playerCar.koTimer <= 0) {
+    if (!this.track.debugPad && !playerCar.finished && playerCar.koTimer <= 0) {
       this.wrongWayHold = tickWrongWayHold(
         this.wrongWayHold,
         isCarFacingWrongWay(playerCar, this.track),

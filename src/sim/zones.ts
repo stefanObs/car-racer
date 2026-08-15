@@ -28,6 +28,18 @@ export function surfaceAt(
       ? undefined
       : { preferAlong, maxAlongGap: CORRIDOR_ALONG_WINDOW_M },
   );
+  if (track.debugPad) {
+    return {
+      zone: "asphalt",
+      speedFactor: 1,
+      gripFactor: 1,
+      wallKind: "concrete",
+      bump: 0,
+      lateral: 0,
+      distanceAlong: near.distanceAlong,
+      tangent: near.tangent,
+    };
+  }
   const absLat = Math.abs(near.lateral);
   const asphaltEdge = track.asphaltHalfWidth;
   const grassEdge = asphaltEdge + track.grassWidth;

@@ -8,11 +8,12 @@ type DevHooks = {
   canForceFinish: () => boolean;
   fieldSize: () => number;
   forceFinish: (place: number) => void;
+  startDebugPad: () => void;
   onUiRefresh: () => void;
 };
 
 /**
- * F1 name overlay, F2 CHF setter, F3 force-finish place picker.
+ * F1 name overlay, F2 CHF setter, F3 force-finish place picker, F4 raster pad.
  * Mounts outside the main UI so GameApp re-renders do not wipe dialogs.
  */
 export class DevTools {
@@ -68,6 +69,13 @@ export class DevTools {
       }
       this.dialog = this.dialog === "finish" ? "none" : "finish";
       this.render();
+      return;
+    }
+    if (e.code === "F4") {
+      e.preventDefault();
+      this.dialog = "none";
+      this.render();
+      this.hooks.startDebugPad();
     }
   }
 
@@ -105,7 +113,7 @@ export class DevTools {
     }
 
     this.root.innerHTML = `
-      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel</div>
+      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster</div>
       ${dialog}
     `;
     this.root.querySelector("[data-dev-close]")?.addEventListener("click", () => {

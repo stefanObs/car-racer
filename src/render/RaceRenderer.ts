@@ -45,6 +45,7 @@ import {
 import { themeLook } from "./themeLook";
 import { buildThemeScenery, trackCentroid } from "./themeScenery";
 import { buildSmoothTrack } from "./trackMesh";
+import { buildDebugPadGroup, disposeDebugPadGroup } from "./debugPadMesh";
 import {
   createLapBillboard,
   disposeLapBillboard,
@@ -396,24 +397,47 @@ export class RaceRenderer {
     this.idleGroup.visible = false;
     this.groundMesh.visible = true;
     this.skyMesh.visible = true;
-    this.applyTheme(session.level.theme, trackCentroid(session.track));
+    if (!session.track.debugPad) this.applyTheme(session.level.theme, trackCentroid(session.track));
     this.scene.remove(this.trackGroup);
     this.scene.remove(this.sceneryGroup);
     this.scene.remove(this.panoramaGroup);
     this.scene.remove(this.obstacleGroup);
+    if (this.trackGroup.userData.debugPad) disposeDebugPadGroup(this.trackGroup);
     disposeObject(this.trackGroup);
     disposeObject(this.sceneryGroup);
     disposePanoramaMaps(this.panoramaGroup);
     disposeObject(this.panoramaGroup);
     disposeObject(this.obstacleGroup);
     const look = themeLook(session.level.theme);
-    this.trackGroup = buildSmoothTrack(session.track);
-    this.sceneryGroup = buildThemeScenery(session.track, session.level.theme);
-    this.panoramaGroup = buildPanoramaSurround(session.track, session.level.theme, look);
-    this.obstacleGroup = buildLevelObstacles(session.level);
+    if (session.track.debugPad) {
+      this.trackGroup = buildDebugPadGroup();
+      this.sceneryGroup = new Group();
+      this.panoramaGroup = new Group();
+      this.obstacleGroup = new Group();
+      this.groundMesh.visible = false;
+      this.skyMesh.visible = true;
+      this.scene.background = new Color(0x5ba3d9);
+      this.fog.color.setHex(0x8ec4e8);
+      this.fog.near = 180;
+      this.fog.far = 720;
+      this.renderer.setClearColor(0x5ba3d9, 1);
+      this.hemi.color.setHex(0xfff4e0);
+      this.hemi.groundColor.setHex(0xd0d6dc);
+      this.hemi.intensity = 1.25;
+      this.ambient.intensity = 0.95;
+      this.sun.color.setHex(0xfff8ee);
+      this.sun.intensity = 2.15;
+      this.sun.position.set(8, 22, 14);
+    } else {
+      this.trackGroup = buildSmoothTrack(session.track);
+      this.sceneryGroup = buildThemeScenery(session.track, session.level.theme);
+      this.panoramaGroup = buildPanoramaSurround(session.track, session.level.theme, look);
+      this.obstacleGroup = buildLevelObstacles(session.level);
+      this.groundMesh.visible = true;
+    }
     this.trackGroup.visible = true;
     this.sceneryGroup.visible = true;
-    this.panoramaGroup.visible = true;
+    this.panoramaGroup.visible = !session.track.debugPad;
     this.obstacleGroup.visible = true;
     this.raceFieldActive = true;
     this.clearCelebrate();

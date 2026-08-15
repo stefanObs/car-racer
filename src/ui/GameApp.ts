@@ -3,6 +3,7 @@ import { gameAudio } from "../audio/GameAudio";
 import { playRaceAudioEvent } from "../audio/raceEvents";
 import { APP_CREDIT, APP_VERSION } from "../core/version";
 import { CUP_LEVELS, freeLevels, levelById } from "../data/levels";
+import { debugPadLevel } from "../data/debugPad";
 import { type PartId } from "../data/parts";
 import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
@@ -108,6 +109,13 @@ export class GameApp {
       forceFinish: (place) => {
         if (!this.race || this.screen !== "race") return;
         this.race.forceFinishAs(place);
+      },
+      startDebugPad: () => {
+        this.settingsOpen = false;
+        this.uiRoot.querySelector(".settings-host")?.remove();
+        this.finishCelebrate = null;
+        this.stylePops.clear();
+        void this.beginRace(debugPadLevel());
       },
       onUiRefresh: () => {
         if (this.screen !== "race") this.renderUi();
@@ -344,7 +352,7 @@ export class GameApp {
   }
 
   private onMenuKeyDown(e: KeyboardEvent): void {
-    if (e.code === "F1" || e.code === "F2" || e.code === "F3") return;
+    if (e.code === "F1" || e.code === "F2" || e.code === "F3" || e.code === "F4") return;
     if (this.settingsOpen) {
       if (e.code === "Escape") {
         e.preventDefault();
@@ -491,8 +499,7 @@ export class GameApp {
   }
 
   private async beginRace(level: LevelDefinition): Promise<void> {
-    // Guarantee Tripo track kit (walls + theme scenery) before mesh build
-    await preloadTrackModels();
+    if (!level.track.debugPad) await preloadTrackModels();
     this.renderer.clearCars();
     this.stylePops.clear();
     this.finishCelebrate = null;
@@ -536,8 +543,12 @@ export class GameApp {
       <div class="hud-cluster" data-dev-name="hud.cluster">
         <div class="hud-stats">
           <div class="hud-row hud-row--top" data-dev-name="hud.place-lap">
-            <strong data-dev-name="hud.place">Platz ${p.place}/${this.race.cars.length}</strong>
-            ${renderLapCounterHtml(p.lap, this.race.level.laps)}
+            ${
+              this.race.track.debugPad
+                ? `<strong data-dev-name="hud.debug-pad">Debug-Raster</strong>`
+                : `<strong data-dev-name="hud.place">Platz ${p.place}/${this.race.cars.length}</strong>
+            ${renderLapCounterHtml(p.lap, this.race.level.laps)}`
+            }
           </div>
           <div class="hud-row" data-dev-name="hud.damage">Schaden: ${DAMAGE_LABELS[stage]}${p.healFx > 0.2 ? " · Reparatur…" : ""}</div>
           <div class="bars" data-dev-name="hud.bars">
@@ -556,8 +567,12 @@ export class GameApp {
           }
           <div class="hud-row hud-style" data-dev-name="hud.style-total">Style ${formatChf(this.race.styleBonus)}</div>
         </div>
-        <div class="hud-field" data-dev-name="hud.field-wrap">${renderFieldStripSvg(this.race)}</div>
-        <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>
+        ${
+          this.race.track.debugPad
+            ? ""
+            : `<div class="hud-field" data-dev-name="hud.field-wrap">${renderFieldStripSvg(this.race)}</div>
+        <div class="hud-minimap" data-dev-name="hud.minimap-wrap">${renderMiniMapSvg(this.race)}</div>`
+        }
       </div>
       ${
         countdown
