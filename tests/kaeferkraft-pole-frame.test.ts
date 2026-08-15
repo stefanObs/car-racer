@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Document, Node as GltfNode } from "@gltf-transform/core";
+import { buildReinforcedFrame } from "../src/render/carPartBuilders";
 
 function gltfPositions(doc: Document): [number, number, number][] {
   const out: [number, number, number][] = [];
@@ -23,7 +24,7 @@ function gltfPositions(doc: Document): [number, number, number][] {
 }
 
 describe("Käferkraft pole-frame waist", () => {
-  it("sits just inside the teal side-rail outer, at the rail top", async () => {
+  it("vanishes into the teal cabin side, not outboard of the paint", async () => {
     const { NodeIO } = await import("@gltf-transform/core");
     const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
     const { MeshoptDecoder } = await import("meshoptimizer");
@@ -33,23 +34,36 @@ describe("Käferkraft pole-frame waist", () => {
     expect(waist.length).toBe(2);
     for (const n of waist) {
       const [, y, z] = n.getTranslation();
-      expect(Math.abs(z!)).toBeGreaterThan(0.66);
-      expect(Math.abs(z!)).toBeLessThan(0.73);
-      expect(y!).toBeGreaterThan(1.1);
-      expect(y!).toBeLessThan(1.18);
+      expect(Math.abs(z!)).toBeGreaterThan(0.27);
+      expect(Math.abs(z!)).toBeLessThan(0.36);
+      expect(y!).toBeGreaterThan(1.02);
+      expect(y!).toBeLessThan(1.1);
     }
 
     const carIo = new NodeIO()
       .registerExtensions(ALL_EXTENSIONS)
       .registerDependencies({ "meshopt.decoder": MeshoptDecoder });
     const bodyVerts = gltfPositions(await carIo.read("public/models/cars/kaeferkraft.glb"));
-    const beltOuter = bodyVerts.filter(
-      (v) => v[0] >= -0.55 && v[0] <= 0.55 && v[1] >= 1.02 && v[1] <= 1.18 && Math.abs(v[2]) >= 0.55,
+    // Narrow teal cabin strip (x≈−0.3) — not the front/rear fender flares.
+    const cabinStrip = bodyVerts.filter(
+      (v) => v[0] >= -0.38 && v[0] <= -0.22 && v[1] >= 1.02 && v[1] <= 1.08 && Math.abs(v[2]) >= 0.2,
     );
-    const bodyOuterZ = Math.max(...beltOuter.map((v) => Math.abs(v[2])));
+    const stripOuterZ = Math.max(...cabinStrip.map((v) => Math.abs(v[2])));
     const waistZ = Math.max(...waist.map((n) => Math.abs(n.getTranslation()[2]!)));
     const poleR = 0.025;
-    expect(waistZ + poleR).toBeLessThanOrEqual(bodyOuterZ);
-    expect(waistZ + poleR).toBeGreaterThan(bodyOuterZ - 0.08);
+    expect(waistZ + poleR).toBeLessThanOrEqual(stripOuterZ);
+    expect(waistZ).toBeGreaterThan(0.27);
+  });
+
+  it("keeps the procedural buggy fallback on the same waist plane", () => {
+    const g = buildReinforcedFrame("buggy");
+    const waist = g.children.filter((c) => c.name === "Waist");
+    expect(waist.length).toBe(2);
+    for (const n of waist) {
+      expect(Math.abs(n.position.z)).toBeGreaterThan(0.27);
+      expect(Math.abs(n.position.z)).toBeLessThan(0.36);
+      expect(n.position.y).toBeGreaterThan(1.02);
+      expect(n.position.y).toBeLessThan(1.1);
+    }
   });
 });

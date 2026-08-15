@@ -44,9 +44,10 @@ const RADIUS = 0.025;
 const INTO = 0.08;
 /** Diagonals / stays — still on the inner cage plane until those poles are retuned. */
 const SIDE_Z = 0.43;
-/** Waist: just inside BodyPaint side-rail outer (|z|≈0.73), at the rail top (~y1.15). */
-const WAIST_Z = 0.7;
-const WAIST_Y = 1.14;
+/** Waist: buried in the teal cabin flank (y≈1.05, |z|≈0.30). 0.70/1.14 sat
+ * on wheel-arch flares and rode the rail top instead of the paint. */
+const WAIST_Z = 0.3;
+const WAIST_Y = 1.05;
 const GREY = 0x6a7078;
 
 function extendEnds(a, b, extra) {
