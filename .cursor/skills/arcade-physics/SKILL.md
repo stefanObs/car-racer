@@ -32,7 +32,7 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 9. **Grass penalty never removed** — Federung / grassMitigation only mitigate (`zones.ts`)
 10. **Walls bounce + cooldown damage** — no grind-KO spam (`IMPACT_DAMAGE_COOLDOWN`)
 11. **Ramming is spice** — contact impulse + light damage; no ram-primary scoring
-12. **Nitro punches** — rising-edge kick + strong continuous shove + clear speed headroom (forward)
+12. **Nitro punches** — rising-edge kick + strong continuous shove + clear speed headroom (forward); start only at ~35% tank; slow refill; no crumb spray
 13. **Delivery** — version → commit `master` → push
 
 ## Module map
@@ -45,7 +45,7 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 | Nitro force | `nitroForceFor` (`nitroBonus`, damage mult; forward-only) |
 | Lateral grip | `gripPullRate` → slide (cut by `drift`); rear follows nose |
 | Arcade drift | `driftIntent` → `car.drift`; mini-turbo on exit |
-| Nitro | `nitroKickFor` (edge) + `nitroForceFor` + headroom |
+| Nitro | `nitroWantsBoost` + `nitroKickFor` (edge) + `nitroForceFor` + headroom |
 | Jump / land | `stepJump`, `isAirborne`, ramp via `passableObstacleMods` |
 | Car–car | `resolveContact` (mass + closing speed + direction/zone per CONCEPT §4.5; `ramBonus`) |
 | Obstacles | `resolveObstacles` (infinite-mass bounce × mass) |

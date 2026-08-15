@@ -69,7 +69,7 @@ Use with [SKILL.md](SKILL.md). Tick items; note failures with repro.
 ### Renn-HUD
 - [ ] Place, lap, mini-map (all cars; player = DU) + field strip
 - [ ] Damage + heal hint
-- [ ] Nitro meter
+- [ ] Nitro meter with start mark (~35%); cannot spray crumbs / hold-forever
 - [ ] Style popup uses CHF
 - [ ] Does not hide apex / upcoming wall type
 

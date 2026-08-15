@@ -85,7 +85,7 @@ Kein realistisches Drift-/Reifen-Physik-Sim (keine Pacejka-Kurven) — Arcade-Fa
 - **Gas** baut Tempo auf (nicht instant); Loslassen lässt ausrollen (Coast).
 - **Lenkung (Front-Steer):** Die Nase folgt dem Lenkeinschlag; der Tempo-Vektor folgt hinterher (Heck bleibt stabil, solange Grip reicht). Wendekreis hängt an Handling + Tempo: engerer Bogen bei niedriger Speed, ruhigere Lenkung bei hoher Speed. **Kein Drehen auf der Stelle** bei Stillstand (kein Tank-Pivot).
 - **Bremse → Rückwärts:** Bremse verzögert vorwärts; sobald Vorwärts-Tempo praktisch null ist und Bremse weiter gehalten wird, fährt das Auto **rückwärts** (entlang der Nase rückwärts). Gas bricht Rückwärts ab und beschleunigt wieder vorwärts. Rückwärts-Cap deutlich unter Vorwärts-Tempo (~35–50 %). Keine eigene Rückwärts-Taste — dieselbe Bremse-/Rückwärts-Aktion auf allen Plattformen.
-- **Nitro** nur sinnvoll vorwärts (starker Boost-Kick + Speed über Cap); in Rückwärts kein / vernachlässigbarer Nitro-Schub.
+- **Nitro** nur sinnvoll vorwärts (starker Boost-Kick + Speed über Cap); in Rückwärts kein / vernachlässigbarer Nitro-Schub. Start nur, wenn der Tank **mindestens ~35 %** hat (HUD-Marke); danach brennt der Schub bis leer oder Loslassen. Nachladen ist langsam (~25 s leer→voll) — kein Dauerspray aus Krümeln.
 - **Drift** = Taste halten + Lenken **oder** zu hart in die Kurve bei hohem Tempo (Oversteer) → **Outside-Drift** (Nase schwenkt in die Kurve, Tempo-Vektor bleibt außen, Ziel-Schlupfwinkel bis ca. 40° wie Kart); Grip steuert wie leicht; Loslassen nach gehaltenem Drift kann Mini-Boost geben.
 - **Schanzen** = echte Luftzeit; Landung braucht Grip/Federung. **Hop ist arcade-übertrieben** (Asphalt-Comic), nicht realistisch flach. **Auto↔Auto-Kontakt** schiebt nach Masse, Schließspeed, Richtung und Trefferort (Bug/Flanke/Heck) — siehe §4.5.
 - **Falsche Richtung:** Anhaltendes Fahren gegen die Streckenrichtung (auch Rückwärts) bleibt als Wrong-Way erkennbar (HUD/Warnung).
@@ -106,7 +106,7 @@ Jedes Auto hat (Basis + Teile) — die **Eigenschaften** skalieren die Arcade-Ph
 
 Zusätzlich (Teile / Klassen-Bonus, sichtbar in der Garage als Nitro-Balken bzw. Bremsen-Teil):
 
-- **Nitro** — Boost-Kick beim Drücken + starker Schub + klarer Speed-Headroom; stärkerer Bonus = knackigerer Boost; vorwärts-only  
+- **Nitro** — Boost-Kick beim Drücken + starker Schub + klarer Speed-Headroom; stärkerer Bonus = knackigerer Boost; vorwärts-only; **Mindestfüllstand (~35 %)** zum Starten, langsames Nachladen (~25 s leer→voll)  
 - **Bremsen** (Teil *Bessere Bremsen*) — schärferes Verzögern ohne eigenen Level-Balken (beeinflusst den Brems-Anteil vor dem Rückwärts-Übergang)  
 - **Arcade-Drift** — Taste/Bumper/Touch **oder** Oversteer; Outside-Drift mit Ziel-Schlupfwinkel; Mini-Boost nach gehaltenem Drift  
 - **Rückwärts** — kein eigener Stat; folgt aus gehaltener Bremse nach Stillstand (siehe §4.2)  
@@ -498,7 +498,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 1. **Garage (Start-Hub)** — Auto per **Mausziehen / Touch frei drehen** (LMB / 1 Finger = gieren; **RMB** / **2 Finger** = anheben und um die **Auto-Mitte** drehen; Loslassen stellt flach auf den Boden), **ausrüsten** (Teile/Lack/Aufkleber: Vorschau → Kaufen), ungekauftes Auto = markierte **Vorschau** + **Kaufen**; **Eigenschaften-Popup** rechts oben mit Level-Balken (1–100) für Beschleunigung, Tempo, Grip, Handling, Federung, Panzerung, Gewicht, Nitro; von hier Cup / Freier Modus / Training / Ad-hoc starten  
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Training / Ad-hoc** — Strecke (Training: alle, ohne Sperre) oder Seed, Optionen, Start  
-4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz (nicht im Training), **Runden-Zähler** (aktuell / gesamt im HUD); beim **Überfahren der Start/Ziel-Linie** kurz die Tripo-**Lap-Shield**-Plakette **über dem Auto** (klein, Kamera-Facing) mit Runden-Zahl; **Mini-Map** (Streckenform, **alle** Autos, Spieler = **DU**); **Streckenleiste** (wer wo im Rennen liegt — nicht im Training); Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`, nicht im Training); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Esc, Rechtsklick oder Button; darin **Rennen verlassen** → Garage ohne Preisgeld)
+4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz (nicht im Training), **Runden-Zähler** (aktuell / gesamt im HUD); beim **Überfahren der Start/Ziel-Linie** kurz die Tripo-**Lap-Shield**-Plakette **über dem Auto** (klein, Kamera-Facing) mit Runden-Zahl; **Mini-Map** (Streckenform, **alle** Autos, Spieler = **DU**); **Streckenleiste** (wer wo im Rennen liegt — nicht im Training); Schaden (inkl. Heil-Hinweis), Nitro-Balken **mit Start-Marke (~35 %)**, Style-Popups (`+50 CHF`, nicht im Training); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Esc, Rechtsklick oder Button; darin **Rennen verlassen** → Garage ohne Preisgeld)
 5. **Ergebnis** — Cup/Frei/Ad-hoc: Zielbanner/-linie; **~7.5 s 2D-Asphalt-Comic-Film** (gemalte Panels, **gleiche Podium-Bühne** für Platz 1/2/3/Feld; Auto steht auf dem Asphalt, nicht auf den Blöcken) bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation** (~2.5 s); dann Podium-Landung / CHF; weiter / Garage. **Training:** kurzes „Ziel!“ ohne Platz/Podium/CHF, zurück zur Streckenliste.  
 6. **Hilfe** — Steuerungshinweise (optional; inkl. Bremse halten = Rückwärts); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
 7. **Einstellungen** — per **Esc** (Garage + Rennen; erneut Esc schließt), **Rechtsklick** (außer Garage-Canvas-Orbit), Garage-Button oder HUD-Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste). **Im Rennen:** zusätzlicher Button **Rennen verlassen** → zurück zur Garage, **kein** Preisgeld / Freischalten für den abgebrochenen Lauf. In Untermenüs (Cup/Training/Hilfe/Ergebnis) bleibt Esc = Zurück zur Garage.  
@@ -587,7 +587,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 | Thema | Stand |
 |-------|--------|
 | Kerndynamik | Getunte Autos möglichst schnell fahren |
-| Fahrphysik | Arcade Front-Steer (kein Tank-Pivot); Bremse → Rückwärts nach Stillstand; Kart-Drift bleibt Würze |
+| Fahrphysik | Arcade Front-Steer (kein Tank-Pivot); Bremse → Rückwärts nach Stillstand; Kart-Drift bleibt Würze; Nitro mit Mindestfüllstand + langsamem Nachladen |
 | Rammen | Nebeneffekt; Auto↔Auto nach Masse + Schließspeed + Richtung + Bug/Flanke/Heck; keine Rammtaste |
 | Schaden | Regeneriert über Zeit mit sichtbarem Heil-Effekt; K.O. mit Comeback |
 | Unebene Piste | Hüpf-/Wackleffekt; Federung dämpft |
@@ -606,4 +606,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.90 — Training: alle Strecken solo, ohne Platzierung/CHF.*
+*Dokumentstand: Konzept v3.91 — Nitro: Mindestfüllstand (~35 %) + langsames Nachladen.*

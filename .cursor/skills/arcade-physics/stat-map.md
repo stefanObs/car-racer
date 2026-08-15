@@ -18,7 +18,7 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 
 | Bonus | Source | Effect |
 |-------|--------|--------|
-| Nitro | class `nitroBonus` + `nitro_kit` | Rising-edge `nitroKickFor` + strong `nitroForceFor` + ~42%+ headroom; reduced drag while boosting; **forward-only** |
+| Nitro | class `nitroBonus` + `nitro_kit` | Rising-edge `nitroKickFor` + strong `nitroForceFor` + ~42%+ headroom; start only at `NITRO_ENGAGE_MIN` (~35%); slow `NITRO_RECHARGE`; reduced drag while boosting; **forward-only** |
 | Bremsen | `better_brakes` → `brakeBonus` | Multiplies `brakeForceFor` (scrub before reverse engage) |
 | Ram | `spike_bumper` → `ramBonus` | Stronger contact impulse + damage share |
 | Gras | class / synergy `grassMitigation` | `surfaceAt` grass speed/grip soften (never full remove) |
@@ -58,5 +58,6 @@ Prefer asserting **relative** class/part diffs over absolute magic numbers:
 - Rear-hit shove on lighter car > side-hit yaw on same pair at matched closing speed (once §4.5 zones land)
 - Frontal aggressor applies more impulse than streifend at same closing speed
 - Nitro kick in one frame; sustained nitro ≫ throttle and above stock top; no nitro shove in reverse
+- Nitro does not start below ~35%; holding an empty tank does not stutter-kick; refill is slower than a 10 s empty→full
 - Hard steer at speed → `drift > 0.45` and readable slip
 - Ramp / `stepJump` sets `y`/`vy` then lands

@@ -7,6 +7,13 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-15 — Nitro min charge + slower refill
+
+- Trigger: user — nitro resupplies too fast; cannot spray all the time
+- RCA: `boosting = input.nitro && car.nitro > 0` let an empty tank refill a crumb, then rising-edge `nitroKickFor` every other frame while the button stayed down
+- Decision: `NITRO_ENGAGE_MIN` 0.35 to start; continue while `nitroHeld` until empty; `NITRO_RECHARGE` 0.1 → 0.04 (~25 s empty→full)
+- Tests: arcade-physics crumb-hold, recharge rate, continue-below-min
+
 ### 2026-08-15 — F4 Debug-Raster pad
 
 - Trigger: user — debug track that is only a big plane + white grid to see turning

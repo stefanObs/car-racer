@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-15 — Nitro min charge + slower refill (CONCEPT v3.91)
+
+- Trigger: user — nitro resupplies too fast; players can spray it all the time
+- RCA: `boosting` was `nitro > 0`, so an empty tank recharged a crumb then immediately kicked again (rising-edge every other frame while held)
+- Decision: Engage only at ≥ ~35 % (HUD mark). Once started, burn until empty or release. Recharge ~0.04/s (~25 s empty→full; ~9 s back to the mark). No crumb spray.
+- CONCEPT §§4.2–4.3, §9 HUD, summary → v3.91
+
 ### 2026-08-15 — Training mode (CONCEPT v3.90)
 
 - Trigger: user — training where every track can be selected, no other cars, no position at the end

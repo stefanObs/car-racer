@@ -6,6 +6,8 @@ import { CUP_LEVELS } from "../src/data/levels";
 import { RaceSession } from "../src/sim/race";
 import { sampleCenterline } from "../src/track/buildTrack";
 import { renderFieldStripSvg, renderMiniMapSvg, trackBounds, fieldProgress01 } from "../src/ui/miniMap";
+import { renderNitroMeterHtml } from "../src/ui/nitroHud";
+import { NITRO_ENGAGE_MIN } from "../src/sim/vehicle";
 import { StylePopupQueue } from "../src/ui/stylePopups";
 
 function makeRace(): RaceSession {
@@ -94,6 +96,20 @@ describe("race HUD UI (CONCEPT §9)", () => {
     expect(events.some((e) => e.reason === "Überholt!" && e.amount > 0)).toBe(true);
     expect(race.styleBonus).toBeGreaterThan(0);
     expect(race.styleBonus).toBeLessThanOrEqual(120);
+  });
+
+  it("nitro meter shows the engage mark and dim fill below it", () => {
+    const low = renderNitroMeterHtml(NITRO_ENGAGE_MIN - 0.1, false);
+    const ready = renderNitroMeterHtml(NITRO_ENGAGE_MIN, false);
+    const boost = renderNitroMeterHtml(0.2, true);
+    expect(low).toContain("is-low");
+    expect(low).toContain('data-dev-name="hud.nitro"');
+    expect(low).toContain(`left:${Math.round(NITRO_ENGAGE_MIN * 100)}%`);
+    expect(ready).toContain("is-ready");
+    expect(boost).toContain("is-boost");
+    const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../src/ui/styles.css"), "utf8");
+    expect(css).toContain(".bar-min");
+    expect(css).toContain(".bar--nitro.is-low");
   });
 
   it("pins the race HUD overlay to the viewport so the course map is not under settings", () => {

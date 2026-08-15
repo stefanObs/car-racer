@@ -1248,6 +1248,25 @@ html[data-touch="1"] .hud-minimap {
   background: #3db9c7;
 }
 
+.bar--nitro.is-low i {
+  opacity: 0.45;
+}
+
+.bar--nitro.is-boost i {
+  background: #ff7a18;
+}
+
+.bar-min {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  margin-left: -1px;
+  background: #e8e2d6;
+  pointer-events: none;
+  z-index: 2;
+}
+
 .bar i.hp {
   background: #e03131;
 }

@@ -9,6 +9,9 @@ import {
   gripPullRate,
   isAirborne,
   nitroForceFor,
+  nitroWantsBoost,
+  NITRO_ENGAGE_MIN,
+  NITRO_RECHARGE,
   resolveContact,
   slipAngle,
   stepCar,
@@ -172,6 +175,47 @@ describe("arcade physics — Eigenschaften scaling", () => {
     expect(nitro.car.speed).toBeGreaterThan(stock.car.speed + 8);
     expect(nitro.car.speed).toBeGreaterThan(stockTop * 1.2);
     expect(nitro.car.nitro).toBeLessThan(0.85);
+  });
+
+  it("nitro needs the engage mark and does not stutter-kick from crumbs", () => {
+    expect(nitroWantsBoost(true, NITRO_ENGAGE_MIN - 0.05, false, 0)).toBe(false);
+    expect(nitroWantsBoost(true, NITRO_ENGAGE_MIN, false, 0)).toBe(true);
+    expect(nitroWantsBoost(true, 0.1, true, 0)).toBe(true);
+    expect(nitroWantsBoost(true, 0, true, 0)).toBe(false);
+
+    const hold = onTrackCar(merged("blitz"), 16);
+    const coast = onTrackCar(merged("blitz"), 16);
+    hold.car.nitro = 0;
+    coast.car.nitro = 0;
+    for (let i = 0; i < 180; i++) {
+      stepCar(hold.car, { throttle: 1, brake: 0, steer: 0, nitro: true }, hold.track, 1 / 60, catchUp);
+      stepCar(coast.car, { throttle: 1, brake: 0, steer: 0, nitro: false }, coast.track, 1 / 60, catchUp);
+    }
+    expect(hold.car.nitro).toBeCloseTo(NITRO_RECHARGE * 3, 2);
+    expect(hold.car.nitro).toBeLessThan(NITRO_ENGAGE_MIN);
+    expect(hold.car.nitroHeld).toBe(false);
+    expect(hold.car.speed).toBeCloseTo(coast.car.speed, 1);
+  });
+
+  it("nitro refills slowly and can finish a burst below the engage mark", () => {
+    const idle = onTrackCar(merged("blitz"), 8);
+    idle.car.nitro = 0;
+    for (let i = 0; i < 60; i++) {
+      stepCar(idle.car, { throttle: 1, brake: 0, steer: 0, nitro: false }, idle.track, 1 / 60, catchUp);
+    }
+    expect(idle.car.nitro).toBeCloseTo(NITRO_RECHARGE, 3);
+    expect(idle.car.nitro).toBeLessThan(0.08);
+
+    const burst = onTrackCar(merged("blitz"), 16);
+    burst.car.nitro = NITRO_ENGAGE_MIN + 0.02;
+    stepCar(burst.car, { throttle: 1, brake: 0, steer: 0, nitro: true }, burst.track, 1 / 60, catchUp);
+    expect(burst.car.nitroHeld).toBe(true);
+    for (let i = 0; i < 24; i++) {
+      stepCar(burst.car, { throttle: 1, brake: 0, steer: 0, nitro: true }, burst.track, 1 / 60, catchUp);
+    }
+    expect(burst.car.nitro).toBeLessThan(NITRO_ENGAGE_MIN);
+    expect(burst.car.nitroHeld).toBe(true);
+    expect(burst.car.nitro).toBeGreaterThan(0);
   });
 
   it("mild steer at speed does not auto-drift; hard full-speed corners do", () => {

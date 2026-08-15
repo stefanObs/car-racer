@@ -39,6 +39,7 @@ import { renderSettingsPanelHtml } from "./settingsHtml";
 import { escapeOpensSettings } from "./settingsEsc";
 import { renderCarStatsPopup } from "./carStatsPopup";
 import { renderLapCounterHtml } from "./lapHud";
+import { renderNitroMeterHtml } from "./nitroHud";
 import { renderFieldStripSvg, renderMiniMapSvg } from "./miniMap";
 import {
   advanceFinishCelebrate,
@@ -572,7 +573,7 @@ export class GameApp {
           </div>
           <div class="hud-row" data-dev-name="hud.damage">Schaden: ${DAMAGE_LABELS[stage]}${p.healFx > 0.2 ? " · Reparatur…" : ""}</div>
           <div class="bars" data-dev-name="hud.bars">
-            <div class="bar" data-dev-name="hud.nitro"><span>Nitro</span><i style="width:${Math.round(p.nitro * 100)}%"></i></div>
+            ${renderNitroMeterHtml(p.nitro, p.nitroHeld)}
             <div class="bar" data-dev-name="hud.hp"><span>Karosserie</span><i class="hp" style="width:${Math.round(p.hp * 100)}%"></i></div>
           </div>
           ${
@@ -668,7 +669,7 @@ export class GameApp {
         <p class="tag">Hilfe & Infos</p>
         <p class="meta">${formatChf(this.save.chf)} · v${APP_VERSION}</p>
         <p class="credit">${APP_CREDIT}</p>
-        <p class="help">Tastatur: WASD / Pfeile (S halten = Rückwärts), Strg/E Drift, Space Nitro, Enter, Esc · Controller: Stick, LT Bremse/Rückwärts, LB Drift, A/RB Nitro · Tablet: Touch · Mini-Map: DU + die anderen</p>
+        <p class="help">Tastatur: WASD / Pfeile (S halten = Rückwärts), Strg/E Drift, Space Nitro (erst ab der Marke), Enter, Esc · Controller: Stick, LT Bremse/Rückwärts, LB Drift, A/RB Nitro · Tablet: Touch · Mini-Map: DU + die anderen</p>
         <div class="stack">
           <button data-nav data-act="open-settings">Einstellungen</button>
           <button data-nav data-act="toggle-mute">${gameAudio.muted ? "Ton aus" : "Ton an"}</button>

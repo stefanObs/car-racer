@@ -85,6 +85,12 @@ export const BASE_BRAKE = 48;
 export const BASE_NITRO = 125;
 /** Instant kick when nitro is pressed (Split/Second-style burst). */
 export const NITRO_KICK = 14;
+/** Tank must reach this to start a burst (HUD mark). Already-firing bursts burn to 0. */
+export const NITRO_ENGAGE_MIN = 0.35;
+/** Tank refill per second while not boosting (~25 s empty→full). */
+export const NITRO_RECHARGE = 0.04;
+/** Base drain per second while boosting. */
+export const NITRO_DRAIN = 0.38;
 export const GRAVITY = 30;
 const DRAG = 0.14;
 /** Extra coast when throttle lifted — scales up a bit at high pace (engine brake). */
@@ -282,6 +288,18 @@ export function nitroForceFor(nitroBonus: number, nitroMult: number): number {
 /** Instant nitro engage kick. */
 export function nitroKickFor(nitroBonus: number, nitroMult: number): number {
   return (NITRO_KICK + nitroBonus * 8) * nitroMult;
+}
+
+/** Start a burst only at the mark; keep burning while already boosting until empty. */
+export function nitroWantsBoost(
+  pressed: boolean,
+  tank: number,
+  alreadyBoosting: boolean,
+  damageStage: number,
+): boolean {
+  if (!pressed || damageStage >= 4) return false;
+  if (alreadyBoosting) return tank > 0;
+  return tank >= NITRO_ENGAGE_MIN;
 }
 
 /** Signed slip: heading − move angle, wrapped to (−π, π]. */
@@ -488,7 +506,7 @@ export function stepCar(
 
   if (car.miniTurboGrace > 0) car.miniTurboGrace = Math.max(0, car.miniTurboGrace - dt);
 
-  const boosting = input.nitro && car.nitro > 0 && stage < 4;
+  const boosting = nitroWantsBoost(input.nitro, car.nitro, car.nitroHeld, stage);
   const nitroHeadroom = boosting ? 1.42 + car.stats.nitroBonus * 0.5 : 1;
   // Mini-turbo punches through grass briefly (Kart boost), without removing the grass rule
   const mtGrace =
@@ -535,10 +553,10 @@ export function stepCar(
     const nitroPush = nitroForceFor(car.stats.nitroBonus, dmg.nitro);
     car.vx += hx * nitroPush * dt;
     car.vz += hz * nitroPush * dt;
-    const drain = 0.38 + car.stats.nitroBonus * 0.18;
+    const drain = NITRO_DRAIN + car.stats.nitroBonus * 0.18;
     car.nitro = Math.max(0, car.nitro - drain * dt);
   } else {
-    car.nitro = Math.min(1, car.nitro + 0.1 * dt);
+    car.nitro = Math.min(1, car.nitro + NITRO_RECHARGE * dt);
   }
   car.nitroHeld = boosting && allowNitro;
 
