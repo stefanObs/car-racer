@@ -969,7 +969,8 @@ button[data-act="race"]:not(:disabled) {
 
 .race-hud {
   pointer-events: none;
-  position: relative;
+  position: absolute;
+  inset: 0;
   display: block;
   width: 100%;
   max-width: none;
@@ -1930,7 +1931,6 @@ html.dev-show-names [data-dev-name]::after {
 
 html.dev-show-names .panel,
 html.dev-show-names button,
-html.dev-show-names .race-hud,
 html.dev-show-names .touch-controls,
 html.dev-show-names .bar,
 html.dev-show-names .dev-dialog {

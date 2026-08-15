@@ -1,3 +1,6 @@
+import { readFileSync } from "node:fs";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { CUP_LEVELS } from "../src/data/levels";
 import { RaceSession } from "../src/sim/race";
@@ -91,5 +94,17 @@ describe("race HUD UI (CONCEPT §9)", () => {
     expect(events.some((e) => e.reason === "Überholt!" && e.amount > 0)).toBe(true);
     expect(race.styleBonus).toBeGreaterThan(0);
     expect(race.styleBonus).toBeLessThanOrEqual(120);
+  });
+
+  it("pins the race HUD overlay to the viewport so the course map is not under settings", () => {
+    const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../src/ui/styles.css"), "utf8");
+    const hud = css.match(/\.race-hud\s*\{[^}]+\}/)?.[0] ?? "";
+    expect(hud).toContain("position: absolute");
+    expect(hud).toContain("inset: 0");
+    const map = css.match(/\.hud-minimap\s*\{[^}]+\}/)?.[0] ?? "";
+    expect(map).toContain("bottom:");
+    expect(map).not.toMatch(/^\s*top:/m);
+    const chrome = css.match(/\.race-mute,\s*\n\.race-settings\s*\{[^}]+\}/)?.[0] ?? "";
+    expect(chrome).toContain("top:");
   });
 });
