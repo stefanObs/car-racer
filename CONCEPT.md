@@ -490,7 +490,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 2. **Cup-Karte** — Streckenknoten, Sterne, empfohlene Klasse  
 3. **Freier Modus / Ad-hoc** — Strecke oder Seed, Optionen, Start  
 4. **Renn-HUD** — **Start-Countdown** 3…2…1…GO (**4 s**, Autos stehen); Platz, **Runden-Zähler** (aktuell / gesamt im HUD); beim **Überfahren der Start/Ziel-Linie** kurz die Tripo-**Lap-Shield**-Plakette **über dem Auto** (klein, Kamera-Facing) mit Runden-Zahl; Mini-Map, Schaden (inkl. Heil-Hinweis), Nitro, Style-Popups (`+50 CHF`); **Warnung „Falsche Richtung!“** bei anhaltender Gegenfahrt; **Ton an/aus**; **Einstellungen** (Esc, Rechtsklick oder Button; darin **Rennen verlassen** → Garage ohne Preisgeld)
-5. **Ergebnis** — Zielbanner/-linie; **~15 s 2D-Comic-Film** bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation**; dann Podium-Landung / CHF; weiter / Garage  
+5. **Ergebnis** — Zielbanner/-linie; **~15 s 2D-Asphalt-Comic-Film** (gemalte Panels: Strecke/Podium/Fahrer, Ken-Burns) bei Podest (Platz 1 / 2 / 3 jeweils anders); bei Platz 4+ kurze **enttäuschte Fahrer-Animation**; dann Podium-Landung / CHF; weiter / Garage  
 6. **Hilfe** — Steuerungshinweise (optional; inkl. Bremse halten = Rückwärts); kurze Credits-Zeile neben Version („Mit KI erstellt · menschliche Anleitung“), auch dezent in der Garage-Kasse; **Ton an/aus**; **Einstellungen**  
 7. **Einstellungen** — per **Esc** (Garage + Rennen; erneut Esc schließt), **Rechtsklick** (außer Garage-Canvas-Orbit), Garage-Button oder HUD-Button; u. a. **Einfacher Modus** (Vollgas ohne Gas-Taste). **Im Rennen:** zusätzlicher Button **Rennen verlassen** → zurück zur Garage, **kein** Preisgeld / Freischalten für den abgebrochenen Lauf. In Untermenüs (Cup/Hilfe/Ergebnis) bleibt Esc = Zurück zur Garage.  
 
@@ -596,4 +596,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.86 — Schanzen arcade-übertrieben; Lenkräder statt hartem Karosserie-Lean.*
+*Dokumentstand: Konzept v3.87 — Ergebnis-Filme als gemalte Asphalt-Comic-Panels (Strecke + Podium).*

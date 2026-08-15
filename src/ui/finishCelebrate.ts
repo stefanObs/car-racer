@@ -2,6 +2,7 @@
 
 import {
   podiumMovieDuration,
+  podiumMovieHeroSrc,
   podiumMovieHtml,
   podiumMovieKind,
   podiumMovieSub,
@@ -78,9 +79,11 @@ export function resultsPodiumHtml(place: number): string {
     })
     .join("");
 
+  const still = podiumMovieHeroSrc(place);
   if (podium) {
     return `
       <div class="results-podium results-podium--land" data-dev-name="results.podium" data-place="${place}">
+        <img class="results-still" src="${still}" alt="" />
         <div class="podium-stands">${stands}</div>
         <p class="podium-caption">${podiumMovieTitle(place)} · Platz ${place}</p>
       </div>
@@ -89,6 +92,7 @@ export function resultsPodiumHtml(place: number): string {
 
   return `
     <div class="results-podium results-podium--field" data-dev-name="results.podium" data-place="${place}">
+      <img class="results-still results-still--field" src="${still}" alt="" />
       <div class="podium-stands podium-stands--dim">${stands}</div>
       <p class="podium-caption podium-caption--field land-field">SCHADE! · Platz ${place}</p>
     </div>

@@ -14,11 +14,14 @@ import {
 import {
   FIELD_MOVIE_SECONDS,
   PODIUM_MOVIE_SECONDS,
+  RESULT_MOVIE_PANELS,
   podiumMovieDuration,
   podiumMovieHtml,
   podiumMovieKind,
   podiumMovieTitle,
 } from "../src/ui/podiumMovie";
+import { existsSync } from "node:fs";
+import { resolve } from "node:path";
 
 describe("finish line and celebrate", () => {
   it("adds a named finish line group on every cup track", { timeout: 20_000 }, () => {
@@ -64,20 +67,27 @@ describe("finish line and celebrate", () => {
     expect(gold).toContain("podium-movie--gold");
     expect(gold).toContain("SIEGER!");
     expect(gold).toContain('data-dev-name="finish.movie"');
-    expect(gold).toContain("pm-driver--cheer");
+    expect(gold).toContain('data-pose="cheer"');
+    expect(gold).toContain("gold-podium.jpg");
+    expect(gold).toContain("gold-finish.jpg");
+    expect(gold).toContain("gold-end.jpg");
+    expect(gold).toContain("podium-movie--painted");
 
     expect(silver).toContain("finish-fx--silver");
     expect(silver).toContain("SILBER!");
-    expect(silver).toContain("pm-driver--wave");
+    expect(silver).toContain('data-pose="wave"');
+    expect(silver).toContain("silver-proud.jpg");
 
     expect(bronze).toContain("finish-fx--bronze");
     expect(bronze).toContain("BRONZE!");
-    expect(bronze).toContain("pm-driver--fist");
+    expect(bronze).toContain('data-pose="fist"');
+    expect(bronze).toContain("bronze-relief.jpg");
 
     expect(field).toContain("finish-fx--field");
     expect(field).toContain("podium-movie--field");
     expect(field).toContain("SCHADE!");
-    expect(field).toContain("pm-driver--sad");
+    expect(field).toContain('data-pose="sad"');
+    expect(field).toContain("field-sad.jpg");
     expect(field).not.toContain("SIEGER!");
   });
 
@@ -91,6 +101,7 @@ describe("finish line and celebrate", () => {
     expect(b).toContain("pm-prop--bronze");
     expect(f).toContain("pm-scene--sad");
     expect(g).not.toContain("pm-scene--sad");
+    expect(g).toContain("pm-art");
     expect(podiumMovieDuration(1)).toBe(15);
     expect(podiumMovieDuration(4)).toBe(5);
     expect(podiumMovieTitle(2)).toBe("SILBER!");
@@ -102,12 +113,15 @@ describe("finish line and celebrate", () => {
     expect(p1).toContain("podium-stand--you");
     expect(p1).toContain('data-place="1"');
     expect(p1).toContain("SIEGER!");
+    expect(p1).toContain("results-still");
+    expect(p1).toContain("gold-podium.jpg");
 
     const p5 = resultsPodiumHtml(5);
     expect(p5).toContain("results-podium--field");
     expect(p5).toContain("land-field");
     expect(p5).toContain("SCHADE!");
     expect(p5).toContain("Platz 5");
+    expect(p5).toContain("field-sad.jpg");
     expect(p5).not.toContain("podium-stand--you");
   });
 
@@ -118,5 +132,14 @@ describe("finish line and celebrate", () => {
     expect(fx.t).toBeLessThan(fx.duration);
     advanceFinishCelebrate(fx, 1000 + PODIUM_MOVIE_SECONDS * 1000);
     expect(fx.t).toBeGreaterThanOrEqual(fx.duration);
+  });
+
+  it("ships painted Asphalt-Comic result panels for every movie kind", () => {
+    for (const urls of Object.values(RESULT_MOVIE_PANELS)) {
+      for (const url of urls) {
+        const path = resolve("public", url.replace(/^\//, ""));
+        expect(existsSync(path), path).toBe(true);
+      }
+    }
   });
 });

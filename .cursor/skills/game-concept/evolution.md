@@ -14,6 +14,11 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-15 — Painted Asphalt-Comic result movies (v0.3.192 / CONCEPT v3.87)
+- Trigger: user — make new result animations in the game’s asphalt style
+- Decision: Replace stick-figure SVG reels with painted cel-shaded panels (gold 3 cuts, silver 3, bronze 3, field 1) + Ken-Burns. Captions stay German. Results screen shows a still from the matching reel.
+- CONCEPT dokumentstand → v3.87
+
 ### 2026-08-14 — Milder body bank + comic Schanze hops
 
 - Trigger: user — less hard side tilt now wheels steer; jumps more comic than real
