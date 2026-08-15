@@ -48,7 +48,7 @@ describe("theme track Tripo kit (cups 2–5)", () => {
   });
 
   it("race start awaits track kit so walls/scenery never miss Tripo", () => {
-    const src = readFileSync("src/ui/GameApp.ts", "utf8");
+    const src = readFileSync("src/app/raceFlow.ts", "utf8");
     expect(src).toContain("preloadTrackModels");
     expect(src).toMatch(/await preloadTrackModels\(\)/);
   });

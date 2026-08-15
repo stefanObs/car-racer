@@ -60,13 +60,13 @@ Each **implementation step**:
 ```
 src/
   core/           # time, version, celebrate DTO
-  app/            # screen machine, race start/end (GameApp)
+  app/            # GameApp (only tick driver), screens, raceFlow, uiActions
   input/          # ActionMap: throttle, brake, steer, nitro, ui*
   sim/            # vehicle, damage, catch-up, zones (grass/wall)
   meta/           # save, CHF, shops, race rewards
-  render/         # three.js scene, toon materials, VFX
+  render/         # three.js scene, toon materials, VFX (read CarState; never write it)
   track/          # JSON load, segment mesh, ad-hoc generator
-  ui/             # HTML menus, garage, HUD
+  ui/             # HTML menus, garage, HUD — no GameApp
   audio/
   data/           # cars, parts, cosmetics, i18n/de.json
 levels/           # already present
@@ -74,7 +74,7 @@ public/models/cars/  # GLB car visuals (Blender exports); collision = silhouette
 tests/
 ```
 
-**One-way imports:** `data` → `track` → `sim` → `meta` → `app` → (`ui` | `render` | `audio` | `input`). Lower layers never import `ui/`, `render/`, or `audio/` implementations. `data/` owns catalogs (paint hex, nose-vs-sticker); render/UI read them. Cosmetics never enter `mergeStats`. Sim never calls `gameAudio`. Render never writes `CarState`.
+**One-way imports:** `data` → `track` → `sim` → `meta` → `app` → (`ui` | `render` | `audio` | `input`). Lower layers never import `ui/`, `render/`, or `audio/` implementations. `data/` owns catalogs (paint hex, nose-vs-sticker); render/UI read them. Cosmetics never enter `mergeStats`. Sim never calls `gameAudio`. Render never writes `CarState`. `GameApp` is the only frame driver (`src/app/GameApp.ts`); next features land in the extracted modules, not back into GameApp or RaceRenderer.
 
 ### Car visuals (GLB import)
 

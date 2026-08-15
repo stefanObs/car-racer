@@ -9,7 +9,7 @@ import { preloadPanoramaTextures } from "./render/panoramaSurround";
 import { preloadTrackModels } from "./render/loadTrackGltf";
 import { preloadFlameSticker, preloadFlameStickerGlb } from "./render/carStickers";
 import { gameAudio } from "./audio/GameAudio";
-import { GameApp } from "./ui/GameApp";
+import { GameApp } from "./app/GameApp";
 
 const canvas = document.querySelector<HTMLCanvasElement>("#game-canvas");
 const uiRoot = document.querySelector<HTMLElement>("#ui-root");

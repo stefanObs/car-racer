@@ -1,4 +1,4 @@
-import { readFileSync, readdirSync, statSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -60,5 +60,40 @@ describe("layer import boundaries", () => {
   it("clamps display lap only on finish overrun", () => {
     expect(displayLap(4, 3)).toBe(3);
     expect(displayLap(-2, 3)).toBe(-2);
+  });
+
+  it("hosts GameApp in src/app, not ui", () => {
+    expect(existsSync(join(SRC, "app/GameApp.ts"))).toBe(true);
+    expect(existsSync(join(SRC, "ui/GameApp.ts"))).toBe(false);
+    expect(readFileSync(join(SRC, "main.ts"), "utf8")).toContain('from "./app/GameApp"');
+    expect(readFileSync(join(SRC, "app/GameApp.ts"), "utf8")).toContain("tick(now: number, dt: number)");
+  });
+
+  it("keeps sim free of GameAudio and ui", () => {
+    const leaks: string[] = [];
+    for (const file of listTs(join(SRC, "sim"))) {
+      for (const spec of forbiddenImports(file, /\/(ui|GameAudio)/)) {
+        leaks.push(`${relative(SRC, file)} → ${spec}`);
+      }
+    }
+    expect(leaks).toEqual([]);
+  });
+
+  it("keeps mergeStats free of cosmetics", () => {
+    const src = readFileSync(join(SRC, "data/parts.ts"), "utf8");
+    const start = src.indexOf("export function mergeStats");
+    const next = src.indexOf("\nexport ", start + 1);
+    const body = src.slice(start, next === -1 ? undefined : next);
+    expect(body).not.toMatch(/paint|sticker|cosmetic/i);
+  });
+
+  it("does not assign CarState kinematics from render", () => {
+    const hits: string[] = [];
+    const write = /\bcar\.(x|z|vx|vz|heading|hp|nitro)\s*=/;
+    for (const file of listTs(join(SRC, "render"))) {
+      const text = readFileSync(file, "utf8");
+      if (write.test(text)) hits.push(relative(SRC, file));
+    }
+    expect(hits).toEqual([]);
   });
 });

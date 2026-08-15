@@ -1,7 +1,7 @@
-import { createRaceSession, mountRace, settleRace, teardownRace } from "../app/raceFlow";
-import { emptyGaragePreview, garagePreviewActive, type GaragePreview } from "../app/garagePreview";
-import type { Screen } from "../app/screens";
-import { applyAdhocSeed, applyMenuAction } from "../app/uiActions";
+import { createRaceSession, mountRace, settleRace, teardownRace } from "./raceFlow";
+import { emptyGaragePreview, garagePreviewActive, type GaragePreview } from "./garagePreview";
+import type { Screen } from "./screens";
+import { applyAdhocSeed, applyMenuAction } from "./uiActions";
 import { gameAudio } from "../audio/GameAudio";
 import { playRaceAudioEvent } from "../audio/raceEvents";
 import { type CarId } from "../data/cars";
@@ -24,30 +24,30 @@ import { createGameRenderer, type GameRenderer } from "../render/createGameRende
 import { RaceSession } from "../sim/race";
 import { generateAdhocLevel, randomSeed, type AdhocLength } from "../track/adhoc";
 import type { LevelDefinition } from "../track/types";
-import { renderAdhocHtml } from "./adhocHtml";
-import { renderGarageHtml } from "./garageHtml";
-import { garageOrbitAxesForPointer } from "./garageOrbit";
-import { renderMenuHtml } from "./menuHtml";
-import { renderCupPickHtml, renderFreePickHtml, renderTrainingPickHtml } from "./modePickHtml";
-import { renderRaceChromeHtml } from "./raceChromeHtml";
-import { renderResultsHtml } from "./resultsHtml";
-import { renderSettingsPanelHtml } from "./settingsHtml";
-import { escapeOpensSettings } from "./settingsEsc";
-import { renderCarStatsPopup } from "./carStatsPopup";
-import { syncRaceHud } from "./raceHud";
+import { renderAdhocHtml } from "../ui/adhocHtml";
+import { renderGarageHtml } from "../ui/garageHtml";
+import { garageOrbitAxesForPointer } from "../ui/garageOrbit";
+import { renderMenuHtml } from "../ui/menuHtml";
+import { renderCupPickHtml, renderFreePickHtml, renderTrainingPickHtml } from "../ui/modePickHtml";
+import { renderRaceChromeHtml } from "../ui/raceChromeHtml";
+import { renderResultsHtml } from "../ui/resultsHtml";
+import { renderSettingsPanelHtml } from "../ui/settingsHtml";
+import { escapeOpensSettings } from "../ui/settingsEsc";
+import { renderCarStatsPopup } from "../ui/carStatsPopup";
+import { syncRaceHud } from "../ui/raceHud";
 import {
   advanceFinishCelebrate,
   createFinishCelebrate,
   finishOverlayHtml,
   type FinishCelebrate,
-} from "./finishCelebrate";
+} from "../ui/finishCelebrate";
 import {
   panelScreenOf,
   readPanelScrollTop,
   shouldPreservePanelScroll,
   writePanelScrollTop,
-} from "./panelScroll";
-import { StylePopupQueue } from "./stylePopups";
+} from "../ui/panelScroll";
+import { StylePopupQueue } from "../ui/stylePopups";
 
 export class GameApp {
   private save: SaveData = loadSave();
