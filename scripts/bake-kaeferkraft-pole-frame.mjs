@@ -47,6 +47,9 @@ const SIDE_Z = 0.43;
 /** Waist: a bit above hip, slightly outboard of 0.52 — still outside the seats. */
 const WAIST_Z = 0.55;
 const WAIST_Y = 0.96;
+/** Front (−X) stops short of the teal cowl; only the rear is extended into the joint. */
+const WAIST_FRONT_X = -0.32;
+const WAIST_REAR_X = 0.5;
 const GREY = 0x6a7078;
 
 function extendEnds(a, b, extra) {
@@ -86,7 +89,7 @@ g.name = "kaeferkraft-reinforced_frame";
 for (const side of [-1, 1]) {
   const z = SIDE_Z * side;
   const waistZ = WAIST_Z * side;
-  addPole(g, ...extendEnds([-0.48, WAIST_Y, waistZ], [0.5, WAIST_Y, waistZ], INTO), "Waist");
+  addPole(g, [WAIST_FRONT_X, WAIST_Y, waistZ], [WAIST_REAR_X + INTO, WAIST_Y, waistZ], "Waist");
   addPole(g, ...extendEnds([0.48, 1.54, z], [-0.5, 0.8, z], INTO), "XRearToDash");
   addPole(g, ...extendEnds([0.48, 1.54, z], [1.36, 0.7, Math.sign(z) * 0.36], INTO), "RearStay");
 }

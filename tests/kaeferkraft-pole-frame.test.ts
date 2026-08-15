@@ -26,7 +26,7 @@ function gltfPositions(doc: Document): [number, number, number][] {
 const POLE_R = 0.025;
 
 describe("Käferkraft pole-frame waist", () => {
-  it("clears the seats and still meets the teal cabin flank", async () => {
+  it("clears the seats and stops short of the front teal cowl", async () => {
     const { NodeIO } = await import("@gltf-transform/core");
     const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
     const { MeshoptDecoder } = await import("meshoptimizer");
@@ -35,11 +35,13 @@ describe("Käferkraft pole-frame waist", () => {
     const waist = doc.getRoot().listNodes().filter((n) => n.getMesh() && n.getName().startsWith("Waist"));
     expect(waist.length).toBe(2);
     for (const n of waist) {
-      const [, y, z] = n.getTranslation();
+      const [x, y, z] = n.getTranslation();
       expect(Math.abs(z!)).toBeGreaterThan(0.53);
       expect(Math.abs(z!)).toBeLessThan(0.58);
       expect(y!).toBeGreaterThan(0.92);
       expect(y!).toBeLessThan(1);
+      // Midpoint shifted aft so the nose-side end no longer sits in the cowl.
+      expect(x!).toBeGreaterThan(0.08);
     }
 
     const carIo = new NodeIO()
@@ -70,6 +72,7 @@ describe("Käferkraft pole-frame waist", () => {
       expect(Math.abs(n.position.z)).toBeLessThan(0.58);
       expect(n.position.y).toBeGreaterThan(0.92);
       expect(n.position.y).toBeLessThan(1);
+      expect(n.position.x).toBeGreaterThan(0.08);
     }
   });
 });
