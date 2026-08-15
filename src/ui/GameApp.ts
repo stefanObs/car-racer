@@ -1,35 +1,28 @@
-import { type CarId } from "../data/cars";
+import { createRaceSession, mountRace, settleRace, teardownRace } from "../app/raceFlow";
+import { emptyGaragePreview, garagePreviewActive, type GaragePreview } from "../app/garagePreview";
+import type { Screen } from "../app/screens";
+import { applyAdhocSeed, applyMenuAction } from "../app/uiActions";
 import { gameAudio } from "../audio/GameAudio";
 import { playRaceAudioEvent } from "../audio/raceEvents";
-import { asTrainingLevel, freeLevels, levelById, trainingLevels, CUP_LEVELS } from "../data/levels";
+import { type CarId } from "../data/cars";
 import { debugPadLevel } from "../data/debugPad";
-import { type PartId } from "../data/parts";
+import { CUP_LEVELS, freeLevels, trainingLevels } from "../data/levels";
 import { DevTools } from "../dev/DevTools";
 import { bindKeyboard, sampleActions, touchState } from "../input/actions";
 import { nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
-import { buyCar, selectCarInGarage, showcaseCarId, showcaseKit } from "../meta/carShop";
-import {
-  buyPaint,
-  buySticker,
-  selectPaintInGarage,
-  selectStickerInGarage,
-  showcasePaint,
-  showcaseSticker,
-} from "../meta/cosmeticsShop";
-import { buyPart, selectPartInGarage, showcaseParts } from "../meta/partsShop";
-import { applyRaceRewards } from "../meta/raceRewards";
-import { loadSave, writeSave, activeKit, ensureKit, type SaveData, type StickerId } from "../meta/save";
+import { showcaseCarId, showcaseKit } from "../meta/carShop";
+import { showcasePaint, showcaseSticker } from "../meta/cosmeticsShop";
+import { showcaseParts } from "../meta/partsShop";
+import { loadSave, writeSave, activeKit, type SaveData } from "../meta/save";
 import {
   applyEasyModeThrottle,
   loadGameSettings,
   writeGameSettings,
   type GameSettings,
 } from "../meta/gameSettings";
-import { ensureCarPartTemplates } from "../render/carParts";
 import { createGameRenderer, type GameRenderer } from "../render/createGameRenderer";
-import { preloadTrackModels } from "../render/loadTrackGltf";
 import { RaceSession } from "../sim/race";
-import { generateAdhocLevel, normalizeSeed, randomSeed, type AdhocLength } from "../track/adhoc";
+import { generateAdhocLevel, randomSeed, type AdhocLength } from "../track/adhoc";
 import type { LevelDefinition } from "../track/types";
 import { renderAdhocHtml } from "./adhocHtml";
 import { renderGarageHtml } from "./garageHtml";
@@ -56,8 +49,6 @@ import {
 } from "./panelScroll";
 import { StylePopupQueue } from "./stylePopups";
 
-type Screen = "menu" | "cup" | "free" | "training" | "adhoc" | "garage" | "race" | "results";
-
 export class GameApp {
   private save: SaveData = loadSave();
   private screen: Screen = "garage";
@@ -71,12 +62,7 @@ export class GameApp {
   private adhocSeed = randomSeed();
   private adhocLength: AdhocLength = "medium";
   private lastAdhoc: LevelDefinition | null = null;
-  /** Unowned car shown in the bay until bought or another owned car is picked. */
-  private previewCar: CarId | null = null;
-  /** Unowned paint/sticker/part preview on the active car (cleared on buy or car switch). */
-  private previewPaint: string | null = null;
-  private previewSticker: StickerId | null = null;
-  private previewPart: PartId | null = null;
+  private preview: GaragePreview = emptyGaragePreview();
   private stylePops = new StylePopupQueue();
   private settings: GameSettings = loadGameSettings();
   private settingsOpen = false;
@@ -168,8 +154,7 @@ export class GameApp {
     this.uiRoot.querySelector(".settings-host")?.remove();
     this.finishCelebrate = null;
     this.race = null;
-    this.stylePops.clear();
-    this.renderer.clearCars();
+    teardownRace(this.renderer, this.stylePops);
     this.screen = "garage";
     this.renderUi();
   }
@@ -320,9 +305,7 @@ export class GameApp {
         this.renderer.sync(this.race, this.finishCelebrate);
         this.updateFinishOverlay();
         if (this.finishCelebrate.t >= this.finishCelebrate.duration) {
-          this.lastResult = this.race.result();
-          applyRaceRewards(this.save, this.lastResult, this.race.level.id);
-          writeSave(this.save);
+          this.lastResult = settleRace(this.save, this.race);
           this.finishCelebrate = null;
           this.screen = "results";
           this.renderUi();
@@ -493,39 +476,12 @@ export class GameApp {
   }
 
   private async beginRace(level: LevelDefinition): Promise<void> {
-    if (!level.track.debugPad) await preloadTrackModels();
-    this.renderer.clearCars();
     this.stylePops.clear();
     this.finishCelebrate = null;
-    const kit = activeKit(this.save);
-    this.race = new RaceSession({
-      level,
-      playerCarId: this.save.activeCar,
-      playerParts: kit.equippedParts,
-      playerPaint: kit.paint,
-      playerSticker: kit.sticker,
-    });
-    const modelIds = [...new Set(this.race.cars.map((c) => c.modelId))];
-    for (const id of modelIds) void ensureCarPartTemplates(id as CarId);
-    this.renderer.buildTrack(this.race);
+    this.race = createRaceSession(this.save, level);
+    await mountRace(this.renderer, this.race);
     this.screen = "race";
     this.renderUi();
-  }
-
-  private startRace(levelId: string): void {
-    if (this.lastAdhoc && this.lastAdhoc.id === levelId) {
-      this.startRaceWithLevel(this.lastAdhoc);
-      return;
-    }
-    const level = levelById(levelId) ?? freeLevels(this.save.unlockedLevels).find((l) => l.id === levelId);
-    if (!level) return;
-    this.startRaceWithLevel(level);
-  }
-
-  private startTraining(levelId: string): void {
-    const source = levelById(levelId);
-    if (!source) return;
-    this.startRaceWithLevel(asTrainingLevel(source));
   }
 
   private updateHud(): void {
@@ -561,12 +517,12 @@ export class GameApp {
   }
 
   private syncGarageLook(): void {
-    const kit = showcaseKit(this.save, this.previewCar);
+    const kit = showcaseKit(this.save, this.preview.car);
     this.renderer.setGarageLook({
-      paint: showcasePaint(kit, this.previewPaint),
-      sticker: showcaseSticker(kit, this.previewSticker),
-      modelId: showcaseCarId(this.save.activeCar, this.previewCar),
-      equippedParts: showcaseParts(kit, this.previewPart),
+      paint: showcasePaint(kit, this.preview.paint),
+      sticker: showcaseSticker(kit, this.preview.sticker),
+      modelId: showcaseCarId(this.save.activeCar, this.preview.car),
+      equippedParts: showcaseParts(kit, this.preview.part),
     });
   }
 
@@ -596,10 +552,10 @@ export class GameApp {
         ownedCars: this.save.ownedCars,
         kit: activeKit(this.save),
         muted: gameAudio.muted,
-        previewCar: this.previewCar,
-        previewPaint: this.previewPaint,
-        previewSticker: this.previewSticker,
-        previewPart: this.previewPart,
+        previewCar: this.preview.car,
+        previewPaint: this.preview.paint,
+        previewSticker: this.preview.sticker,
+        previewPart: this.preview.part,
       });
       this.syncGarageLook();
     } else if (this.screen === "race") {
@@ -611,16 +567,16 @@ export class GameApp {
     const statsPopup =
       this.screen === "garage"
         ? renderCarStatsPopup({
-            carId: showcaseCarId(this.save.activeCar, this.previewCar),
+            carId: showcaseCarId(this.save.activeCar, this.preview.car),
             equippedParts: showcaseParts(
-              showcaseKit(this.save, this.previewCar),
-              this.previewPart,
+              showcaseKit(this.save, this.preview.car),
+              this.preview.part,
             ),
           })
         : "";
     const previewStamp =
       this.screen === "garage" &&
-      (this.previewCar || this.previewPaint || this.previewSticker || this.previewPart)
+      garagePreviewActive(this.preview)
         ? `<div class="garage-preview-stamp" data-dev-name="garage.preview.stamp">Vorschau</div>`
         : "";
     this.uiRoot.innerHTML = `${statsPopup}${previewStamp}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
@@ -634,16 +590,19 @@ export class GameApp {
       btn.addEventListener("click", () => this.onAction(btn));
     });
     const seedInput = this.uiRoot.querySelector<HTMLInputElement>("input[data-seed-input]");
-    seedInput?.addEventListener("change", () => {
-      this.adhocSeed = normalizeSeed(seedInput.value);
+    const applySeed = (): void => {
+      if (!seedInput) return;
+      const menu = this.menuState();
+      applyAdhocSeed(menu, seedInput.value);
+      this.adhocSeed = menu.adhocSeed;
       this.renderUi();
-    });
+    };
+    seedInput?.addEventListener("change", applySeed);
     seedInput?.addEventListener("keydown", (e) => {
       if (e.code === "Enter") {
         e.preventDefault();
         e.stopPropagation();
-        this.adhocSeed = normalizeSeed(seedInput.value);
-        this.renderUi();
+        applySeed();
       }
     });
     this.uiRoot.querySelectorAll<HTMLButtonElement>("button[data-touch]").forEach((btn) => {
@@ -673,6 +632,17 @@ export class GameApp {
     }
     const firstEnabled = navButtons.findIndex((b) => !b.disabled);
     this.applyFocus(firstEnabled >= 0 ? firstEnabled : 0);
+  }
+
+  private menuState() {
+    return {
+      screen: this.screen,
+      save: this.save,
+      preview: this.preview,
+      adhocSeed: this.adhocSeed,
+      adhocLength: this.adhocLength,
+      lastAdhoc: this.lastAdhoc,
+    };
   }
 
   private onAction(btn: HTMLButtonElement): void {
@@ -719,7 +689,7 @@ export class GameApp {
     }
 
     const isBuy = act === "buy-car" || act === "buy-paint" || act === "buy-sticker" || act === "buy-part";
-      const isConfirm =
+    const isConfirm =
       act === "race" ||
       act === "adhoc-start" ||
       act === "cup" ||
@@ -731,102 +701,17 @@ export class GameApp {
       else gameAudio.playUiClick();
     }
 
-    if (act === "menu") this.screen = "menu";
-    if (act === "cup") this.screen = "cup";
-    if (act === "free") this.screen = "free";
-    if (act === "training") this.screen = "training";
-    if (act === "adhoc") this.screen = "adhoc";
-    if (act === "garage") this.screen = "garage";
-    if (act === "adhoc-roll") {
-      this.adhocSeed = randomSeed();
-      this.screen = "adhoc";
-    }
-    if (act === "adhoc-length" && btn.dataset.length) {
-      this.adhocLength = btn.dataset.length as AdhocLength;
-      this.screen = "adhoc";
-    }
-    if (act === "adhoc-start") {
-      const level = generateAdhocLevel({ seed: this.adhocSeed, length: this.adhocLength });
-      this.lastAdhoc = level;
-      this.startRaceWithLevel(level);
+    const menu = this.menuState();
+    const out = applyMenuAction(menu, act, btn.dataset);
+    this.screen = menu.screen;
+    this.adhocSeed = menu.adhocSeed;
+    this.adhocLength = menu.adhocLength;
+    this.lastAdhoc = menu.lastAdhoc;
+    if (out.bought) gameAudio.playUiBuy();
+    if (out.persist) writeSave(this.save);
+    if (out.startLevel) {
+      this.startRaceWithLevel(out.startLevel);
       return;
-    }
-    if (act === "race" && btn.dataset.level) {
-      if (this.screen === "training") {
-        this.startTraining(btn.dataset.level);
-        return;
-      }
-      this.startRace(btn.dataset.level);
-      return;
-    }
-    if (act === "car" && btn.dataset.car) {
-      const id = btn.dataset.car as CarId;
-      const next = selectCarInGarage(this.save.ownedCars, this.save.activeCar, id);
-      this.save.activeCar = next.activeCar;
-      this.previewCar = next.previewCar;
-      this.previewPaint = null;
-      this.previewSticker = null;
-      this.previewPart = null;
-      if (next.previewCar == null) ensureKit(this.save, next.activeCar);
-      writeSave(this.save);
-    }
-    if (act === "buy-car" && btn.dataset.car) {
-      const id = btn.dataset.car as CarId;
-      if (buyCar(this.save, id)) {
-        gameAudio.playUiBuy();
-        this.previewCar = null;
-        this.previewPaint = null;
-        this.previewSticker = null;
-        this.previewPart = null;
-        writeSave(this.save);
-      }
-    }
-    if (act === "paint" && btn.dataset.color) {
-      const kit = activeKit(this.save);
-      const next = selectPaintInGarage(kit, btn.dataset.color, this.previewPaint);
-      kit.paint = next.paint;
-      this.previewPaint = next.previewPaint;
-      if (next.previewPaint == null) writeSave(this.save);
-    }
-    if (act === "buy-paint" && btn.dataset.color) {
-      const kit = activeKit(this.save);
-      if (buyPaint(this.save, kit, btn.dataset.color)) {
-        gameAudio.playUiBuy();
-        this.previewPaint = null;
-        writeSave(this.save);
-      }
-    }
-    if (act === "sticker" && btn.dataset.sticker) {
-      const kit = activeKit(this.save);
-      const next = selectStickerInGarage(kit, btn.dataset.sticker, this.previewSticker);
-      kit.sticker = next.sticker;
-      this.previewSticker = next.previewSticker;
-      if (next.previewSticker == null) writeSave(this.save);
-    }
-    if (act === "buy-sticker" && btn.dataset.sticker) {
-      const kit = activeKit(this.save);
-      if (buySticker(this.save, kit, btn.dataset.sticker)) {
-        gameAudio.playUiBuy();
-        this.previewSticker = null;
-        writeSave(this.save);
-      }
-    }
-    if (act === "part" && btn.dataset.part) {
-      const id = btn.dataset.part as PartId;
-      const kit = activeKit(this.save);
-      const next = selectPartInGarage(kit, id, this.previewPart, this.save.activeCar);
-      kit.equippedParts = next.equippedParts;
-      this.previewPart = next.previewPart;
-      if (next.dirty) writeSave(this.save);
-    }
-    if (act === "buy-part" && btn.dataset.part) {
-      const id = btn.dataset.part as PartId;
-      const kit = activeKit(this.save);
-      if (buyPart(this.save, kit, id, this.save.activeCar)) {
-        gameAudio.playUiBuy();
-        this.previewPart = null;
-        writeSave(this.save);
-      }
     }
     if (this.screen !== "race") this.renderUi();
   }

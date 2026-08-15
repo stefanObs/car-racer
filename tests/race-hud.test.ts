@@ -10,7 +10,7 @@ import { renderNitroMeterHtml } from "../src/ui/nitroHud";
 import { renderDamageHudHtml } from "../src/ui/damageHud";
 import { NITRO_ENGAGE_MIN } from "../src/sim/vehicle";
 import { StylePopupQueue } from "../src/ui/stylePopups";
-import { renderRaceHudHtml, syncRaceHud } from "../src/ui/raceHud";
+import { renderRaceHudHtml } from "../src/ui/raceHud";
 
 function makeRace(): RaceSession {
   return new RaceSession({
