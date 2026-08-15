@@ -480,10 +480,10 @@ describe("Equipped-part visuals (all cars)", () => {
     const partsSrc = readFileSync("src/render/carParts.ts", "utf8");
     expect(partsSrc).toContain("export function ensureCarPartTemplates");
     expect(partsSrc).toContain('ensureCarPartTemplates("blitz")');
-    const rendererSrc = readFileSync("src/render/RaceRenderer.ts", "utf8");
-    expect(rendererSrc).toContain("ensureCarPartTemplates");
-    const appSrc = readFileSync("src/ui/GameApp.ts", "utf8");
-    expect(appSrc).toContain("ensureCarPartTemplates");
+    const garageSrc = readFileSync("src/render/garagePresenter.ts", "utf8");
+    expect(garageSrc).toContain("ensureCarPartTemplates");
+    const raceFlowSrc = readFileSync("src/app/raceFlow.ts", "utf8");
+    expect(raceFlowSrc).toContain("ensureCarPartTemplates");
   });
 
   it("places Bison scoop on mid-hood with grill toward the nose", async () => {

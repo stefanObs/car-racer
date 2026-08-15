@@ -36,6 +36,16 @@ describe("layer import boundaries", () => {
     expect(leaks).toEqual([]);
   });
 
+  it("keeps src/render free of ui imports", () => {
+    const leaks: string[] = [];
+    for (const file of listTs(join(SRC, "render"))) {
+      for (const spec of forbiddenImports(file, /\/ui\//)) {
+        leaks.push(`${relative(SRC, file)} → ${spec}`);
+      }
+    }
+    expect(leaks).toEqual([]);
+  });
+
   it("owns garage black paint in data", () => {
     expect(CAR_PAINT_BLACK).toBe("#52545e");
   });

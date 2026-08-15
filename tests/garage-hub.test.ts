@@ -59,7 +59,7 @@ describe("garage hub", () => {
   });
 
   it("idle showcase sits cars on the pad deck via tire contact (not FX Box3)", () => {
-    const src = readFileSync("src/render/RaceRenderer.ts", "utf8");
+    const src = readFileSync("src/render/garagePresenter.ts", "utf8");
     expect(src).toContain("garagePadDeckY");
     expect(src).toContain("garagePadContactSnapDelta");
     expect(src).toContain("carBodyWorldCenter");
