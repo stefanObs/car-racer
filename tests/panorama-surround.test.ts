@@ -5,6 +5,12 @@ import { CUP_LEVELS } from "../src/data/levels";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
 import {
   buildPanoramaSurround,
+  GROUND_PLANE_Y,
+  HARBOR_HORIZON_PIER_V,
+  HARBOR_SKYLINE_CROP,
+  HARBOR_SKYLINE_URL,
+  harborEquirectPlateBand,
+  horizonRingLayout,
   makeHarborEquirectTexture,
   makeHorizonPanoramaTexture,
   makeInfieldPanoramaTexture,
@@ -35,6 +41,24 @@ describe("sky dome + panorama surround", () => {
     tex.dispose();
   });
 
+  it("stamps the harbor pier on the equirect horizon, not under the floor", () => {
+    const { pierCanvasV, bandH } = harborEquirectPlateBand(1024);
+    expect(bandH).toBeGreaterThan(400);
+    // Equirect v=0.5 is the world horizon; v>0.5 is the ground hemisphere (hidden by the floor).
+    expect(pierCanvasV).toBeLessThanOrEqual(0.51);
+    expect(pierCanvasV).toBeGreaterThan(0.45);
+  });
+
+  it("crops the harbor cylinder plate to the pier/crane band, dropping empty sky", () => {
+    expect(HARBOR_SKYLINE_CROP.top).toBeGreaterThan(0.55);
+    expect(HARBOR_SKYLINE_CROP.top).toBeLessThan(HARBOR_HORIZON_PIER_V);
+    expect(HARBOR_SKYLINE_CROP.bottom).toBeGreaterThan(HARBOR_HORIZON_PIER_V);
+    expect(HARBOR_SKYLINE_CROP.bottom - HARBOR_SKYLINE_CROP.top).toBeLessThan(0.4);
+    const path = resolve(`public${HARBOR_SKYLINE_URL}`);
+    expect(existsSync(path), path).toBe(true);
+    expect(statSync(path).size, path).toBeGreaterThan(80_000);
+  });
+
   it("builds sky and horizon textures for every known cup theme", () => {
     for (const level of CUP_LEVELS) {
       const look = themeLook(level.theme);
@@ -59,13 +83,29 @@ describe("sky dome + panorama surround", () => {
       g.traverse((o) => {
         if (o.name) names.add(o.name);
       });
+      expect(names.has("horizonPanorama"), level.id).toBe(true);
       if (level.theme === "harbor") {
         expect(names.has("infieldPanorama"), level.id).toBe(true);
         expect(names.has("harborWaterApron"), level.id).toBe(true);
-      } else {
-        expect(names.has("horizonPanorama"), level.id).toBe(true);
       }
     }
+  });
+
+  it("keeps harbor panorama decks and the skyline ring above the ground plane", () => {
+    const track = buildTrackFromLevel(CUP_LEVELS[0]!);
+    const g = buildPanoramaSurround(track, "harbor", themeLook("harbor"));
+    const ring = g.getObjectByName("horizonPanorama");
+    const apron = g.getObjectByName("harborWaterApron");
+    const disc = g.getObjectByName("infieldPanorama");
+    expect(ring).toBeTruthy();
+    expect(apron).toBeTruthy();
+    expect(disc).toBeTruthy();
+    const { ringH, centerY } = horizonRingLayout("harbor");
+    expect(centerY).toBe(ring!.position.y);
+    expect(centerY + ringH / 2).toBeGreaterThan(20);
+    expect(apron!.position.y).toBeGreaterThan(GROUND_PLANE_Y);
+    expect(disc!.position.y).toBeGreaterThan(GROUND_PLANE_Y);
+    expect(disc!.position.y).toBeLessThan(0);
   });
 
   it("keeps Hafenstart display name and harbor theme unchanged", () => {

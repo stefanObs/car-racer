@@ -51,10 +51,13 @@ export const PANORAMA_URLS: Record<PanoramaKind, Record<PanoramaPlate, string>> 
   },
 };
 
+/** Tight crane/pier strip for the harbor cylinder (full plate is mostly sky). */
+export const HARBOR_SKYLINE_URL = "/textures/panorama/harbor-skyline.png";
+
 const shippedPanorama = new Map<string, Texture>();
 let panoramaPreload: Promise<void> | null = null;
 
-function plateKey(kind: PanoramaKind, plate: PanoramaPlate): string {
+function plateKey(kind: string, plate: string): string {
   return `${kind}:${plate}`;
 }
 
@@ -67,28 +70,31 @@ export function preloadPanoramaTextures(): Promise<void> {
   }
   const loader = new TextureLoader();
   const jobs: Promise<void>[] = [];
+  const enqueue = (kind: string, plate: string, url: string) => {
+    jobs.push(
+      new Promise<void>((resolve) => {
+        loader.load(
+          url,
+          (tex) => {
+            tex.colorSpace = SRGBColorSpace;
+            tex.wrapS = ClampToEdgeWrapping;
+            tex.wrapT = ClampToEdgeWrapping;
+            tex.needsUpdate = true;
+            shippedPanorama.set(plateKey(kind, plate), tex);
+            resolve();
+          },
+          undefined,
+          () => resolve(),
+        );
+      }),
+    );
+  };
   for (const kind of Object.keys(PANORAMA_URLS) as PanoramaKind[]) {
     for (const plate of Object.keys(PANORAMA_URLS[kind]) as PanoramaPlate[]) {
-      const url = PANORAMA_URLS[kind][plate];
-      jobs.push(
-        new Promise<void>((resolve) => {
-          loader.load(
-            url,
-            (tex) => {
-              tex.colorSpace = SRGBColorSpace;
-              tex.wrapS = ClampToEdgeWrapping;
-              tex.wrapT = ClampToEdgeWrapping;
-              tex.needsUpdate = true;
-              shippedPanorama.set(plateKey(kind, plate), tex);
-              resolve();
-            },
-            undefined,
-            () => resolve(),
-          );
-        }),
-      );
+      enqueue(kind, plate, PANORAMA_URLS[kind][plate]);
     }
   }
+  enqueue("harbor", "skyline", HARBOR_SKYLINE_URL);
   panoramaPreload = Promise.all(jobs).then(() => undefined);
   return panoramaPreload;
 }
@@ -102,7 +108,7 @@ export function hasShippedHarborPanorama(kind: PanoramaPlate): boolean {
   return hasShippedPanorama("harbor", kind);
 }
 
-function shippedPlate(kind: PanoramaKind, plate: PanoramaPlate): Texture | undefined {
+function shippedPlate(kind: string, plate: string): Texture | undefined {
   return shippedPanorama.get(plateKey(kind, plate));
 }
 
@@ -162,9 +168,61 @@ export function makeSkyDomeTexture(look: ThemeLook, theme = "harbor"): Texture {
   return texFrom(c);
 }
 
+/** Ground plane Y in RaceRenderer — panorama decks must sit above this. */
+export const GROUND_PLANE_Y = -0.08;
+
 /**
- * Equirectangular harbor environment for the sky dome — skyline sits on the horizon
- * so chase-cam “look out” always reads as a port (no cylinder UV fights).
+ * Water apron + infield disc Y. Below asphalt (y=0) so the ribbon stays on top;
+ * above the ground plane so grazing chase-cam views do not lose the plates.
+ */
+export const PANORAMA_DECK_Y = -0.02;
+
+/**
+ * Pier / water line in `harbor-horizon.png`, v from the top of the image.
+ * Cranes and warehouses sit just above this; water is below. Measured.
+ */
+export const HARBOR_HORIZON_PIER_V = 0.78;
+
+/**
+ * Tight crop of `harbor-horizon.png` for the standing cylinder.
+ * The authored plate is mostly sky; without this crop the pier/cranes sit in a
+ * thin band on the ground’s vanishing line and read as “lost behind the floor”.
+ */
+export const HARBOR_SKYLINE_CROP = { top: 0.68, bottom: 0.84 };
+
+/** Distant skyline cylinder height (world units). */
+const HORIZON_RING_H = 48;
+
+export function harborEquirectPlateBand(canvasH = 1024): {
+  bandY: number;
+  bandH: number;
+  pierCanvasV: number;
+} {
+  const bandH = Math.floor(canvasH * 0.85);
+  const bandY = Math.floor(canvasH * 0.5 - HARBOR_HORIZON_PIER_V * bandH);
+  const pierCanvasV = (bandY + HARBOR_HORIZON_PIER_V * bandH) / canvasH;
+  return { bandY, bandH, pierCanvasV };
+}
+
+export function horizonRingLayout(theme: string): { ringH: number; centerY: number } {
+  const ringH = HORIZON_RING_H;
+  if (panoramaKind(theme) === "harbor") {
+    // Pier line in the baked `harbor-skyline.png` strip (v from top).
+    const pierFromBottom = 1 - 0.64;
+    const pierWorldY = 0.2;
+    const ringYBottom = pierWorldY - pierFromBottom * ringH;
+    return { ringH, centerY: ringYBottom + ringH / 2 };
+  }
+  const eyeY = 3.8;
+  const skylineV = 0.52;
+  const ringYBottom = eyeY - skylineV * ringH;
+  return { ringH, centerY: ringYBottom + ringH / 2 };
+}
+
+/**
+ * Equirectangular harbor fill — sky + water. The authored skyline is stamped so
+ * its pier sits on the equirect equator (v=0.5); anything below that is hidden
+ * by the ground plane.
  */
 export function makeHarborEquirectTexture(look: ThemeLook): Texture {
   const w = 2048;
@@ -189,8 +247,7 @@ export function makeHarborEquirectTexture(look: ThemeLook): Texture {
     ctx.fill();
   }
 
-  const bandY = Math.floor(h * 0.32);
-  const bandH = Math.floor(h * 0.42);
+  const { bandY, bandH } = harborEquirectPlateBand(h);
   const shipped = shippedPlate("harbor", "horizon");
   const img = shipped?.image as CanvasImageSource | undefined;
   if (img) {
@@ -342,6 +399,14 @@ function paintHarborHorizon(ctx: CanvasRenderingContext2D, look: ThemeLook): voi
 /** Wide comic silhouette strip for a surrounding cylinder. */
 export function makeHorizonPanoramaTexture(theme: string, look: ThemeLook): Texture {
   const kind = panoramaKind(theme);
+  if (kind === "harbor") {
+    const strip = shippedPlate("harbor", "skyline");
+    if (strip) return strip;
+    const canvas = makeCanvas(1024, 256);
+    if (!canvas) return solidTexture(look.skyLow);
+    paintHarborHorizon(canvas.ctx, look);
+    return texFrom(canvas.c);
+  }
   const shipped = shippedPlate(kind, "horizon");
   if (shipped) return shipped;
 
@@ -351,11 +416,6 @@ export function makeHorizonPanoramaTexture(theme: string, look: ThemeLook): Text
   const sky = hexCss(look.sky);
   const skyLow = hexCss(look.skyLow);
   const ground = hexCss(look.ground);
-
-  if (kind === "harbor") {
-    paintHarborHorizon(ctx, look);
-    return texFrom(c);
-  }
 
   const bg = ctx.createLinearGradient(0, 0, 0, 256);
   bg.addColorStop(0, sky);
@@ -663,7 +723,8 @@ export function buildSkyDomeMesh(look: ThemeLook, theme = "harbor"): Mesh {
 }
 
 /**
- * Distant surround: harbor uses equirect sky dome + water discs; other themes use a horizon cylinder.
+ * Distant surround: standing horizon cylinder for every theme (harbor included)
+ * plus harbor water apron / infield discs above the ground plane.
  */
 export function buildPanoramaSurround(track: BuiltTrack, theme: string, look: ThemeLook): Group {
   const root = new Group();
@@ -685,40 +746,49 @@ export function buildPanoramaSurround(track: BuiltTrack, theme: string, look: Th
         map: makeHarborWaterTexture(),
         side: DoubleSide,
         fog: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1,
       }),
     );
     apron.rotation.x = -Math.PI / 2;
-    apron.position.set(c.x, -0.06, c.z);
+    apron.position.set(c.x, PANORAMA_DECK_Y, c.z);
     apron.name = "harborWaterApron";
+    apron.renderOrder = 1;
     root.add(apron);
-  } else {
-    const ringR = maxR + track.asphaltHalfWidth + track.grassWidth + 55;
-    const ringH = 48;
-    const eyeY = 3.8;
-    const skylineV = 0.52;
-    const ringYBottom = eyeY - skylineV * ringH;
-    const ring = new Mesh(
-      new CylinderGeometry(ringR, ringR, ringH, 64, 1, true),
-      new MeshBasicMaterial({
-        map: makeHorizonPanoramaTexture(theme, look),
-        side: DoubleSide,
-        fog: false,
-      }),
-    );
-    ring.position.set(c.x, ringYBottom + ringH / 2, c.z);
-    ring.name = "horizonPanorama";
-    root.add(ring);
   }
+
+  const ringR = maxR + track.asphaltHalfWidth + track.grassWidth + 55;
+  const { ringH, centerY } = horizonRingLayout(theme);
+  const ring = new Mesh(
+    new CylinderGeometry(ringR, ringR, ringH, 64, 1, true),
+    new MeshBasicMaterial({
+      map: makeHorizonPanoramaTexture(theme, look),
+      side: DoubleSide,
+      fog: false,
+    }),
+  );
+  ring.position.set(c.x, centerY, c.z);
+  ring.name = "horizonPanorama";
+  ring.renderOrder = 1;
+  root.add(ring);
 
   const infieldR = infieldClearRadius(track);
   if (infieldR >= 7) {
     const disc = new Mesh(
       new PlaneGeometry(infieldR * 2.15, infieldR * 2.15),
-      new MeshBasicMaterial({ map: makeInfieldPanoramaTexture(theme, look), fog: false }),
+      new MeshBasicMaterial({
+        map: makeInfieldPanoramaTexture(theme, look),
+        fog: false,
+        polygonOffset: true,
+        polygonOffsetFactor: -1,
+        polygonOffsetUnits: -1,
+      }),
     );
     disc.rotation.x = -Math.PI / 2;
-    disc.position.set(c.x, -0.05, c.z);
+    disc.position.set(c.x, PANORAMA_DECK_Y, c.z);
     disc.name = "infieldPanorama";
+    disc.renderOrder = 1;
     root.add(disc);
   }
 
