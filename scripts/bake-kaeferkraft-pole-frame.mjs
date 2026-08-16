@@ -52,11 +52,11 @@ const INTO = 0.08;
 /**
  * Live Waist span — BodyPaint garage picks (mesh m, nose −X).
  * Keep in sync with `buildReinforcedFrame("buggy")` in src/render/carPartBuilders.ts.
- * Left −Z: (−0.551, 1.029, −0.490) → (0.799, 0.947, −0.498)
+ * Left −Z: (−0.551, 1.029, −0.490) → (0.574, 1.061, −0.603)
  * Right +Z: picks (−0.534, 1.001, 0.454) → (0.553, 1.015, 0.564) then +RIGHT_OUTBOARD
  */
 const WAIST_SPANS = [
-  { front: [-0.551, 1.029, -0.49], rear: [0.799, 0.947, -0.498] },
+  { front: [-0.551, 1.029, -0.49], rear: [0.574, 1.061, -0.603] },
   {
     front: [-0.534, 1.001, 0.454 + RIGHT_OUTBOARD],
     rear: [0.553, 1.015, 0.564 + RIGHT_OUTBOARD],

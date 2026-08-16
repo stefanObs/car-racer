@@ -91,11 +91,11 @@ test.describe("Käferkraft waist poles", () => {
     const right = coverage.waists.find((w) => w.mid[2] > 0);
     expect(left).toBeTruthy();
     expect(right).toBeTruthy();
-    expect(left!.mid[0]).toBeGreaterThan(0.05);
-    expect(left!.mid[0]).toBeLessThan(0.25);
+    expect(left!.mid[0]).toBeGreaterThan(-0.05);
+    expect(left!.mid[0]).toBeLessThan(0.08);
     expect(right!.mid[0]).toBeGreaterThan(-0.05);
     expect(right!.mid[0]).toBeLessThan(0.15);
-    expect(left!.half).toBeGreaterThan(0.7);
+    expect(left!.half).toBeGreaterThan(0.55);
     expect(right!.half).toBeGreaterThan(0.55);
     expect(right!.mid[2]).toBeGreaterThan(0.55);
   });

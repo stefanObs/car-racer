@@ -673,7 +673,7 @@ async function dumpCar(car, dest) {
       "",
       "## Waist anchor picker",
       "",
-      "Picker is a candidate grid. Live `Waist` poles follow BodyPaint picks (left −0.551→0.799, right −0.534→0.553 then +1.5× rail width toward viewer-right); caps bury 8 cm into the hull.",
+      "Picker is a candidate grid. Live `Waist` poles follow BodyPaint picks (left −0.551→0.574, right −0.534→0.553 then +1.5× rail width toward viewer-right); caps bury 8 cm into the hull.",
       "",
       "![Käferkraft Waist anchors](../../assets/tripo-concepts/kaeferkraft-waist-anchors.png)",
       "",
