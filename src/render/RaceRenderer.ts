@@ -24,7 +24,7 @@ import { sampleCenterline } from "../track/buildTrack";
 import { carStateLookKey } from "./carLookKey";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../core/finishCelebrate";
-import type { MeshInspectDragMode } from "../core/meshInspect";
+import type { MeshInspectComponent, MeshInspectDragMode, MeshInspectTool } from "../core/meshInspect";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
@@ -186,8 +186,9 @@ export class RaceRenderer {
     clientY: number,
     canvas: HTMLCanvasElement,
     wantParent: boolean,
+    wantEdge = false,
   ) {
-    return this.garage.selectMeshInspectAt(clientX, clientY, canvas, wantParent);
+    return this.garage.selectMeshInspectAt(clientX, clientY, canvas, wantParent, wantEdge);
   }
 
   clearMeshInspectSelection(): boolean {
@@ -211,6 +212,49 @@ export class RaceRenderer {
 
   resetMeshInspectSelection(): boolean {
     return this.garage.resetMeshInspectSelection();
+  }
+
+  yawMeshInspect(radians: number): void {
+    this.garage.yawMeshInspect(radians);
+  }
+
+  rotateMeshInspect(dxPx: number, dyPx: number, mode: MeshInspectDragMode): void {
+    this.garage.rotateMeshInspect(dxPx, dyPx, mode);
+  }
+
+  dragMeshInspectEdge(
+    fromClientX: number,
+    fromClientY: number,
+    toClientX: number,
+    toClientY: number,
+    canvas: HTMLCanvasElement,
+    mode: MeshInspectDragMode,
+  ): void {
+    this.garage.dragMeshInspectEdge(fromClientX, fromClientY, toClientX, toClientY, canvas, mode);
+  }
+
+  meshInspectPlaceTool() {
+    return this.garage.meshInspectPlaceTool();
+  }
+
+  setMeshInspectPlaceTool(tool: MeshInspectTool): void {
+    this.garage.setMeshInspectPlaceTool(tool);
+  }
+
+  meshInspectPlaceComponent() {
+    return this.garage.meshInspectPlaceComponent();
+  }
+
+  setMeshInspectPlaceComponent(component: MeshInspectComponent): void {
+    this.garage.setMeshInspectPlaceComponent(component);
+  }
+
+  meshInspectHasEdge(): boolean {
+    return this.garage.meshInspectHasEdge();
+  }
+
+  clearMeshInspectEdge(): boolean {
+    return this.garage.clearMeshInspectEdge();
   }
 
   /** Pointer drag — LMB yaw; RMB / 2-finger free tumble. */

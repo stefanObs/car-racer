@@ -15,17 +15,29 @@ export type MeshInspectSelection = {
   x: number;
   y: number;
   z: number;
+  kind?: "object" | "edge";
+  yaw?: number;
+  pitch?: number;
+  roll?: number;
 };
 
 export type MeshInspectPointerKind = "orbit" | "copy" | "selectOrMove" | "ignore";
 
 export type MeshInspectDragMode = "free" | "keepY" | "onlyY";
 
+export type MeshInspectTool = "move" | "rotate";
+
+export type MeshInspectComponent = "object" | "edge";
+
 export const MESH_INSPECT_DECIMALS = 3;
 export const MESH_INSPECT_DRAG_PX = 4;
 export const MESH_INSPECT_NUDGE = 0.05;
 export const MESH_INSPECT_NUDGE_FINE = 0.01;
 export const MESH_INSPECT_NUDGE_COARSE = 0.25;
+export const MESH_INSPECT_ROTATE = (5 * Math.PI) / 180;
+export const MESH_INSPECT_ROTATE_FINE = Math.PI / 180;
+export const MESH_INSPECT_ROTATE_COARSE = (15 * Math.PI) / 180;
+export const MESH_INSPECT_ROTATE_PX = 0.008;
 
 export function formatMeshInspectCoord(n: number, digits = MESH_INSPECT_DECIMALS): string {
   const v = Number.isFinite(n) ? n : 0;
@@ -33,10 +45,13 @@ export function formatMeshInspectCoord(n: number, digits = MESH_INSPECT_DECIMALS
 }
 
 export function formatMeshInspectLine(
-  hit: { name: string; x: number; y: number; z: number },
+  hit: { name: string; x: number; y: number; z: number; kind?: "object" | "edge"; yaw?: number },
   digits = MESH_INSPECT_DECIMALS,
 ): string {
-  return `${hit.name}  ${formatMeshInspectCoord(hit.x, digits)}, ${formatMeshInspectCoord(hit.y, digits)}, ${formatMeshInspectCoord(hit.z, digits)}`;
+  const xyz = `${hit.name}  ${formatMeshInspectCoord(hit.x, digits)}, ${formatMeshInspectCoord(hit.y, digits)}, ${formatMeshInspectCoord(hit.z, digits)}`;
+  const labeled = hit.kind === "edge" ? `Kante ${xyz}` : xyz;
+  if (typeof hit.yaw === "number") return `${labeled}  yaw ${formatMeshInspectCoord(hit.yaw, 1)}°`;
+  return labeled;
 }
 
 /** Panel / clipboard body: one named element per line, nearest first. */
@@ -112,11 +127,49 @@ export function meshInspectWantParent(mods: { shift?: boolean; ctrl?: boolean; m
   return Boolean(mods.shift);
 }
 
-/** Esc: drop selection, then leave place mode, then leave F5. */
+export function meshInspectRotateStep(mods: { shift?: boolean; ctrl?: boolean }): number {
+  if (mods.ctrl) return MESH_INSPECT_ROTATE_COARSE;
+  if (mods.shift) return MESH_INSPECT_ROTATE_FINE;
+  return MESH_INSPECT_ROTATE;
+}
+
+/** [ ] or , . yaw the whole mesh in mesh space. */
+export function meshInspectYawDelta(
+  code: string,
+  mods: { shift?: boolean; ctrl?: boolean },
+): number | null {
+  const step = meshInspectRotateStep(mods);
+  switch (code) {
+    case "BracketLeft":
+    case "Comma":
+      return step;
+    case "BracketRight":
+    case "Period":
+      return -step;
+    default:
+      return null;
+  }
+}
+
+export function meshInspectToolFromKey(code: string): MeshInspectTool | null {
+  if (code === "KeyG") return "move";
+  if (code === "KeyR") return "rotate";
+  return null;
+}
+
+export function meshInspectComponentFromKey(code: string): MeshInspectComponent | null {
+  if (code === "Digit1" || code === "KeyO") return "object";
+  if (code === "Digit2" || code === "KeyK") return "edge";
+  return null;
+}
+
+/** Esc: drop edge, then object, then place mode, then F5. */
 export function meshInspectEscapeStep(opts: {
+  hasEdge?: boolean;
   hasSelection: boolean;
   edit: boolean;
-}): "clearSelection" | "leaveEdit" | "leaveStudio" {
+}): "clearEdge" | "clearSelection" | "leaveEdit" | "leaveStudio" {
+  if (opts.hasEdge) return "clearEdge";
   if (opts.hasSelection) return "clearSelection";
   if (opts.edit) return "leaveEdit";
   return "leaveStudio";
@@ -127,7 +180,11 @@ export function meshInspectGestureAfterDrag(opts: {
   hasSelection: boolean;
   hitIsSelection: boolean;
   hitEmpty: boolean;
-}): "move" | "orbit" {
-  if (opts.edit && opts.hasSelection && opts.hitIsSelection) return "move";
-  return "orbit";
+  tool?: MeshInspectTool;
+  hasEdge?: boolean;
+}): "move" | "rotate" | "moveEdge" | "orbit" {
+  if (!(opts.edit && opts.hasSelection && opts.hitIsSelection)) return "orbit";
+  if (opts.hasEdge && opts.tool !== "rotate") return "moveEdge";
+  if (opts.tool === "rotate") return "rotate";
+  return "move";
 }

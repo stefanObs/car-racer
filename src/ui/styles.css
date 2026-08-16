@@ -1948,6 +1948,31 @@ html.dev-mesh-inspect-mode .dev-badge {
   cursor: pointer;
 }
 
+.dev-mesh-inspect-tools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 0 0 8px;
+}
+
+.dev-mesh-inspect-tools button {
+  pointer-events: auto;
+  margin: 0;
+  padding: 3px 7px;
+  font: inherit;
+  font-size: 0.7rem;
+  color: #f8f9fa;
+  background: transparent;
+  border: 1px solid #868e96;
+  cursor: pointer;
+}
+
+.dev-mesh-inspect-tools button.is-on {
+  color: #191919;
+  background: #ffe066;
+  border-color: #ffe066;
+}
+
 .dev-root {
   pointer-events: none;
   position: absolute;

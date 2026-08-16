@@ -14,6 +14,8 @@ import {
   meshInspectGestureAfterDrag,
   meshInspectNudgeDelta,
   meshInspectPointerAction,
+  meshInspectToolFromKey,
+  meshInspectYawDelta,
   meshInspectWantParent,
   type MeshInspectHit,
 } from "../src/core/meshInspect";
@@ -78,12 +80,23 @@ describe("F5 mesh inspect panel", () => {
     ).toBe("orbit");
     expect(
       meshInspectGestureAfterDrag({
-        edit: false,
-        hasSelection: false,
-        hitIsSelection: false,
-        hitEmpty: true,
+        edit: true,
+        hasSelection: true,
+        hitIsSelection: true,
+        hitEmpty: false,
+        tool: "rotate",
       }),
-    ).toBe("orbit");
+    ).toBe("rotate");
+    expect(
+      meshInspectGestureAfterDrag({
+        edit: true,
+        hasSelection: true,
+        hitIsSelection: true,
+        hitEmpty: false,
+        hasEdge: true,
+      }),
+    ).toBe("moveEdge");
+    expect(meshInspectEscapeStep({ hasEdge: true, hasSelection: true, edit: true })).toBe("clearEdge");
   });
 
   it("nudges in mesh space and steps Esc through selection then place then studio", () => {
@@ -97,6 +110,9 @@ describe("F5 mesh inspect panel", () => {
     expect(meshInspectEscapeStep({ hasSelection: true, edit: true })).toBe("clearSelection");
     expect(meshInspectEscapeStep({ hasSelection: false, edit: true })).toBe("leaveEdit");
     expect(meshInspectEscapeStep({ hasSelection: false, edit: false })).toBe("leaveStudio");
+    expect(meshInspectToolFromKey("KeyR")).toBe("rotate");
+    expect(meshInspectToolFromKey("KeyG")).toBe("move");
+    expect(meshInspectYawDelta("BracketLeft", {})).toBeCloseTo((5 * Math.PI) / 180);
   });
 
   it("renders each element with coordinates behind it", () => {
@@ -119,6 +135,8 @@ describe("F5 mesh inspect panel", () => {
     expect(html).toContain("Platzieren AN");
     expect(html).toContain("Waist  0.100, 1.000, -0.500");
     expect(html).toContain("Ziehen versetzen");
+    expect(html).toContain("Drehen");
+    expect(html).toContain("Kante");
     expect(meshInspectHint({ edit: false })).toContain("E Platzieren");
   });
 
@@ -135,7 +153,7 @@ describe("F5 mesh inspect panel", () => {
     const css = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../src/ui/styles.css"), "utf8");
     expect(css).toContain("html.dev-mesh-inspect-mode .ui-root");
     expect(css).toContain(".dev-mesh-inspect-edit");
-    expect(css).toContain(".dev-mesh-inspect-selected");
+    expect(css).toContain(".dev-mesh-inspect-tools");
   });
 
   it("does not snap garage pitch when releasing the mouse in F5 studio", () => {

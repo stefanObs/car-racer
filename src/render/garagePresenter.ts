@@ -1,7 +1,10 @@
 import {
   BoxHelper,
+  BufferGeometry,
   Color,
   Group,
+  Line,
+  LineBasicMaterial,
   Mesh,
   SphereGeometry,
   Vector2,
@@ -36,6 +39,7 @@ import {
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
 import { carBodyWorldBox, carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
 import {
+  MESH_INSPECT_EDGE_HELPER_NAME,
   MESH_INSPECT_MARKER_BLUE,
   MESH_INSPECT_MARKER_NAME,
   MESH_INSPECT_MARKER_RADIUS,
@@ -50,6 +54,8 @@ import {
 } from "./meshInspectPick";
 import {
   applyMeshSpaceDelta,
+  applyMeshSpaceRotation,
+  applyViewDragRotation,
   applyWorldDeltaToObject,
   cameraPlaneWorldDelta,
   constrainWorldDeltaInMeshSpace,
@@ -59,7 +65,20 @@ import {
   restoreMeshInspectHome,
   selectionPose,
 } from "./meshInspectTransform";
-import type { MeshInspectDragMode, MeshInspectHit, MeshInspectSelection } from "../core/meshInspect";
+import {
+  applyWorldDeltaToEdge,
+  edgeWorldEnds,
+  pickClosestEdge,
+  restoreGeometryHome,
+  type PickedMeshEdge,
+} from "./meshInspectEdges";
+import type {
+  MeshInspectComponent,
+  MeshInspectDragMode,
+  MeshInspectHit,
+  MeshInspectSelection,
+  MeshInspectTool,
+} from "../core/meshInspect";
 
 export type { GarageLook } from "./garageLook";
 
@@ -99,6 +118,10 @@ export class GaragePresenter {
   private meshInspectEdit = false;
   private meshInspectSelected: Object3D | null = null;
   private meshInspectSelectHelper: BoxHelper | null = null;
+  private meshInspectTool: MeshInspectTool = "move";
+  private meshInspectComponent: MeshInspectComponent = "object";
+  private meshInspectEdge: PickedMeshEdge | null = null;
+  private meshInspectEdgeHelper: Line | null = null;
   private idlePaint = "#e03131";
   private readonly host: GaragePresenterHost;
   private readonly _inspectLook = new Vector3();
@@ -106,6 +129,8 @@ export class GaragePresenter {
   private readonly _inspectWorld = new Vector3();
   private readonly _inspectFromNdc = new Vector2();
   private readonly _inspectToNdc = new Vector2();
+  private readonly _edgeA = new Vector3();
+  private readonly _edgeB = new Vector3();
 
   constructor(host: GaragePresenterHost) {
     this.host = host;
@@ -288,6 +313,8 @@ export class GaragePresenter {
       this.hideMeshInspectMarker();
       this.garagePitchInspect = false;
       this.meshInspectEdit = false;
+      this.meshInspectTool = "move";
+      this.meshInspectComponent = "object";
       this.clearMeshInspectSelection();
     }
     this.applyMeshInspectView();
@@ -302,7 +329,34 @@ export class GaragePresenter {
   setMeshInspectEdit(on: boolean): void {
     if (!this.meshInspect) return;
     this.meshInspectEdit = on;
-    if (!on) this.clearMeshInspectSelection();
+    if (!on) {
+      this.meshInspectTool = "move";
+      this.meshInspectComponent = "object";
+      this.clearMeshInspectSelection();
+    }
+  }
+
+  meshInspectPlaceTool(): MeshInspectTool {
+    return this.meshInspectTool;
+  }
+
+  setMeshInspectPlaceTool(tool: MeshInspectTool): void {
+    if (!this.meshInspectEdit) return;
+    this.meshInspectTool = tool;
+  }
+
+  meshInspectPlaceComponent(): MeshInspectComponent {
+    return this.meshInspectComponent;
+  }
+
+  setMeshInspectPlaceComponent(component: MeshInspectComponent): void {
+    if (!this.meshInspectEdit) return;
+    this.meshInspectComponent = component;
+    if (component === "object") this.clearMeshInspectEdge();
+  }
+
+  meshInspectHasEdge(): boolean {
+    return this.meshInspectEdge !== null;
   }
 
   meshInspectSelection(): MeshInspectSelection | null {
@@ -330,11 +384,32 @@ export class GaragePresenter {
     clientY: number,
     canvas: HTMLCanvasElement,
     wantParent: boolean,
+    wantEdge = false,
   ): MeshInspectHit[] {
-    const hits = this.pickMeshInspect(clientX, clientY, canvas);
+    if (!this.meshInspect || !this.idleCar) {
+      this.hideMeshInspectMarker();
+      return [];
+    }
+    const picked = pickMeshInspectHits(this.idleCar, this.host.camera, clientX, clientY, canvas);
+    this.syncMeshInspectMarker(picked.marker);
+    const hits = picked.hits;
     const nearest = hits[0];
-    if (!nearest?.id || !this.idleCar) {
+    if (!nearest?.id) {
       this.clearMeshInspectSelection();
+      return hits;
+    }
+    const pickEdge = wantEdge || this.meshInspectComponent === "edge";
+    if (pickEdge) {
+      const mesh = this.inspectMeshFromPick(picked.hitMeshId ?? nearest.id);
+      const world = picked.hitWorld;
+      if (!mesh || !world) {
+        this.clearMeshInspectSelection();
+        return hits;
+      }
+      this.meshInspectComponent = "edge";
+      this.setMeshInspectSelected(mesh);
+      this.meshInspectEdge = pickClosestEdge(mesh, new Vector3(world.x, world.y, world.z));
+      this.syncMeshInspectSelectHelper();
       return hits;
     }
     const id = wantParent && nearest.parentId ? nearest.parentId : nearest.id;
@@ -343,14 +418,24 @@ export class GaragePresenter {
       this.clearMeshInspectSelection();
       return hits;
     }
+    this.clearMeshInspectEdge();
     this.setMeshInspectSelected(obj);
     return hits;
   }
 
   clearMeshInspectSelection(): boolean {
-    const had = this.meshInspectSelected !== null;
+    const had = this.meshInspectSelected !== null || this.meshInspectEdge !== null;
     this.meshInspectSelected = null;
+    this.clearMeshInspectEdge();
     this.disposeMeshInspectSelectHelper();
+    this.disposeMeshInspectEdgeHelper();
+    return had;
+  }
+
+  clearMeshInspectEdge(): boolean {
+    const had = this.meshInspectEdge !== null;
+    this.meshInspectEdge = null;
+    if (this.meshInspectEdgeHelper) this.meshInspectEdgeHelper.visible = false;
     return had;
   }
 
@@ -381,6 +466,49 @@ export class GaragePresenter {
     this.syncMeshInspectSelectHelper();
   }
 
+  dragMeshInspectEdge(
+    fromClientX: number,
+    fromClientY: number,
+    toClientX: number,
+    toClientY: number,
+    canvas: HTMLCanvasElement,
+    mode: MeshInspectDragMode,
+  ): void {
+    const edge = this.meshInspectEdge;
+    const car = this.idleCar;
+    if (!edge || !car) return;
+    const space = carMeshSpaceRoot(car);
+    edgeWorldEnds(edge, this._edgeA, this._edgeB);
+    this._inspectWorld.copy(this._edgeA).add(this._edgeB).multiplyScalar(0.5);
+    this._inspectFromNdc.copy(pointerToNdc(fromClientX, fromClientY, canvas));
+    this._inspectToNdc.copy(pointerToNdc(toClientX, toClientY, canvas));
+    const worldDelta = cameraPlaneWorldDelta(
+      this.host.camera,
+      this._inspectFromNdc,
+      this._inspectToNdc,
+      this._inspectWorld,
+    );
+    const constrained = constrainWorldDeltaInMeshSpace(space, this._inspectWorld, worldDelta, mode);
+    applyWorldDeltaToEdge(edge, constrained);
+    this.syncMeshInspectSelectHelper();
+  }
+
+  rotateMeshInspect(dxPx: number, dyPx: number, mode: MeshInspectDragMode): void {
+    const obj = this.meshInspectSelected;
+    const car = this.idleCar;
+    if (!obj || !car) return;
+    applyViewDragRotation(obj, carMeshSpaceRoot(car), dxPx, dyPx, mode);
+    this.syncMeshInspectSelectHelper();
+  }
+
+  yawMeshInspect(radians: number): void {
+    const obj = this.meshInspectSelected;
+    const car = this.idleCar;
+    if (!obj || !car) return;
+    applyMeshSpaceRotation(obj, carMeshSpaceRoot(car), radians, 0);
+    this.syncMeshInspectSelectHelper();
+  }
+
   nudgeMeshInspect(dx: number, dy: number, dz: number): void {
     const obj = this.meshInspectSelected;
     const car = this.idleCar;
@@ -392,7 +520,10 @@ export class GaragePresenter {
   resetMeshInspectSelection(): boolean {
     const obj = this.meshInspectSelected;
     if (!obj) return false;
-    const ok = restoreMeshInspectHome(obj);
+    let ok = restoreMeshInspectHome(obj);
+    if (obj instanceof Mesh) ok = restoreGeometryHome(obj) || ok;
+    const edgeMesh = this.meshInspectEdge?.mesh;
+    if (edgeMesh && edgeMesh !== obj) ok = restoreGeometryHome(edgeMesh) || ok;
     this.syncMeshInspectSelectHelper();
     return ok;
   }
@@ -443,7 +574,15 @@ export class GaragePresenter {
     const obj = this.meshInspectSelected;
     const car = this.idleCar;
     if (!obj || !car) return null;
-    return selectionPose(obj, carMeshSpaceRoot(car), meshInspectHitName(obj, car));
+    const space = carMeshSpaceRoot(car);
+    const pose = selectionPose(obj, space, meshInspectHitName(obj, car));
+    const edge = this.meshInspectEdge;
+    if (!edge) return pose;
+    edgeWorldEnds(edge, this._edgeA, this._edgeB);
+    const mid = this._inspectWorld.copy(this._edgeA).add(this._edgeB).multiplyScalar(0.5);
+    space.updateMatrixWorld(true);
+    space.worldToLocal(mid);
+    return { ...pose, kind: "edge", x: mid.x, y: mid.y, z: mid.z };
   }
 
   private syncMeshInspectSelectHelper(): void {
@@ -463,6 +602,57 @@ export class GaragePresenter {
     }
     this.meshInspectSelectHelper.update();
     this.meshInspectSelectHelper.visible = true;
+    this.syncMeshInspectEdgeHelper();
+  }
+
+  private inspectMeshFromPick(id: string): Mesh | null {
+    if (!this.idleCar) return null;
+    const obj = findObjectByUuid(this.idleCar, id);
+    if (!obj) return null;
+    if (obj instanceof Mesh && obj.isMesh) return obj;
+    let found: Mesh | null = null;
+    obj.traverse((child) => {
+      if (found || !(child instanceof Mesh) || !child.isMesh) return;
+      found = child;
+    });
+    return found;
+  }
+
+  private syncMeshInspectEdgeHelper(): void {
+    const edge = this.meshInspectEdge;
+    if (!edge || !this.meshInspect) {
+      if (this.meshInspectEdgeHelper) this.meshInspectEdgeHelper.visible = false;
+      return;
+    }
+    const line = this.ensureMeshInspectEdgeHelper();
+    edgeWorldEnds(edge, this._edgeA, this._edgeB);
+    const pos = line.geometry.getAttribute("position");
+    pos.setXYZ(0, this._edgeA.x, this._edgeA.y, this._edgeA.z);
+    pos.setXYZ(1, this._edgeB.x, this._edgeB.y, this._edgeB.z);
+    pos.needsUpdate = true;
+    line.visible = true;
+  }
+
+  private ensureMeshInspectEdgeHelper(): Line {
+    if (this.meshInspectEdgeHelper) return this.meshInspectEdgeHelper;
+    const geo = new BufferGeometry().setFromPoints([new Vector3(), new Vector3()]);
+    const line = new Line(geo, new LineBasicMaterial({ color: 0xff6b35, depthTest: false }));
+    line.name = MESH_INSPECT_EDGE_HELPER_NAME;
+    line.frustumCulled = false;
+    line.renderOrder = 9;
+    line.raycast = () => {};
+    this.host.scene.add(line);
+    this.meshInspectEdgeHelper = line;
+    return line;
+  }
+
+  private disposeMeshInspectEdgeHelper(): void {
+    const line = this.meshInspectEdgeHelper;
+    if (!line) return;
+    line.removeFromParent();
+    line.geometry.dispose();
+    (line.material as LineBasicMaterial).dispose();
+    this.meshInspectEdgeHelper = null;
   }
 
   private disposeMeshInspectSelectHelper(): void {

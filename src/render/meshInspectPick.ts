@@ -18,6 +18,7 @@ export const MESH_INSPECT_BG = 0x2ecc71;
 export const MESH_INSPECT_BG_ON_GREEN = 0x8b5cf6;
 export const MESH_INSPECT_MARKER_NAME = "meshInspectMarker";
 export const MESH_INSPECT_SELECT_HELPER_NAME = "meshInspectSelectBox";
+export const MESH_INSPECT_EDGE_HELPER_NAME = "meshInspectEdgeLine";
 export const MESH_INSPECT_MARKER_RED = 0xff3b3b;
 export const MESH_INSPECT_MARKER_BLUE = 0x40c4ff;
 /** Was 0.07 m; a quarter of that so the pick ball does not hide the mesh. */
@@ -33,6 +34,8 @@ export type MeshInspectMarkerPose = {
 export type MeshInspectPickResult = {
   hits: MeshInspectHit[];
   marker: MeshInspectMarkerPose | null;
+  hitWorld: { x: number; y: number; z: number } | null;
+  hitMeshId: string | null;
 };
 
 const _ndc = new Vector2();
@@ -49,6 +52,7 @@ const SKIP_NAMES = new Set([
   "RootNode",
   MESH_INSPECT_MARKER_NAME,
   MESH_INSPECT_SELECT_HELPER_NAME,
+  MESH_INSPECT_EDGE_HELPER_NAME,
 ]);
 
 const MARKER_LIFT = MESH_INSPECT_MARKER_RADIUS;
@@ -289,7 +293,8 @@ function skipPickObject(obj: Object3D): boolean {
   if (
     obj.name === "carGroundBlob" ||
     obj.name === MESH_INSPECT_MARKER_NAME ||
-    obj.name === MESH_INSPECT_SELECT_HELPER_NAME
+    obj.name === MESH_INSPECT_SELECT_HELPER_NAME ||
+    obj.name === MESH_INSPECT_EDGE_HELPER_NAME
   ) {
     return true;
   }
@@ -315,6 +320,8 @@ export function pickMeshInspectHits(
   const seen = new Set<string>();
   const hits: MeshInspectHit[] = [];
   let marker: MeshInspectMarkerPose | null = null;
+  let hitWorld: { x: number; y: number; z: number } | null = null;
+  let hitMeshId: string | null = null;
   for (const hit of raw) {
     const obj = hit.object;
     if (skipPickObject(obj)) continue;
@@ -332,6 +339,8 @@ export function pickMeshInspectHits(
       });
     }
     if (!marker) {
+      hitWorld = { x: hit.point.x, y: hit.point.y, z: hit.point.z };
+      hitMeshId = obj.uuid;
       const rgb = sampleHitRgb(hit);
       _towardCam.subVectors(camera.position, hit.point).normalize();
       marker = {
@@ -342,5 +351,5 @@ export function pickMeshInspectHits(
       };
     }
   }
-  return { hits, marker };
+  return { hits, marker, hitWorld, hitMeshId };
 }

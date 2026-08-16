@@ -1,4 +1,10 @@
-import type { MeshInspectDragMode, MeshInspectHit, MeshInspectSelection } from "../core/meshInspect";
+import type {
+  MeshInspectComponent,
+  MeshInspectDragMode,
+  MeshInspectHit,
+  MeshInspectSelection,
+  MeshInspectTool,
+} from "../core/meshInspect";
 import type { RaceSession } from "../sim/race";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { RaceRenderer } from "./RaceRenderer";
@@ -30,6 +36,7 @@ export type GameRenderer = {
     clientY: number,
     canvas: HTMLCanvasElement,
     wantParent: boolean,
+    wantEdge?: boolean,
   ) => MeshInspectHit[];
   clearMeshInspectSelection: () => boolean;
   dragMeshInspect: (
@@ -41,6 +48,22 @@ export type GameRenderer = {
     mode: MeshInspectDragMode,
   ) => void;
   nudgeMeshInspect: (dx: number, dy: number, dz: number) => void;
+  yawMeshInspect: (radians: number) => void;
+  rotateMeshInspect: (dxPx: number, dyPx: number, mode: MeshInspectDragMode) => void;
+  dragMeshInspectEdge: (
+    fromClientX: number,
+    fromClientY: number,
+    toClientX: number,
+    toClientY: number,
+    canvas: HTMLCanvasElement,
+    mode: MeshInspectDragMode,
+  ) => void;
+  meshInspectPlaceTool: () => MeshInspectTool;
+  setMeshInspectPlaceTool: (tool: MeshInspectTool) => void;
+  meshInspectPlaceComponent: () => MeshInspectComponent;
+  setMeshInspectPlaceComponent: (component: MeshInspectComponent) => void;
+  meshInspectHasEdge: () => boolean;
+  clearMeshInspectEdge: () => boolean;
   resetMeshInspectSelection: () => boolean;
   clearCars: () => void;
 };

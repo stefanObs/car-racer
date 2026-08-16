@@ -1,5 +1,11 @@
-import type { MeshInspectHit, MeshInspectSelection } from "../core/meshInspect";
-import { meshInspectEscapeStep, meshInspectNudgeDelta } from "../core/meshInspect";
+import type { MeshInspectComponent, MeshInspectHit, MeshInspectSelection, MeshInspectTool } from "../core/meshInspect";
+import {
+  meshInspectComponentFromKey,
+  meshInspectEscapeStep,
+  meshInspectNudgeDelta,
+  meshInspectToolFromKey,
+  meshInspectYawDelta,
+} from "../core/meshInspect";
 import type { CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
 import {
@@ -40,7 +46,14 @@ type DevHooks = {
   meshInspectSelection: () => MeshInspectSelection | null;
   clearMeshInspectSelection: () => boolean;
   nudgeMeshInspect: (dx: number, dy: number, dz: number) => void;
+  yawMeshInspect: (radians: number) => void;
   resetMeshInspectSelection: () => boolean;
+  meshInspectPlaceTool: () => MeshInspectTool;
+  setMeshInspectPlaceTool: (tool: MeshInspectTool) => void;
+  meshInspectPlaceComponent: () => MeshInspectComponent;
+  setMeshInspectPlaceComponent: (component: MeshInspectComponent) => void;
+  meshInspectHasEdge: () => boolean;
+  clearMeshInspectEdge: () => boolean;
 };
 
 /**
@@ -168,10 +181,31 @@ export class DevTools {
         this.syncInspectPanel();
         return;
       }
-      if (e.code === "KeyR") {
+      const tool = meshInspectToolFromKey(e.code);
+      if (tool && this.hooks.isMeshInspectEdit()) {
+        e.preventDefault();
+        this.hooks.setMeshInspectPlaceTool(tool);
+        this.syncInspectPanel();
+        return;
+      }
+      const component = meshInspectComponentFromKey(e.code);
+      if (component && this.hooks.isMeshInspectEdit()) {
+        e.preventDefault();
+        this.hooks.setMeshInspectPlaceComponent(component);
+        this.syncInspectPanel();
+        return;
+      }
+      if (e.code === "Home") {
         if (!this.hooks.meshInspectSelection()) return;
         e.preventDefault();
         this.hooks.resetMeshInspectSelection();
+        this.syncInspectPanel();
+        return;
+      }
+      const yaw = meshInspectYawDelta(e.code, { shift: e.shiftKey, ctrl: e.ctrlKey });
+      if (yaw !== null && this.hooks.meshInspectSelection()) {
+        e.preventDefault();
+        this.hooks.yawMeshInspect(yaw);
         this.syncInspectPanel();
         return;
       }
@@ -185,10 +219,12 @@ export class DevTools {
       if (e.code === "Escape") {
         e.preventDefault();
         const step = meshInspectEscapeStep({
+          hasEdge: this.hooks.meshInspectHasEdge(),
           hasSelection: Boolean(this.hooks.meshInspectSelection()),
           edit: this.hooks.isMeshInspectEdit(),
         });
-        if (step === "clearSelection") this.hooks.clearMeshInspectSelection();
+        if (step === "clearEdge") this.hooks.clearMeshInspectEdge();
+        else if (step === "clearSelection") this.hooks.clearMeshInspectSelection();
         else if (step === "leaveEdit") this.hooks.setMeshInspectEdit(false);
         else this.hooks.setMeshInspect(false);
         this.render();
@@ -225,6 +261,8 @@ export class DevTools {
       copied: this.inspectCopied,
       edit: this.hooks.isMeshInspectEdit(),
       selection: this.hooks.meshInspectSelection(),
+      tool: this.hooks.meshInspectPlaceTool(),
+      component: this.hooks.meshInspectPlaceComponent(),
     });
     if (existing) existing.outerHTML = html;
     else this.root.insertAdjacentHTML("beforeend", html);
@@ -233,6 +271,22 @@ export class DevTools {
       ev.stopPropagation();
       this.hooks.setMeshInspectEdit(!this.hooks.isMeshInspectEdit());
       this.syncInspectPanel();
+    });
+    this.root.querySelectorAll<HTMLButtonElement>("[data-mesh-inspect-tool]").forEach((btn) => {
+      btn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.hooks.setMeshInspectPlaceTool(btn.dataset.meshInspectTool as MeshInspectTool);
+        this.syncInspectPanel();
+      });
+    });
+    this.root.querySelectorAll<HTMLButtonElement>("[data-mesh-inspect-comp]").forEach((btn) => {
+      btn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        this.hooks.setMeshInspectPlaceComponent(btn.dataset.meshInspectComp as MeshInspectComponent);
+        this.syncInspectPanel();
+      });
     });
   }
 

@@ -136,7 +136,14 @@ export class GameApp {
       meshInspectSelection: () => this.renderer.meshInspectSelection(),
       clearMeshInspectSelection: () => this.renderer.clearMeshInspectSelection(),
       nudgeMeshInspect: (dx, dy, dz) => this.renderer.nudgeMeshInspect(dx, dy, dz),
+      yawMeshInspect: (radians) => this.renderer.yawMeshInspect(radians),
       resetMeshInspectSelection: () => this.renderer.resetMeshInspectSelection(),
+      meshInspectPlaceTool: () => this.renderer.meshInspectPlaceTool(),
+      setMeshInspectPlaceTool: (tool) => this.renderer.setMeshInspectPlaceTool(tool),
+      meshInspectPlaceComponent: () => this.renderer.meshInspectPlaceComponent(),
+      setMeshInspectPlaceComponent: (component) => this.renderer.setMeshInspectPlaceComponent(component),
+      meshInspectHasEdge: () => this.renderer.meshInspectHasEdge(),
+      clearMeshInspectEdge: () => this.renderer.clearMeshInspectEdge(),
     });
     this.renderUi();
   }
@@ -227,7 +234,7 @@ export class GameApp {
         y: number;
         type: string;
         button: number;
-        inspect?: "pending" | "orbit" | "move";
+        inspect?: "pending" | "orbit" | "move" | "rotate" | "moveEdge";
         startX?: number;
         startY?: number;
         hitId?: string | null;
@@ -342,6 +349,8 @@ export class GameApp {
               hasSelection: Boolean(this.renderer.meshInspectSelection()),
               hitIsSelection: this.renderer.meshInspectHitIsSelection(prev.hitId),
               hitEmpty: !prev.hitId,
+              tool: this.renderer.meshInspectPlaceTool(),
+              hasEdge: this.renderer.meshInspectHasEdge(),
             });
             canvas.classList.toggle("is-orbiting", prev.inspect === "orbit");
           }
@@ -349,6 +358,21 @@ export class GameApp {
             this.renderer.addGarageOrbitFromDrag(dx, dy, { yaw: true, pitch: true });
           } else if (prev.inspect === "move") {
             this.renderer.dragMeshInspect(
+              prev.x,
+              prev.y,
+              e.clientX,
+              e.clientY,
+              canvas,
+              meshInspectDragMode({ shift: e.shiftKey, ctrl: e.ctrlKey }),
+            );
+          } else if (prev.inspect === "rotate") {
+            this.renderer.rotateMeshInspect(
+              dx,
+              dy,
+              meshInspectDragMode({ shift: e.shiftKey, ctrl: e.ctrlKey }),
+            );
+          } else if (prev.inspect === "moveEdge") {
+            this.renderer.dragMeshInspectEdge(
               prev.x,
               prev.y,
               e.clientX,
@@ -384,6 +408,7 @@ export class GameApp {
             e.clientY,
             canvas,
             Boolean(prev.wantParent),
+            this.renderer.meshInspectPlaceComponent() === "edge",
           );
           this.dev.setMeshInspectHits(hits);
         }

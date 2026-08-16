@@ -2,6 +2,7 @@ import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector2
 import { describe, expect, it } from "vitest";
 import {
   applyMeshSpaceDelta,
+  applyMeshSpaceRotation,
   applyWorldDeltaToObject,
   cameraPlaneWorldDelta,
   constrainWorldDeltaInMeshSpace,
@@ -73,5 +74,18 @@ describe("mesh inspect transform", () => {
     expect(worldDelta.length()).toBeGreaterThan(0);
     applyWorldDeltaToObject(obj, worldDelta);
     expect(obj.position.length()).toBeGreaterThan(0);
+  });
+
+  it("yaws the whole mesh around mesh-space Y and restores rotation", () => {
+    const space = new Group();
+    const pole = new Mesh(new BoxGeometry(0.1, 0.1, 1), new MeshBasicMaterial());
+    pole.rotation.order = "YXZ";
+    space.add(pole);
+    space.updateMatrixWorld(true);
+    rememberMeshInspectHome(pole);
+    applyMeshSpaceRotation(pole, space, Math.PI / 2, 0);
+    expect(Math.abs(pole.quaternion.y)).toBeGreaterThan(0.5);
+    expect(restoreMeshInspectHome(pole)).toBe(true);
+    expect(pole.quaternion.y).toBeCloseTo(0, 5);
   });
 });

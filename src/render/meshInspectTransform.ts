@@ -1,5 +1,9 @@
-import { Plane, Raycaster, Vector2, Vector3, type Camera, type Object3D } from "three";
-import type { MeshInspectDragMode, MeshInspectSelection } from "../core/meshInspect";
+import { Euler, Plane, Quaternion, Raycaster, Vector2, Vector3, type Camera, type Object3D } from "three";
+import {
+  MESH_INSPECT_ROTATE_PX,
+  type MeshInspectDragMode,
+  type MeshInspectSelection,
+} from "../core/meshInspect";
 
 const HOME_KEY = "meshInspectHome";
 
@@ -11,6 +15,11 @@ const _world = new Vector3();
 const _camDir = new Vector3();
 const _startMesh = new Vector3();
 const _endMesh = new Vector3();
+const _axis = new Vector3();
+const _origin = new Vector3();
+const _qWorld = new Quaternion();
+const _qSpace = new Quaternion();
+const _euler = new Euler();
 
 export function findObjectByUuid(root: Object3D, uuid: string): Object3D | null {
   let found: Object3D | null = null;
@@ -40,18 +49,39 @@ export function meshSpaceOrigin(obj: Object3D, space: Object3D, target = new Vec
 
 export function selectionPose(obj: Object3D, space: Object3D, name: string): MeshInspectSelection {
   const origin = meshSpaceOrigin(obj, space);
-  return { name, id: obj.uuid, x: origin.x, y: origin.y, z: origin.z };
+  space.updateMatrixWorld(true);
+  obj.updateMatrixWorld(true);
+  obj.getWorldQuaternion(_qWorld);
+  space.getWorldQuaternion(_qSpace);
+  _euler.setFromQuaternion(_qSpace.invert().multiply(_qWorld), "YXZ");
+  return {
+    name,
+    id: obj.uuid,
+    x: origin.x,
+    y: origin.y,
+    z: origin.z,
+    kind: "object",
+    yaw: (_euler.y * 180) / Math.PI,
+    pitch: (_euler.x * 180) / Math.PI,
+    roll: (_euler.z * 180) / Math.PI,
+  };
 }
+
+type HomePose = { position: Vector3; quaternion: Quaternion };
 
 export function rememberMeshInspectHome(obj: Object3D): void {
   if (obj.userData[HOME_KEY]) return;
-  obj.userData[HOME_KEY] = obj.position.clone();
+  obj.userData[HOME_KEY] = {
+    position: obj.position.clone(),
+    quaternion: obj.quaternion.clone(),
+  } satisfies HomePose;
 }
 
 export function restoreMeshInspectHome(obj: Object3D): boolean {
-  const home = obj.userData[HOME_KEY] as Vector3 | undefined;
+  const home = obj.userData[HOME_KEY] as HomePose | undefined;
   if (!home) return false;
-  obj.position.copy(home);
+  obj.position.copy(home.position);
+  obj.quaternion.copy(home.quaternion);
   return true;
 }
 
@@ -117,4 +147,32 @@ export function constrainWorldDeltaInMeshSpace(
   }
   const endWorld = space.localToWorld(_endMesh);
   return endWorld.sub(worldOrigin);
+}
+
+export function applyMeshSpaceRotation(obj: Object3D, space: Object3D, yaw: number, pitch = 0): void {
+  rememberMeshInspectHome(obj);
+  space.updateMatrixWorld(true);
+  space.localToWorld(_origin.set(0, 0, 0));
+  if (yaw) {
+    space.localToWorld(_axis.set(0, 1, 0)).sub(_origin).normalize();
+    obj.rotateOnWorldAxis(_axis, yaw);
+  }
+  if (pitch) {
+    space.localToWorld(_axis.set(1, 0, 0)).sub(_origin).normalize();
+    obj.rotateOnWorldAxis(_axis, pitch);
+  }
+}
+
+export function applyViewDragRotation(
+  obj: Object3D,
+  space: Object3D,
+  dxPx: number,
+  dyPx: number,
+  mode: MeshInspectDragMode,
+): void {
+  let yaw = -dxPx * MESH_INSPECT_ROTATE_PX;
+  let pitch = -dyPx * MESH_INSPECT_ROTATE_PX;
+  if (mode === "keepY") pitch = 0;
+  if (mode === "onlyY") yaw = 0;
+  applyMeshSpaceRotation(obj, space, yaw, pitch);
 }
