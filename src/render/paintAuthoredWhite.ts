@@ -255,6 +255,17 @@ export function isRedBodyPixel(r: number, g: number, b: number): boolean {
 }
 
 /**
+ * Blitz Großer Motor two-tone scoop — comic red including magenta-shadowed
+ * flange texels that {@link isRedBodyPixel} skips (body lights / trim).
+ */
+export function isComicRedAccentPixel(r: number, g: number, b: number): boolean {
+  if (isRedBodyPixel(r, g, b)) return true;
+  if (isTireOrRimPixel(r, g, b)) return false;
+  if (r < 120 || r < g + 40 || r <= b) return false;
+  return r > b * 1.45;
+}
+
+/**
  * Tripo Bison body — chromatic green at any luminance, including comic shadows.
  * Skips yellow/chrome, black tires, and a dark bed liner.
  */
@@ -496,6 +507,21 @@ export function bakeAuthoredRedToPaint(
     recolorRedBodyPixels,
     wheelUvTris,
   );
+}
+
+/** Mutates RGBA: comic red accents (scoop flange) → garage paint; carbon stays. */
+export function recolorComicRedAccentPixels(
+  data: Uint8ClampedArray | Uint8Array,
+  paintR: number,
+  paintG: number,
+  paintB: number,
+  skipTexels?: Uint8Array,
+): number {
+  return shadeMatchingPixels(data, paintR, paintG, paintB, isComicRedAccentPixel, skipTexels);
+}
+
+export function bakeAuthoredRedAccentToPaint(base: Texture, paint: string): Texture {
+  return bakeAuthoredMap(base, paint, mapCacheKey("part-red-accent", paint, base), recolorComicRedAccentPixels);
 }
 
 /** Mutates RGBA: green body panels → garage paint, keep yellow/chrome/tires/liner. */

@@ -71,4 +71,39 @@ describe("Blitz Tripo part add-on bakes", () => {
     expect(red / n).toBeGreaterThan(0.08);
     expect(black / n).toBeGreaterThan(0.35);
   });
+
+  it("recolors Großer Motor red texels to garage paint and keeps carbon black", async () => {
+    const { isComicRedAccentPixel, recolorComicRedAccentPixels } = await import(
+      "../src/render/paintAuthoredWhite"
+    );
+    const sharp = (await import("sharp")).default;
+    const doc = await new NodeIO()
+      .registerExtensions(ALL_EXTENSIONS)
+      .read(resolve("public/models/parts/blitz-big_engine.glb"));
+    const img = doc.getRoot().listMaterials()[0]!.getBaseColorTexture()!.getImage()!;
+    const { data } = await sharp(Buffer.from(img)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const copy = Uint8ClampedArray.from(data);
+    const n = recolorComicRedAccentPixels(copy, 0.07, 0.72, 0.53);
+    expect(n).toBeGreaterThan(200);
+    let redLeft = 0;
+    let redTotal = 0;
+    let carbonSame = 0;
+    let carbonTotal = 0;
+    for (let i = 0; i < data.length; i += 16) {
+      const r0 = data[i]!;
+      const g0 = data[i + 1]!;
+      const b0 = data[i + 2]!;
+      if (isComicRedAccentPixel(r0, g0, b0)) {
+        redTotal++;
+        if (isComicRedAccentPixel(copy[i]!, copy[i + 1]!, copy[i + 2]!)) redLeft++;
+      }
+      if (r0 < 55 && g0 < 55 && b0 < 55 && !isComicRedAccentPixel(r0, g0, b0)) {
+        carbonTotal++;
+        if (copy[i] === r0 && copy[i + 1] === g0 && copy[i + 2] === b0) carbonSame++;
+      }
+    }
+    expect(redTotal).toBeGreaterThan(50);
+    expect(redLeft).toBe(0);
+    expect(carbonSame / carbonTotal).toBeGreaterThan(0.98);
+  });
 });

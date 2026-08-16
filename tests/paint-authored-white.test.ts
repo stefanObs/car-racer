@@ -9,10 +9,12 @@ import {
   isNearWhitePaintPixel,
   isOrangeBodyPixel,
   isRedBodyPixel,
+  isComicRedAccentPixel,
   isTireOrRimPixel,
   isWheelPaintVertex,
   paintSrgb01,
   recolorBlueBodyPixels,
+  recolorComicRedAccentPixels,
   recolorDonnerBodyPixels,
   recolorGreenBodyPixels,
   recolorNearWhitePixels,
@@ -132,6 +134,16 @@ describe("Blitz red body → garage paint", () => {
     expect(isRedBodyPixel(19, 7, 7)).toBe(true);
     expect(isRedBodyPixel(220, 110, 40)).toBe(false);
     expect(isRedBodyPixel(20, 20, 22)).toBe(false);
+  });
+
+  it("treats magenta-shadowed scoop flange red as a paint accent", () => {
+    expect(isComicRedAccentPixel(155, 52, 73)).toBe(true);
+    expect(isRedBodyPixel(155, 52, 73)).toBe(false);
+    expect(isComicRedAccentPixel(30, 30, 32)).toBe(false);
+    const data = new Uint8ClampedArray([155, 52, 73, 255, 24, 24, 26, 255]);
+    expect(recolorComicRedAccentPixels(data, 51 / 255, 154 / 255, 240 / 255)).toBe(1);
+    expect(data[2]!).toBeGreaterThan(data[0]!);
+    expect(data[4]).toBe(24);
   });
 
   it("recolors shaded red into a darker paint, not leftover dark red", () => {

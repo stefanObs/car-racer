@@ -42,7 +42,7 @@ import {
 } from "./carPartBuilders";
 import { comicToon } from "./comicMaterials";
 import { ComicPalette } from "./palette";
-import { paintSrgb01 } from "./paintAuthoredWhite";
+import { bakeAuthoredRedAccentToPaint, isComicRedAccentPixel, paintSrgb01 } from "./paintAuthoredWhite";
 import { applyStockWheelScale, applyStockWheelVisibility, isStockWheelObject } from "./stockWheels";
 import { carSupportsPart } from "../data/partsCatalog";
 
@@ -1000,6 +1000,30 @@ export function paintSpikeBumperBar(root: Object3D, paintCss: string): void {
   });
 }
 
+/** Paint red scoop accents to garage color; leave carbon / black intakes. */
+export function paintBigEngineBodyRed(root: Object3D, paintCss: string): void {
+  const paint = new Color(paintCss);
+  root.traverse((obj) => {
+    const mesh = obj as Mesh;
+    if (!mesh.isMesh) return;
+    const mats = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    for (const m of mats) {
+      const toon = m as MeshToonMaterial & { map?: Texture | null };
+      if (!toon?.color) continue;
+      if (toon.map) {
+        toon.map = bakeAuthoredRedAccentToPaint(toon.map, paintCss);
+        toon.color.setHex(0xffffff);
+      } else {
+        const r = Math.round(toon.color.r * 255);
+        const g = Math.round(toon.color.g * 255);
+        const b = Math.round(toon.color.b * 255);
+        if (isComicRedAccentPixel(r, g, b)) toon.color.copy(paint);
+      }
+      toon.needsUpdate = true;
+    }
+  });
+}
+
 function applyRideLift(root: Object3D, lift: number): void {
   const baseY =
     typeof root.userData.carPartsSitY === "number"
@@ -1276,16 +1300,23 @@ export function applyEquippedPartVisuals(
   group.userData.carParts = true;
 
   if (equipped.has("big_engine")) {
-    mountGlbOrProc(
+    // Blitz (and Käferkraft reuse): red flange follows garage paint; carbon stays.
+    const enginePaint = opts?.paint;
+    const tint = layout.big_engine.tint;
+    const template =
+      layout.big_engine.preferGlb !== false ? templates.get(partTemplateKey(carId, "big_engine")) : undefined;
+    placeAnchored(
       group,
       root,
-      carId,
       "big_engine",
       layout.big_engine.anchors,
-      layout.big_engine.build,
+      () => {
+        const inst = template ? clonePartTemplate(template) : layout.big_engine.build();
+        if (enginePaint) paintBigEngineBodyRed(inst, enginePaint);
+        else if (tint != null) tintPartMeshes(inst, tint);
+        return inst;
+      },
       true,
-      layout.big_engine.preferGlb !== false,
-      layout.big_engine.tint,
     );
   }
   if (equipped.has("spike_bumper")) {

@@ -121,6 +121,31 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(tuned.armor).toBeLessThan(base.armor);
   });
 
+  it("paints Blitz Großer Motor red accents with body color and keeps carbon", () => {
+    const g = new Group();
+    const red = new Mesh(
+      new BoxGeometry(0.2, 0.1, 0.2),
+      new MeshBasicMaterial({ color: 0xe03131, name: "Carbon" }),
+    );
+    red.name = "ScoopLip";
+    const carbon = new Mesh(
+      new BoxGeometry(0.3, 0.12, 0.4),
+      new MeshBasicMaterial({ color: 0x2a2d33, name: "Carbon" }),
+    );
+    carbon.name = "ScoopBody";
+    g.add(red, carbon);
+    registerCarPartTemplate("blitz", "big_engine", g);
+
+    const root = new Group();
+    applyEquippedPartVisuals(root, "blitz", ["big_engine"], { paint: "#228be6" });
+    const part = root.getObjectByName(blitzPartObjectName("big_engine"));
+    expect(part).toBeTruthy();
+    const lip = part!.getObjectByName("ScoopLip") as Mesh;
+    const body = part!.getObjectByName("ScoopBody") as Mesh;
+    expect((lip.material as MeshBasicMaterial).color.getHex()).toBe(0x228be6);
+    expect((body.material as MeshBasicMaterial).color.getHex()).toBe(0x2a2d33);
+  });
+
   it("paints Blitz spike bumper bar with body color and keeps chrome tips", () => {
     const g = new Group();
     // Fake Tripo single-mesh bumper spanning bar (−Z) and tips (+Z).
