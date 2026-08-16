@@ -100,8 +100,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="515.1" y="182.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
 <rect x="256.8" y="316.7" width="41.0" height="42.3" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="277.3" y="337.8" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RL</text>
-<circle cx="399.0" cy="169.2" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="406.0" y="163.2" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
+<circle cx="399.7" cy="169.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="406.7" y="163.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="399.0" cy="385.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="406.0" y="379.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">nitro_kit</text>
 <circle cx="399.0" cy="118.9" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -184,8 +184,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="515.7" y="289.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
 <rect x="242.9" y="247.3" width="65.4" height="84.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="275.6" y="289.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RL</text>
-<circle cx="536.2" cy="269.8" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="543.2" y="263.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
+<circle cx="536.1" cy="262.9" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="543.1" y="256.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="202.3" cy="299.4" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="209.3" y="293.4" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">nitro_kit</text>
 <circle cx="613.9" cy="317.2" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -225,7 +225,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 | Part id | German | Shop | GLB | Mount xyz (yaw, scale) |
 | --- | --- | --- | --- | --- |
-| `big_engine` | Großer Motor | yes | `public/models/parts/blitz-big_engine.glb` | (0, 0.42, 1.2) yaw 0° ×0.92 |
+| `big_engine` | Großer Motor | yes | `public/models/parts/blitz-big_engine.glb` | (0.004, 0.467, 1.199) yaw 0° ×0.92 |
 | `big_wheels` | Große Räder | yes | StockWheel width ×1.2 | — |
 | `spike_bumper` | Spike-Stoßstange | yes | `public/models/parts/blitz-spike_bumper.glb` | (0, 0.1, 1.88) yaw 0° ×0.98 |
 | `reinforced_frame` | Verstärkter Rahmen | yes | `public/models/parts/blitz-reinforced_frame.glb` | (0, 0.12, 0) yaw 0° ×1.1 |

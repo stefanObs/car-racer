@@ -145,7 +145,7 @@ const PART_NAMES = {
 /** Mounts copied from `CAR_PART_LAYOUTS` / `BLITZ_PART_PLACEMENT` (mesh space). */
 const MOUNTS = {
   blitz: {
-    big_engine: [{ x: 0, y: 0.42, z: 1.2, yaw: 0, scale: 0.92 }],
+    big_engine: [{ x: 0.004, y: 0.467, z: 1.199, yaw: 0, scale: 0.92 }],
     nitro_kit: [{ x: 0, y: 0.22, z: -1.72, yaw: 0, scale: 0.82 }],
     spike_bumper: [{ x: 0, y: 0.1, z: 1.88, yaw: 0, scale: 0.98 }],
     offroad_suspension: [
@@ -997,6 +997,17 @@ function writeIndex(dest) {
     "- Car numbers are **mesh space** unless you say world/runtime. Käferkraft bake is **nose −X** (runtime yaw π/2).",
     "- Garage numbers are **world** (`garagePad` at x=1.5). Track overview is **world XZ**; kit pieces are **local**.",
     "- Green dots on car grids are Teil **mount anchors**, not mesh centroids.",
+    "",
+    "## F5 PATCH (apply forever)",
+    "",
+    "When the user pastes a `CRASH CIRCUIT F5 PATCH v1` block (copied from F6 **Änderung kopieren** / C / RMB after moving a part):",
+    "",
+    "1. Save it to a file (e.g. `tmp/f5-patch.txt`).",
+    "2. Run **`npm run mesh:apply-f5-patch -- tmp/f5-patch.txt`** for `apply: glb-node` rows (writes the named GLB).",
+    "3. For `apply: mount` / `carPart-*` groups: set that car’s mount xyz in `src/render/carParts.ts` to the patch `to` origin.",
+    "4. **`npm run docs:cheatsheets`**, version, commit `master`, push.",
+    "",
+    "Do not leave the pose as a runtime-only F5 edit.",
     "",
     "## Cars",
     "",
