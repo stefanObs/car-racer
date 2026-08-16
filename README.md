@@ -66,7 +66,7 @@ npm run build
 | **F3** | Aktuelles Rennen beenden + Platz 1–n wählen |
 | **F4** | Debug-Raster (Handling-Pad) |
 | **F5** | Foto-Modus (UI aus) |
-| **F6** | Mesh-Studio: Auto auf grünem Grund, Mesh-Namen + Koordinaten; nach dem Verschieben **Änderung kopieren** / C / RMB = Patch zum Einbacken. Rechte **Komponenten**-Liste wählt auch verdeckte Teile. **E** / **Platzieren**: Mesh versetzen, **K** eine Kante, **R** drehen, **S** 1:1 skalieren, **X** strecken |
+| **F6** | Mesh-Studio: Auto auf grünem Grund, Mesh-Namen + Koordinaten; **B** / **Kasten**: Rechteck ziehen, Griffe ziehen Größe, LMB dreht das Auto, **Kasten kopieren** / C = Mesh-Raum min/max, **Zurück** / Pos1 setzt die Größe zurück. Nach dem Verschieben **Änderung kopieren** / C / RMB = Patch zum Einbacken. Rechte **Komponenten**-Liste wählt auch verdeckte Teile. **E** / **Platzieren**: Mesh versetzen, **K** eine Kante, **R** drehen, **S** 1:1 skalieren, **X** strecken |
 | **F7** | Teile im laufenden Rennen umschalten |
 
 ## MVP (v0.2.x)

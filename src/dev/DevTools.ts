@@ -1,15 +1,19 @@
 import type {
+  MeshInspectBox,
   MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectHit,
+  MeshInspectScreenRect,
   MeshInspectSelection,
   MeshInspectTool,
 } from "../core/meshInspect";
 import {
+  formatMeshInspectBox,
   meshInspectComponentFromKey,
   meshInspectEscapeStep,
   meshInspectNudgeDelta,
   meshInspectScaleFactor,
+  meshInspectScreenRectStyle,
   meshInspectToolFromKey,
   meshInspectYawDelta,
 } from "../core/meshInspect";
@@ -66,6 +70,12 @@ type DevHooks = {
   setMeshInspectPlaceComponent: (component: MeshInspectComponent) => void;
   meshInspectHasEdge: () => boolean;
   clearMeshInspectEdge: () => boolean;
+  isMeshInspectBoxPaint: () => boolean;
+  setMeshInspectBoxPaint: (on: boolean) => void;
+  meshInspectBox: () => MeshInspectBox | null;
+  clearMeshInspectBox: () => boolean;
+  meshInspectBoxCanReset: () => boolean;
+  resetMeshInspectBox: () => boolean;
 };
 
 /**
@@ -81,6 +91,7 @@ export class DevTools {
   private inspectHits: MeshInspectHit[] = [];
   private inspectCopied = false;
   private inspectCopiedTimer = 0;
+  private paintRect: MeshInspectScreenRect | null = null;
   private readonly hooks: DevHooks;
 
   constructor(host: HTMLElement, hooks: DevHooks) {
@@ -109,9 +120,31 @@ export class DevTools {
     this.syncInspectPanel();
   }
 
+  setMeshInspectPaintRect(rect: MeshInspectScreenRect | null): void {
+    this.paintRect = rect;
+    this.syncBoxOverlay();
+  }
+
   copyMeshInspectPanel(): void {
     if (!this.hooks.isMeshInspect()) return;
-    const text = this.hooks.meshInspectPatchText() ?? meshInspectClipboardText(this.inspectHits, this.hooks.meshInspectSelection());
+    const box = this.hooks.meshInspectBox();
+    if (box) {
+      this.copyText(formatMeshInspectBox(box));
+      return;
+    }
+    const text =
+      this.hooks.meshInspectPatchText() ??
+      meshInspectClipboardText(this.inspectHits, this.hooks.meshInspectSelection());
+    this.copyText(text);
+  }
+
+  copyMeshInspectBox(): void {
+    const box = this.hooks.meshInspectBox();
+    if (!box) return;
+    this.copyText(formatMeshInspectBox(box));
+  }
+
+  private copyText(text: string): void {
     void copyTextToClipboard(text).then((ok) => {
       if (!ok) return;
       this.inspectCopied = true;
@@ -183,10 +216,17 @@ export class DevTools {
       this.hooks.setMeshInspect(!this.hooks.isMeshInspect());
       this.inspectHits = [];
       this.inspectCopied = false;
+      this.paintRect = null;
       this.render();
       return;
     }
     if (this.hooks.isMeshInspect()) {
+      if (e.code === "KeyB") {
+        e.preventDefault();
+        this.hooks.setMeshInspectBoxPaint(!this.hooks.isMeshInspectBoxPaint());
+        this.syncInspectPanel();
+        return;
+      }
       if (e.code === "KeyE") {
         e.preventDefault();
         this.hooks.setMeshInspectEdit(!this.hooks.isMeshInspectEdit());
@@ -213,6 +253,12 @@ export class DevTools {
         return;
       }
       if (e.code === "Home") {
+        if (this.hooks.isMeshInspectBoxPaint() && this.hooks.meshInspectBox()) {
+          e.preventDefault();
+          this.hooks.resetMeshInspectBox();
+          this.syncInspectPanel();
+          return;
+        }
         if (!this.hooks.meshInspectSelection()) return;
         e.preventDefault();
         this.hooks.resetMeshInspectSelection();
@@ -246,8 +292,12 @@ export class DevTools {
           hasEdge: this.hooks.meshInspectHasEdge(),
           hasSelection: Boolean(this.hooks.meshInspectSelection()),
           edit: this.hooks.isMeshInspectEdit(),
+          boxPaint: this.hooks.isMeshInspectBoxPaint(),
+          hasBox: Boolean(this.hooks.meshInspectBox()),
         });
-        if (step === "clearEdge") this.hooks.clearMeshInspectEdge();
+        if (step === "clearBox") this.hooks.clearMeshInspectBox();
+        else if (step === "leaveBoxPaint") this.hooks.setMeshInspectBoxPaint(false);
+        else if (step === "clearEdge") this.hooks.clearMeshInspectEdge();
         else if (step === "clearSelection") this.hooks.clearMeshInspectSelection();
         else if (step === "leaveEdit") this.hooks.setMeshInspectEdit(false);
         else this.hooks.setMeshInspect(false);
@@ -277,6 +327,8 @@ export class DevTools {
     const existing = this.root.querySelector(".dev-mesh-inspect-dock") ?? this.root.querySelector(".dev-mesh-inspect");
     if (!this.hooks.isMeshInspect()) {
       existing?.remove();
+      this.paintRect = null;
+      this.syncBoxOverlay();
       applyMeshInspectMode(document.documentElement, false);
       return;
     }
@@ -291,6 +343,9 @@ export class DevTools {
       component: this.hooks.meshInspectPlaceComponent(),
       catalog: this.hooks.meshInspectCatalog(),
       dirtyCount: this.hooks.meshInspectDirtyCount(),
+      boxPaint: this.hooks.isMeshInspectBoxPaint(),
+      box: this.hooks.meshInspectBox(),
+      boxCanReset: this.hooks.meshInspectBoxCanReset(),
     });
     if (existing) existing.outerHTML = html;
     else this.root.insertAdjacentHTML("beforeend", html);
@@ -305,7 +360,25 @@ export class DevTools {
     this.root.querySelector("[data-mesh-inspect-copy]")?.addEventListener("click", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
-      this.copyMeshInspectPanel();
+      const text = this.hooks.meshInspectPatchText();
+      if (text) this.copyText(text);
+    });
+    this.root.querySelector("[data-mesh-inspect-copy-box]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.copyMeshInspectBox();
+    });
+    this.root.querySelector("[data-mesh-inspect-reset-box]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.hooks.resetMeshInspectBox();
+      this.syncInspectPanel();
+    });
+    this.root.querySelector("[data-mesh-inspect-box]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.hooks.setMeshInspectBoxPaint(!this.hooks.isMeshInspectBoxPaint());
+      this.syncInspectPanel();
     });
     this.root.querySelectorAll<HTMLButtonElement>("[data-mesh-inspect-tool]").forEach((btn) => {
       btn.addEventListener("click", (ev) => {
@@ -332,6 +405,26 @@ export class DevTools {
         this.syncInspectPanel();
       });
     });
+    this.syncBoxOverlay();
+  }
+
+  private syncBoxOverlay(): void {
+    let el = this.root.querySelector<HTMLElement>(".dev-mesh-inspect-box-overlay");
+    if (!this.paintRect) {
+      el?.remove();
+      return;
+    }
+    if (!el) {
+      el = document.createElement("div");
+      el.className = "dev-mesh-inspect-box-overlay";
+      el.dataset.devName = "dev.mesh-inspect.box.overlay";
+      this.root.appendChild(el);
+    }
+    const css = meshInspectScreenRectStyle(this.paintRect);
+    el.style.left = `${css.left}px`;
+    el.style.top = `${css.top}px`;
+    el.style.width = `${css.width}px`;
+    el.style.height = `${css.height}px`;
   }
 
   private render(): void {

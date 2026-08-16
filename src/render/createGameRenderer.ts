@@ -1,4 +1,6 @@
 import type {
+  MeshInspectBox,
+  MeshInspectBoxFace,
   MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectDragMode,
@@ -71,6 +73,32 @@ export type GameRenderer = {
   setMeshInspectPlaceComponent: (component: MeshInspectComponent) => void;
   meshInspectHasEdge: () => boolean;
   clearMeshInspectEdge: () => boolean;
+  isMeshInspectBoxPaint: () => boolean;
+  setMeshInspectBoxPaint: (on: boolean) => void;
+  meshInspectBox: () => MeshInspectBox | null;
+  commitMeshInspectBox: (
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    canvas: HTMLCanvasElement,
+  ) => MeshInspectBox | null;
+  pickMeshInspectBoxHandle: (
+    clientX: number,
+    clientY: number,
+    canvas: HTMLCanvasElement,
+  ) => MeshInspectBoxFace | null;
+  resizeMeshInspectBox: (
+    face: MeshInspectBoxFace,
+    fromClientX: number,
+    fromClientY: number,
+    toClientX: number,
+    toClientY: number,
+    canvas: HTMLCanvasElement,
+  ) => void;
+  clearMeshInspectBox: () => boolean;
+  meshInspectBoxCanReset: () => boolean;
+  resetMeshInspectBox: () => boolean;
   resetMeshInspectSelection: () => boolean;
   clearCars: () => void;
 };

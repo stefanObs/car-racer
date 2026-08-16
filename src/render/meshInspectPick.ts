@@ -9,7 +9,14 @@ import {
   type Object3D,
   type Texture,
 } from "three";
-import type { MeshInspectCatalogEntry, MeshInspectHit } from "../core/meshInspect";
+import type {
+  MeshInspectBox,
+  MeshInspectBoxFace,
+  MeshInspectCatalogEntry,
+  MeshInspectHit,
+  MeshInspectScreenRect,
+} from "../core/meshInspect";
+import { collectMeshInspectBox, meshInspectBoxFaceFromKey, meshInspectBoxSamplePoints } from "../core/meshInspect";
 import { isUnderCarFx } from "./garageSit";
 
 /** Default F5 void — green so red/blue cars stay readable. */
@@ -19,6 +26,9 @@ export const MESH_INSPECT_BG_ON_GREEN = 0x8b5cf6;
 export const MESH_INSPECT_MARKER_NAME = "meshInspectMarker";
 export const MESH_INSPECT_SELECT_HELPER_NAME = "meshInspectSelectBox";
 export const MESH_INSPECT_EDGE_HELPER_NAME = "meshInspectEdgeLine";
+export const MESH_INSPECT_BOX_HELPER_NAME = "meshInspectBoxHelper";
+export const MESH_INSPECT_BOX_HANDLES_NAME = "meshInspectBoxHandles";
+export const MESH_INSPECT_BOX_HANDLE_PREFIX = "meshInspectBoxHandle-";
 export const MESH_INSPECT_MARKER_RED = 0xff3b3b;
 export const MESH_INSPECT_MARKER_BLUE = 0x40c4ff;
 /** Was 0.07 m; a quarter of that so the pick ball does not hide the mesh. */
@@ -53,6 +63,8 @@ const SKIP_NAMES = new Set([
   MESH_INSPECT_MARKER_NAME,
   MESH_INSPECT_SELECT_HELPER_NAME,
   MESH_INSPECT_EDGE_HELPER_NAME,
+  MESH_INSPECT_BOX_HELPER_NAME,
+  MESH_INSPECT_BOX_HANDLES_NAME,
 ]);
 
 const MARKER_LIFT = MESH_INSPECT_MARKER_RADIUS;
@@ -311,7 +323,10 @@ export function isMeshInspectSkipped(obj: Object3D): boolean {
     obj.name === "carGroundBlob" ||
     obj.name === MESH_INSPECT_MARKER_NAME ||
     obj.name === MESH_INSPECT_SELECT_HELPER_NAME ||
-    obj.name === MESH_INSPECT_EDGE_HELPER_NAME
+    obj.name === MESH_INSPECT_EDGE_HELPER_NAME ||
+    obj.name === MESH_INSPECT_BOX_HELPER_NAME ||
+    obj.name === MESH_INSPECT_BOX_HANDLES_NAME ||
+    obj.name.startsWith(MESH_INSPECT_BOX_HANDLE_PREFIX)
   ) {
     return true;
   }
@@ -388,4 +403,32 @@ export function pickMeshInspectHits(
     }
   }
   return { hits, marker, hitWorld, hitMeshId };
+}
+
+/** Nearest mesh-space hits inside a screen rectangle → AABB for the F6 Kasten tool. */
+export function sampleMeshInspectBox(
+  carRoot: Object3D,
+  camera: Camera,
+  rect: MeshInspectScreenRect,
+  canvas: { getBoundingClientRect: () => DOMRect },
+): MeshInspectBox | null {
+  return collectMeshInspectBox(meshInspectBoxSamplePoints(rect), (x, y) => {
+    const hit = pickMeshInspectHits(carRoot, camera, x, y, canvas).hits[0];
+    if (!hit) return null;
+    return { x: hit.x, y: hit.y, z: hit.z, name: hit.name };
+  });
+}
+
+export function pickMeshInspectBoxHandle(
+  handles: Object3D,
+  camera: Camera,
+  clientX: number,
+  clientY: number,
+  canvas: { getBoundingClientRect: () => DOMRect },
+): MeshInspectBoxFace | null {
+  camera.updateMatrixWorld(true);
+  _raycaster.setFromCamera(pointerToNdc(clientX, clientY, canvas), camera);
+  const hit = _raycaster.intersectObject(handles, true)[0];
+  if (!hit) return null;
+  return meshInspectBoxFaceFromKey(String(hit.object.userData.boxFace ?? hit.object.name.slice(MESH_INSPECT_BOX_HANDLE_PREFIX.length)));
 }

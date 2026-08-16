@@ -183,6 +183,18 @@ export function cameraPlaneWorldDelta(
   return _to.clone().sub(_from);
 }
 
+export function worldDeltaToMeshDelta(
+  space: Object3D,
+  worldOrigin: Vector3,
+  worldDelta: Vector3,
+  target = new Vector3(),
+): Vector3 {
+  space.updateMatrixWorld(true);
+  space.worldToLocal(_startMesh.copy(worldOrigin));
+  space.worldToLocal(_endMesh.copy(worldOrigin).add(worldDelta));
+  return target.set(_endMesh.x - _startMesh.x, _endMesh.y - _startMesh.y, _endMesh.z - _startMesh.z);
+}
+
 export function constrainWorldDeltaInMeshSpace(
   space: Object3D,
   worldOrigin: Vector3,

@@ -8,6 +8,7 @@ One sheet per car, the garage, and each cup track. Each sheet lists **nodes, mes
 
 - Prefer **ids and node names** from these sheets (`blitz`, `StockWheel_FL`, `garageCabinet`, `tire-wall`).
 - Car numbers are **mesh space** unless you say world/runtime. Käferkraft bake is **nose −X** (runtime yaw π/2).
+- F6 **Kasten** (B): drag a rectangle, resize with face grips, LMB turns the car; **Kasten kopieren** / C copies `Mesh-Raum Kasten (m)` min/max; **Zurück** / Pos1 restores the painted size.
 - Garage numbers are **world** (`garagePad` at x=1.5). Track overview is **world XZ**; kit pieces are **local**.
 - Green dots on car grids are Teil **mount anchors**, not mesh centroids.
 

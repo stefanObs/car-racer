@@ -24,13 +24,41 @@ export type MeshInspectSelection = {
   sz?: number;
 };
 
-export type MeshInspectPointerKind = "orbit" | "copy" | "selectOrMove" | "ignore";
+export type MeshInspectPointerKind = "orbit" | "copy" | "selectOrMove" | "paintBox" | "resizeBox" | "ignore";
+
+export type MeshInspectBoxFace = "minX" | "maxX" | "minY" | "maxY" | "minZ" | "maxZ";
+
+export const MESH_INSPECT_BOX_FACES: readonly MeshInspectBoxFace[] = [
+  "minX",
+  "maxX",
+  "minY",
+  "maxY",
+  "minZ",
+  "maxZ",
+];
+export const MESH_INSPECT_BOX_MIN_SIZE = 0.01;
 
 export type MeshInspectDragMode = "free" | "keepY" | "onlyY";
 
 export type MeshInspectTool = "move" | "rotate" | "scaleUniform" | "scaleFree";
 
 export type MeshInspectComponent = "object" | "edge";
+
+export type MeshInspectVec3 = { x: number; y: number; z: number };
+
+/** Mesh-space AABB from a painted screen rectangle (nearest hits). */
+export type MeshInspectBox = {
+  min: MeshInspectVec3;
+  max: MeshInspectVec3;
+  names: string[];
+};
+
+export type MeshInspectScreenRect = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+};
 
 /** Named node in the F5 catalog — pick internals the ray cannot see. */
 export type MeshInspectCatalogEntry = {
@@ -54,6 +82,8 @@ export const MESH_INSPECT_SCALE_MAX = 20;
 export const MESH_INSPECT_SCALE = 1.05;
 export const MESH_INSPECT_SCALE_FINE = 1.01;
 export const MESH_INSPECT_SCALE_COARSE = 1.15;
+export const MESH_INSPECT_BOX_SAMPLE = 16;
+export const MESH_INSPECT_BOX_HANDLE_RADIUS = 0.04;
 
 export function formatMeshInspectCoord(n: number, digits = MESH_INSPECT_DECIMALS): string {
   const v = Number.isFinite(n) ? n : 0;
@@ -101,6 +131,205 @@ export function formatMeshInspectClipboard(
 ): string {
   if (selection) return `Mesh-Raum (m)\n${formatMeshInspectLine(selection)}`;
   return `Mesh-Raum (m)\n${formatMeshInspectLines(hits)}`;
+}
+
+export function meshInspectBoxCenter(box: MeshInspectBox): MeshInspectVec3 {
+  return {
+    x: (box.min.x + box.max.x) / 2,
+    y: (box.min.y + box.max.y) / 2,
+    z: (box.min.z + box.max.z) / 2,
+  };
+}
+
+export function meshInspectBoxSize(box: MeshInspectBox): MeshInspectVec3 {
+  return {
+    x: box.max.x - box.min.x,
+    y: box.max.y - box.min.y,
+    z: box.max.z - box.min.z,
+  };
+}
+
+export function formatMeshInspectBox(box: MeshInspectBox, digits = MESH_INSPECT_DECIMALS): string {
+  const min = `${formatMeshInspectCoord(box.min.x, digits)}, ${formatMeshInspectCoord(box.min.y, digits)}, ${formatMeshInspectCoord(box.min.z, digits)}`;
+  const max = `${formatMeshInspectCoord(box.max.x, digits)}, ${formatMeshInspectCoord(box.max.y, digits)}, ${formatMeshInspectCoord(box.max.z, digits)}`;
+  const c = meshInspectBoxCenter(box);
+  const s = meshInspectBoxSize(box);
+  const center = `${formatMeshInspectCoord(c.x, digits)}, ${formatMeshInspectCoord(c.y, digits)}, ${formatMeshInspectCoord(c.z, digits)}`;
+  const size = `${formatMeshInspectCoord(s.x, digits)}, ${formatMeshInspectCoord(s.y, digits)}, ${formatMeshInspectCoord(s.z, digits)}`;
+  const lines = [
+    "Mesh-Raum Kasten (m)",
+    `min: ${min}`,
+    `max: ${max}`,
+    `center: ${center}`,
+    `size: ${size}`,
+  ];
+  if (box.names.length > 0) lines.push(`Teile: ${box.names.join(", ")}`);
+  return lines.join("\n");
+}
+
+export function normalizeMeshInspectScreenRect(
+  x0: number,
+  y0: number,
+  x1: number,
+  y1: number,
+): MeshInspectScreenRect {
+  return {
+    left: Math.min(x0, x1),
+    top: Math.min(y0, y1),
+    right: Math.max(x0, x1),
+    bottom: Math.max(y0, y1),
+  };
+}
+
+export function meshInspectScreenRectStyle(rect: MeshInspectScreenRect): {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+} {
+  return {
+    left: rect.left,
+    top: rect.top,
+    width: rect.right - rect.left,
+    height: rect.bottom - rect.top,
+  };
+}
+
+export function meshInspectBoxSamplePoints(
+  rect: MeshInspectScreenRect,
+  cols = MESH_INSPECT_BOX_SAMPLE,
+  rows = MESH_INSPECT_BOX_SAMPLE,
+): { x: number; y: number }[] {
+  const nx = Math.max(1, cols);
+  const ny = Math.max(1, rows);
+  const out: { x: number; y: number }[] = [];
+  for (let row = 0; row < ny; row++) {
+    const v = ny === 1 ? 0.5 : row / (ny - 1);
+    for (let col = 0; col < nx; col++) {
+      const u = nx === 1 ? 0.5 : col / (nx - 1);
+      out.push({
+        x: rect.left + u * (rect.right - rect.left),
+        y: rect.top + v * (rect.bottom - rect.top),
+      });
+    }
+  }
+  return out;
+}
+
+export function meshInspectBoxFromPoints(
+  points: readonly MeshInspectVec3[],
+  names: readonly string[] = [],
+): MeshInspectBox | null {
+  if (points.length === 0) return null;
+  const min = { x: points[0]!.x, y: points[0]!.y, z: points[0]!.z };
+  const max = { x: points[0]!.x, y: points[0]!.y, z: points[0]!.z };
+  for (const p of points) {
+    if (p.x < min.x) min.x = p.x;
+    if (p.y < min.y) min.y = p.y;
+    if (p.z < min.z) min.z = p.z;
+    if (p.x > max.x) max.x = p.x;
+    if (p.y > max.y) max.y = p.y;
+    if (p.z > max.z) max.z = p.z;
+  }
+  const seen = new Set<string>();
+  const unique: string[] = [];
+  for (const name of names) {
+    if (!name || seen.has(name)) continue;
+    seen.add(name);
+    unique.push(name);
+  }
+  return { min, max, names: unique };
+}
+
+export function collectMeshInspectBox(
+  samples: readonly { x: number; y: number }[],
+  pick: (x: number, y: number) => { x: number; y: number; z: number; name: string } | null,
+): MeshInspectBox | null {
+  const points: MeshInspectVec3[] = [];
+  const names: string[] = [];
+  for (const sample of samples) {
+    const hit = pick(sample.x, sample.y);
+    if (!hit) continue;
+    points.push(hit);
+    names.push(hit.name);
+  }
+  return meshInspectBoxFromPoints(points, names);
+}
+
+export function meshInspectBoxHandleLocal(box: MeshInspectBox, face: MeshInspectBoxFace): MeshInspectVec3 {
+  const c = meshInspectBoxCenter(box);
+  switch (face) {
+    case "minX":
+      return { x: box.min.x, y: c.y, z: c.z };
+    case "maxX":
+      return { x: box.max.x, y: c.y, z: c.z };
+    case "minY":
+      return { x: c.x, y: box.min.y, z: c.z };
+    case "maxY":
+      return { x: c.x, y: box.max.y, z: c.z };
+    case "minZ":
+      return { x: c.x, y: c.y, z: box.min.z };
+    case "maxZ":
+      return { x: c.x, y: c.y, z: box.max.z };
+  }
+}
+
+export function meshInspectBoxResizeAxis(face: MeshInspectBoxFace): "x" | "y" | "z" {
+  if (face === "minX" || face === "maxX") return "x";
+  if (face === "minY" || face === "maxY") return "y";
+  return "z";
+}
+
+export function meshInspectBoxFaceFromKey(raw: string | undefined | null): MeshInspectBoxFace | null {
+  if (
+    raw === "minX" ||
+    raw === "maxX" ||
+    raw === "minY" ||
+    raw === "maxY" ||
+    raw === "minZ" ||
+    raw === "maxZ"
+  ) {
+    return raw;
+  }
+  return null;
+}
+
+/** Move one AABB face in mesh space; keeps a minimum size. */
+export function resizeMeshInspectBox(
+  box: MeshInspectBox,
+  face: MeshInspectBoxFace,
+  meshDelta: MeshInspectVec3,
+  minSize = MESH_INSPECT_BOX_MIN_SIZE,
+): MeshInspectBox {
+  const min = { ...box.min };
+  const max = { ...box.max };
+  const axis = meshInspectBoxResizeAxis(face);
+  const d = meshDelta[axis];
+  if (face.startsWith("min")) {
+    min[axis] = Math.min(max[axis] - minSize, min[axis] + d);
+  } else {
+    max[axis] = Math.max(min[axis] + minSize, max[axis] + d);
+  }
+  return { min, max, names: box.names };
+}
+
+export function cloneMeshInspectBox(box: MeshInspectBox): MeshInspectBox {
+  return {
+    min: { x: box.min.x, y: box.min.y, z: box.min.z },
+    max: { x: box.max.x, y: box.max.y, z: box.max.z },
+    names: [...box.names],
+  };
+}
+
+export function meshInspectBoxChanged(a: MeshInspectBox, b: MeshInspectBox, eps = 5e-4): boolean {
+  return (
+    Math.abs(a.min.x - b.min.x) > eps ||
+    Math.abs(a.min.y - b.min.y) > eps ||
+    Math.abs(a.min.z - b.min.z) > eps ||
+    Math.abs(a.max.x - b.max.x) > eps ||
+    Math.abs(a.max.y - b.max.y) > eps ||
+    Math.abs(a.max.z - b.max.z) > eps
+  );
 }
 
 export const MESH_INSPECT_PATCH_HEADER = "CRASH CIRCUIT F5 PATCH v1";
@@ -295,12 +524,23 @@ export function parseMeshInspectPatch(text: string): MeshInspectPatch | null {
 
 export function meshInspectPointerAction(
   button: number,
-  opts?: { edit?: boolean; altKey?: boolean },
+  opts?: {
+    edit?: boolean;
+    altKey?: boolean;
+    boxPaint?: boolean;
+    hasBox?: boolean;
+    hitHandle?: boolean;
+    shiftKey?: boolean;
+  },
 ): MeshInspectPointerKind {
   if (button === 2) return "copy";
   if (button === 1) return "orbit";
   if (button !== 0) return "ignore";
-  if (opts?.edit && !opts.altKey) return "selectOrMove";
+  if (opts?.altKey) return "orbit";
+  if (opts?.hitHandle) return "resizeBox";
+  if (opts?.boxPaint && (!opts.hasBox || opts.shiftKey)) return "paintBox";
+  if (opts?.boxPaint && opts.hasBox) return "orbit";
+  if (opts?.edit) return "selectOrMove";
   return "orbit";
 }
 
@@ -390,12 +630,16 @@ export function meshInspectComponentFromKey(code: string): MeshInspectComponent 
   return null;
 }
 
-/** Esc: drop edge, then object, then place mode, then F6. */
+/** Esc: drop painted box, then box tool, then edge, then object, then place mode, then F6. */
 export function meshInspectEscapeStep(opts: {
   hasEdge?: boolean;
   hasSelection: boolean;
   edit: boolean;
-}): "clearEdge" | "clearSelection" | "leaveEdit" | "leaveStudio" {
+  boxPaint?: boolean;
+  hasBox?: boolean;
+}): "clearBox" | "leaveBoxPaint" | "clearEdge" | "clearSelection" | "leaveEdit" | "leaveStudio" {
+  if (opts.boxPaint && opts.hasBox) return "clearBox";
+  if (opts.boxPaint) return "leaveBoxPaint";
   if (opts.hasEdge) return "clearEdge";
   if (opts.hasSelection) return "clearSelection";
   if (opts.edit) return "leaveEdit";
@@ -409,7 +653,14 @@ export function meshInspectGestureAfterDrag(opts: {
   hitEmpty: boolean;
   tool?: MeshInspectTool;
   hasEdge?: boolean;
-}): "move" | "rotate" | "moveEdge" | "scaleUniform" | "scaleFree" | "orbit" {
+  boxPaint?: boolean;
+  hasBox?: boolean;
+  hitHandle?: boolean;
+  shiftKey?: boolean;
+}): "move" | "rotate" | "moveEdge" | "scaleUniform" | "scaleFree" | "paintBox" | "resizeBox" | "orbit" {
+  if (opts.hitHandle) return "resizeBox";
+  if (opts.boxPaint && (!opts.hasBox || opts.shiftKey)) return "paintBox";
+  if (opts.boxPaint && opts.hasBox) return "orbit";
   if (!(opts.edit && opts.hasSelection && opts.hitIsSelection)) return "orbit";
   if (opts.tool === "scaleUniform") return "scaleUniform";
   if (opts.tool === "scaleFree") return "scaleFree";

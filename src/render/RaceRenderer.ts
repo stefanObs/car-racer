@@ -24,7 +24,7 @@ import { sampleCenterline } from "../track/buildTrack";
 import { carStateLookKey } from "./carLookKey";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../core/finishCelebrate";
-import type { MeshInspectComponent, MeshInspectDragMode, MeshInspectTool } from "../core/meshInspect";
+import type { MeshInspectBoxFace, MeshInspectComponent, MeshInspectDragMode, MeshInspectTool } from "../core/meshInspect";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
@@ -279,6 +279,55 @@ export class RaceRenderer {
 
   clearMeshInspectEdge(): boolean {
     return this.garage.clearMeshInspectEdge();
+  }
+
+  isMeshInspectBoxPaint(): boolean {
+    return this.garage.isMeshInspectBoxPaint();
+  }
+
+  setMeshInspectBoxPaint(on: boolean): void {
+    this.garage.setMeshInspectBoxPaint(on);
+  }
+
+  meshInspectBox() {
+    return this.garage.meshInspectPaintedBox();
+  }
+
+  commitMeshInspectBox(
+    x0: number,
+    y0: number,
+    x1: number,
+    y1: number,
+    canvas: HTMLCanvasElement,
+  ) {
+    return this.garage.commitMeshInspectBox(x0, y0, x1, y1, canvas);
+  }
+
+  pickMeshInspectBoxHandle(clientX: number, clientY: number, canvas: HTMLCanvasElement) {
+    return this.garage.pickMeshInspectBoxHandle(clientX, clientY, canvas);
+  }
+
+  resizeMeshInspectBox(
+    face: MeshInspectBoxFace,
+    fromClientX: number,
+    fromClientY: number,
+    toClientX: number,
+    toClientY: number,
+    canvas: HTMLCanvasElement,
+  ): void {
+    this.garage.resizeMeshInspectBox(face, fromClientX, fromClientY, toClientX, toClientY, canvas);
+  }
+
+  clearMeshInspectBox(): boolean {
+    return this.garage.clearMeshInspectBox();
+  }
+
+  meshInspectBoxCanReset(): boolean {
+    return this.garage.meshInspectBoxCanReset();
+  }
+
+  resetMeshInspectBox(): boolean {
+    return this.garage.resetMeshInspectBox();
   }
 
   /** Pointer drag — LMB yaw; RMB / 2-finger free tumble. */

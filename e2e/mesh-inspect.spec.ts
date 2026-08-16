@@ -17,6 +17,30 @@ test.describe("F6 mesh studio", () => {
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.catalog']")).toContainText("BodyPaint", {
       timeout: 15_000,
     });
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.box']")).toBeVisible();
+    await page.locator("[data-dev-name='dev.mesh-inspect.tool.box']").click();
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.box']")).toHaveClass(/is-on/);
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.hint']")).toContainText("Ziehen malt Kasten");
+
+    const canvas = page.locator("#game-canvas");
+    const box = await canvas.boundingBox();
+    expect(box).toBeTruthy();
+    await page.mouse.move(box!.x + box!.width * 0.28, box!.y + box!.height * 0.28);
+    await page.mouse.down();
+    await page.mouse.move(box!.x + box!.width * 0.72, box!.y + box!.height * 0.72, { steps: 8 });
+    await page.mouse.up();
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.box']")).toContainText("Mesh-Raum Kasten", {
+      timeout: 10_000,
+    });
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.box']")).toContainText("min:");
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.copy-box']")).toHaveText("Kasten kopieren");
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.reset-box']")).toHaveText("Zurück");
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.hint']")).toContainText("dreht Auto");
+    await page.screenshot({ path: "tmp/f6-mesh-inspect-box.png" });
+    await page.keyboard.press("Escape");
+    await page.keyboard.press("Escape");
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.box']")).not.toHaveClass(/is-on/);
+
     await page.locator(".dev-mesh-inspect-catalog-list button", { hasText: /^BodyPaint$/ }).first().click();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.edit']")).toHaveText("Platzieren AN");
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.selected']")).toContainText("BodyPaint");

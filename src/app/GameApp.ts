@@ -33,6 +33,8 @@ import {
   meshInspectGestureAfterDrag,
   meshInspectPointerAction,
   meshInspectWantParent,
+  normalizeMeshInspectScreenRect,
+  type MeshInspectBoxFace,
 } from "../core/meshInspect";
 import { renderMenuHtml } from "../ui/menuHtml";
 import { renderCupPickHtml, renderFreePickHtml, renderTrainingPickHtml } from "../ui/modePickHtml";
@@ -149,6 +151,12 @@ export class GameApp {
       setMeshInspectPlaceComponent: (component) => this.renderer.setMeshInspectPlaceComponent(component),
       meshInspectHasEdge: () => this.renderer.meshInspectHasEdge(),
       clearMeshInspectEdge: () => this.renderer.clearMeshInspectEdge(),
+      isMeshInspectBoxPaint: () => this.renderer.isMeshInspectBoxPaint(),
+      setMeshInspectBoxPaint: (on) => this.renderer.setMeshInspectBoxPaint(on),
+      meshInspectBox: () => this.renderer.meshInspectBox(),
+      clearMeshInspectBox: () => this.renderer.clearMeshInspectBox(),
+      meshInspectBoxCanReset: () => this.renderer.meshInspectBoxCanReset(),
+      resetMeshInspectBox: () => this.renderer.resetMeshInspectBox(),
     });
     this.renderUi();
   }
@@ -239,11 +247,12 @@ export class GameApp {
         y: number;
         type: string;
         button: number;
-        inspect?: "pending" | "orbit" | "move" | "rotate" | "moveEdge" | "scaleUniform" | "scaleFree";
+        inspect?: "pending" | "orbit" | "move" | "rotate" | "moveEdge" | "scaleUniform" | "scaleFree" | "paintBox" | "resizeBox";
         startX?: number;
         startY?: number;
         hitId?: string | null;
         wantParent?: boolean;
+        boxFace?: MeshInspectBoxFace | null;
       }
     >();
 
@@ -292,9 +301,14 @@ export class GameApp {
 
     canvas.addEventListener("pointerdown", (e) => {
       if (this.renderer.isMeshInspect()) {
+        const handle = this.renderer.pickMeshInspectBoxHandle(e.clientX, e.clientY, canvas);
         const action = meshInspectPointerAction(e.button, {
           edit: this.renderer.isMeshInspectEdit(),
           altKey: e.altKey,
+          boxPaint: this.renderer.isMeshInspectBoxPaint(),
+          hasBox: Boolean(this.renderer.meshInspectBox()),
+          hitHandle: Boolean(handle),
+          shiftKey: e.shiftKey,
         });
         if (action === "copy") {
           e.preventDefault();
@@ -304,7 +318,7 @@ export class GameApp {
         if (action === "ignore") return;
         const hits = this.renderer.pickMeshInspect(e.clientX, e.clientY, canvas);
         this.dev.setMeshInspectHits(hits);
-        const inspect = action === "orbit" ? "orbit" : "pending";
+        const inspect = action === "orbit" || action === "resizeBox" ? action : "pending";
         pointers.set(e.pointerId, {
           x: e.clientX,
           y: e.clientY,
@@ -315,6 +329,7 @@ export class GameApp {
           startY: e.clientY,
           hitId: hits[0]?.id ?? null,
           wantParent: meshInspectWantParent({ shift: e.shiftKey }),
+          boxFace: handle,
         });
         canvas.setPointerCapture(e.pointerId);
         this.renderer.setGarageDragging(true);
@@ -356,6 +371,10 @@ export class GameApp {
               hitEmpty: !prev.hitId,
               tool: this.renderer.meshInspectPlaceTool(),
               hasEdge: this.renderer.meshInspectHasEdge(),
+              boxPaint: this.renderer.isMeshInspectBoxPaint(),
+              hasBox: Boolean(this.renderer.meshInspectBox()),
+              hitHandle: Boolean(prev.boxFace),
+              shiftKey: e.shiftKey,
             });
             canvas.classList.toggle("is-orbiting", prev.inspect === "orbit");
           }
@@ -392,11 +411,22 @@ export class GameApp {
               canvas,
               meshInspectDragMode({ shift: e.shiftKey, ctrl: e.ctrlKey }),
             );
+          } else if (prev.inspect === "paintBox") {
+            this.dev.setMeshInspectPaintRect(
+              normalizeMeshInspectScreenRect(prev.startX ?? prev.x, prev.startY ?? prev.y, e.clientX, e.clientY),
+            );
+          } else if (prev.inspect === "resizeBox" && prev.boxFace) {
+            this.renderer.resizeMeshInspectBox(prev.boxFace, prev.x, prev.y, e.clientX, e.clientY, canvas);
           }
           prev.x = e.clientX;
           prev.y = e.clientY;
         }
-        this.dev.setMeshInspectHits(this.renderer.pickMeshInspect(e.clientX, e.clientY, canvas));
+        if (prev?.inspect !== "paintBox") {
+          if (prev?.inspect !== "resizeBox") {
+            this.renderer.pickMeshInspectBoxHandle(e.clientX, e.clientY, canvas);
+          }
+          this.dev.setMeshInspectHits(this.renderer.pickMeshInspect(e.clientX, e.clientY, canvas));
+        }
         return;
       }
       if (this.screen !== "garage") return;
@@ -414,7 +444,21 @@ export class GameApp {
     canvas.addEventListener("pointerup", (e) => {
       if (this.renderer.isMeshInspect()) {
         const prev = pointers.get(e.pointerId);
-        if (prev?.inspect === "pending" && this.renderer.isMeshInspectEdit()) {
+        if (prev?.inspect === "paintBox") {
+          this.renderer.commitMeshInspectBox(
+            prev.startX ?? prev.x,
+            prev.startY ?? prev.y,
+            e.clientX,
+            e.clientY,
+            canvas,
+          );
+          this.dev.setMeshInspectPaintRect(null);
+          this.dev.setMeshInspectHits(this.renderer.pickMeshInspect(e.clientX, e.clientY, canvas));
+        } else if (
+          prev?.inspect === "pending" &&
+          this.renderer.isMeshInspectEdit() &&
+          !this.renderer.isMeshInspectBoxPaint()
+        ) {
           const hits = this.renderer.selectMeshInspectAt(
             e.clientX,
             e.clientY,
@@ -423,12 +467,17 @@ export class GameApp {
             this.renderer.meshInspectPlaceComponent() === "edge",
           );
           this.dev.setMeshInspectHits(hits);
+        } else {
+          this.dev.setMeshInspectPaintRect(null);
         }
       }
       release(e.pointerId);
       releaseMouseIfIdle(e.buttons);
     });
-    canvas.addEventListener("pointercancel", (e) => release(e.pointerId));
+    canvas.addEventListener("pointercancel", (e) => {
+      this.dev.setMeshInspectPaintRect(null);
+      release(e.pointerId);
+    });
     canvas.addEventListener("lostpointercapture", (e) => release(e.pointerId));
     window.addEventListener("pointerup", (e) => {
       if (e.pointerType === "mouse") releaseMouseIfIdle(e.buttons);
@@ -458,6 +507,7 @@ export class GameApp {
           this.renderUi();
         }
       } else {
+        this.race.lowDamage = this.settings.lowDamageMode;
         this.race.step(
           dt,
           typing
@@ -632,6 +682,7 @@ export class GameApp {
     this.stylePops.clear();
     this.finishCelebrate = null;
     this.race = createRaceSession(this.save, level);
+    this.race.lowDamage = this.settings.lowDamageMode;
     await mountRace(this.renderer, this.race);
     this.screen = "race";
     this.renderUi();
@@ -830,6 +881,14 @@ export class GameApp {
     if (act === "toggle-easy-mode") {
       this.settings.easyMode = !this.settings.easyMode;
       writeGameSettings(this.settings);
+      gameAudio.playUiClick();
+      if (this.settingsOpen) this.renderSettingsOverlay();
+      return;
+    }
+    if (act === "toggle-low-damage") {
+      this.settings.lowDamageMode = !this.settings.lowDamageMode;
+      writeGameSettings(this.settings);
+      if (this.race) this.race.lowDamage = this.settings.lowDamageMode;
       gameAudio.playUiClick();
       if (this.settingsOpen) this.renderSettingsOverlay();
       return;
