@@ -547,7 +547,7 @@ Root AABB (-0.291, 0, -0.288) → (0.291, 0.65, 0.288)
 
 ![public/models/parts/kaeferkraft-rear_spoiler.glb](./img/part-kaeferkraft-rear_spoiler.png)
 
-Root AABB (-0.527, 0.001, -0.045) → (0.523, 0.225, 0.134)
+Root AABB (-0.525, 0, -0.089) → (0.525, 0.224, 0.089)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
 <rect x="0" y="0" width="760" height="520" fill="#f4efe6"/>
@@ -586,15 +586,15 @@ Root AABB (-0.527, 0.001, -0.045) → (0.523, 0.225, 0.134)
 <text x="48" y="484.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-1</text>
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
-<rect x="308.6" y="228.3" width="180.1" height="39.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="398.7" y="248.1" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_855903af-1907-4062-aad1-a16a98bb50b4</text>
+<rect x="309.0" y="238.2" width="180.1" height="39.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_855903af-1907-4062-aad1-a16a98bb50b4</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">public/models/parts/kaeferkraft-rear_spoiler.glb — top XZ</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tripo_node_855903af-1907-4062-aad1-a16a98bb50b4` | `tripo_mesh_855903af-1907-4062-aad1-a16a98bb50b4` | 1 | 4748 | (-0.002, 0.113, 0.044) | (-0.527, 0.001, -0.045) → (0.523, 0.225, 0.134) | Spoiler |
+| `tripo_node_855903af-1907-4062-aad1-a16a98bb50b4` | `tripo_mesh_855903af-1907-4062-aad1-a16a98bb50b4` | 1 | 4748 | (0, 0.112, 0) | (-0.525, 0, -0.089) → (0.525, 0.224, 0.089) | Spoiler |
 
 ## Part / extra `public/models/props/buggy-skull.glb`
 

@@ -112,8 +112,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="406.0" y="266.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">lightweight_body</text>
 <circle cx="227.5" cy="308.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="234.5" y="302.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">nitro_kit</text>
-<circle cx="399.0" cy="363.1" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="406.0" y="357.1" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">rear_spoiler</text>
+<circle cx="398.0" cy="379.4" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="405.0" y="373.4" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">rear_spoiler</text>
 <circle cx="549.9" cy="145.5" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="556.9" y="139.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[0]</text>
 <circle cx="248.1" cy="145.5" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -205,8 +205,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="383.1" y="363.0" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">lightweight_body</text>
 <circle cx="321.3" cy="271.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="328.3" y="265.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">nitro_kit</text>
-<circle cx="236.6" cy="258.0" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="243.6" y="252.0" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">rear_spoiler</text>
+<circle cx="211.5" cy="258.0" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="218.5" y="252.0" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">rear_spoiler</text>
 <circle cx="572.8" cy="326.8" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="579.8" y="320.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[0]</text>
 <circle cx="572.8" cy="326.8" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -248,7 +248,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 | `lightweight_body` | Leichtbau-Karosserie | yes | `public/models/parts/donnerbuechse-lightweight_body.glb` | (0, 0, -0.2) yaw 90° ×1.5 |
 | `nitro_kit` | Nitro-Kit | yes | `public/models/parts/donnerbuechse-nitro_kit.glb` | (-1, 0.88, -0.68) yaw -90° ×0.95 |
 | `offroad_suspension` | Gelände-Federung | yes | procedural / missing | — |
-| `rear_spoiler` | Heckspoiler | yes | `public/models/parts/donnerbuechse-rear_spoiler.glb` | (0, 1, -1.42) yaw 180° ×1.15 |
+| `rear_spoiler` | Heckspoiler | yes | `public/models/parts/donnerbuechse-rear_spoiler.glb` | (-0.006, 1, -1.64) yaw 180° ×1.15 |
 
 ## Part / extra `public/models/parts/donnerbuechse-big_engine.glb`
 
@@ -529,7 +529,7 @@ Root AABB (-0.375, 0, -0.156) → (0.375, 0.498, 0.156)
 
 ![public/models/parts/donnerbuechse-rear_spoiler.glb](./img/part-donnerbuechse-rear_spoiler.png)
 
-Root AABB (-0.575, 0, -0.217) → (0.575, 0.317, 0.217)
+Root AABB (-0.575, 0.001, -0.219) → (0.575, 0.318, 0.215)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
 <rect x="0" y="0" width="760" height="520" fill="#f4efe6"/>
@@ -568,15 +568,15 @@ Root AABB (-0.575, 0, -0.217) → (0.575, 0.317, 0.217)
 <text x="48" y="484.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-1</text>
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
-<rect x="300.4" y="209.8" width="197.2" height="96.4" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_1a920ca8-f85e-438d-bfc8-f470cfbbec44</text>
+<rect x="300.4" y="210.2" width="197.2" height="96.4" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="258.4" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_1a920ca8-f85e-438d-bfc8-f470cfbbec44</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">public/models/parts/donnerbuechse-rear_spoiler.glb — top XZ</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tripo_node_1a920ca8-f85e-438d-bfc8-f470cfbbec44` | `tripo_mesh_1a920ca8-f85e-438d-bfc8-f470cfbbec44` | 1 | 6055 | (0, 0.159, 0) | (-0.575, 0, -0.217) → (0.575, 0.317, 0.217) | Spoiler |
+| `tripo_node_1a920ca8-f85e-438d-bfc8-f470cfbbec44` | `tripo_mesh_1a920ca8-f85e-438d-bfc8-f470cfbbec44` | 1 | 6055 | (0, 0.16, -0.002) | (-0.575, 0.001, -0.219) → (0.575, 0.318, 0.215) | Spoiler |
 
 ## Part / extra `public/models/stickers/flames.glb`
 

@@ -187,7 +187,7 @@ const MOUNTS = {
     reinforced_frame: [{ x: 0, y: 0.15, z: -1.3, yaw: -Math.PI / 2, scale: 1.1 }],
     lightweight_body: [{ x: 0, y: 0, z: -0.2, yaw: Math.PI / 2, scale: 1.5 }],
     nitro_kit: [{ x: -1.0, y: 0.88, z: -0.68, yaw: -Math.PI / 2, scale: 0.95 }],
-    rear_spoiler: [{ x: 0, y: 1.0, z: -1.42, yaw: Math.PI, scale: 1.15 }],
+    rear_spoiler: [{ x: -0.006, y: 1.0, z: -1.64, yaw: Math.PI, scale: 1.15 }],
     better_brakes: [
       { x: 0.88, y: 0.38, z: 1.52, yaw: 0, scale: 0.95 },
       { x: -0.88, y: 0.38, z: 1.52, yaw: Math.PI, scale: 0.95 },

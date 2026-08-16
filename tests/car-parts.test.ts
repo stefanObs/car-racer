@@ -746,9 +746,12 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(existsSync("public/models/parts/donnerbuechse-spike_bumper.glb")).toBe(true);
 
     const wing = L.rear_spoiler.anchors[0]!;
-    expect(wing.z).toBeLessThan(-1.2);
+    expect(wing.x).toBeCloseTo(-0.006, 3);
+    expect(wing.y).toBeCloseTo(1.0, 3);
+    expect(wing.z).toBeCloseTo(-1.64, 3);
     expect(wing.yaw).toBeCloseTo(Math.PI);
-    expect(wing.snap).toBe(true);
+    expect(wing.scale).toBeCloseTo(1.15);
+    expect(wing.snap).toBe(false);
 
     const frame = L.reinforced_frame.anchors[0]!;
     expect(frame.yaw).toBeCloseTo(-Math.PI / 2);

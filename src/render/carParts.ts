@@ -465,20 +465,8 @@ function layoutDonner(): CarVisualLayout {
       preferGlb: true,
     },
     rear_spoiler: {
-      // Rear deck / trunk lip — yaw π so the wing faces aft like a real spoiler.
-      anchors: [
-        {
-          x: 0,
-          y: 1.0,
-          z: -1.42,
-          yaw: Math.PI,
-          scale: 1.15,
-          snap: true,
-          sitGap: 0.005,
-          snapRadius: 0.45,
-          preferY: 1.05,
-        },
-      ],
+      // Rear deck / trunk lip — F5 bake; yaw π so the wing faces aft.
+      anchors: [{ x: -0.006, y: 1.0, z: -1.64, yaw: Math.PI, scale: 1.15, snap: false }],
       build: () => buildRearSpoiler("tall"),
       preferGlb: true,
     },
