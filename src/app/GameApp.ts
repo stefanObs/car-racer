@@ -27,6 +27,7 @@ import type { LevelDefinition } from "../track/types";
 import { renderAdhocHtml } from "../ui/adhocHtml";
 import { renderGarageHtml } from "../ui/garageHtml";
 import { garageOrbitAxesForPointer } from "../render/garageOrbit";
+import { meshInspectPointerAction } from "../core/meshInspect";
 import { renderMenuHtml } from "../ui/menuHtml";
 import { renderCupPickHtml, renderFreePickHtml, renderTrainingPickHtml } from "../ui/modePickHtml";
 import { renderRaceChromeHtml } from "../ui/raceChromeHtml";
@@ -118,6 +119,12 @@ export class GameApp {
       setEquippedParts: (parts) => {
         this.race?.setPlayerParts(parts);
       },
+      canMeshInspect: () => this.screen !== "race",
+      isMeshInspect: () => this.renderer.isMeshInspect(),
+      setMeshInspect: (on) => {
+        if (on && this.screen === "race") return;
+        this.renderer.setMeshInspect(on);
+      },
     });
     this.renderUi();
   }
@@ -125,8 +132,7 @@ export class GameApp {
   private onContextMenu(e: MouseEvent, canvas: HTMLCanvasElement): void {
     const target = e.target;
     if (target instanceof Node && (target === canvas || canvas.contains(target))) {
-      // Garage canvas RMB = orbit; race canvas RMB = settings.
-      if (this.screen === "garage") return;
+      if (this.renderer.isMeshInspect() || this.screen === "garage") return;
     }
     e.preventDefault();
     this.openSettings();
@@ -243,11 +249,30 @@ export class GameApp {
     };
 
     canvas.addEventListener("contextmenu", (e) => {
-      if (this.screen !== "garage") return;
-      e.preventDefault();
+      if (this.renderer.isMeshInspect() || this.screen === "garage") e.preventDefault();
     });
 
     canvas.addEventListener("pointerdown", (e) => {
+      if (this.renderer.isMeshInspect()) {
+        const action = meshInspectPointerAction(e.button);
+        if (action === "copy") {
+          e.preventDefault();
+          this.dev.copyMeshInspectPanel();
+          return;
+        }
+        if (action !== "orbit") return;
+        pointers.set(e.pointerId, {
+          x: e.clientX,
+          y: e.clientY,
+          type: e.pointerType,
+          button: e.button,
+        });
+        canvas.setPointerCapture(e.pointerId);
+        this.renderer.setGarageDragging(true);
+        canvas.classList.toggle("is-orbiting", true);
+        e.preventDefault();
+        return;
+      }
       if (this.screen !== "garage") return;
       const touchish = e.pointerType === "touch" || e.pointerType === "pen";
       const nextCount = touchish ? touchLikeCount() + 1 : 1;
@@ -266,6 +291,21 @@ export class GameApp {
     });
 
     canvas.addEventListener("pointermove", (e) => {
+      if (this.renderer.isMeshInspect()) {
+        const prev = pointers.get(e.pointerId);
+        if (prev) {
+          const dx = e.clientX - prev.x;
+          const dy = e.clientY - prev.y;
+          prev.x = e.clientX;
+          prev.y = e.clientY;
+          if (dx !== 0 || dy !== 0) {
+            this.renderer.addGarageOrbitFromDrag(dx, dy, { yaw: true, pitch: true });
+          }
+          return;
+        }
+        this.dev.setMeshInspectHits(this.renderer.pickMeshInspect(e.clientX, e.clientY, canvas));
+        return;
+      }
       if (this.screen !== "garage") return;
       const prev = pointers.get(e.pointerId);
       if (!prev) return;
@@ -348,7 +388,7 @@ export class GameApp {
   }
 
   private onMenuKeyDown(e: KeyboardEvent): void {
-    if (e.code === "F1" || e.code === "F2" || e.code === "F3" || e.code === "F4") return;
+    if (e.code === "F1" || e.code === "F2" || e.code === "F3" || e.code === "F4" || e.code === "F5" || e.code === "F6" || e.code === "F7") return;
     if (this.settingsOpen) {
       if (e.code === "Escape") {
         e.preventDefault();
@@ -363,6 +403,7 @@ export class GameApp {
       return;
     }
     if (e.code === "Escape") {
+      if (this.renderer.isMeshInspect()) return;
       e.preventDefault();
       if (escapeOpensSettings(this.screen)) this.openSettings();
       else {
@@ -477,6 +518,8 @@ export class GameApp {
   }
 
   private async beginRace(level: LevelDefinition): Promise<void> {
+    this.renderer.setMeshInspect(false);
+    this.dev.setMeshInspectHits([]);
     cancelAnimationFrame(this.uiRenderFrame);
     this.uiRenderFrame = 0;
     this.stylePops.clear();

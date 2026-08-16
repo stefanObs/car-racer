@@ -239,7 +239,7 @@ export function renderGarageHtml(opts: {
     </section>`
     }
 
-    <p class="help">Tastatur · Controller · Tablet · Dev F1/F2/F3</p>
+    <p class="help">Tastatur · Controller · Tablet · Dev F1–F7</p>
     <div class="garage-footer-row">
       <button data-nav data-act="toggle-mute" class="garage-mute" aria-pressed="${opts.muted ? "true" : "false"}">${
         opts.muted ? "Ton aus" : "Ton an"

@@ -1,9 +1,23 @@
+import type { MeshInspectHit } from "../core/meshInspect";
 import type { CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
-import { applyPhotoMode, assignDevNames, clampFinishPlace, isPhotoMode, parseChfAmount } from "./cheats";
+import {
+  applyPhotoMode,
+  assignDevNames,
+  clampFinishPlace,
+  copyTextToClipboard,
+  isPhotoMode,
+  parseChfAmount,
+} from "./cheats";
+import { applyMeshInspectMode, meshInspectClipboardText, renderMeshInspectPanelHtml } from "./meshInspectPanel";
 import { allPartsForCar, renderDevPartsPanelHtml, toggleEquippedPart } from "./partsPanel";
 
 export type DevDialog = "none" | "money" | "finish" | "parts";
+
+type PhotoModeWindow = Window & {
+  __ccPhotoMode?: boolean;
+  __ccSetPhotoMode?: (on: boolean) => void;
+};
 
 type DevHooks = {
   getChf: () => number;
@@ -17,15 +31,14 @@ type DevHooks = {
   partsCarId: () => CarId | null;
   equippedParts: () => PartId[];
   setEquippedParts: (parts: PartId[]) => void;
-};
-
-type PhotoModeWindow = Window & {
-  __ccPhotoMode?: boolean;
-  __ccSetPhotoMode?: (on: boolean) => void;
+  canMeshInspect: () => boolean;
+  isMeshInspect: () => boolean;
+  setMeshInspect: (on: boolean) => void;
 };
 
 /**
- * F1 name overlay, F2 CHF setter, F3 force-finish place picker, F4 raster pad, F5 Teile, F6 Foto.
+ * F1 name overlay, F2 CHF setter, F3 force-finish, F4 raster pad,
+ * F5 mesh studio, F6 Foto, F7 Teile.
  * Mounts outside the main UI so GameApp re-renders do not wipe dialogs.
  */
 export class DevTools {
@@ -33,6 +46,9 @@ export class DevTools {
   showNames = false;
   dialog: DevDialog = "none";
   private moneyDraft = "1000";
+  private inspectHits: MeshInspectHit[] = [];
+  private inspectCopied = false;
+  private inspectCopiedTimer = 0;
   private readonly hooks: DevHooks;
 
   constructor(host: HTMLElement, hooks: DevHooks) {
@@ -50,9 +66,30 @@ export class DevTools {
   }
 
   setPhotoMode(on: boolean): void {
+    if (on) this.hooks.setMeshInspect(false);
     applyPhotoMode(document.documentElement, on);
     (window as PhotoModeWindow).__ccPhotoMode = on;
     this.render();
+  }
+
+  setMeshInspectHits(hits: MeshInspectHit[]): void {
+    this.inspectHits = hits;
+    this.syncInspectPanel();
+  }
+
+  copyMeshInspectPanel(): void {
+    if (!this.hooks.isMeshInspect()) return;
+    const text = meshInspectClipboardText(this.inspectHits);
+    void copyTextToClipboard(text).then((ok) => {
+      if (!ok) return;
+      this.inspectCopied = true;
+      this.syncInspectPanel();
+      window.clearTimeout(this.inspectCopiedTimer);
+      this.inspectCopiedTimer = window.setTimeout(() => {
+        this.inspectCopied = false;
+        this.syncInspectPanel();
+      }, 900);
+    });
   }
 
   tagUi(uiRoot: HTMLElement): void {
@@ -101,14 +138,19 @@ export class DevTools {
     if (e.code === "F4") {
       e.preventDefault();
       this.dialog = "none";
+      this.hooks.setMeshInspect(false);
       this.render();
       this.hooks.startDebugPad();
       return;
     }
     if (e.code === "F5") {
-      if (!this.hooks.canSwapParts()) return;
       e.preventDefault();
-      this.dialog = this.dialog === "parts" ? "none" : "parts";
+      if (!this.hooks.canMeshInspect() && !this.hooks.isMeshInspect()) return;
+      this.dialog = "none";
+      if (isPhotoMode(document.documentElement)) this.setPhotoMode(false);
+      this.hooks.setMeshInspect(!this.hooks.isMeshInspect());
+      this.inspectHits = [];
+      this.inspectCopied = false;
       this.render();
       return;
     }
@@ -117,14 +159,41 @@ export class DevTools {
       this.setPhotoMode(!isPhotoMode(document.documentElement));
       return;
     }
+    if (e.code === "F7") {
+      if (!this.hooks.canSwapParts()) return;
+      e.preventDefault();
+      this.dialog = this.dialog === "parts" ? "none" : "parts";
+      this.render();
+      return;
+    }
+    if (e.code === "Escape" && this.hooks.isMeshInspect()) {
+      e.preventDefault();
+      this.hooks.setMeshInspect(false);
+      this.render();
+      return;
+    }
     if (e.code === "Escape" && isPhotoMode(document.documentElement)) {
       e.preventDefault();
       this.setPhotoMode(false);
     }
   }
 
+  private syncInspectPanel(): void {
+    const existing = this.root.querySelector(".dev-mesh-inspect");
+    if (!this.hooks.isMeshInspect()) {
+      existing?.remove();
+      applyMeshInspectMode(document.documentElement, false);
+      return;
+    }
+    applyMeshInspectMode(document.documentElement, true);
+    const html = renderMeshInspectPanelHtml(this.inspectHits, this.inspectCopied);
+    if (existing) existing.outerHTML = html;
+    else this.root.insertAdjacentHTML("beforeend", html);
+  }
+
   private render(): void {
     const photo = isPhotoMode(document.documentElement) ? "F6 Foto AN" : "F6 Foto";
+    const mesh = this.hooks.isMeshInspect() ? "F5 Mesh AN" : "F5 Mesh";
     const badge = this.showNames ? "F1 Namen AN" : "F1 Namen AUS";
     let dialog = "";
     if (this.dialog === "money") {
@@ -162,9 +231,10 @@ export class DevTools {
     }
 
     this.root.innerHTML = `
-      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster · F5 Teile · ${photo}</div>
+      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster · ${mesh} · ${photo} · F7 Teile</div>
       ${dialog}
     `;
+    this.syncInspectPanel();
     this.root.querySelector("[data-dev-close]")?.addEventListener("click", () => {
       this.dialog = "none";
       this.render();

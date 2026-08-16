@@ -1,3 +1,4 @@
+import type { MeshInspectHit } from "../core/meshInspect";
 import type { RaceSession } from "../sim/race";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { RaceRenderer } from "./RaceRenderer";
@@ -17,6 +18,9 @@ export type GameRenderer = {
     deltaYPx: number,
     axes?: { yaw: boolean; pitch: boolean },
   ) => void;
+  isMeshInspect: () => boolean;
+  setMeshInspect: (on: boolean) => void;
+  pickMeshInspect: (clientX: number, clientY: number, canvas: HTMLCanvasElement) => MeshInspectHit[];
   clearCars: () => void;
 };
 

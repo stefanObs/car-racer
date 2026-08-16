@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 import { allPartsForCar, renderDevPartsPanelHtml, toggleEquippedPart } from "../src/dev/partsPanel";
 import { carStateLookKey } from "../src/render/carLookKey";
 
-describe("F5 Teile panel", () => {
+describe("F7 Teile panel", () => {
   it("toggles a Teil on and off for the current car", () => {
     expect(toggleEquippedPart("blitz", [], "big_engine")).toEqual(["big_engine"]);
     expect(toggleEquippedPart("blitz", ["big_engine"], "big_engine")).toEqual([]);

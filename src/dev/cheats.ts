@@ -1,4 +1,4 @@
-/** Dev-only helpers for F1–F6 cheats (not player-facing). */
+/** Dev-only helpers for F1–F7 cheats (not player-facing). */
 
 /** Hides garage/HUD chrome so agents can screenshot the 3D canvas alone. */
 export const PHOTO_MODE_CLASS = "dev-photo-mode";
@@ -9,6 +9,32 @@ export function applyPhotoMode(target: Element, on: boolean): void {
 
 export function isPhotoMode(target: Element): boolean {
   return target.classList.contains(PHOTO_MODE_CLASS);
+}
+
+export async function copyTextToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    /* fall through to execCommand */
+  }
+  const el = document.createElement("textarea");
+  el.value = text;
+  el.setAttribute("readonly", "");
+  el.style.position = "fixed";
+  el.style.left = "-9999px";
+  document.body.appendChild(el);
+  el.select();
+  let ok = false;
+  try {
+    ok = document.execCommand("copy");
+  } catch {
+    ok = false;
+  }
+  el.remove();
+  return ok;
 }
 
 export function parseChfAmount(raw: string): number | null {

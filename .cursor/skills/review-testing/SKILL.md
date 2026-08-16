@@ -131,6 +131,7 @@ Run unit/smoke tests (`npm test`) **and** browser checks. Never claim “regress
 
 Against Asphalt-Comic (`reference.png` / style bible), judged from **browser screenshots**:
 
+- **F5 Mesh-Studio** shows only the garage car on a blue void (`html.dev-mesh-inspect-mode`). Hover lists named meshes + mesh-space meters; LMB orbits the car center; RMB copies the panel. Escape / F5 exits.
 - **F6 Foto** hides garage/HUD chrome (`html.dev-photo-mode`) so the canvas is unobstructed. Toggle with F6, Escape, or `window.__ccSetPhotoMode(true)` in Playwright. Restore with F6 / Escape / `false`.
 - Cel-shade, thick outlines, flat bold colors — not photoreal / neon-purple / diorama / low-poly
 - Cars match **category** of real vehicles (sport vs pickup etc.) while staying comic + mesh-simple (see `assets/art-style/car-category-targets.png`)

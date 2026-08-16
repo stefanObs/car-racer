@@ -1,6 +1,7 @@
 import {
   Color,
   Group,
+  Vector3,
   type AmbientLight,
   type DirectionalLight,
   type Fog,
@@ -28,7 +29,9 @@ import {
   GARAGE_YAW_DEFAULT,
 } from "./garageOrbit";
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
-import { carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
+import { carBodyWorldBox, carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
+import { MESH_INSPECT_BG, pickMeshInspectHits } from "./meshInspectPick";
+import type { MeshInspectHit } from "../core/meshInspect";
 
 export type { GarageLook } from "./garageLook";
 
@@ -62,7 +65,11 @@ export class GaragePresenter {
   private garageOrbitZ = GARAGE_PAD_CENTER.z as number;
   private garageInspectLift = 1.2;
   private fxTime = 0;
+  private meshInspect = false;
+  private readonly meshInspectHidden: { obj: Group["children"][number]; visible: boolean }[] = [];
   private readonly host: GaragePresenterHost;
+  private readonly _inspectLook = new Vector3();
+  private readonly _inspectSize = new Vector3();
 
   constructor(host: GaragePresenterHost) {
     this.host = host;
@@ -130,6 +137,8 @@ export class GaragePresenter {
     visual.root.userData.carPartsSitY = this.garageSitY;
     visual.root.userData.blitzSitY = this.garageSitY;
     scene.add(this.group);
+    this.meshInspectHidden.length = 0;
+    this.applyMeshInspectView();
     if (import.meta.env.DEV) {
       const w = window as unknown as {
         __idleCar?: Group;
@@ -207,6 +216,14 @@ export class GaragePresenter {
   applyOrbitPose(): void {
     const pivot = this.idleOrbit;
     if (!pivot) return;
+    if (this.meshInspect) {
+      pivot.position.set(this.garageOrbitX, this.garageSitCenterY, this.garageOrbitZ);
+      pivot.rotation.order = "YXZ";
+      pivot.rotation.y = this.garageYaw;
+      pivot.rotation.x = this.garagePitch;
+      pivot.rotation.z = 0;
+      return;
+    }
     pivot.position.set(
       this.garageOrbitX,
       garageOrbitPivotY(this.garageSitCenterY, this.garagePitchInspect, this.garageInspectLift),
@@ -218,10 +235,83 @@ export class GaragePresenter {
     pivot.rotation.z = 0;
   }
 
+  isMeshInspect(): boolean {
+    return this.meshInspect;
+  }
+
+  setMeshInspect(on: boolean): void {
+    if (this.meshInspect === on) {
+      this.applyMeshInspectView();
+      return;
+    }
+    this.meshInspect = on;
+    if (!on) {
+      this.garagePitch = GARAGE_PITCH_DEFAULT;
+      this.garagePitchInspect = false;
+    }
+    this.applyMeshInspectView();
+    this.applyOrbitPose();
+    if (on) this.frameMeshInspectCamera();
+  }
+
+  pickMeshInspect(clientX: number, clientY: number, canvas: HTMLCanvasElement): MeshInspectHit[] {
+    if (!this.meshInspect || !this.idleCar) return [];
+    return pickMeshInspectHits(this.idleCar, this.host.camera, clientX, clientY, canvas);
+  }
+
+  private applyMeshInspectView(): void {
+    for (const entry of this.meshInspectHidden) entry.obj.visible = entry.visible;
+    this.meshInspectHidden.length = 0;
+    if (!this.meshInspect) {
+      this.applyEnvironment();
+      this.host.scene.fog = this.host.fog;
+      return;
+    }
+    for (const child of this.group.children) {
+      if (child === this.idleOrbit) continue;
+      this.meshInspectHidden.push({ obj: child, visible: child.visible });
+      child.visible = false;
+    }
+    const blob = this.idleCar?.getObjectByName("carGroundBlob");
+    if (blob) {
+      this.meshInspectHidden.push({ obj: blob, visible: blob.visible });
+      blob.visible = false;
+    }
+    const { scene, renderer, groundMesh } = this.host;
+    groundMesh.visible = false;
+    this.host.getSkyMesh().visible = false;
+    this.host.getPanoramaGroup().visible = false;
+    scene.fog = null;
+    scene.background = new Color(MESH_INSPECT_BG);
+    renderer.setClearColor(MESH_INSPECT_BG, 1);
+  }
+
+  private frameMeshInspectCamera(): void {
+    const car = this.idleCar;
+    if (!car) return;
+    car.updateMatrixWorld(true);
+    const box = carBodyWorldBox(car);
+    box.getCenter(this._inspectLook);
+    box.getSize(this._inspectSize);
+    const radius = Math.max(this._inspectSize.x, this._inspectSize.y, this._inspectSize.z) * 0.5;
+    const dist = Math.max(3.5, radius * 2.5);
+    const { camera } = this.host;
+    camera.position.set(
+      this._inspectLook.x + dist * 0.28,
+      this._inspectLook.y + Math.max(0.35, radius * 0.35),
+      this._inspectLook.z + dist,
+    );
+    camera.lookAt(this._inspectLook);
+  }
+
   tickIdle(fxTime: number): void {
     this.fxTime = fxTime;
     this.group.visible = true;
     this.applyOrbitPose();
+    if (this.meshInspect) {
+      this.frameMeshInspectCamera();
+      return;
+    }
     const { camera } = this.host;
     camera.position.set(3.4, 2.7, 9.2);
     const lookY = this.garagePitchInspect

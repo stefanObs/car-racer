@@ -64,6 +64,10 @@ npm run build
 | **F1** | Debug-Namen ein/aus (`data-dev-name` Labels auf UI-Elementen) |
 | **F2** | CHF setzen (Textfeld → Übernehmen) |
 | **F3** | Aktuelles Rennen beenden + Platz 1–n wählen |
+| **F4** | Debug-Raster (Handling-Pad) |
+| **F5** | Mesh-Studio: Auto auf blauem Grund, Mesh-Namen + Koordinaten; RMB kopiert |
+| **F6** | Foto-Modus (UI aus) |
+| **F7** | Teile im laufenden Rennen umschalten |
 
 ## MVP (v0.2.x)
 

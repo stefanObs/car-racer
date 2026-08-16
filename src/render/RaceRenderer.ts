@@ -152,6 +152,18 @@ export class RaceRenderer {
     this.garage.setPitchInspect(active);
   }
 
+  isMeshInspect(): boolean {
+    return this.garage.isMeshInspect();
+  }
+
+  setMeshInspect(on: boolean): void {
+    this.garage.setMeshInspect(on);
+  }
+
+  pickMeshInspect(clientX: number, clientY: number, canvas: HTMLCanvasElement) {
+    return this.garage.pickMeshInspect(clientX, clientY, canvas);
+  }
+
   /** Pointer drag — LMB yaw; RMB / 2-finger free tumble. */
   addGarageOrbitFromDrag(deltaXPx: number, deltaYPx: number, axes?: { yaw: boolean; pitch: boolean }): void {
     this.garage.addOrbitFromDrag(deltaXPx, deltaYPx, axes);

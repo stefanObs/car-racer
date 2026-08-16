@@ -1888,6 +1888,47 @@ html.dev-photo-mode .dev-root {
   pointer-events: none !important;
 }
 
+html.dev-mesh-inspect-mode .ui-root,
+html.dev-mesh-inspect-mode .dev-badge {
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+.dev-mesh-inspect {
+  pointer-events: none;
+  position: absolute;
+  z-index: 30;
+  right: max(12px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  min-width: 220px;
+  max-width: min(420px, calc(100% - 24px));
+  padding: 10px 12px;
+  background: rgba(12, 18, 32, 0.92);
+  border: 2px solid #ffe066;
+  color: #f8f9fa;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.dev-mesh-inspect h3 {
+  margin: 0 0 6px;
+  font-size: 0.85rem;
+  color: #ffe066;
+}
+
+.dev-mesh-inspect pre {
+  margin: 0 0 8px;
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 0.75rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dev-mesh-inspect .dim {
+  margin: 0;
+  font-size: 0.72rem;
+}
+
 .dev-root {
   pointer-events: none;
   position: absolute;
