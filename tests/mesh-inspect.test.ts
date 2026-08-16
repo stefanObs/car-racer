@@ -5,19 +5,24 @@ import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  carPartIdFromObjectName,
   formatMeshInspectClipboard,
   formatMeshInspectLine,
   formatMeshInspectLines,
+  formatMeshInspectPatch,
+  MESH_INSPECT_PATCH_HEADER,
   meshInspectDragExceeded,
   meshInspectDragMode,
   meshInspectEscapeStep,
   meshInspectGestureAfterDrag,
   meshInspectNudgeDelta,
   meshInspectPointerAction,
+  meshInspectPoseChanged,
   meshInspectScaleFactor,
   meshInspectToolFromKey,
   meshInspectYawDelta,
   meshInspectWantParent,
+  parseMeshInspectPatch,
   type MeshInspectHit,
 } from "../src/core/meshInspect";
 import {
@@ -58,6 +63,35 @@ describe("F5 mesh inspect panel", () => {
     expect(
       formatMeshInspectClipboard(hits, { name: "Waist", id: "a", x: 1, y: 2, z: 3 }),
     ).toBe("Mesh-Raum (m)\nWaist  1.000, 2.000, 3.000");
+  });
+
+  it("round-trips an F5 bake patch the agent can apply", () => {
+    expect(carPartIdFromObjectName("carPart-reinforced_frame")).toBe("reinforced_frame");
+    expect(carPartIdFromObjectName("carPart-reinforced_frame-1")).toBe("reinforced_frame");
+    const from = { x: 0, y: 0.5, z: 0.4, yaw: 0, pitch: 0, roll: 0, sx: 1, sy: 1, sz: 1 };
+    const to = { ...from, y: 0.6, yaw: 15, sx: 1.2, sy: 1.2, sz: 1.2 };
+    expect(meshInspectPoseChanged(from, to)).toBe(true);
+    expect(meshInspectPoseChanged(from, from)).toBe(false);
+    const text = formatMeshInspectPatch({
+      car: "donnerbuechse",
+      nodes: [
+        {
+          name: "StockEngine",
+          path: "StockEngine",
+          file: "public/models/cars/donnerbuechse.glb",
+          apply: "glb-node",
+          from,
+          to,
+        },
+      ],
+    });
+    expect(text.startsWith(MESH_INSPECT_PATCH_HEADER)).toBe(true);
+    const parsed = parseMeshInspectPatch(text);
+    expect(parsed?.car).toBe("donnerbuechse");
+    expect(parsed?.nodes[0]?.name).toBe("StockEngine");
+    expect(parsed?.nodes[0]?.to.y).toBeCloseTo(0.6);
+    expect(parsed?.nodes[0]?.to.yaw).toBeCloseTo(15);
+    expect(parsed?.nodes[0]?.to.sx).toBeCloseTo(1.2);
   });
 
   it("maps LMB to orbit and RMB to copy unless place mode is on", () => {
@@ -156,7 +190,7 @@ describe("F5 mesh inspect panel", () => {
     expect(html).toContain("Mesh-Raum (m)");
     expect(html).toContain("BodyPaint  0.000, 1.000, 0.000");
     expect(html).toContain("carPart-rear_spoiler  0.000, 0.710, -1.620");
-    expect(html).toContain("RMB kopieren");
+    expect(html).toContain("RMB/C kopieren");
     expect(html).toContain("Platzieren AUS");
     expect(html).toContain("Komponenten");
     expect(html).toContain("Keine Komponenten");
@@ -183,8 +217,11 @@ describe("F5 mesh inspect panel", () => {
     expect(html).toContain('data-mesh-inspect-select="u1"');
     expect(html).toMatch(/class="is-on" data-mesh-inspect-select="u1"/);
     expect(meshInspectHint({ edit: false })).toContain("Liste wählt Teil");
+    expect(meshInspectHint({ edit: true, dirtyCount: 2 })).toContain("Patch an den Agenten");
     expect(meshInspectHint({ edit: true, selection: { name: "Waist", id: "u1", x: 0, y: 0, z: 0 }, tool: "scaleUniform" })).toContain("Ziehen 1:1");
     expect(meshInspectHint({ edit: true, selection: { name: "Waist", id: "u1", x: 0, y: 0, z: 0 }, tool: "scaleFree" })).toContain("Ziehen strecken");
+    const copyHtml = renderMeshInspectPanelHtml([], { edit: true, dirtyCount: 1 });
+    expect(copyHtml).toContain("Änderung kopieren");
   });
 
   it("toggles the studio chrome class", () => {

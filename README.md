@@ -65,7 +65,7 @@ npm run build
 | **F2** | CHF setzen (Textfeld → Übernehmen) |
 | **F3** | Aktuelles Rennen beenden + Platz 1–n wählen |
 | **F4** | Debug-Raster (Handling-Pad) |
-| **F5** | Mesh-Studio: Auto auf grünem Grund, Mesh-Namen + Koordinaten; RMB kopiert. Rechte **Komponenten**-Liste wählt auch verdeckte Teile. **E** / **Platzieren**: Mesh versetzen, **K** eine Kante, **R** drehen, **S** 1:1 skalieren, **X** strecken |
+| **F5** | Mesh-Studio: Auto auf grünem Grund, Mesh-Namen + Koordinaten; nach dem Verschieben **Änderung kopieren** / C / RMB = Patch zum Einbacken. Rechte **Komponenten**-Liste wählt auch verdeckte Teile. **E** / **Platzieren**: Mesh versetzen, **K** eine Kante, **R** drehen, **S** 1:1 skalieren, **X** strecken |
 | **F6** | Foto-Modus (UI aus) |
 | **F7** | Teile im laufenden Rennen umschalten |
 

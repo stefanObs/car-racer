@@ -174,7 +174,7 @@ export function carMeshSpaceRoot(carRoot: Object3D): Object3D {
   return carRoot;
 }
 
-function isUsefulName(name: string): boolean {
+export function isUsefulName(name: string): boolean {
   return Boolean(name) && !SKIP_NAMES.has(name) && !name.startsWith("WheelSpin_") && !name.startsWith("WheelSteer_");
 }
 
@@ -211,6 +211,19 @@ export function meshInspectHitName(obj: Object3D, carRoot: Object3D): string {
     return leaf;
   }
   return meshInspectPartName(obj, carRoot);
+}
+
+export function meshInspectNodePath(obj: Object3D, carRoot: Object3D): string {
+  const space = carMeshSpaceRoot(carRoot);
+  const names: string[] = [];
+  let p: Object3D | null = obj;
+  while (p && p !== carRoot && p !== space) {
+    const name = p.name?.trim() ?? "";
+    if (isUsefulName(name)) names.push(name);
+    p = p.parent;
+  }
+  names.reverse();
+  return names.join(" / ") || meshInspectHitName(obj, carRoot);
 }
 
 export function pointerToNdc(
@@ -290,10 +303,10 @@ export function sampleHitRgb(hit: Intersection): { r: number; g: number; b: numb
 
 function skipPickObject(obj: Object3D): boolean {
   if (!obj.visible) return true;
-  return skipCatalogSubtree(obj);
+  return isMeshInspectSkipped(obj);
 }
 
-function skipCatalogSubtree(obj: Object3D): boolean {
+export function isMeshInspectSkipped(obj: Object3D): boolean {
   if (
     obj.name === "carGroundBlob" ||
     obj.name === MESH_INSPECT_MARKER_NAME ||
@@ -313,7 +326,7 @@ export function listMeshInspectCatalog(carRoot: Object3D): MeshInspectCatalogEnt
   const space = carMeshSpaceRoot(carRoot);
   const out: MeshInspectCatalogEntry[] = [];
   const walk = (obj: Object3D, depth: number): void => {
-    if (skipCatalogSubtree(obj)) return;
+    if (isMeshInspectSkipped(obj)) return;
     const name = obj.name?.trim() ?? "";
     const listThis = obj !== space && isUsefulName(name);
     if (listThis) out.push({ id: obj.uuid, name, depth });

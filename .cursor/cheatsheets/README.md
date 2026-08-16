@@ -11,6 +11,17 @@ One sheet per car, the garage, and each cup track. Each sheet lists **nodes, mes
 - Garage numbers are **world** (`garagePad` at x=1.5). Track overview is **world XZ**; kit pieces are **local**.
 - Green dots on car grids are Teil **mount anchors**, not mesh centroids.
 
+## F5 PATCH (apply forever)
+
+When the user pastes a `CRASH CIRCUIT F5 PATCH v1` block (copied from F5 **Änderung kopieren** / C / RMB after moving a part):
+
+1. Save it to a file (e.g. `tmp/f5-patch.txt`).
+2. Run **`npm run mesh:apply-f5-patch -- tmp/f5-patch.txt`** for `apply: glb-node` rows (writes the named GLB).
+3. For `apply: mount` / `carPart-*` groups: set that car’s mount xyz in `src/render/carParts.ts` to the patch `to` origin.
+4. **`npm run docs:cheatsheets`**, version, commit `master`, push.
+
+Do not leave the pose as a runtime-only F5 edit.
+
 ## Cars
 
 - [Blitz](./car-blitz.md) — `blitz`

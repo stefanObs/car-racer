@@ -19,7 +19,7 @@ import {
   type Scene,
   type WebGLRenderer,
 } from "three";
-import { CARS } from "../data/cars";
+import { CARS, type CarId } from "../data/cars";
 import { createCarState } from "../sim/vehicle";
 import { upgradeCarFx } from "./attachCarFx";
 import { buildComicCar } from "./comicCarMesh";
@@ -83,6 +83,7 @@ import type {
   MeshInspectSelection,
   MeshInspectTool,
 } from "../core/meshInspect";
+import { collectMeshInspectPatch, meshInspectPatchText } from "./meshInspectPatch";
 
 export type { GarageLook } from "./garageLook";
 
@@ -127,6 +128,7 @@ export class GaragePresenter {
   private meshInspectEdge: PickedMeshEdge | null = null;
   private meshInspectEdgeHelper: Line | null = null;
   private idlePaint = "#e03131";
+  private idleModelId: CarId = "blitz";
   private readonly host: GaragePresenterHost;
   private readonly _inspectLook = new Vector3();
   private readonly _inspectSize = new Vector3();
@@ -152,6 +154,7 @@ export class GaragePresenter {
     this.idlePaint = paint;
     const sticker = look?.sticker ?? "none";
     const modelId = look?.modelId ?? "blitz";
+    this.idleModelId = modelId;
     const equippedParts = look?.equippedParts ?? [];
     this.idleLookKey = garageLookCacheKey({ modelId, paint, sticker, equippedParts });
 
@@ -365,6 +368,16 @@ export class GaragePresenter {
 
   meshInspectSelection(): MeshInspectSelection | null {
     return this.selectionPoseOrNull();
+  }
+
+  meshInspectDirtyCount(): number {
+    if (!this.meshInspect || !this.idleCar) return 0;
+    return collectMeshInspectPatch(this.idleCar, this.idleModelId).nodes.length;
+  }
+
+  meshInspectPatchText(): string | null {
+    if (!this.meshInspect || !this.idleCar) return null;
+    return meshInspectPatchText(this.idleCar, this.idleModelId);
   }
 
   meshInspectCatalog(): MeshInspectCatalogEntry[] {

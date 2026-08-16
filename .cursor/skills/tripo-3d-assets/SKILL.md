@@ -19,6 +19,8 @@ Full CLI / path cookbook: [pipeline.md](pipeline.md).
 
 Named nodes, AABBs, mount anchors, and meter grids: `.cursor/cheatsheets/` — **regenerate in the same step** (`npm run docs:cheatsheets`). New car/part ids: update catalogs in `scripts/dump-mesh-cheatsheets.mjs` first.
 
+**F5 PATCH:** if the user pastes a `CRASH CIRCUIT F5 PATCH v1` block, bake it (`npm run mesh:apply-f5-patch -- <file>`, plus `carParts.ts` mounts when `apply: mount`), then `npm run docs:cheatsheets`. Do not leave the pose as a runtime-only studio edit.
+
 ## Hard rules
 
 1. **Concept first** — Asphalt-Comic PNG (GenerateImage + style lock + `reference.png`), then Tripo, then bake.

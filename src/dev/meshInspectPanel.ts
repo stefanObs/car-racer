@@ -18,6 +18,7 @@ export type MeshInspectPanelOpts = {
   tool?: MeshInspectTool;
   component?: MeshInspectComponent;
   catalog?: readonly MeshInspectCatalogEntry[];
+  dirtyCount?: number;
 };
 
 export function applyMeshInspectMode(target: Element, on: boolean): void {
@@ -30,7 +31,10 @@ export function isMeshInspectMode(target: Element): boolean {
 
 export function meshInspectHint(opts: MeshInspectPanelOpts): string {
   if (opts.copied) return "Kopiert";
-  if (!opts.edit) return "LMB drehen · RMB kopieren · Liste wählt Teil · E Platzieren · F5 zu";
+  if (!opts.edit) return "LMB drehen · RMB/C kopieren · Liste wählt Teil · E Platzieren · F5 zu";
+  if ((opts.dirtyCount ?? 0) > 0) {
+    return "Änderung kopieren / C / RMB → Patch an den Agenten · Pos1 zurück";
+  }
   if (opts.component === "edge") {
     return "Klick Kante · Ziehen versetzen · R dreht Mesh · S 1:1 · Pos1 zurück · Esc weg";
   }
@@ -76,7 +80,8 @@ export function renderMeshInspectPanelHtml(
   const tool = opts.tool ?? "move";
   const component = opts.component ?? "object";
   const catalog = opts.catalog ?? [];
-  const status = meshInspectHint({ copied: opts.copied, edit, selection, tool, component });
+  const dirtyCount = opts.dirtyCount ?? 0;
+  const status = meshInspectHint({ copied: opts.copied, edit, selection, tool, component, dirtyCount });
   const selectedBlock = selection
     ? `<p class="dev-mesh-inspect-selected" data-dev-name="dev.mesh-inspect.selected">${escapePre(formatMeshInspectLine(selection))}</p>`
     : "";
@@ -101,6 +106,7 @@ export function renderMeshInspectPanelHtml(
   <pre data-dev-name="dev.mesh-inspect.hits">${escapePre(formatMeshInspectLines(hits))}</pre>
   <p class="dim" data-dev-name="dev.mesh-inspect.hint">${status}</p>
   ${tools}
+  ${dirtyCount > 0 ? `<button type="button" class="dev-mesh-inspect-edit" data-mesh-inspect-copy data-dev-name="dev.mesh-inspect.copy">Änderung kopieren (${dirtyCount})</button>` : ""}
   <button type="button" class="dev-mesh-inspect-edit" data-mesh-inspect-edit data-dev-name="dev.mesh-inspect.edit">${edit ? "Platzieren AN" : "Platzieren AUS"}</button>
 </aside>
 </div>`;
@@ -109,7 +115,9 @@ export function renderMeshInspectPanelHtml(
 export function meshInspectClipboardText(
   hits: readonly MeshInspectHit[],
   selection?: MeshInspectSelection | null,
+  patchText?: string | null,
 ): string {
+  if (patchText) return patchText;
   return formatMeshInspectClipboard(hits, selection);
 }
 

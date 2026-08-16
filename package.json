@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.258",
+  "version": "0.3.259",
   "private": true,
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -11,6 +11,7 @@
     "build": "tsc --noEmit && vite build",
     "preview": "vite preview",
     "free:dev": "node scripts/free-dev-port.mjs",
+    "mesh:apply-f5-patch": "node scripts/apply-f5-patch.mjs",
     "test": "vitest run",
     "test:arch": "node scripts/check-architecture.mjs",
     "test:watch": "vitest",

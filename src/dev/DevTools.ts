@@ -52,6 +52,8 @@ type DevHooks = {
   setMeshInspectEdit: (on: boolean) => void;
   meshInspectSelection: () => MeshInspectSelection | null;
   meshInspectCatalog: () => MeshInspectCatalogEntry[];
+  meshInspectPatchText: () => string | null;
+  meshInspectDirtyCount: () => number;
   selectMeshInspectById: (id: string) => boolean;
   clearMeshInspectSelection: () => boolean;
   nudgeMeshInspect: (dx: number, dy: number, dz: number) => void;
@@ -109,7 +111,7 @@ export class DevTools {
 
   copyMeshInspectPanel(): void {
     if (!this.hooks.isMeshInspect()) return;
-    const text = meshInspectClipboardText(this.inspectHits, this.hooks.meshInspectSelection());
+    const text = this.hooks.meshInspectPatchText() ?? meshInspectClipboardText(this.inspectHits, this.hooks.meshInspectSelection());
     void copyTextToClipboard(text).then((ok) => {
       if (!ok) return;
       this.inspectCopied = true;
@@ -189,6 +191,11 @@ export class DevTools {
         e.preventDefault();
         this.hooks.setMeshInspectEdit(!this.hooks.isMeshInspectEdit());
         this.syncInspectPanel();
+        return;
+      }
+      if (e.code === "KeyC") {
+        e.preventDefault();
+        this.copyMeshInspectPanel();
         return;
       }
       const tool = meshInspectToolFromKey(e.code);
@@ -283,6 +290,7 @@ export class DevTools {
       tool: this.hooks.meshInspectPlaceTool(),
       component: this.hooks.meshInspectPlaceComponent(),
       catalog: this.hooks.meshInspectCatalog(),
+      dirtyCount: this.hooks.meshInspectDirtyCount(),
     });
     if (existing) existing.outerHTML = html;
     else this.root.insertAdjacentHTML("beforeend", html);
@@ -293,6 +301,11 @@ export class DevTools {
       ev.stopPropagation();
       this.hooks.setMeshInspectEdit(!this.hooks.isMeshInspectEdit());
       this.syncInspectPanel();
+    });
+    this.root.querySelector("[data-mesh-inspect-copy]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.copyMeshInspectPanel();
     });
     this.root.querySelectorAll<HTMLButtonElement>("[data-mesh-inspect-tool]").forEach((btn) => {
       btn.addEventListener("click", (ev) => {

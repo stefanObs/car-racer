@@ -93,6 +93,51 @@ export function restoreMeshInspectHome(obj: Object3D): boolean {
   return true;
 }
 
+export function meshInspectStoredHome(obj: Object3D): {
+  position: Vector3;
+  quaternion: Quaternion;
+  scale: Vector3;
+} | null {
+  return (obj.userData[HOME_KEY] as HomePose | undefined) ?? null;
+}
+
+export function poseSnapFromLocal(
+  obj: Object3D,
+  space: Object3D,
+  localPos: Vector3,
+  localQuat: Quaternion,
+  localScale: Vector3,
+): MeshInspectSelection {
+  const parent = obj.parent;
+  space.updateMatrixWorld(true);
+  if (parent) {
+    parent.updateMatrixWorld(true);
+    parent.localToWorld(_world.copy(localPos));
+    parent.getWorldQuaternion(_qWorld);
+    _qWorld.multiply(localQuat);
+  } else {
+    _world.copy(localPos);
+    _qWorld.copy(localQuat);
+  }
+  space.worldToLocal(_startMesh.copy(_world));
+  space.getWorldQuaternion(_qSpace);
+  _euler.setFromQuaternion(_qSpace.invert().multiply(_qWorld), "YXZ");
+  return {
+    name: obj.name,
+    id: obj.uuid,
+    x: _startMesh.x,
+    y: _startMesh.y,
+    z: _startMesh.z,
+    kind: "object",
+    yaw: (_euler.y * 180) / Math.PI,
+    pitch: (_euler.x * 180) / Math.PI,
+    roll: (_euler.z * 180) / Math.PI,
+    sx: localScale.x,
+    sy: localScale.y,
+    sz: localScale.z,
+  };
+}
+
 export function applyWorldDeltaToObject(obj: Object3D, worldDelta: Vector3): void {
   rememberMeshInspectHome(obj);
   obj.updateMatrixWorld(true);

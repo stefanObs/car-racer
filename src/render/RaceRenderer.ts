@@ -181,6 +181,14 @@ export class RaceRenderer {
     return this.garage.meshInspectCatalog();
   }
 
+  meshInspectPatchText() {
+    return this.garage.meshInspectPatchText();
+  }
+
+  meshInspectDirtyCount() {
+    return this.garage.meshInspectDirtyCount();
+  }
+
   selectMeshInspectById(id: string): boolean {
     return this.garage.selectMeshInspectById(id);
   }

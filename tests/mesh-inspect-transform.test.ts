@@ -13,6 +13,7 @@ import {
   rememberMeshInspectHome,
   restoreMeshInspectHome,
 } from "../src/render/meshInspectTransform";
+import { collectMeshInspectPatch } from "../src/render/meshInspectPatch";
 
 describe("mesh inspect transform", () => {
   it("moves a child in mesh space and restores the home pose", () => {
@@ -105,5 +106,27 @@ describe("mesh inspect transform", () => {
     expect(pole.scale.x).toBeCloseTo(1, 5);
     expect(pole.scale.y).toBeCloseTo(2, 5);
     expect(pole.scale.z).toBeCloseTo(1, 5);
+  });
+
+  it("collects a dirty node into an F5 patch for the car GLB", () => {
+    const bake = new Group();
+    bake.name = "BakeRoot";
+    const engine = new Mesh(new BoxGeometry(0.4, 0.4, 0.4), new MeshBasicMaterial());
+    engine.name = "StockEngine";
+    engine.position.set(0, 0.5, 0.4);
+    bake.add(engine);
+    const wrap = new Group();
+    wrap.name = "gltf-donnerbuechse";
+    wrap.add(bake);
+    const root = new Group();
+    root.add(wrap);
+    root.updateMatrixWorld(true);
+    applyMeshSpaceDelta(engine, bake, 0, 0.1, 0);
+    const patch = collectMeshInspectPatch(root, "donnerbuechse");
+    const node = patch.nodes.find((n) => n.path.includes("StockEngine"));
+    expect(node).toBeTruthy();
+    expect(node?.file).toBe("public/models/cars/donnerbuechse.glb");
+    expect(node?.from.y).toBeCloseTo(0.5, 3);
+    expect(node?.to.y).toBeCloseTo(0.6, 3);
   });
 });

@@ -2014,6 +2014,10 @@ html.dev-mesh-inspect-mode .dev-badge {
   cursor: pointer;
 }
 
+.dev-mesh-inspect-edit + .dev-mesh-inspect-edit {
+  margin-top: 6px;
+}
+
 .dev-mesh-inspect-tools {
   display: flex;
   flex-wrap: wrap;
