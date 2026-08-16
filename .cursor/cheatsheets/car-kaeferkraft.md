@@ -223,6 +223,25 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 | `offroad_suspension` | Gelände-Federung | yes (stats) | stats-only / no mesh | — |
 | `rear_spoiler` | Heckspoiler | yes | `public/models/parts/kaeferkraft-rear_spoiler.glb` | (1.55, 1, 0) yaw -90° ×1.08 |
 
+## Waist anchor picker
+
+Picker only — not the live `Waist` poles. Say an ID (e.g. `LF3` + `LR2`) to retune `WAIST_*`.
+
+![Käferkraft Waist anchors](../../assets/tripo-concepts/kaeferkraft-waist-anchors.png)
+
+Full legend: [kaeferkraft-waist-anchors.md](../../assets/tripo-concepts/kaeferkraft-waist-anchors.md).
+
+| ID | x | y | z | Meaning |
+| --- | --- | --- | --- | --- |
+| `LF1` / `RF1` | -0.55 | 0.96 | ±0.55 | deeper into teal cowl |
+| `LF2` / `RF2` | -0.32 | 0.96 | ±0.55 | **now** (front) |
+| `LF3` / `RF3` | -0.32 | 0.72 | ±0.55 | lower sill / hip |
+| `LF4` / `RF4` | -0.32 | 1.15 | ±0.55 | higher belt / A-pillar |
+| `LR1` / `RR1` | 0.40 | 0.85 | ±0.55 | seat-back foot |
+| `LR2` / `RR2` | 0.58 | 0.96 | ±0.55 | **now** (rear joint) |
+| `LR3` / `RR3` | 0.58 | 1.20 | ±0.55 | rear hoop mid |
+| `LR4` / `RR4` | 0.90 | 0.90 | ±0.55 | rear deck behind seats |
+
 ## Part / extra `public/models/parts/blitz-big_engine.glb`
 
 Root AABB (-0.397, 0, -0.425) → (0.397, 0.338, 0.425)
