@@ -673,7 +673,7 @@ async function dumpCar(car, dest) {
       "",
       "## Waist anchor picker",
       "",
-      "Live poles are detached: say `WaistL` (−Z) or `WaistR` (+Z). Stays `WaistToFrontTop_L` / `WaistToFrontTop_R` end on BodyPaint cage picks. Caps bury 8 cm into the hull.",
+      "Live poles are detached: say `WaistL` (−Z) or `WaistR` (+Z). Stays `WaistToFrontTop_L` / `WaistToFrontTop_R` stop at BodyPaint cage picks. Waist caps bury 8 cm; stays do not punch through the cage.",
       "",
       "![Käferkraft Waist anchors](../../assets/tripo-concepts/kaeferkraft-waist-anchors.png)",
       "",

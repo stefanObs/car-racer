@@ -71,13 +71,9 @@ function expectRailCovers(ends: [Vector3, Vector3], pick: { front: Vector3; rear
   expect(projectT(pick.rear, front, rear)).toBeLessThan(0.98);
 }
 
-function expectStayReachesCage(ends: [Vector3, Vector3], cage: Vector3): void {
+function expectStayEndsAtCage(ends: [Vector3, Vector3], cage: Vector3): void {
   const cageEnd = ends[0].distanceTo(cage) <= ends[1].distanceTo(cage) ? ends[0] : ends[1];
-  const waistEnd = cageEnd === ends[0] ? ends[1] : ends[0];
-  expect(distToSegment(cage, waistEnd, cageEnd)).toBeLessThan(POLE_R);
-  expect(cageEnd.distanceTo(cage)).toBeGreaterThan(INTO * 0.85);
-  expect(projectT(cage, waistEnd, cageEnd)).toBeGreaterThan(0.8);
-  expect(projectT(cage, waistEnd, cageEnd)).toBeLessThan(0.98);
+  expect(cageEnd.distanceTo(cage)).toBeLessThan(POLE_R);
 }
 
 describe("Käferkraft pole-frame waist", () => {
@@ -94,8 +90,8 @@ describe("Käferkraft pole-frame waist", () => {
     expect(doc.getRoot().listNodes().some((n) => n.getName() === "Waist" || n.getName() === "Waist_1")).toBe(false);
     expectRailCovers(cylinderEnds(left!), WAIST_L_PICK);
     expectRailCovers(cylinderEnds(right!), WAIST_R_PICK);
-    expectStayReachesCage(cylinderEnds(named("WaistToFrontTop_L")!), WAIST_L_PICK.cage);
-    expectStayReachesCage(cylinderEnds(named("WaistToFrontTop_R")!), WAIST_R_PICK.cage);
+    expectStayEndsAtCage(cylinderEnds(named("WaistToFrontTop_L")!), WAIST_L_PICK.cage);
+    expectStayEndsAtCage(cylinderEnds(named("WaistToFrontTop_R")!), WAIST_R_PICK.cage);
 
     expect(named("WaistToFrontTop_L")).toBeTruthy();
     expect(named("WaistToFrontTop_R")).toBeTruthy();
@@ -117,8 +113,8 @@ describe("Käferkraft pole-frame waist", () => {
     };
     expectRailCovers(endsOf(left!), WAIST_L_PICK);
     expectRailCovers(endsOf(right!), WAIST_R_PICK);
-    expectStayReachesCage(endsOf(g.children.find((c) => c.name === "WaistToFrontTop_L")!), WAIST_L_PICK.cage);
-    expectStayReachesCage(endsOf(g.children.find((c) => c.name === "WaistToFrontTop_R")!), WAIST_R_PICK.cage);
+    expectStayEndsAtCage(endsOf(g.children.find((c) => c.name === "WaistToFrontTop_L")!), WAIST_L_PICK.cage);
+    expectStayEndsAtCage(endsOf(g.children.find((c) => c.name === "WaistToFrontTop_R")!), WAIST_R_PICK.cage);
     expect(g.children.some((c) => c.name === "WaistToFrontTop_L")).toBe(true);
     expect(g.children.some((c) => c.name === "WaistToFrontTop_R")).toBe(true);
   });

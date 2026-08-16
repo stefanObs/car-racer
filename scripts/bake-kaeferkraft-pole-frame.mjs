@@ -48,7 +48,7 @@ const GREY = 0x6a7078;
 /**
  * Independent waist rails (mesh m, nose −X). Command `WaistL` or `WaistR` alone.
  * Keep in sync with `buildReinforcedFrame("buggy")`.
- * Stays run from the buried waist rear to a BodyPaint cage pick (cage cap buried).
+ * Stays run from the buried waist rear to a BodyPaint cage pick (no extra bury past the cage).
  */
 const WAIST_L = {
   name: "WaistL",
@@ -104,7 +104,7 @@ g.name = "kaeferkraft-reinforced_frame";
 for (const side of [WAIST_L, WAIST_R]) {
   const [front, rear] = extendIntoFrame(side.front, side.rear, INTO);
   addPole(g, front, rear, side.name);
-  addPole(g, rear, extendIntoFrame(rear, side.cage, INTO)[1], side.stay);
+  addPole(g, rear, side.cage, side.stay);
 }
 
 const exporter = new GLTFExporter();

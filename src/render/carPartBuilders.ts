@@ -221,7 +221,7 @@ export function buildReinforcedFrame(
     for (const side of [waistL, waistR]) {
       const [front, rear] = extendPoleIntoFrame(side.front, side.rear, into);
       addStraightPole(g, front, rear, r, GREY, side.name);
-      addStraightPole(g, rear, extendPoleIntoFrame(rear, side.cage, into)[1], r, GREY, side.stay);
+      addStraightPole(g, rear, side.cage, r, GREY, side.stay);
     }
     return g;
   }
