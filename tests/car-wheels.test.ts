@@ -38,8 +38,6 @@ import {
 } from "../src/render/carWheels";
 import { collectWheelUvTriangles, shouldApplyGaragePaint } from "../src/render/loadCarGltf";
 import { groundContactMinY, stockWheelName } from "../src/render/stockWheels";
-import sharp from "sharp";
-import { isBlueBodyPixel } from "../src/render/paintAuthoredWhite";
 import { resolve } from "node:path";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
@@ -464,8 +462,12 @@ describe("stock wheels + Große Räder", () => {
         };
       });
     const leftover: Record<string, number> = {};
-    for (const h of hubs) leftover[h.name!] = 0;
-    const capXs: number[] = [];
+    const wellFaces: Record<string, { n: number; uMin: number; uMax: number; vMin: number; vMax: number }> = {};
+    for (const h of hubs) {
+      leftover[h.name!] = 0;
+      wellFaces[h.name!] = { n: 0, uMin: 1, uMax: 0, vMin: 1, vMax: 0 };
+    }
+    let syntheticCaps = 0;
     for (const mesh of doc.getRoot().listMeshes()) {
       if (mesh.getName()?.startsWith("StockWheel_")) continue;
       for (const prim of mesh.listPrimitives()) {
@@ -482,13 +484,14 @@ describe("stock wheels + Große Räder", () => {
           minZ = Math.min(minZ, v[2]!);
           maxZ = Math.max(maxZ, v[2]!);
         }
-        if (pos.getCount() === 66) {
-          capXs.push((minX + maxX) / 2);
+        if (pos.getCount() === 66 && maxX - minX < 0.5) {
+          syntheticCaps += 1;
           continue;
         }
-        if (maxZ - minZ < 3) continue;
         const idx = prim.getIndices();
+        const uv = prim.getAttribute("TEXCOORD_0");
         if (!idx) continue;
+        const compact = maxZ - minZ < 3;
         for (let t = 0; t < idx.getCount() / 3; t++) {
           const a = pos.getElement(idx.getScalar(t * 3), []);
           const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
@@ -497,47 +500,33 @@ describe("stock wheels + Große Räder", () => {
           const cy = (a[1]! + b[1]! + c[1]!) / 3;
           const cz = (a[2]! + b[2]! + c[2]!) / 3;
           for (const h of hubs) {
-            const inner = Math.abs(h.cx) - h.hx;
-            if (Math.abs(cx) < inner - 0.01) continue;
-            if (Math.abs(cx - h.cx) <= h.hx && Math.abs(cy - h.cy) <= h.hy && Math.abs(cz - h.cz) <= h.hz) {
-              leftover[h.name!]! += 1;
+            const sign = Math.sign(h.cx);
+            const inYz = Math.abs(cy - h.cy) <= h.hy && Math.abs(cz - h.cz) <= h.hz;
+            const inX = Math.abs(cx - h.cx) <= h.hx + 0.04;
+            if (!inYz || !inX) continue;
+            if (sign * cx < sign * h.cx - 0.02) {
+              wellFaces[h.name!]!.n += 1;
+              if (uv) {
+                const u = uv.getElement(idx.getScalar(t * 3), []);
+                wellFaces[h.name!]!.uMin = Math.min(wellFaces[h.name!]!.uMin, u[0]!);
+                wellFaces[h.name!]!.uMax = Math.max(wellFaces[h.name!]!.uMax, u[0]!);
+                wellFaces[h.name!]!.vMin = Math.min(wellFaces[h.name!]!.vMin, u[1]!);
+                wellFaces[h.name!]!.vMax = Math.max(wellFaces[h.name!]!.vMax, u[1]!);
+              }
+              continue;
             }
+            if (compact) continue;
+            leftover[h.name!]! += 1;
           }
         }
       }
     }
-    const sortedCaps = capXs.sort((a, b) => a - b);
-    expect(sortedCaps).toHaveLength(4);
-    expect(sortedCaps[0]).toBeLessThan(-0.65);
-    expect(sortedCaps[1]).toBeLessThan(-0.65);
-    expect(sortedCaps[2]).toBeGreaterThan(0.65);
-    expect(sortedCaps[3]).toBeGreaterThan(0.65);
-    // Runtime comic materials are FrontSide — caps must wind toward the outside or they vanish.
-    for (const mesh of doc.getRoot().listMeshes()) {
-      if (mesh.getName()?.startsWith("StockWheel_")) continue;
-      for (const prim of mesh.listPrimitives()) {
-        const pos = prim.getAttribute("POSITION");
-        const idx = prim.getIndices();
-        if (!pos || !idx || pos.getCount() !== 66) continue;
-        const a = pos.getElement(idx.getScalar(0), []);
-        const b = pos.getElement(idx.getScalar(1), []);
-        const c = pos.getElement(idx.getScalar(2), []);
-        const nx = (b[1]! - a[1]!) * (c[2]! - a[2]!) - (b[2]! - a[2]!) * (c[1]! - a[1]!);
-        expect(Math.sign(nx), `cap at x=${a[0]}`).toBe(Math.sign(a[0]!));
-        const uv = prim.getAttribute("TEXCOORD_0")!.getElement(0, []);
-        const tex = prim.getMaterial()?.getBaseColorTexture()?.getImage();
-        expect(tex, "cap BodyPaint atlas").toBeTruthy();
-        const { data, info } = await sharp(Buffer.from(tex!)).ensureAlpha().raw().toBuffer({
-          resolveWithObject: true,
-        });
-        const x = Math.round(uv[0]! * (info.width - 1));
-        const y = Math.round(uv[1]! * (info.height - 1));
-        const i = (y * info.width + x) * info.channels;
-        expect(isBlueBodyPixel(data[i]!, data[i + 1]!, data[i + 2]!), `cap UV ${uv}`).toBe(true);
-      }
-    }
+    expect(syntheticCaps, "no flat body-blue well plugs").toBe(0);
     for (const h of hubs) {
-      expect(leftover[h.name!], `${h.name} chassis leftover`).toBeLessThan(10);
+      expect(leftover[h.name!], `${h.name} outboard leftover`).toBeLessThan(10);
+      expect(wellFaces[h.name!]!.n, `${h.name} original inner well`).toBeGreaterThan(15);
+      expect(wellFaces[h.name!]!.uMax - wellFaces[h.name!]!.uMin, `${h.name} well UV U`).toBeGreaterThan(0.15);
+      expect(wellFaces[h.name!]!.vMax - wellFaces[h.name!]!.vMin, `${h.name} well UV V`).toBeGreaterThan(0.15);
     }
   });
 

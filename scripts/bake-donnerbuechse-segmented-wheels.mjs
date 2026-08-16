@@ -5,15 +5,14 @@
  * Body: `donnerbuechse-pre-wheel-segment.glb` (single atlas, welded tires + engine prim).
  * Segment: wheels-only v2 simple + connectivity — remount `StockWheel_*` only.
  * Engine stays a BodyPaint prim (no StockEngine node). Punch ground prims only
- * so side pipes are not carved with the front tires. Well caps wind outboard
- * (runtime FrontSide) and sample authored body-blue atlas texels.
+ * so side pipes are not carved with the front tires. Remount the original
+ * outboard hub/spoke faces (pre-split UVs) just inboard of each StockWheel.
  *
  *   node scripts/bake-donnerbuechse-segmented-wheels.mjs
  */
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import sharp from "sharp";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import {
@@ -165,7 +164,7 @@ function alignSegmentToBody(segDoc, bodyDoc) {
   return { scale };
 }
 
-function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material) {
+function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material, offset = [0, 0, 0]) {
   const used = new Map();
   const newPos = [];
   const newNrm = [];
@@ -176,7 +175,7 @@ function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material) 
       if (!used.has(old)) {
         used.set(old, newPos.length / 3);
         const v = srcPos.getElement(old, []);
-        newPos.push(v[0], v[1], v[2]);
+        newPos.push(v[0] + offset[0], v[1] + offset[1], v[2] + offset[2]);
         if (srcNrm) {
           const n = srcNrm.getElement(old, []);
           newNrm.push(n[0], n[1], n[2]);
@@ -258,156 +257,25 @@ function remappedPrimitiveLocal(doc, buffer, faces, pos, nrm, uv, material, cent
   return p;
 }
 
-/** Solid tire volume: disk in YZ, thickness along axle X.
- * Stay outboard of the inner sidewall so the punch cannot open a hole through
- * the hollow BodyPaint shell (rear slicks had no well wall behind them). */
+/** Solid tire volume: disk in YZ, thickness along axle X. */
 function inTireCylinder(px, py, pz, tire) {
   const dx = px - tire.center[0];
   const dy = py - tire.center[1];
   const dz = pz - tire.center[2];
-  const sign = Math.sign(tire.center[0]) || 1;
   const halfW = Math.max(tire.size[0] * 0.5 * 1.05, 0.12);
-  const inner = Math.abs(tire.center[0]) - tire.size[0] * 0.5;
-  if (sign * px < inner - 0.01) return false;
   const r = Math.max(tire.size[1], tire.size[2]) * 0.5 * 1.04;
   return dy * dy + dz * dz <= r * r && Math.abs(dx) <= halfW;
 }
 
-/** Well plug: inboard disk + short tube so ¾ views cannot see past a thin plane. */
-function addWellCap(doc, mesh, { xInner, xOuter, y, z, radius, material, buffer, uv, outboardSign }) {
-  const segs = 32;
-  const pos = [];
-  const nrm = [];
-  const uvs = [];
-  const push = (px, py, pz, nx, ny, nz) => {
-    pos.push(px, py, pz);
-    nrm.push(nx, ny, nz);
-    uvs.push(uv[0], uv[1]);
-  };
-  push(xInner, y, z, outboardSign, 0, 0);
-  for (let i = 0; i < segs; i++) {
-    const a = (i / segs) * Math.PI * 2;
-    push(xInner, y + Math.sin(a) * radius, z + Math.cos(a) * radius, outboardSign, 0, 0);
-  }
-  for (let i = 0; i < segs; i++) {
-    const a = (i / segs) * Math.PI * 2;
-    const ny = Math.sin(a);
-    const nz = Math.cos(a);
-    push(xOuter, y + ny * radius, z + nz * radius, ny, 0, nz);
-  }
-  push(xOuter, y, z, outboardSign, 0, 0);
-  const idx = [];
-  // Fan 0→i→i+1 has geometric normal −X. Outboard +X needs the reverse winding.
-  const wantPosX = outboardSign > 0;
-  for (let i = 0; i < segs; i++) {
-    const a = 1 + i;
-    const b = 1 + ((i + 1) % segs);
-    if (wantPosX) idx.push(0, b, a);
-    else idx.push(0, a, b);
-  }
-  const outerCenter = 65;
-  for (let i = 0; i < segs; i++) {
-    const a = 33 + i;
-    const b = 33 + ((i + 1) % segs);
-    if (wantPosX) idx.push(outerCenter, b, a);
-    else idx.push(outerCenter, a, b);
-  }
-  for (let i = 0; i < segs; i++) {
-    const i0 = 1 + i;
-    const i1 = 1 + ((i + 1) % segs);
-    const o0 = 33 + i;
-    const o1 = 33 + ((i + 1) % segs);
-    if (wantPosX) idx.push(i0, o0, o1, i0, o1, i1);
-    else idx.push(i0, o1, o0, i0, i1, o1);
-  }
-  mesh.addPrimitive(
-    doc
-      .createPrimitive()
-      .setAttribute(
-        "POSITION",
-        doc.createAccessor().setType("VEC3").setArray(new Float32Array(pos)).setBuffer(buffer),
-      )
-      .setAttribute(
-        "NORMAL",
-        doc.createAccessor().setType("VEC3").setArray(new Float32Array(nrm)).setBuffer(buffer),
-      )
-      .setAttribute(
-        "TEXCOORD_0",
-        doc.createAccessor().setType("VEC2").setArray(new Float32Array(uvs)).setBuffer(buffer),
-      )
-      .setIndices(doc.createAccessor().setType("SCALAR").setArray(new Uint32Array(idx)).setBuffer(buffer))
-      .setMaterial(material),
-  );
-}
-
-/** Match `src/render/paintAuthoredWhite.ts` so caps recolor with garage paint. */
-function isTireOrRimPixel(r, g, b) {
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const chroma = max - min;
-  const lum = (r + g + b) / 3;
-  if (max < 1) return true;
-  if (max < 72 && chroma / max < 0.42) return true;
-  if (lum >= 60 && lum <= 180 && chroma / max < 0.4 && chroma <= 50) return true;
-  return false;
-}
-
-function isBlueBodyPixel(r, g, b) {
-  if (isTireOrRimPixel(r, g, b)) return false;
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const chroma = max - min;
-  if (max < 16 || b < max) return false;
-  if (chroma / max < 0.32) return false;
-  if (b < r + 8 || b < g + 16) return false;
-  if (g >= b * 0.78 && g > r + 40) return false;
-  if (r >= b * 0.38 && r > g + 20) return false;
-  return true;
-}
-
-async function findCabinBodyUv(doc) {
-  let atlas = null;
-  const consider = [];
-  for (const mesh of doc.getRoot().listMeshes()) {
-    if (mesh.getName()?.startsWith("StockWheel_")) continue;
-    for (const prim of mesh.listPrimitives()) {
-      if (prim.getMaterial()?.getName() !== "BodyPaint") continue;
-      const tex = prim.getMaterial()?.getBaseColorTexture();
-      const img = tex?.getImage();
-      if (img && !atlas) atlas = img;
-      const pos = prim.getAttribute("POSITION");
-      const uv = prim.getAttribute("TEXCOORD_0");
-      const idx = prim.getIndices();
-      if (!pos || !uv || !idx) continue;
-      if (pos.getCount() === 33) continue;
-      for (let t = 0; t < idx.getCount() / 3; t++) {
-        consider.push(uv.getElement(idx.getScalar(t * 3), []));
-      }
-    }
-  }
-  if (!atlas) throw new Error("BodyPaint atlas missing for well-cap UV");
-  const { data, info } = await sharp(Buffer.from(atlas)).ensureAlpha().raw().toBuffer({
-    resolveWithObject: true,
-  });
-  const { width, height, channels } = info;
-  let best = null;
-  let bestChroma = -1;
-  for (const uv of consider) {
-    const x = Math.min(width - 1, Math.max(0, Math.round(uv[0] * (width - 1))));
-    const y = Math.min(height - 1, Math.max(0, Math.round(uv[1] * (height - 1))));
-    const i = (y * width + x) * channels;
-    const r = data[i];
-    const g = data[i + 1];
-    const b = data[i + 2];
-    if (!isBlueBodyPixel(r, g, b)) continue;
-    const chroma = b - r + b - g;
-    if (chroma > bestChroma) {
-      bestChroma = chroma;
-      best = [uv[0], uv[1]];
-    }
-  }
-  if (!best) throw new Error("no authored body-blue UV for well caps");
-  return best;
+/** Original outboard hub/spoke disk — the look through the old painted rim. */
+function isOriginalHubFace(cx, cy, cz, nx, tire) {
+  if (!inTireCylinder(cx, cy, cz, tire)) return false;
+  const sign = Math.sign(tire.center[0]) || 1;
+  if (sign * nx < 0.35) return false;
+  const dy = cy - tire.center[1];
+  const dz = cz - tire.center[2];
+  const r = Math.max(tire.size[1], tire.size[2]) * 0.5;
+  return dy * dy + dz * dz <= (r * 0.75) * (r * 0.75);
 }
 
 function punchTireVolumes(bodyDoc, tires) {
@@ -426,6 +294,7 @@ function punchTireVolumes(bodyDoc, tires) {
 
   let keepTotal = 0;
   let droppedTire = 0;
+  let keptWell = 0;
   for (const { mesh, prim } of found) {
     const pos = prim.getAttribute("POSITION");
     const idx = prim.getIndices();
@@ -435,6 +304,7 @@ function punchTireVolumes(bodyDoc, tires) {
     if (!uv) throw new Error("BodyPaint missing TEXCOORD_0");
 
     const keep = [];
+    const hubFaces = tires.map(() => []);
     const triCount = idx.getCount() / 3;
     for (let t = 0; t < triCount; t++) {
       const i0 = idx.getScalar(t * 3);
@@ -446,7 +316,16 @@ function punchTireVolumes(bodyDoc, tires) {
       const cx = (a[0] + b[0] + c[0]) / 3;
       const cy = (a[1] + b[1] + c[1]) / 3;
       const cz = (a[2] + b[2] + c[2]) / 3;
-      if (tires.some((tire) => inTireCylinder(cx, cy, cz, tire))) {
+      let nx = (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]);
+      if (nrm) {
+        const na = nrm.getElement(i0, []);
+        const nb = nrm.getElement(i1, []);
+        const nc = nrm.getElement(i2, []);
+        nx = (na[0] + nb[0] + nc[0]) / 3;
+      }
+      const tireIdx = tires.findIndex((tire) => inTireCylinder(cx, cy, cz, tire));
+      if (tireIdx >= 0) {
+        if (isOriginalHubFace(cx, cy, cz, nx, tires[tireIdx])) hubFaces[tireIdx].push([i0, i1, i2]);
         droppedTire++;
         continue;
       }
@@ -462,9 +341,18 @@ function punchTireVolumes(bodyDoc, tires) {
     mesh.removePrimitive(prim);
     mesh.addPrimitive(next);
     mesh.setName("BodyPaint");
+    for (let i = 0; i < tires.length; i++) {
+      const faces = hubFaces[i];
+      if (faces.length < 20) throw new Error(`original hub face sparse (${tires[i].corner}): ${faces.length}`);
+      keptWell += faces.length;
+      const sign = Math.sign(tires[i].center[0]) || 1;
+      const shiftX = -sign * (tires[i].size[0] + 0.02);
+      mesh.addPrimitive(remappedPrimitive(bodyDoc, buffer, faces, pos, nrm, uv, mat, [shiftX, 0, 0]));
+    }
   }
   if (keepTotal < 800) throw new Error(`body faces too low after punch: ${keepTotal}`);
-  return { keep: keepTotal, droppedTire };
+  if (keptWell < 80) throw new Error(`original hub faces too sparse: ${keptWell}`);
+  return { keep: keepTotal, droppedTire, keptWell };
 }
 
 function copyTireMaterial(destDoc, srcPrim, name) {
@@ -580,31 +468,6 @@ for (const tire of tires) {
   };
 }
 
-const bodyMesh = body.getRoot().listMeshes().find((m) => m.getName() === "BodyPaint");
-const bodyMat = bodyMesh?.listPrimitives().find((p) => p.getMaterial()?.getName() === "BodyPaint")?.getMaterial();
-const capUv = await findCabinBodyUv(body);
-const capBuffer = body.getRoot().listBuffers()[0];
-if (bodyMesh && bodyMat) {
-  for (const tire of tires) {
-    const sign = Math.sign(tire.center[0]) || 1;
-    const halfW = tire.size[0] * 0.5;
-    const diskR = Math.max(tire.size[1], tire.size[2]) * 0.5;
-    addWellCap(body, bodyMesh, {
-      xInner: tire.center[0] - sign * (halfW + 0.08),
-      xOuter: tire.center[0] - sign * (halfW + 0.01),
-      y: tire.center[1],
-      z: tire.center[2],
-      radius: diskR * 0.88,
-      material: bodyMat,
-      buffer: capBuffer,
-      uv: capUv,
-      outboardSign: sign,
-    });
-    wheelSummary[tire.corner].capX = +(tire.center[0] - sign * (halfW + 0.01)).toFixed(3);
-    wheelSummary[tire.corner].capR = +(diskR * 0.88).toFixed(3);
-  }
-}
-
 await body.transform(dedup({ textures: false }), prune());
 for (const wm of wheelMeshes) {
   for (const prim of wm.listPrimitives()) {
@@ -622,5 +485,4 @@ console.log("donnerbuechse.glb ← pre-split body + segmented wheels", {
   bytes: bytes.byteLength,
   punch,
   wheels: wheelSummary,
-  capUv: capUv.map((v) => +v.toFixed(4)),
 });

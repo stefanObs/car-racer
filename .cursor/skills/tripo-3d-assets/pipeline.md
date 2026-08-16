@@ -150,7 +150,7 @@ Same punch/remount contract as Bison/Käferkraft. Body: `blitz-pre-wheel-split.g
 
 ### Mesh segment detach/remount (Donnerbüchse wheels only)
 
-Same punch/remount as Blitz/Käferkraft. Body: `donnerbuechse-pre-wheel-segment.glb` (engine stays a second BodyPaint prim — no `StockEngine` node). Segment: `assets/tripo-out/donnerbuechse/segment-wheels-only-v1/`. Bake: `npm run cars:bake-donnerbuechse-segmented-wheels`. Punch **ground BodyPaint only** so side pipes are not carved with the front tires. Close punched wells with BodyPaint disks that wind **outboard** (runtime materials are FrontSide) and sample **authored body-blue** atlas texels (not cabin-shadow black). Runtime: skinny front + fat rear `StockWheel_*` roll/steer; Große Räder uniform-scales like Bison/Käferkraft.
+Same punch/remount as Blitz/Käferkraft. Body: `donnerbuechse-pre-wheel-segment.glb` (engine stays a second BodyPaint prim — no `StockEngine` node). Segment: `assets/tripo-out/donnerbuechse/segment-wheels-only-v1/`. Bake: `npm run cars:bake-donnerbuechse-segmented-wheels`. Punch **ground BodyPaint only** so side pipes are not carved with the front tires. Punch the welded tire volume, then remount the original **outboard hub/spoke faces** (pre-split BodyPaint UVs) just inboard of each `StockWheel` — that is the pre-segment look through the rim, not a flat body-blue disk. Runtime: skinny front + fat rear `StockWheel_*` roll/steer; Große Räder uniform-scales like Bison/Käferkraft.
 
 ## Failure modes
 
