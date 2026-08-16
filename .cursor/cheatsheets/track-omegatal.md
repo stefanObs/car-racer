@@ -140,6 +140,8 @@ Shared walls on every cup: `tire-wall`, `concrete-wall`, `fence`. Theme scenery 
 
 ### `tire-wall` — `public/models/track/tire-wall.glb`
 
+![tire-wall](./img/track-tire-wall.png)
+
 Root AABB (-0.748, 0, -0.748) → (0.748, 1.15, 0.748)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -200,6 +202,8 @@ Root AABB (-0.748, 0, -0.748) → (0.748, 1.15, 0.748)
 | `tripo_node_1690f1dc-740b-41df-9293-48c4d3fab1f2` | `tripo_mesh_1690f1dc-740b-41df-9293-48c4d3fab1f2` | 1 | 7888 | (0, 0.575, 0) | (-0.748, 0, -0.748) → (0.748, 1.15, 0.748) | tire-wall |
 
 ### `concrete-wall` — `public/models/track/concrete-wall.glb`
+
+![concrete-wall](./img/track-concrete-wall.png)
 
 Root AABB (-1.674, 0, -0.567) → (1.674, 1.5, 0.567)
 
@@ -272,6 +276,8 @@ Root AABB (-1.674, 0, -0.567) → (1.674, 1.5, 0.567)
 
 ### `fence` — `public/models/track/fence.glb`
 
+![fence](./img/track-fence.png)
+
 Root AABB (-0.81, 0, -0.062) → (0.81, 1.1, 0.062)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -322,6 +328,8 @@ Root AABB (-0.81, 0, -0.062) → (0.81, 1.1, 0.062)
 | `tripo_node_f5dd3b5a-f1a7-42d6-8be4-dd5d7122fadb` | `tripo_mesh_f5dd3b5a-f1a7-42d6-8be4-dd5d7122fadb` | 1 | 11353 | (0, 0.55, 0) | (-0.81, 0, -0.062) → (0.81, 1.1, 0.062) | fence |
 
 ### `cliff` — `public/models/track/cliff.glb`
+
+![cliff](./img/track-cliff.png)
 
 Root AABB (-5, 0, -5) → (5, 6.556, 5)
 
@@ -404,6 +412,8 @@ Root AABB (-5, 0, -5) → (5, 6.556, 5)
 
 ### `spire` — `public/models/track/spire.glb`
 
+![spire](./img/track-spire.png)
+
 Root AABB (-2.669, 0, -2.5) → (2.669, 8.661, 2.5)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -464,6 +474,8 @@ Root AABB (-2.669, 0, -2.5) → (2.669, 8.661, 2.5)
 | `tripo_node_f4717319-ea8e-4ac9-9e7a-158020d3e851` | `tripo_mesh_f4717319-ea8e-4ac9-9e7a-158020d3e851` | 1 | 10673 | (0, 4.331, 0) | (-2.669, 0, -2.5) → (2.669, 8.661, 2.5) | spire |
 
 ### `scrub` — `public/models/track/scrub.glb`
+
+![scrub](./img/track-scrub.png)
 
 Root AABB (-1.082, 0, -1.069) → (1.082, 1.8, 1.069)
 
@@ -526,6 +538,8 @@ Root AABB (-1.082, 0, -1.069) → (1.082, 1.8, 1.069)
 
 ### `tire-stack` — `public/models/track/tire-stack.glb`
 
+![tire-stack](./img/track-tire-stack.png)
+
 Root AABB (-0.532, 0, -0.516) → (0.532, 1.35, 0.516)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -586,6 +600,8 @@ Root AABB (-0.532, 0, -0.516) → (0.532, 1.35, 0.516)
 | `tripo_node_738da415-9c35-4e5a-bfee-7b2635d626af` | `tripo_mesh_738da415-9c35-4e5a-bfee-7b2635d626af` | 1 | 7056 | (0, 0.675, 0) | (-0.532, 0, -0.516) → (0.532, 1.35, 0.516) | tire-stack |
 
 ### `rumble` — `public/models/track/rumble.glb`
+
+![rumble](./img/track-rumble.png)
 
 Root AABB (-1.619, 0, -0.542) → (1.619, 0.45, 0.542)
 
@@ -657,6 +673,8 @@ Root AABB (-1.619, 0, -0.542) → (1.619, 0.45, 0.542)
 | `tripo_node_e406f426-0139-4a2d-b4e8-c41ccfd93f2d` | `tripo_mesh_e406f426-0139-4a2d-b4e8-c41ccfd93f2d` | 1 | 4337 | (0, 0.225, 0) | (-1.619, 0, -0.542) → (1.619, 0.45, 0.542) | rumble |
 
 ### `ramp` — `public/models/track/ramp.glb`
+
+![ramp](./img/track-ramp.png)
 
 Root AABB (-1.109, 0, -1.122) → (1.109, 1.05, 1.122)
 

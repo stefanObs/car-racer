@@ -19,6 +19,7 @@ import {
   inspectGlb,
   nodesToGridItems,
 } from "./lib/inspect-glb.mjs";
+import { previewMd, stemForPublicRel } from "./lib/cheatsheet-preview-jobs.mjs";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const DEFAULT_OUT = join(rootDir, ".cursor/cheatsheets");
@@ -399,6 +400,10 @@ function rel(abs) {
   return abs.slice(rootDir.length + 1);
 }
 
+function modelPreview(relPublic, alt) {
+  return previewMd(stemForPublicRel(relPublic), alt);
+}
+
 function mdTable(headers, rows) {
   const head = `| ${headers.join(" | ")} |`;
   const sep = `| ${headers.map(() => "---").join(" | ")} |`;
@@ -593,6 +598,10 @@ async function dumpCar(car, dest) {
       ],
     ),
     "",
+    "## Model",
+    "",
+    modelPreview(rel(glbPath), car.name),
+    "",
     "## Command names (runtime)",
     "",
     "- Body / paint: `BodyPaint` (recolor target)",
@@ -706,6 +715,8 @@ async function dumpCar(car, dest) {
       "",
       `## Part / extra \`${rel(p)}\``,
       "",
+      modelPreview(rel(p), rel(p)),
+      "",
       d.aabb ? `Root AABB ${fmtVec(d.aabb.min)} → ${fmtVec(d.aabb.max)}` : "",
       "",
       gridSvg({
@@ -794,6 +805,8 @@ async function dumpGarage(dest) {
       "",
       `Runtime: ${s.runtime}`,
       "",
+      modelPreview(rel(p), s.id),
+      "",
       d.aabb ? `Root AABB ${fmtVec(d.aabb.min)} → ${fmtVec(d.aabb.max)}` : "",
       "",
       gridSvg({
@@ -817,6 +830,8 @@ async function dumpGarage(dest) {
     const d = await inspectGlb(p);
     lines.push(
       `### \`${s.id}\` — \`${rel(p)}\``,
+      "",
+      modelPreview(rel(p), s.id),
       "",
       d.aabb ? `Root AABB ${fmtVec(d.aabb.min)} → ${fmtVec(d.aabb.max)}` : "",
       "",
@@ -946,6 +961,8 @@ async function dumpTrack(track, dest) {
     lines.push(
       `### \`${id}\` — \`${rel(p)}\``,
       "",
+      modelPreview(rel(p), id),
+      "",
       d.aabb ? `Root AABB ${fmtVec(d.aabb.min)} → ${fmtVec(d.aabb.max)}` : "",
       "",
       gridSvg({
@@ -970,9 +987,9 @@ function writeIndex(dest) {
   const body = [
     "# Mesh cheat sheets",
     "",
-    "One sheet per car, the garage, and each cup track. Each sheet lists **nodes, meshes, submeshes, materials, runtime names**, plus **meter coordinates** on an SVG **grid** (origin through the axes).",
+    "One sheet per car, the garage, and each cup track. Each sheet lists **nodes, meshes, submeshes, materials, runtime names**, a **3/4 photo of the GLB**, plus **meter coordinates** on an SVG **grid** (origin through the axes).",
     "",
-    "**Keep in sync:** after any car/garage/track GLB, named node, mount, or catalog change, run `npm run docs:cheatsheets` in the same step. New ids go in `scripts/dump-mesh-cheatsheets.mjs` first.",
+    "**Keep in sync:** after any car/garage/track GLB, named node, mount, or catalog change, run `npm run docs:cheatsheets` in the same step (renders GLB photos, then markdown). New ids go in `scripts/dump-mesh-cheatsheets.mjs` first.",
     "",
     "## How to command",
     "",

@@ -15,6 +15,10 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 | Default paint | `#868e96` |
 | Root AABB | (-0.983, 0, -1.925) → (0.983, 2.117, 1.925) |
 
+## Model
+
+![Bunker](./img/car-bunker.png)
+
 ## Command names (runtime)
 
 - Body / paint: `BodyPaint` (recolor target)
@@ -208,6 +212,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 ## Part / extra `public/models/parts/bunker-big_engine.glb`
 
+![public/models/parts/bunker-big_engine.glb](./img/part-bunker-big_engine.png)
+
 Root AABB (-0.278, 0, -0.31) → (0.278, 0.195, 0.31)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -248,6 +254,8 @@ Root AABB (-0.278, 0, -0.31) → (0.278, 0.195, 0.31)
 | `tripo_node_affc9437-cc99-48d5-96d9-21d2ad6523fc` | `tripo_mesh_affc9437-cc99-48d5-96d9-21d2ad6523fc` | 1 | 6864 | (0, 0.098, 0) | (-0.278, 0, -0.31) → (0.278, 0.195, 0.31) | Carbon |
 
 ## Part / extra `public/models/parts/bunker-spike_bumper.glb`
+
+![public/models/parts/bunker-spike_bumper.glb](./img/part-bunker-spike_bumper.png)
 
 Root AABB (-0.621, 0, -0.283) → (0.621, 0.45, 0.283)
 
@@ -299,6 +307,8 @@ Root AABB (-0.621, 0, -0.283) → (0.621, 0.45, 0.283)
 | `tripo_node_42d65729-f715-4113-a612-fa87ba7df4d6` | `tripo_mesh_42d65729-f715-4113-a612-fa87ba7df4d6` | 1 | 6797 | (0, 0.225, 0) | (-0.621, 0, -0.283) → (0.621, 0.45, 0.283) | Spike |
 
 ## Part / extra `public/models/parts/bunker-reinforced_frame.glb`
+
+![public/models/parts/bunker-reinforced_frame.glb](./img/part-bunker-reinforced_frame.png)
 
 Root AABB (-1.7, 0, -1.081) → (1.7, 1.537, 1.081)
 
@@ -371,6 +381,8 @@ Root AABB (-1.7, 0, -1.081) → (1.7, 1.537, 1.081)
 
 ## Part / extra `public/models/parts/bunker-lightweight_body.glb`
 
+![public/models/parts/bunker-lightweight_body.glb](./img/part-bunker-lightweight_body.png)
+
 Root AABB (-0.525, 0, -0.274) → (0.525, 0.84, 0.274)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -422,6 +434,8 @@ Root AABB (-0.525, 0, -0.274) → (0.525, 0.84, 0.274)
 
 ## Part / extra `public/models/parts/bunker-nitro_kit.glb`
 
+![public/models/parts/bunker-nitro_kit.glb](./img/part-bunker-nitro_kit.png)
+
 Root AABB (-0.234, 0, -0.165) → (0.234, 0.7, 0.165)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -462,6 +476,8 @@ Root AABB (-0.234, 0, -0.165) → (0.234, 0.7, 0.165)
 | `tripo_node_fbcbda2e-1c59-4542-8085-c30e498106c3` | `tripo_mesh_fbcbda2e-1c59-4542-8085-c30e498106c3` | 1 | 6068 | (0, 0.35, 0) | (-0.234, 0, -0.165) → (0.234, 0.7, 0.165) | NitroKit |
 
 ## Part / extra `public/models/parts/bunker-rear_spoiler.glb`
+
+![public/models/parts/bunker-rear_spoiler.glb](./img/part-bunker-rear_spoiler.png)
 
 Root AABB (-0.725, 0, -0.183) → (0.725, 0.468, 0.183)
 
@@ -513,6 +529,8 @@ Root AABB (-0.725, 0, -0.183) → (0.725, 0.468, 0.183)
 | `tripo_node_3ef7bcea-e8e1-4976-85bf-7bc51319aaa6` | `tripo_mesh_3ef7bcea-e8e1-4976-85bf-7bc51319aaa6` | 1 | 7529 | (0, 0.234, 0) | (-0.725, 0, -0.183) → (0.725, 0.468, 0.183) | Spoiler |
 
 ## Part / extra `public/models/stickers/flames.glb`
+
+![public/models/stickers/flames.glb](./img/sticker-flames.png)
 
 Root AABB (-0.517, -0.24, -0.04) → (0.517, 0.24, 0.04)
 

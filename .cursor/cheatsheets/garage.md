@@ -146,6 +146,8 @@ World space, meters. Car sits on the **turntable** (`garagePad` at `(1.5, 0.04, 
 
 Runtime: garageFloor / garageTurntableMesh sibling plane
 
+![floor](./img/garage-floor.png)
+
 Root AABB (-1.26, 0, -1.102) → (1.26, 0.35, 1.102)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -209,6 +211,8 @@ Root AABB (-1.26, 0, -1.102) → (1.26, 0.35, 1.102)
 
 Runtime: optional Tripo wall overlay
 
+![wall](./img/garage-wall.png)
+
 Root AABB (-0.285, 0, -1.8) → (0.285, 2.811, 1.8)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -271,6 +275,8 @@ Root AABB (-0.285, 0, -1.8) → (0.285, 2.811, 1.8)
 ### `turntable` — `public/models/garage/turntable.glb`
 
 Runtime: garageTurntableMesh under garagePad
+
+![turntable](./img/garage-turntable.png)
 
 Root AABB (-1.9, 0, -1.9) → (1.9, 0.126, 1.9)
 
@@ -355,6 +361,8 @@ Root AABB (-1.9, 0, -1.9) → (1.9, 0.126, 1.9)
 
 ### `cabinet` — `public/models/garage/cabinet.glb`
 
+![cabinet](./img/garage-cabinet.png)
+
 Root AABB (-0.409, 0, -0.546) → (0.409, 2, 0.546)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -415,6 +423,8 @@ Root AABB (-0.409, 0, -0.546) → (0.409, 2, 0.546)
 | `tripo_node_0f927599-44c8-4898-84b0-1ff8e8e79f71` | `tripo_mesh_0f927599-44c8-4898-84b0-1ff8e8e79f71` | 1 | 5598 | (0, 1, 0) | (-0.409, 0, -0.546) → (0.409, 2, 0.546) | BodyPaint |
 
 ### `workbench` — `public/models/garage/workbench.glb`
+
+![workbench](./img/garage-workbench.png)
 
 Root AABB (-0.417, 0, -0.685) → (0.417, 1.15, 0.685)
 
@@ -477,6 +487,8 @@ Root AABB (-0.417, 0, -0.685) → (0.417, 1.15, 0.685)
 
 ### `tireStack` — `public/models/garage/tire-stack.glb`
 
+![tireStack](./img/garage-tire-stack.png)
+
 Root AABB (-0.464, 0, -0.464) → (0.464, 1.2, 0.464)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -537,6 +549,8 @@ Root AABB (-0.464, 0, -0.464) → (0.464, 1.2, 0.464)
 | `tripo_node_f5c5d0eb-e3be-4eea-b120-ca4569a03dab` | `tripo_mesh_f5c5d0eb-e3be-4eea-b120-ca4569a03dab` | 1 | 5662 | (0, 0.6, 0) | (-0.464, 0, -0.464) → (0.464, 1.2, 0.464) | BodyPaint |
 
 ### `shelf` — `public/models/garage/shelf.glb`
+
+![shelf](./img/garage-shelf.png)
 
 Root AABB (-0.5, 0, -0.971) → (0.5, 1.85, 0.971)
 
@@ -599,6 +613,8 @@ Root AABB (-0.5, 0, -0.971) → (0.5, 1.85, 0.971)
 
 ### `drums` — `public/models/garage/drums.glb`
 
+![drums](./img/garage-drums.png)
+
 Root AABB (-0.333, 0, -0.663) → (0.333, 0.9, 0.663)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -649,6 +665,8 @@ Root AABB (-0.333, 0, -0.663) → (0.333, 0.9, 0.663)
 | `tripo_node_0b1da8d0-6262-4d2d-afa2-eda41aa1bf87` | `tripo_mesh_0b1da8d0-6262-4d2d-afa2-eda41aa1bf87` | 1 | 3416 | (0, 0.45, 0) | (-0.333, 0, -0.663) → (0.333, 0.9, 0.663) | BodyPaint |
 
 ### `toolchest` — `public/models/garage/toolchest.glb`
+
+![toolchest](./img/garage-toolchest.png)
 
 Root AABB (-0.311, 0, -0.6) → (0.311, 1.115, 0.6)
 
@@ -701,6 +719,8 @@ Root AABB (-0.311, 0, -0.6) → (0.311, 1.115, 0.6)
 
 ### `gas` — `public/models/garage/gas.glb`
 
+![gas](./img/garage-gas.png)
+
 Root AABB (-0.221, 0, -0.4) → (0.221, 1.35, 0.4)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -751,6 +771,8 @@ Root AABB (-0.221, 0, -0.4) → (0.221, 1.35, 0.4)
 | `tripo_node_4c0c8fd8-c317-45c3-a78a-7901d2b1fccb` | `tripo_mesh_4c0c8fd8-c317-45c3-a78a-7901d2b1fccb` | 1 | 5790 | (0, 0.675, 0) | (-0.221, 0, -0.4) → (0.221, 1.35, 0.4) | BodyPaint |
 
 ### `hoist` — `public/models/garage/hoist.glb`
+
+![hoist](./img/garage-hoist.png)
 
 Root AABB (-0.772, 0, -1.175) → (0.772, 2.397, 1.175)
 

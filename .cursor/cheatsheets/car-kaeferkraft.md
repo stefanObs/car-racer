@@ -15,6 +15,10 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 | Default paint | `#12b886` |
 | Root AABB | (-1.675, 0, -0.954) → (1.675, 1.724, 0.954) |
 
+## Model
+
+![Käferkraft](./img/car-kaeferkraft.png)
+
 ## Command names (runtime)
 
 - Body / paint: `BodyPaint` (recolor target)
@@ -244,6 +248,8 @@ Full legend: [kaeferkraft-waist-anchors.md](../../assets/tripo-concepts/kaeferkr
 
 ## Part / extra `public/models/parts/blitz-big_engine.glb`
 
+![public/models/parts/blitz-big_engine.glb](./img/part-blitz-big_engine.png)
+
 Root AABB (-0.397, 0, -0.425) → (0.397, 0.338, 0.425)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -294,6 +300,8 @@ Root AABB (-0.397, 0, -0.425) → (0.397, 0.338, 0.425)
 | `tripo_node_9c0a2f29-e9bb-4e44-b1d7-5967c9fc5ec4` | `tripo_mesh_9c0a2f29-e9bb-4e44-b1d7-5967c9fc5ec4` | 1 | 6908 | (0, 0.169, 0) | (-0.397, 0, -0.425) → (0.397, 0.338, 0.425) | Carbon |
 
 ## Part / extra `public/models/parts/kaeferkraft-spike_bumper.glb`
+
+![public/models/parts/kaeferkraft-spike_bumper.glb](./img/part-kaeferkraft-spike_bumper.png)
 
 Root AABB (-0.555, 0, -0.605) → (0.555, 0.4, 0.605)
 
@@ -355,6 +363,8 @@ Root AABB (-0.555, 0, -0.605) → (0.555, 0.4, 0.605)
 | `tripo_node_c02e5cab-488f-4521-8277-7de1b567fa54` | `tripo_mesh_c02e5cab-488f-4521-8277-7de1b567fa54` | 1 | 6736 | (0, 0.2, 0) | (-0.555, 0, -0.605) → (0.555, 0.4, 0.605) | Spike |
 
 ## Part / extra `public/models/parts/kaeferkraft-reinforced_frame.glb`
+
+![public/models/parts/kaeferkraft-reinforced_frame.glb](./img/part-kaeferkraft-reinforced_frame.png)
 
 Root AABB (-0.32, 0.935, -0.575) → (0.593, 1.501, 0.575)
 
@@ -421,6 +431,8 @@ Root AABB (-0.32, 0.935, -0.575) → (0.593, 1.501, 0.575)
 
 ## Part / extra `public/models/parts/kaeferkraft-lightweight_body.glb`
 
+![public/models/parts/kaeferkraft-lightweight_body.glb](./img/part-kaeferkraft-lightweight_body.png)
+
 Root AABB (-0.8, 0, -0.69) → (0.8, 0.329, 0.69)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -482,6 +494,8 @@ Root AABB (-0.8, 0, -0.69) → (0.8, 0.329, 0.69)
 
 ## Part / extra `public/models/parts/kaeferkraft-nitro_kit.glb`
 
+![public/models/parts/kaeferkraft-nitro_kit.glb](./img/part-kaeferkraft-nitro_kit.png)
+
 Root AABB (-0.291, 0, -0.288) → (0.291, 0.65, 0.288)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -522,6 +536,8 @@ Root AABB (-0.291, 0, -0.288) → (0.291, 0.65, 0.288)
 | `tripo_node_17b33f7c-e4c0-42b0-b617-71f068fe6d80` | `tripo_mesh_17b33f7c-e4c0-42b0-b617-71f068fe6d80` | 1 | 5807 | (0, 0.325, 0) | (-0.291, 0, -0.288) → (0.291, 0.65, 0.288) | NitroKit |
 
 ## Part / extra `public/models/parts/kaeferkraft-rear_spoiler.glb`
+
+![public/models/parts/kaeferkraft-rear_spoiler.glb](./img/part-kaeferkraft-rear_spoiler.png)
 
 Root AABB (-0.525, 0, -0.089) → (0.525, 0.224, 0.089)
 
@@ -574,6 +590,8 @@ Root AABB (-0.525, 0, -0.089) → (0.525, 0.224, 0.089)
 
 ## Part / extra `public/models/props/buggy-skull.glb`
 
+![public/models/props/buggy-skull.glb](./img/prop-buggy-skull.png)
+
 Root AABB (-0.194, 0, -0.202) → (0.194, 0.42, 0.202)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -615,6 +633,8 @@ Root AABB (-0.194, 0, -0.202) → (0.194, 0.42, 0.202)
 
 ## Part / extra `public/models/props/buggy-bird.glb`
 
+![public/models/props/buggy-bird.glb](./img/prop-buggy-bird.png)
+
 Root AABB (-0.2, 0, -0.133) → (0.2, 0.36, 0.133)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -655,6 +675,8 @@ Root AABB (-0.2, 0, -0.133) → (0.2, 0.36, 0.133)
 | `tripo_node_a750fc5f-d8c9-48a5-be59-5d614ab4cca3` | `tripo_mesh_a750fc5f-d8c9-48a5-be59-5d614ab4cca3` | 1 | 3847 | (0, 0.18, 0) | (-0.2, 0, -0.133) → (0.2, 0.36, 0.133) | Body |
 
 ## Part / extra `public/models/props/buggy-dog.glb`
+
+![public/models/props/buggy-dog.glb](./img/prop-buggy-dog.png)
 
 Root AABB (-0.174, 0, -0.207) → (0.174, 0.4, 0.207)
 

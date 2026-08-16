@@ -39,7 +39,8 @@ describe("mesh cheat sheets", () => {
       expect(md).toContain("meters");
       expect(md).toContain("`BodyPaint`");
       expect(md).toContain("StockWheel_FL");
-      expect(md).toContain("AABB");
+      expect(md).toContain("./img/car-");
+      expect(md).toContain("![");
     }
   });
 
@@ -49,6 +50,7 @@ describe("mesh cheat sheets", () => {
     expect(md).toContain("`garageCabinet`");
     expect(md).toContain("`garageHoist`");
     expect(md).toContain("(1.5");
+    expect(md).toContain("./img/garage-");
   });
 
   it("maps Hafenstart with harbor kit names", () => {
@@ -57,6 +59,13 @@ describe("mesh cheat sheets", () => {
     expect(md).toContain("`crane`");
     expect(md).toContain("tire-wall");
     expect(md).toContain("<svg");
+    expect(md).toContain("./img/track-");
+  });
+
+  it("ships a 3/4 preview PNG for each car GLB", () => {
+    for (const id of CAR_IDS) {
+      expect(existsSync(join(sheets, "img", `car-${id}.png`))).toBe(true);
+    }
   });
 
   it("committed sheets match a fresh dump (do not leave them stale)", async () => {

@@ -15,6 +15,10 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 | Default paint | `#e03131` |
 | Root AABB | (-0.887, 0, -1.85) → (0.887, 1.035, 1.85) |
 
+## Model
+
+![Blitz](./img/car-blitz.png)
+
 ## Command names (runtime)
 
 - Body / paint: `BodyPaint` (recolor target)
@@ -232,6 +236,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 ## Part / extra `public/models/parts/blitz-big_engine.glb`
 
+![public/models/parts/blitz-big_engine.glb](./img/part-blitz-big_engine.png)
+
 Root AABB (-0.397, 0, -0.425) → (0.397, 0.338, 0.425)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -283,6 +289,8 @@ Root AABB (-0.397, 0, -0.425) → (0.397, 0.338, 0.425)
 
 ## Part / extra `public/models/parts/blitz-spike_bumper.glb`
 
+![public/models/parts/blitz-spike_bumper.glb](./img/part-blitz-spike_bumper.png)
+
 Root AABB (-0.699, 0, -0.264) → (0.699, 0.32, 0.264)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -333,6 +341,8 @@ Root AABB (-0.699, 0, -0.264) → (0.699, 0.32, 0.264)
 | `tripo_node_bb1afaa5-4d3f-4d62-a71a-b7558292ae74` | `tripo_mesh_bb1afaa5-4d3f-4d62-a71a-b7558292ae74` | 1 | 5776 | (0, 0.16, 0) | (-0.699, 0, -0.264) → (0.699, 0.32, 0.264) | Spike |
 
 ## Part / extra `public/models/parts/blitz-reinforced_frame.glb`
+
+![public/models/parts/blitz-reinforced_frame.glb](./img/part-blitz-reinforced_frame.png)
 
 Root AABB (-0.76, 0, -0.86) → (0.76, 0.168, 0.86)
 
@@ -395,6 +405,8 @@ Root AABB (-0.76, 0, -0.86) → (0.76, 0.168, 0.86)
 
 ## Part / extra `public/models/parts/blitz-nitro_kit.glb`
 
+![public/models/parts/blitz-nitro_kit.glb](./img/part-blitz-nitro_kit.png)
+
 Root AABB (-0.251, 0, -0.26) → (0.251, 0.42, 0.26)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -436,6 +448,8 @@ Root AABB (-0.251, 0, -0.26) → (0.251, 0.42, 0.26)
 
 ## Part / extra `public/models/parts/blitz-offroad_suspension.glb`
 
+![public/models/parts/blitz-offroad_suspension.glb](./img/part-blitz-offroad_suspension.png)
+
 Root AABB (-0.129, 0, -0.17) → (0.129, 0.34, 0.17)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -476,6 +490,8 @@ Root AABB (-0.129, 0, -0.17) → (0.129, 0.34, 0.17)
 | `tripo_node_ddc995a6-8a2e-4916-b64a-b8ea906b8dce` | `tripo_mesh_ddc995a6-8a2e-4916-b64a-b8ea906b8dce` | 1 | 3088 | (0, 0.17, 0) | (-0.129, 0, -0.17) → (0.129, 0.34, 0.17) | Spring |
 
 ## Part / extra `public/models/parts/blitz-rear_spoiler.glb`
+
+![public/models/parts/blitz-rear_spoiler.glb](./img/part-blitz-rear_spoiler.png)
 
 Root AABB (-0.764, 0, -0.199) → (0.764, 0.138, 0.199)
 
@@ -527,6 +543,8 @@ Root AABB (-0.764, 0, -0.199) → (0.764, 0.138, 0.199)
 | `Root` | `Mesh` | 1 | 256 | (0, 0.069, 0) | (-0.764, 0, -0.199) → (0.764, 0.138, 0.199) | Spoiler |
 
 ## Part / extra `public/models/stickers/flames.glb`
+
+![public/models/stickers/flames.glb](./img/sticker-flames.png)
 
 Root AABB (-0.517, -0.24, -0.04) → (0.517, 0.24, 0.04)
 

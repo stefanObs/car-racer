@@ -15,6 +15,10 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 | Default paint | `#339af0` |
 | Root AABB | (-1.194, 0, -1.9) → (1.194, 1.554, 1.9) |
 
+## Model
+
+![Donnerbüchse](./img/car-donnerbuechse.png)
+
 ## Command names (runtime)
 
 - Body / paint: `BodyPaint` (recolor target)
@@ -86,8 +90,16 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="48" y="188.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="114.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">3</text>
-<rect x="194.3" y="117.4" width="409.4" height="281.2" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
+<rect x="222.4" y="122.4" width="353.3" height="276.2" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="260.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
+<rect x="524.6" y="117.4" width="51.0" height="56.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="550.1" y="145.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
+<rect x="222.4" y="117.4" width="51.0" height="56.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="247.9" y="145.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FL</text>
+<rect x="194.3" y="311.7" width="82.9" height="73.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="235.8" y="348.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RL</text>
+<rect x="520.8" y="311.7" width="82.9" height="73.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="562.2" y="348.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RR</text>
 <circle cx="399.0" cy="152.9" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="406.0" y="146.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="399.0" cy="123.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -169,8 +181,16 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="151.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">3</text>
-<rect x="181.8" y="196.5" width="434.5" height="172.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="282.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
+<rect x="181.8" y="196.5" width="426.8" height="158.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="395.2" y="275.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
+<rect x="528.7" y="284.0" width="87.6" height="85.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="572.4" y="326.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
+<rect x="528.7" y="284.0" width="87.6" height="85.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="572.4" y="326.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FL</text>
+<rect x="202.2" y="257.6" width="113.9" height="111.4" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="259.1" y="313.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RL</text>
+<rect x="202.2" y="257.6" width="113.9" height="111.4" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="259.1" y="313.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RR</text>
 <circle cx="561.4" cy="351.2" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="568.4" y="345.2" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="607.1" cy="362.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -199,11 +219,16 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `BodyPaint` | `BodyPaint` | 2 | 5992 | (0, 0.777, 0) | (-1.194, 0, -1.9) → (1.194, 1.554, 1.9) | BodyPaint |
+| `BodyPaint` | `BodyPaint` | 2 | 4586 | (0, 0.84, -0.033) | (-1.03, 0.126, -1.9) → (1.03, 1.554, 1.833) | BodyPaint |
+| `StockWheel_FR` | `StockWheel_FR` | 1 | 397 | (0.881, 0.383, 1.517) | (0.732, 0, 1.134) → (1.03, 0.766, 1.9) | Tire |
+| `StockWheel_FL` | `StockWheel_FL` | 1 | 392 | (-0.881, 0.383, 1.517) | (-1.03, 0, 1.134) → (-0.732, 0.766, 1.9) | Tire |
+| `StockWheel_RL` | `StockWheel_RL` | 1 | 304 | (-0.952, 0.502, -1.223) | (-1.194, 0, -1.722) → (-0.71, 1.004, -0.725) | Tire |
+| `StockWheel_RR` | `StockWheel_RR` | 1 | 294 | (0.952, 0.502, -1.223) | (0.71, 0, -1.722) → (1.194, 1.004, -0.725) | Tire |
 
 ## Materials
 
 - `BodyPaint`
+- `Tire`
 
 ## Shop Teile + mounts
 
@@ -220,6 +245,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 | `rear_spoiler` | Heckspoiler | yes | `public/models/parts/donnerbuechse-rear_spoiler.glb` | (0, 1, -1.42) yaw 180° ×1.15 |
 
 ## Part / extra `public/models/parts/donnerbuechse-big_engine.glb`
+
+![public/models/parts/donnerbuechse-big_engine.glb](./img/part-donnerbuechse-big_engine.png)
 
 Root AABB (-0.302, 0, -0.295) → (0.302, 0.55, 0.295)
 
@@ -261,6 +288,8 @@ Root AABB (-0.302, 0, -0.295) → (0.302, 0.55, 0.295)
 | `tripo_node_dbb7af69-4d88-4a22-b73a-385d226bbfa6` | `tripo_mesh_dbb7af69-4d88-4a22-b73a-385d226bbfa6` | 1 | 6243 | (0, 0.275, 0) | (-0.302, 0, -0.295) → (0.302, 0.55, 0.295) | Chrome |
 
 ## Part / extra `public/models/parts/donnerbuechse-spike_bumper.glb`
+
+![public/models/parts/donnerbuechse-spike_bumper.glb](./img/part-donnerbuechse-spike_bumper.png)
 
 Root AABB (-0.775, 0, -0.405) → (0.775, 0.391, 0.405)
 
@@ -323,6 +352,8 @@ Root AABB (-0.775, 0, -0.405) → (0.775, 0.391, 0.405)
 
 ## Part / extra `public/models/parts/donnerbuechse-reinforced_frame.glb`
 
+![public/models/parts/donnerbuechse-reinforced_frame.glb](./img/part-donnerbuechse-reinforced_frame.png)
+
 Root AABB (-0.916, 0, -0.575) → (0.916, 1.05, 0.575)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -383,6 +414,8 @@ Root AABB (-0.916, 0, -0.575) → (0.916, 1.05, 0.575)
 | `tripo_node_cc21b54b-5f2e-4efb-adac-b1c757190195` | `tripo_mesh_cc21b54b-5f2e-4efb-adac-b1c757190195` | 1 | 5111 | (0, 0.525, 0) | (-0.916, 0, -0.575) → (0.916, 1.05, 0.575) | Grey |
 
 ## Part / extra `public/models/parts/donnerbuechse-lightweight_body.glb`
+
+![public/models/parts/donnerbuechse-lightweight_body.glb](./img/part-donnerbuechse-lightweight_body.png)
 
 Root AABB (-1.1, 0, -0.588) → (1.1, 0.891, 0.588)
 
@@ -445,6 +478,8 @@ Root AABB (-1.1, 0, -0.588) → (1.1, 0.891, 0.588)
 
 ## Part / extra `public/models/parts/donnerbuechse-nitro_kit.glb`
 
+![public/models/parts/donnerbuechse-nitro_kit.glb](./img/part-donnerbuechse-nitro_kit.png)
+
 Root AABB (-0.375, 0, -0.156) → (0.375, 0.498, 0.156)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -485,6 +520,8 @@ Root AABB (-0.375, 0, -0.156) → (0.375, 0.498, 0.156)
 | `tripo_node_e19efa64-9d3e-4a9e-8d50-559796c925ad` | `tripo_mesh_e19efa64-9d3e-4a9e-8d50-559796c925ad` | 1 | 3396 | (0, 0.249, 0) | (-0.375, 0, -0.156) → (0.375, 0.498, 0.156) | NitroKit |
 
 ## Part / extra `public/models/parts/donnerbuechse-rear_spoiler.glb`
+
+![public/models/parts/donnerbuechse-rear_spoiler.glb](./img/part-donnerbuechse-rear_spoiler.png)
 
 Root AABB (-0.575, 0, -0.217) → (0.575, 0.317, 0.217)
 
@@ -536,6 +573,8 @@ Root AABB (-0.575, 0, -0.217) → (0.575, 0.317, 0.217)
 | `tripo_node_1a920ca8-f85e-438d-bfc8-f470cfbbec44` | `tripo_mesh_1a920ca8-f85e-438d-bfc8-f470cfbbec44` | 1 | 6055 | (0, 0.159, 0) | (-0.575, 0, -0.217) → (0.575, 0.317, 0.217) | Spoiler |
 
 ## Part / extra `public/models/stickers/flames.glb`
+
+![public/models/stickers/flames.glb](./img/sticker-flames.png)
 
 Root AABB (-0.517, -0.24, -0.04) → (0.517, 0.24, 0.04)
 

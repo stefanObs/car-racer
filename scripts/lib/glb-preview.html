@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "/node_modules/three/build/three.module.js",
+          "three/addons/": "/node_modules/three/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <script type="module">
+      import * as THREE from "three";
+      import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+
+      const params = new URLSearchParams(location.search);
+      const url = params.get("url");
+      const yaw = Number(params.get("yaw") || "0");
+      const w = Number(params.get("w") || "640");
+      const h = Number(params.get("h") || "400");
+
+      const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false, preserveDrawingBuffer: true });
+      renderer.setSize(w, h, false);
+      renderer.setPixelRatio(1);
+      renderer.setClearColor(0xf4efe6, 1);
+      renderer.outputColorSpace = THREE.SRGBColorSpace;
+      document.body.appendChild(renderer.domElement);
+
+      const scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xf4efe6);
+      scene.add(new THREE.HemisphereLight(0xfff4e0, 0x6e747c, 1.35));
+      const key = new THREE.DirectionalLight(0xfff8ee, 1.8);
+      key.position.set(4, 8, 6);
+      scene.add(key);
+      const fill = new THREE.DirectionalLight(0xc8e4ff, 0.55);
+      fill.position.set(-6, 3, -2);
+      scene.add(fill);
+
+      const camera = new THREE.PerspectiveCamera(32, w / h, 0.05, 80);
+
+      try {
+        const loader = new GLTFLoader();
+        const gltf = await loader.loadAsync(url);
+        const root = gltf.scene;
+        root.updateWorldMatrix(true, true);
+        const box = new THREE.Box3().setFromObject(root);
+        const center = box.getCenter(new THREE.Vector3());
+        const size = box.getSize(new THREE.Vector3());
+        root.position.sub(center);
+        root.rotation.y = yaw;
+        scene.add(root);
+
+        const span = Math.max(size.x, size.y, size.z, 0.4);
+        camera.position.set(span * 1.35, span * 0.85, span * 1.55);
+        camera.near = span * 0.02;
+        camera.far = span * 20;
+        camera.updateProjectionMatrix();
+        camera.lookAt(0, 0, 0);
+        renderer.render(scene, camera);
+        window.__previewReady = true;
+        window.__previewError = "";
+      } catch (err) {
+        window.__previewReady = true;
+        window.__previewError = String(err?.message || err);
+        const ctx = renderer.domElement.getContext("2d");
+      }
+    </script>
+  </body>
+</html>

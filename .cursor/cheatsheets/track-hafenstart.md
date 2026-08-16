@@ -119,6 +119,8 @@ Shared walls on every cup: `tire-wall`, `concrete-wall`, `fence`. Theme scenery 
 
 ### `tire-wall` — `public/models/track/tire-wall.glb`
 
+![tire-wall](./img/track-tire-wall.png)
+
 Root AABB (-0.748, 0, -0.748) → (0.748, 1.15, 0.748)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -179,6 +181,8 @@ Root AABB (-0.748, 0, -0.748) → (0.748, 1.15, 0.748)
 | `tripo_node_1690f1dc-740b-41df-9293-48c4d3fab1f2` | `tripo_mesh_1690f1dc-740b-41df-9293-48c4d3fab1f2` | 1 | 7888 | (0, 0.575, 0) | (-0.748, 0, -0.748) → (0.748, 1.15, 0.748) | tire-wall |
 
 ### `concrete-wall` — `public/models/track/concrete-wall.glb`
+
+![concrete-wall](./img/track-concrete-wall.png)
 
 Root AABB (-1.674, 0, -0.567) → (1.674, 1.5, 0.567)
 
@@ -251,6 +255,8 @@ Root AABB (-1.674, 0, -0.567) → (1.674, 1.5, 0.567)
 
 ### `fence` — `public/models/track/fence.glb`
 
+![fence](./img/track-fence.png)
+
 Root AABB (-0.81, 0, -0.062) → (0.81, 1.1, 0.062)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -301,6 +307,8 @@ Root AABB (-0.81, 0, -0.062) → (0.81, 1.1, 0.062)
 | `tripo_node_f5dd3b5a-f1a7-42d6-8be4-dd5d7122fadb` | `tripo_mesh_f5dd3b5a-f1a7-42d6-8be4-dd5d7122fadb` | 1 | 11353 | (0, 0.55, 0) | (-0.81, 0, -0.062) → (0.81, 1.1, 0.062) | fence |
 
 ### `crane` — `public/models/track/crane.glb`
+
+![crane](./img/track-crane.png)
 
 Root AABB (-9.444, 0, -8.409) → (9.444, 18, 8.409)
 
@@ -383,6 +391,8 @@ Root AABB (-9.444, 0, -8.409) → (9.444, 18, 8.409)
 
 ### `container` — `public/models/track/container.glb`
 
+![container](./img/track-container.png)
+
 Root AABB (-1.329, 0, -2.643) → (1.329, 2.7, 2.643)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
@@ -433,6 +443,8 @@ Root AABB (-1.329, 0, -2.643) → (1.329, 2.7, 2.643)
 | `tripo_node_636ba7a6-4317-4385-9db4-c9999eff4eda` | `tripo_mesh_636ba7a6-4317-4385-9db4-c9999eff4eda` | 1 | 6002 | (0, 1.35, 0) | (-1.329, 0, -2.643) → (1.329, 2.7, 2.643) | BodyPaint |
 
 ### `warehouse` — `public/models/track/warehouse.glb`
+
+![warehouse](./img/track-warehouse.png)
 
 Root AABB (-6.26, 0, -7) → (6.26, 7.918, 7)
 
@@ -534,6 +546,8 @@ Root AABB (-6.26, 0, -7) → (6.26, 7.918, 7)
 | `tripo_node_65d16bf6-752d-4824-8b7b-5fcc408a0023` | `tripo_mesh_65d16bf6-752d-4824-8b7b-5fcc408a0023` | 1 | 5034 | (0, 3.959, 0) | (-6.26, 0, -7) → (6.26, 7.918, 7) | warehouse |
 
 ### `tank` — `public/models/track/tank.glb`
+
+![tank](./img/track-tank.png)
 
 Root AABB (-3.796, 0, -3.468) → (3.796, 8, 3.468)
 
