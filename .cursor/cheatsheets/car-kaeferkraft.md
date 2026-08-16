@@ -229,7 +229,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 ## Waist anchor picker
 
-Live poles are detached: say `WaistL` (−Z, original sit) or `WaistR` (+Z, BodyPaint). Caps bury 8 cm into the hull.
+Live poles are detached: say `WaistL` (−Z) or `WaistR` (+Z). Caps bury 8 cm into the hull.
 
 ![Käferkraft Waist anchors](../../assets/tripo-concepts/kaeferkraft-waist-anchors.png)
 
@@ -366,7 +366,7 @@ Root AABB (-0.555, 0, -0.605) → (0.555, 0.4, 0.605)
 
 ![public/models/parts/kaeferkraft-reinforced_frame.glb](./img/part-kaeferkraft-reinforced_frame.png)
 
-Root AABB (-0.586, 0.935, -0.575) → (0.669, 1.503, 0.601)
+Root AABB (-0.654, 1.026, -0.635) → (0.669, 1.503, 0.601)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
 <rect x="0" y="0" width="760" height="520" fill="#f4efe6"/>
@@ -415,10 +415,10 @@ Root AABB (-0.586, 0.935, -0.575) → (0.669, 1.503, 0.601)
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
 <text x="48" y="151.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
-<rect x="344.1" y="316.3" width="154.3" height="5.6" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="421.3" y="319.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistL</text>
-<rect x="355.5" y="308.5" width="145.2" height="13.3" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="428.2" y="315.2" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop_L</text>
+<rect x="286.9" y="303.9" width="224.0" height="24.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="398.9" y="316.2" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistL</text>
+<rect x="355.9" y="308.5" width="156.3" height="20.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="434.1" y="318.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop_L</text>
 <rect x="298.6" y="191.3" width="213.7" height="15.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="405.4" y="199.2" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistR</text>
 <rect x="356.0" y="191.3" width="157.8" height="16.2" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
@@ -429,8 +429,8 @@ Root AABB (-0.586, 0.935, -0.575) → (0.669, 1.503, 0.601)
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `WaistL` | `WaistL` | 1 | 52 | (0.13, 0.96, -0.55) | (-0.32, 0.935, -0.575) → (0.58, 0.985, -0.525) | Grey |
-| `WaistToFrontTop_L` | `WaistToFrontTop_L` | 1 | 52 | (0.17, 1.22, -0.515) | (-0.253, 0.939, -0.575) → (0.593, 1.501, -0.455) | Grey |
+| `WaistL` | `WaistL` | 1 | 52 | (-0.001, 1.056, -0.524) | (-0.654, 1.026, -0.635) → (0.653, 1.086, -0.414) | Grey |
+| `WaistToFrontTop_L` | `WaistToFrontTop_L` | 1 | 52 | (0.205, 1.265, -0.545) | (-0.251, 1.028, -0.635) → (0.66, 1.502, -0.455) | Grey |
 | `WaistR` | `WaistR` | 1 | 52 | (0.037, 1.062, 0.53) | (-0.586, 1.036, 0.459) → (0.661, 1.088, 0.601) | Grey |
 | `WaistToFrontTop_R` | `WaistToFrontTop_R` | 1 | 52 | (0.209, 1.272, 0.528) | (-0.251, 1.041, 0.455) → (0.669, 1.503, 0.601) | Grey |
 

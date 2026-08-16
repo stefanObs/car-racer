@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Käferkraft Verstärkter Rahmen: straight Grey cylinders in mesh space (nose −X).
- * Replaces the Tripo blob. WaistL uses the original pole sit; WaistR
- * follows BodyPaint garage picks. Plus a diagonal from each rear
- * insertion to the cage top-front. Radius matches the welded stock cage.
+ * Replaces the Tripo blob. Waist rails follow BodyPaint garage picks
+ * (caps buried into the hull) plus a diagonal from each rear insertion
+ * to the cage top-front. Radius matches the welded stock cage.
  *
  *   node scripts/bake-kaeferkraft-pole-frame.mjs
  */
@@ -50,22 +50,18 @@ const GREY = 0x6a7078;
 /**
  * Independent waist rails (mesh m, nose −X). Command `WaistL` or `WaistR` alone.
  * Keep in sync with `buildReinforcedFrame("buggy")`.
- * WaistL = original pole (v0.3.226): front stops short of the cowl; rear +INTO on +X.
- * WaistR = v0.3.244 BodyPaint span; both caps buried along the pole.
  */
 const WAIST_L = {
   name: "WaistL",
   stay: "WaistToFrontTop_L",
-  front: [-0.32, 0.96, -0.55],
-  rear: [0.5, 0.96, -0.55],
-  bury: "rearX",
+  front: [-0.571, 1.061, -0.449],
+  rear: [0.57, 1.051, -0.6],
 };
 const WAIST_R = {
   name: "WaistR",
   stay: "WaistToFrontTop_R",
   front: [-0.504, 1.061, 0.49],
   rear: [0.579, 1.063, 0.57],
-  bury: "both",
 };
 
 function extendIntoFrame(a, b, into) {
@@ -102,17 +98,10 @@ function addPole(parent, a, b, name) {
   parent.add(mesh);
 }
 
-function poleEnds(side) {
-  if (side.bury === "rearX") {
-    return [side.front, [side.rear[0] + INTO, side.rear[1], side.rear[2]]];
-  }
-  return extendIntoFrame(side.front, side.rear, INTO);
-}
-
 const g = new Group();
 g.name = "kaeferkraft-reinforced_frame";
 for (const side of [WAIST_L, WAIST_R]) {
-  const [front, rear] = poleEnds(side);
+  const [front, rear] = extendIntoFrame(side.front, side.rear, INTO);
   addPole(g, front, rear, side.name);
   addPole(g, rear, [CAGE_FRONT_TOP.x, CAGE_FRONT_TOP.y, Math.sign(side.rear[2]) * CAGE_FRONT_TOP.z], side.stay);
 }
