@@ -1,4 +1,5 @@
-import type { MeshInspectHit } from "../core/meshInspect";
+import type { MeshInspectHit, MeshInspectSelection } from "../core/meshInspect";
+import { meshInspectEscapeStep, meshInspectNudgeDelta } from "../core/meshInspect";
 import type { CarId } from "../data/cars";
 import type { PartId } from "../data/parts";
 import {
@@ -34,6 +35,12 @@ type DevHooks = {
   canMeshInspect: () => boolean;
   isMeshInspect: () => boolean;
   setMeshInspect: (on: boolean) => void;
+  isMeshInspectEdit: () => boolean;
+  setMeshInspectEdit: (on: boolean) => void;
+  meshInspectSelection: () => MeshInspectSelection | null;
+  clearMeshInspectSelection: () => boolean;
+  nudgeMeshInspect: (dx: number, dy: number, dz: number) => void;
+  resetMeshInspectSelection: () => boolean;
 };
 
 /**
@@ -79,7 +86,7 @@ export class DevTools {
 
   copyMeshInspectPanel(): void {
     if (!this.hooks.isMeshInspect()) return;
-    const text = meshInspectClipboardText(this.inspectHits);
+    const text = meshInspectClipboardText(this.inspectHits, this.hooks.meshInspectSelection());
     void copyTextToClipboard(text).then((ok) => {
       if (!ok) return;
       this.inspectCopied = true;
@@ -154,6 +161,40 @@ export class DevTools {
       this.render();
       return;
     }
+    if (this.hooks.isMeshInspect()) {
+      if (e.code === "KeyE") {
+        e.preventDefault();
+        this.hooks.setMeshInspectEdit(!this.hooks.isMeshInspectEdit());
+        this.syncInspectPanel();
+        return;
+      }
+      if (e.code === "KeyR") {
+        if (!this.hooks.meshInspectSelection()) return;
+        e.preventDefault();
+        this.hooks.resetMeshInspectSelection();
+        this.syncInspectPanel();
+        return;
+      }
+      const nudge = meshInspectNudgeDelta(e.code, { shift: e.shiftKey, ctrl: e.ctrlKey });
+      if (nudge && this.hooks.meshInspectSelection()) {
+        e.preventDefault();
+        this.hooks.nudgeMeshInspect(nudge.x, nudge.y, nudge.z);
+        this.syncInspectPanel();
+        return;
+      }
+      if (e.code === "Escape") {
+        e.preventDefault();
+        const step = meshInspectEscapeStep({
+          hasSelection: Boolean(this.hooks.meshInspectSelection()),
+          edit: this.hooks.isMeshInspectEdit(),
+        });
+        if (step === "clearSelection") this.hooks.clearMeshInspectSelection();
+        else if (step === "leaveEdit") this.hooks.setMeshInspectEdit(false);
+        else this.hooks.setMeshInspect(false);
+        this.render();
+        return;
+      }
+    }
     if (e.code === "F6") {
       e.preventDefault();
       this.setPhotoMode(!isPhotoMode(document.documentElement));
@@ -163,12 +204,6 @@ export class DevTools {
       if (!this.hooks.canSwapParts()) return;
       e.preventDefault();
       this.dialog = this.dialog === "parts" ? "none" : "parts";
-      this.render();
-      return;
-    }
-    if (e.code === "Escape" && this.hooks.isMeshInspect()) {
-      e.preventDefault();
-      this.hooks.setMeshInspect(false);
       this.render();
       return;
     }
@@ -186,9 +221,19 @@ export class DevTools {
       return;
     }
     applyMeshInspectMode(document.documentElement, true);
-    const html = renderMeshInspectPanelHtml(this.inspectHits, this.inspectCopied);
+    const html = renderMeshInspectPanelHtml(this.inspectHits, {
+      copied: this.inspectCopied,
+      edit: this.hooks.isMeshInspectEdit(),
+      selection: this.hooks.meshInspectSelection(),
+    });
     if (existing) existing.outerHTML = html;
     else this.root.insertAdjacentHTML("beforeend", html);
+    this.root.querySelector("[data-mesh-inspect-edit]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.hooks.setMeshInspectEdit(!this.hooks.isMeshInspectEdit());
+      this.syncInspectPanel();
+    });
   }
 
   private render(): void {

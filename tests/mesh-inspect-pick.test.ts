@@ -1,13 +1,21 @@
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera } from "three";
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
+import { GARAGE_PAINTS } from "../src/data/cosmetics";
 import {
   carMeshSpaceRoot,
+  isGreenishRgb,
   isInkRgb,
   isReddishRgb,
+  meshInspectBackgroundHex,
+  meshInspectHitName,
   meshInspectMarkerHex,
   meshInspectPartName,
+  meshInspectSelectableParent,
   pickFillRgbFromPatch,
+  MESH_INSPECT_BG,
+  MESH_INSPECT_BG_ON_GREEN,
   MESH_INSPECT_MARKER_BLUE,
+  MESH_INSPECT_MARKER_RADIUS,
   MESH_INSPECT_MARKER_RED,
   pickMeshInspectHits,
 } from "../src/render/meshInspectPick";
@@ -34,7 +42,16 @@ function carWithParts(): { root: Group; camera: PerspectiveCamera } {
   wheel.add(wheelMesh);
   spin.add(wheel);
   steer.add(spin);
-  bake.add(body, steer);
+  const part = new Group();
+  part.name = "carPart-reinforced_frame";
+  const waistNear = new Mesh(new BoxGeometry(0.12, 0.12, 0.12), new MeshBasicMaterial());
+  waistNear.name = "Waist";
+  waistNear.position.set(-0.7, 0, 2.2);
+  const waistFar = new Mesh(new BoxGeometry(0.12, 0.12, 0.12), new MeshBasicMaterial());
+  waistFar.name = "Waist";
+  waistFar.position.set(0.7, 0, 2.2);
+  part.add(waistNear, waistFar);
+  bake.add(body, steer, part);
   const wrap = new Group();
   wrap.name = "gltf-blitz";
   wrap.add(bake);
@@ -66,8 +83,25 @@ describe("mesh inspect picking", () => {
     const hits = pickMeshInspectHits(root, camera, 100, 100, fakeCanvas()).hits;
     expect(hits.length).toBeGreaterThanOrEqual(1);
     expect(hits.some((h) => h.name === "BodyPaint")).toBe(true);
-    const names = hits.map((h) => h.name);
-    expect(new Set(names).size).toBe(names.length);
+  });
+
+  it("keeps same-named submeshes as separate selectable hits", () => {
+    const { root, camera } = carWithParts();
+    const left = new Vector3(-0.7, 0, 2.2).project(camera);
+    const right = new Vector3(0.7, 0, 2.2).project(camera);
+    const toClient = (ndc: Vector3) => ({
+      x: (ndc.x * 0.5 + 0.5) * 200,
+      y: (-ndc.y * 0.5 + 0.5) * 200,
+    });
+    const leftHit = pickMeshInspectHits(root, camera, toClient(left).x, toClient(left).y, fakeCanvas()).hits[0];
+    const rightHit = pickMeshInspectHits(root, camera, toClient(right).x, toClient(right).y, fakeCanvas()).hits[0];
+    expect(leftHit?.name).toContain("Waist");
+    expect(rightHit?.name).toContain("Waist");
+    expect(leftHit?.id).not.toBe(rightHit?.id);
+    expect(leftHit?.parentId).toBe(rightHit?.parentId);
+    const near = root.getObjectByName("carPart-reinforced_frame")!.children[0]!;
+    expect(meshInspectHitName(near, root)).toBe("carPart-reinforced_frame / Waist");
+    expect(meshInspectSelectableParent(near, root)?.name).toBe("carPart-reinforced_frame");
   });
 
   it("places a marker at the nearest hit and turns it blue on red paint", () => {
@@ -108,5 +142,20 @@ describe("mesh inspect picking", () => {
     const allInk = pickFillRgbFromPatch(new Uint8Array(8 * 8 * 4), 8, 8, 4, 4);
     expect(isReddishRgb(allInk.r, allInk.g, allInk.b)).toBe(false);
     expect(meshInspectMarkerHex(fromInk.r, fromInk.g, fromInk.b)).toBe(MESH_INSPECT_MARKER_BLUE);
+  });
+
+  it("keeps the pick marker at a quarter of the original 0.07 m radius", () => {
+    expect(MESH_INSPECT_MARKER_RADIUS).toBeCloseTo(0.0175, 6);
+  });
+
+  it("uses a green F5 void unless the car paint is green, then violet", () => {
+    expect(meshInspectBackgroundHex("#e03131")).toBe(MESH_INSPECT_BG);
+    expect(meshInspectBackgroundHex("#339af0")).toBe(MESH_INSPECT_BG);
+    expect(meshInspectBackgroundHex("#12b886")).toBe(MESH_INSPECT_BG_ON_GREEN);
+    expect(meshInspectBackgroundHex("#2f9e44")).toBe(MESH_INSPECT_BG_ON_GREEN);
+    expect(isGreenishRgb(18, 184, 134)).toBe(true);
+    expect(isGreenishRgb(224, 49, 49)).toBe(false);
+    const greens = GARAGE_PAINTS.filter((p) => meshInspectBackgroundHex(p) === MESH_INSPECT_BG_ON_GREEN);
+    expect(greens).toEqual(["#12b886", "#2f9e44"]);
   });
 });

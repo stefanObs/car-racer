@@ -1925,8 +1925,27 @@ html.dev-mesh-inspect-mode .dev-badge {
 }
 
 .dev-mesh-inspect .dim {
-  margin: 0;
+  margin: 0 0 8px;
   font-size: 0.72rem;
+}
+
+.dev-mesh-inspect-selected {
+  margin: 0 0 6px;
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  font-size: 0.75rem;
+  color: #ffe066;
+}
+
+.dev-mesh-inspect-edit {
+  pointer-events: auto;
+  margin: 0;
+  padding: 4px 8px;
+  font: inherit;
+  font-size: 0.72rem;
+  color: #ffe066;
+  background: transparent;
+  border: 1px solid #ffe066;
+  cursor: pointer;
 }
 
 .dev-root {

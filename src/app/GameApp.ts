@@ -27,7 +27,13 @@ import type { LevelDefinition } from "../track/types";
 import { renderAdhocHtml } from "../ui/adhocHtml";
 import { renderGarageHtml } from "../ui/garageHtml";
 import { garageOrbitAxesForPointer } from "../render/garageOrbit";
-import { meshInspectPointerAction } from "../core/meshInspect";
+import {
+  meshInspectDragExceeded,
+  meshInspectDragMode,
+  meshInspectGestureAfterDrag,
+  meshInspectPointerAction,
+  meshInspectWantParent,
+} from "../core/meshInspect";
 import { renderMenuHtml } from "../ui/menuHtml";
 import { renderCupPickHtml, renderFreePickHtml, renderTrainingPickHtml } from "../ui/modePickHtml";
 import { renderRaceChromeHtml } from "../ui/raceChromeHtml";
@@ -125,6 +131,12 @@ export class GameApp {
         if (on && this.screen === "race") return;
         this.renderer.setMeshInspect(on);
       },
+      isMeshInspectEdit: () => this.renderer.isMeshInspectEdit(),
+      setMeshInspectEdit: (on) => this.renderer.setMeshInspectEdit(on),
+      meshInspectSelection: () => this.renderer.meshInspectSelection(),
+      clearMeshInspectSelection: () => this.renderer.clearMeshInspectSelection(),
+      nudgeMeshInspect: (dx, dy, dz) => this.renderer.nudgeMeshInspect(dx, dy, dz),
+      resetMeshInspectSelection: () => this.renderer.resetMeshInspectSelection(),
     });
     this.renderUi();
   }
@@ -208,7 +220,20 @@ export class GameApp {
 
   /** LMB/1-finger yaw; RMB/2-finger free tumble (with pad hover). */
   private bindGarageOrbit(canvas: HTMLCanvasElement): void {
-    const pointers = new Map<number, { x: number; y: number; type: string; button: number }>();
+    const pointers = new Map<
+      number,
+      {
+        x: number;
+        y: number;
+        type: string;
+        button: number;
+        inspect?: "pending" | "orbit" | "move";
+        startX?: number;
+        startY?: number;
+        hitId?: string | null;
+        wantParent?: boolean;
+      }
+    >();
 
     const touchLikeCount = (): number =>
       [...pointers.values()].filter((p) => p.type === "touch" || p.type === "pen").length;
@@ -255,22 +280,33 @@ export class GameApp {
 
     canvas.addEventListener("pointerdown", (e) => {
       if (this.renderer.isMeshInspect()) {
-        const action = meshInspectPointerAction(e.button);
+        const action = meshInspectPointerAction(e.button, {
+          edit: this.renderer.isMeshInspectEdit(),
+          altKey: e.altKey,
+        });
         if (action === "copy") {
           e.preventDefault();
           this.dev.copyMeshInspectPanel();
           return;
         }
-        if (action !== "orbit") return;
+        if (action === "ignore") return;
+        const hits = this.renderer.pickMeshInspect(e.clientX, e.clientY, canvas);
+        this.dev.setMeshInspectHits(hits);
+        const inspect = action === "orbit" ? "orbit" : "pending";
         pointers.set(e.pointerId, {
           x: e.clientX,
           y: e.clientY,
           type: e.pointerType,
           button: e.button,
+          inspect,
+          startX: e.clientX,
+          startY: e.clientY,
+          hitId: hits[0]?.id ?? null,
+          wantParent: meshInspectWantParent({ shift: e.shiftKey }),
         });
         canvas.setPointerCapture(e.pointerId);
         this.renderer.setGarageDragging(true);
-        canvas.classList.toggle("is-orbiting", true);
+        canvas.classList.toggle("is-orbiting", inspect === "orbit");
         e.preventDefault();
         return;
       }
@@ -297,11 +333,32 @@ export class GameApp {
         if (prev) {
           const dx = e.clientX - prev.x;
           const dy = e.clientY - prev.y;
+          if (
+            prev.inspect === "pending" &&
+            meshInspectDragExceeded(e.clientX - (prev.startX ?? prev.x), e.clientY - (prev.startY ?? prev.y))
+          ) {
+            prev.inspect = meshInspectGestureAfterDrag({
+              edit: this.renderer.isMeshInspectEdit(),
+              hasSelection: Boolean(this.renderer.meshInspectSelection()),
+              hitIsSelection: this.renderer.meshInspectHitIsSelection(prev.hitId),
+              hitEmpty: !prev.hitId,
+            });
+            canvas.classList.toggle("is-orbiting", prev.inspect === "orbit");
+          }
+          if (prev.inspect === "orbit" && (dx !== 0 || dy !== 0)) {
+            this.renderer.addGarageOrbitFromDrag(dx, dy, { yaw: true, pitch: true });
+          } else if (prev.inspect === "move") {
+            this.renderer.dragMeshInspect(
+              prev.x,
+              prev.y,
+              e.clientX,
+              e.clientY,
+              canvas,
+              meshInspectDragMode({ shift: e.shiftKey, ctrl: e.ctrlKey }),
+            );
+          }
           prev.x = e.clientX;
           prev.y = e.clientY;
-          if (dx !== 0 || dy !== 0) {
-            this.renderer.addGarageOrbitFromDrag(dx, dy, { yaw: true, pitch: true });
-          }
         }
         this.dev.setMeshInspectHits(this.renderer.pickMeshInspect(e.clientX, e.clientY, canvas));
         return;
@@ -319,6 +376,18 @@ export class GameApp {
     });
 
     canvas.addEventListener("pointerup", (e) => {
+      if (this.renderer.isMeshInspect()) {
+        const prev = pointers.get(e.pointerId);
+        if (prev?.inspect === "pending" && this.renderer.isMeshInspectEdit()) {
+          const hits = this.renderer.selectMeshInspectAt(
+            e.clientX,
+            e.clientY,
+            canvas,
+            Boolean(prev.wantParent),
+          );
+          this.dev.setMeshInspectHits(hits);
+        }
+      }
       release(e.pointerId);
       releaseMouseIfIdle(e.buttons);
     });
@@ -334,7 +403,7 @@ export class GameApp {
       document.activeElement instanceof HTMLInputElement ||
       document.activeElement instanceof HTMLTextAreaElement;
     const actions = sampleActions();
-    if (!typing) this.handleUiNav(actions);
+    if (!typing && !this.renderer.isMeshInspect()) this.handleUiNav(actions);
 
     if (this.screen === "race" && this.race) {
       if (this.settingsOpen) {
@@ -389,6 +458,7 @@ export class GameApp {
 
   private onMenuKeyDown(e: KeyboardEvent): void {
     if (e.code === "F1" || e.code === "F2" || e.code === "F3" || e.code === "F4" || e.code === "F5" || e.code === "F6" || e.code === "F7") return;
+    if (this.renderer.isMeshInspect()) return;
     if (this.settingsOpen) {
       if (e.code === "Escape") {
         e.preventDefault();

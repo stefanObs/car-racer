@@ -12,10 +12,16 @@ import {
 import type { MeshInspectHit } from "../core/meshInspect";
 import { isUnderCarFx } from "./garageSit";
 
-export const MESH_INSPECT_BG = 0x1e88e5;
+/** Default F5 void — green so red/blue cars stay readable. */
+export const MESH_INSPECT_BG = 0x2ecc71;
+/** F5 void when the equipped paint is green. */
+export const MESH_INSPECT_BG_ON_GREEN = 0x8b5cf6;
 export const MESH_INSPECT_MARKER_NAME = "meshInspectMarker";
+export const MESH_INSPECT_SELECT_HELPER_NAME = "meshInspectSelectBox";
 export const MESH_INSPECT_MARKER_RED = 0xff3b3b;
 export const MESH_INSPECT_MARKER_BLUE = 0x40c4ff;
+/** Was 0.07 m; a quarter of that so the pick ball does not hide the mesh. */
+export const MESH_INSPECT_MARKER_RADIUS = 0.07 / 4;
 
 export type MeshInspectMarkerPose = {
   x: number;
@@ -35,9 +41,17 @@ const _towardCam = new Vector3();
 const _matColor = new Color();
 const _raycaster = new Raycaster();
 
-const SKIP_NAMES = new Set(["", "Scene", "Node", "carGroundBlob", "RootNode", MESH_INSPECT_MARKER_NAME]);
+const SKIP_NAMES = new Set([
+  "",
+  "Scene",
+  "Node",
+  "carGroundBlob",
+  "RootNode",
+  MESH_INSPECT_MARKER_NAME,
+  MESH_INSPECT_SELECT_HELPER_NAME,
+]);
 
-const MARKER_LIFT = 0.04;
+const MARKER_LIFT = MESH_INSPECT_MARKER_RADIUS;
 /** Comic atlases store paint in UV islands; a 1px sample often lands on ink. */
 const ATLAS_FILL_RADIUS_PX = 16;
 const INK_LUMA = 48;
@@ -48,6 +62,26 @@ let sampleCtx: CanvasRenderingContext2D | null = null;
 /** True when a surface pixel is red enough that a red marker would vanish. */
 export function isReddishRgb(r: number, g: number, b: number): boolean {
   return r >= 96 && r > g + 24 && r > b + 24;
+}
+
+/** True when garage paint is green enough that a green void would vanish. */
+export function isGreenishRgb(r: number, g: number, b: number): boolean {
+  return g >= 96 && g > r + 16 && g >= b;
+}
+
+export function meshInspectBackgroundHex(paintCss: string): number {
+  const hex = cssPaintHex(paintCss);
+  const r = (hex >> 16) & 255;
+  const g = (hex >> 8) & 255;
+  const b = hex & 255;
+  return isGreenishRgb(r, g, b) ? MESH_INSPECT_BG_ON_GREEN : MESH_INSPECT_BG;
+}
+
+/** Garage paints are #rrggbb; avoid three.js linear Color.r for classification. */
+function cssPaintHex(paintCss: string): number {
+  const m = /^#?([0-9a-f]{6})$/i.exec(paintCss.trim());
+  if (m?.[1]) return Number.parseInt(m[1], 16);
+  return new Color(paintCss).getHex();
 }
 
 export function isInkRgb(r: number, g: number, b: number): boolean {
@@ -136,17 +170,43 @@ export function carMeshSpaceRoot(carRoot: Object3D): Object3D {
   return carRoot;
 }
 
+function isUsefulName(name: string): boolean {
+  return Boolean(name) && !SKIP_NAMES.has(name) && !name.startsWith("WheelSpin_") && !name.startsWith("WheelSteer_");
+}
+
 export function meshInspectPartName(obj: Object3D, carRoot: Object3D): string {
   let p: Object3D | null = obj;
   while (p) {
     const name = p.name?.trim() ?? "";
-    if (name && !SKIP_NAMES.has(name) && !name.startsWith("WheelSpin_") && !name.startsWith("WheelSteer_")) {
-      return name;
-    }
+    if (isUsefulName(name)) return name;
     if (p === carRoot) break;
     p = p.parent;
   }
   return carRoot.name?.trim() || "car";
+}
+
+/** Named group that owns this mesh — Ctrl+click moves the whole part. */
+export function meshInspectSelectableParent(obj: Object3D, carRoot: Object3D): Object3D | null {
+  const space = carMeshSpaceRoot(carRoot);
+  let p: Object3D | null = obj.parent;
+  while (p && p !== carRoot && p !== space) {
+    const name = p.name?.trim() ?? "";
+    if (isUsefulName(name)) return p;
+    p = p.parent;
+  }
+  return null;
+}
+
+/** Leaf name, with parent prefix when the mesh sits under a named part. */
+export function meshInspectHitName(obj: Object3D, carRoot: Object3D): string {
+  const leaf = obj.name?.trim() ?? "";
+  const parent = meshInspectSelectableParent(obj, carRoot);
+  if (isUsefulName(leaf)) {
+    const parentName = parent?.name?.trim() ?? "";
+    if (parentName && parentName !== leaf) return `${parentName} / ${leaf}`;
+    return leaf;
+  }
+  return meshInspectPartName(obj, carRoot);
 }
 
 export function pointerToNdc(
@@ -226,7 +286,13 @@ export function sampleHitRgb(hit: Intersection): { r: number; g: number; b: numb
 
 function skipPickObject(obj: Object3D): boolean {
   if (!obj.visible) return true;
-  if (obj.name === "carGroundBlob" || obj.name === MESH_INSPECT_MARKER_NAME) return true;
+  if (
+    obj.name === "carGroundBlob" ||
+    obj.name === MESH_INSPECT_MARKER_NAME ||
+    obj.name === MESH_INSPECT_SELECT_HELPER_NAME
+  ) {
+    return true;
+  }
   return isUnderCarFx(obj);
 }
 
@@ -252,11 +318,18 @@ export function pickMeshInspectHits(
   for (const hit of raw) {
     const obj = hit.object;
     if (skipPickObject(obj)) continue;
-    const name = meshInspectPartName(obj, carRoot);
-    if (!seen.has(name)) {
-      seen.add(name);
+    if (!seen.has(obj.uuid)) {
+      seen.add(obj.uuid);
       space.worldToLocal(_local.copy(hit.point));
-      hits.push({ name, x: _local.x, y: _local.y, z: _local.z });
+      const parent = meshInspectSelectableParent(obj, carRoot);
+      hits.push({
+        name: meshInspectHitName(obj, carRoot),
+        id: obj.uuid,
+        parentId: parent?.uuid,
+        x: _local.x,
+        y: _local.y,
+        z: _local.z,
+      });
     }
     if (!marker) {
       const rgb = sampleHitRgb(hit);

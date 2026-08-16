@@ -24,6 +24,7 @@ import { sampleCenterline } from "../track/buildTrack";
 import { carStateLookKey } from "./carLookKey";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../core/finishCelebrate";
+import type { MeshInspectDragMode } from "../core/meshInspect";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
@@ -162,6 +163,54 @@ export class RaceRenderer {
 
   pickMeshInspect(clientX: number, clientY: number, canvas: HTMLCanvasElement) {
     return this.garage.pickMeshInspect(clientX, clientY, canvas);
+  }
+
+  isMeshInspectEdit(): boolean {
+    return this.garage.isMeshInspectEdit();
+  }
+
+  setMeshInspectEdit(on: boolean): void {
+    this.garage.setMeshInspectEdit(on);
+  }
+
+  meshInspectSelection() {
+    return this.garage.meshInspectSelection();
+  }
+
+  meshInspectHitIsSelection(hitId: string | null | undefined): boolean {
+    return this.garage.meshInspectHitIsSelection(hitId);
+  }
+
+  selectMeshInspectAt(
+    clientX: number,
+    clientY: number,
+    canvas: HTMLCanvasElement,
+    wantParent: boolean,
+  ) {
+    return this.garage.selectMeshInspectAt(clientX, clientY, canvas, wantParent);
+  }
+
+  clearMeshInspectSelection(): boolean {
+    return this.garage.clearMeshInspectSelection();
+  }
+
+  dragMeshInspect(
+    fromClientX: number,
+    fromClientY: number,
+    toClientX: number,
+    toClientY: number,
+    canvas: HTMLCanvasElement,
+    mode: MeshInspectDragMode,
+  ): void {
+    this.garage.dragMeshInspect(fromClientX, fromClientY, toClientX, toClientY, canvas, mode);
+  }
+
+  nudgeMeshInspect(dx: number, dy: number, dz: number): void {
+    this.garage.nudgeMeshInspect(dx, dy, dz);
+  }
+
+  resetMeshInspectSelection(): boolean {
+    return this.garage.resetMeshInspectSelection();
   }
 
   /** Pointer drag — LMB yaw; RMB / 2-finger free tumble. */
