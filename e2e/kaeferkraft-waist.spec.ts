@@ -67,9 +67,14 @@ test.describe("Käferkraft waist poles", () => {
         position: { x: number; y: number; z: number };
       };
       const car = (window as unknown as { __idleCar?: Obj }).__idleCar;
-      if (!car) return { error: "no idle car", waists: [] as { name: string; mid: [number, number, number]; half: number }[], stays: 0 };
+      if (!car)
+        return {
+          error: "no idle car",
+          waists: [] as { name: string; mid: [number, number, number]; half: number }[],
+          stays: [] as { name: string; mid: [number, number, number] }[],
+        };
       const waists: { name: string; mid: [number, number, number]; half: number }[] = [];
-      let stays = 0;
+      const stays: { name: string; mid: [number, number, number] }[] = [];
       const walk = (o: Obj) => {
         if (o.name === "WaistL" || o.name === "WaistR") {
           o.geometry?.computeBoundingBox?.();
@@ -77,7 +82,9 @@ test.describe("Käferkraft waist poles", () => {
           const half = bb ? (bb.max.y - bb.min.y) / 2 : 0;
           waists.push({ name: o.name, mid: [o.position.x, o.position.y, o.position.z], half });
         }
-        if (o.name === "WaistToFrontTop_L" || o.name === "WaistToFrontTop_R") stays += 1;
+        if (o.name === "WaistToFrontTop_L" || o.name === "WaistToFrontTop_R") {
+          stays.push({ name: o.name, mid: [o.position.x, o.position.y, o.position.z] });
+        }
         for (const c of o.children) walk(c);
       };
       walk(car);
@@ -86,9 +93,11 @@ test.describe("Käferkraft waist poles", () => {
 
     expect(coverage.error).toBe("");
     expect(coverage.waists).toHaveLength(2);
-    expect(coverage.stays).toBe(2);
+    expect(coverage.stays).toHaveLength(2);
     const left = coverage.waists.find((w) => w.name === "WaistL");
     const right = coverage.waists.find((w) => w.name === "WaistR");
+    const stayL = coverage.stays.find((s) => s.name === "WaistToFrontTop_L");
+    const stayR = coverage.stays.find((s) => s.name === "WaistToFrontTop_R");
     expect(left).toBeTruthy();
     expect(right).toBeTruthy();
     expect(left!.mid[2]).toBeLessThan(0);
@@ -106,5 +115,13 @@ test.describe("Käferkraft waist poles", () => {
     expect(right!.half).toBeGreaterThan(0.55);
     expect(right!.mid[2]).toBeGreaterThan(0.5);
     expect(right!.mid[2]).toBeLessThan(0.58);
+    expect(stayL).toBeTruthy();
+    expect(stayR).toBeTruthy();
+    expect(stayL!.mid[1]).toBeGreaterThan(1.28);
+    expect(stayL!.mid[1]).toBeLessThan(1.42);
+    expect(stayL!.mid[2]).toBeLessThan(-0.45);
+    expect(stayR!.mid[1]).toBeGreaterThan(1.28);
+    expect(stayR!.mid[1]).toBeLessThan(1.42);
+    expect(stayR!.mid[2]).toBeGreaterThan(0.45);
   });
 });

@@ -3,7 +3,7 @@
  * Käferkraft Verstärkter Rahmen: straight Grey cylinders in mesh space (nose −X).
  * Replaces the Tripo blob. Waist rails follow BodyPaint garage picks
  * (caps buried into the hull) plus a diagonal from each rear insertion
- * to the cage top-front. Radius matches the welded stock cage.
+ * to BodyPaint cage picks. Radius matches the welded stock cage.
  *
  *   node scripts/bake-kaeferkraft-pole-frame.mjs
  */
@@ -41,27 +41,28 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outPath = join(rootDir, "public/models/parts/kaeferkraft-reinforced_frame.glb");
 
 const RADIUS = 0.025;
-/** Bury both caps along the pole so cut edges sit inside BodyPaint. */
+/** Bury caps along the pole so cut edges sit inside BodyPaint. */
 const INTO = 0.08;
-/** Stock cage top-front tube (mesh space, nose −X). */
-const CAGE_FRONT_TOP = { x: -0.24, y: 1.48, z: 0.48 };
 const GREY = 0x6a7078;
 
 /**
  * Independent waist rails (mesh m, nose −X). Command `WaistL` or `WaistR` alone.
  * Keep in sync with `buildReinforcedFrame("buggy")`.
+ * Stays run from the buried waist rear to a BodyPaint cage pick (cage cap buried).
  */
 const WAIST_L = {
   name: "WaistL",
   stay: "WaistToFrontTop_L",
   front: [-0.571, 1.061, -0.449],
   rear: [0.57, 1.051, -0.6],
+  cage: [-0.07, 1.586, -0.458],
 };
 const WAIST_R = {
   name: "WaistR",
   stay: "WaistToFrontTop_R",
   front: [-0.504, 1.061, 0.49],
   rear: [0.579, 1.063, 0.57],
+  cage: [-0.053, 1.591, 0.44],
 };
 
 function extendIntoFrame(a, b, into) {
@@ -103,7 +104,7 @@ g.name = "kaeferkraft-reinforced_frame";
 for (const side of [WAIST_L, WAIST_R]) {
   const [front, rear] = extendIntoFrame(side.front, side.rear, INTO);
   addPole(g, front, rear, side.name);
-  addPole(g, rear, [CAGE_FRONT_TOP.x, CAGE_FRONT_TOP.y, Math.sign(side.rear[2]) * CAGE_FRONT_TOP.z], side.stay);
+  addPole(g, rear, extendIntoFrame(rear, side.cage, INTO)[1], side.stay);
 }
 
 const exporter = new GLTFExporter();

@@ -204,30 +204,24 @@ export function buildReinforcedFrame(
     // Same spec as scripts/bake-kaeferkraft-pole-frame.mjs (stock cage r ≈ 0.025).
     const r = 0.025;
     const into = 0.08;
-    const cageFrontTop = { x: -0.24, y: 1.48, z: 0.48 };
     const waistL = {
       name: "WaistL",
       stay: "WaistToFrontTop_L",
       front: [-0.571, 1.061, -0.449] as PoleEnd,
       rear: [0.57, 1.051, -0.6] as PoleEnd,
+      cage: [-0.07, 1.586, -0.458] as PoleEnd,
     };
     const waistR = {
       name: "WaistR",
       stay: "WaistToFrontTop_R",
       front: [-0.504, 1.061, 0.49] as PoleEnd,
       rear: [0.579, 1.063, 0.57] as PoleEnd,
+      cage: [-0.053, 1.591, 0.44] as PoleEnd,
     };
     for (const side of [waistL, waistR]) {
       const [front, rear] = extendPoleIntoFrame(side.front, side.rear, into);
       addStraightPole(g, front, rear, r, GREY, side.name);
-      addStraightPole(
-        g,
-        rear,
-        [cageFrontTop.x, cageFrontTop.y, Math.sign(side.rear[2]) * cageFrontTop.z],
-        r,
-        GREY,
-        side.stay,
-      );
+      addStraightPole(g, rear, extendPoleIntoFrame(rear, side.cage, into)[1], r, GREY, side.stay);
     }
     return g;
   }

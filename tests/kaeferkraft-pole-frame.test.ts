@@ -10,11 +10,13 @@ const WAIST_L_PICK = {
   name: "WaistL",
   front: new Vector3(-0.571, 1.061, -0.449),
   rear: new Vector3(0.57, 1.051, -0.6),
+  cage: new Vector3(-0.07, 1.586, -0.458),
 };
 const WAIST_R_PICK = {
   name: "WaistR",
   front: new Vector3(-0.504, 1.061, 0.49),
   rear: new Vector3(0.579, 1.063, 0.57),
+  cage: new Vector3(-0.053, 1.591, 0.44),
 };
 
 function cylinderEnds(node: GltfNode): [Vector3, Vector3] {
@@ -69,6 +71,15 @@ function expectRailCovers(ends: [Vector3, Vector3], pick: { front: Vector3; rear
   expect(projectT(pick.rear, front, rear)).toBeLessThan(0.98);
 }
 
+function expectStayReachesCage(ends: [Vector3, Vector3], cage: Vector3): void {
+  const cageEnd = ends[0].distanceTo(cage) <= ends[1].distanceTo(cage) ? ends[0] : ends[1];
+  const waistEnd = cageEnd === ends[0] ? ends[1] : ends[0];
+  expect(distToSegment(cage, waistEnd, cageEnd)).toBeLessThan(POLE_R);
+  expect(cageEnd.distanceTo(cage)).toBeGreaterThan(INTO * 0.85);
+  expect(projectT(cage, waistEnd, cageEnd)).toBeGreaterThan(0.8);
+  expect(projectT(cage, waistEnd, cageEnd)).toBeLessThan(0.98);
+}
+
 describe("Käferkraft pole-frame waist", () => {
   it("ships detached WaistL / WaistR covering their own BodyPaint spans", async () => {
     const { NodeIO } = await import("@gltf-transform/core");
@@ -83,6 +94,8 @@ describe("Käferkraft pole-frame waist", () => {
     expect(doc.getRoot().listNodes().some((n) => n.getName() === "Waist" || n.getName() === "Waist_1")).toBe(false);
     expectRailCovers(cylinderEnds(left!), WAIST_L_PICK);
     expectRailCovers(cylinderEnds(right!), WAIST_R_PICK);
+    expectStayReachesCage(cylinderEnds(named("WaistToFrontTop_L")!), WAIST_L_PICK.cage);
+    expectStayReachesCage(cylinderEnds(named("WaistToFrontTop_R")!), WAIST_R_PICK.cage);
 
     expect(named("WaistToFrontTop_L")).toBeTruthy();
     expect(named("WaistToFrontTop_R")).toBeTruthy();
@@ -104,6 +117,8 @@ describe("Käferkraft pole-frame waist", () => {
     };
     expectRailCovers(endsOf(left!), WAIST_L_PICK);
     expectRailCovers(endsOf(right!), WAIST_R_PICK);
+    expectStayReachesCage(endsOf(g.children.find((c) => c.name === "WaistToFrontTop_L")!), WAIST_L_PICK.cage);
+    expectStayReachesCage(endsOf(g.children.find((c) => c.name === "WaistToFrontTop_R")!), WAIST_R_PICK.cage);
     expect(g.children.some((c) => c.name === "WaistToFrontTop_L")).toBe(true);
     expect(g.children.some((c) => c.name === "WaistToFrontTop_R")).toBe(true);
   });

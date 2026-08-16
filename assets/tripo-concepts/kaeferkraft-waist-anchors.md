@@ -9,7 +9,12 @@ Mesh space, meters, **nose −X**. Caps bury 8 cm into the hull.
 | `WaistL` | −Z | (−0.571, 1.061, −0.449) | (0.570, 1.051, −0.600) |
 | `WaistR` | +Z | (−0.504, 1.061, 0.490) | (0.579, 1.063, 0.570) |
 
-Stays: `WaistToFrontTop_L` / `WaistToFrontTop_R`.
+Stays (cage cap buried 8 cm past the pick):
+
+| Node | Cage end |
+| --- | --- |
+| `WaistToFrontTop_L` | (−0.070, 1.586, −0.458) |
+| `WaistToFrontTop_R` | (−0.053, 1.591, 0.440) |
 
 ![Käferkraft Waist anchors](./kaeferkraft-waist-anchors.png)
 
