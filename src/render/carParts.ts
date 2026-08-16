@@ -1159,8 +1159,10 @@ function placeAnchored(
 /** Hide replaceable stock meshes when a Teil supersedes them. */
 export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedParts: readonly PartId[]): void {
   const hideCage = carId === "kaeferkraft" && equippedParts.includes("reinforced_frame");
+  const hideEngine = carId === "donnerbuechse" && equippedParts.includes("big_engine");
   root.traverse((obj) => {
     if (obj.name === STOCK_CAGE_MESH) obj.visible = !hideCage;
+    if (obj.name === STOCK_ENGINE_MESH) obj.visible = !hideEngine;
   });
   if (usesScaledStockWheels(carId)) {
     applyStockWheelVisibility(root, false);

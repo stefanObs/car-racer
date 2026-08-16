@@ -11,7 +11,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 | **Käferkraft Totenkopf** (nose) | `props/buggy-skull.glb` | Tripo3D from Asphalt-Comic skull concept (horns in-mesh) | Generated mesh (shipped bake) |
 | **Käferkraft Vogel** (nose) | `props/buggy-bird.glb` | Tripo3D from Asphalt-Comic bird concept | Generated mesh (shipped bake) |
 | **Käferkraft Hund** (nose) | `props/buggy-dog.glb` | Tripo3D from Asphalt-Comic dog concept | Generated mesh (shipped bake) |
-| **Donnerbüchse** (hotrod) | `donnerbuechse.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-donnerbuechse-tripo`), then Tripo mesh segment v2 **wheels only** (`npm run cars:bake-donnerbuechse-segmented-wheels`). Wheels remount as `StockWheel_*` (skinny front, fat rear; roll/steer). Engine stays a BodyPaint prim. Große Räder scales `StockWheel_*`. | Generated mesh (shipped bake) |
+| **Donnerbüchse** (hotrod) | `donnerbuechse.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-donnerbuechse-tripo`), then Tripo mesh segment v2 **wheels only** (`npm run cars:bake-donnerbuechse-segmented-wheels`). Wheels remount as `StockWheel_*` (skinny front, fat rear; roll/steer). Exposed engine remounts as `StockEngine` (`npm run cars:bake-donnerbuechse-segmented-engine`) at original pose — no body punch. Große Räder scales `StockWheel_*`. | Generated mesh (shipped bake) |
 | **Bunker** (armor) | `bunker.glb` | Tripo3D image-to-mesh from Asphalt-Comic concept (`npm run cars:bake-bunker-tripo`). Authoring-time only — runtime ships the baked GLB. | Generated mesh (shipped bake) |
 
 ## Also useful
@@ -26,7 +26,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 - Loader strips embedded lights/cameras, skips outline shells on tiny shards, mesh-only bounds before autoscale.
 - Cars with Tripo albedo keep the authored map. Garage paint recolors body pixels (Bison green, Donnerbüchse blue, Käferkraft orange, Blitz red, Bunker pale armor). Comic atlases (`comicCarAtlases.ts`) are a fallback when a GLB has no usable map.
 - Rebuild Bison from Tripo sources: `npm run cars:bake-bison-tripo` (needs `assets/tripo-out/bison/`, gitignored)
-- Rebuild Donnerbüchse from Tripo sources: `npm run cars:bake-donnerbuechse-tripo` then `npm run cars:bake-donnerbuechse-segmented-wheels` (needs `assets/tripo-out/donnerbuechse/`, gitignored)
+- Rebuild Donnerbüchse from Tripo sources: `npm run cars:bake-donnerbuechse-tripo` then `npm run cars:bake-donnerbuechse-segmented-wheels` (needs `assets/tripo-out/donnerbuechse/`, gitignored; wheels bake then remounts `StockEngine`)
 - Rebuild Käferkraft from Tripo sources: `npm run cars:bake-kaeferkraft-tripo` then `npm run cars:bake-kaeferkraft-segmented-parts` (needs `assets/tripo-out/kaeferkraft/`, gitignored)
 - Rebuild Blitz from Tripo sources: `npm run cars:bake-blitz-tripo` then `npm run cars:bake-blitz-segmented-parts` (needs `assets/tripo-out/blitz/`, gitignored). Stock body keeps the welded GT wing; `rear_spoiler` is the overlay upgrade.
 - Authored tires stay painted into each car GLB (no shared spinning comic-wheel overlays).

@@ -13,12 +13,17 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     const text = readFileSync(path).toString("latin1");
     expect(text).toContain("BodyPaint");
     expect(text).toContain("StockWheel_FL");
-    expect(text).not.toContain("StockEngine");
+    expect(text).toContain("StockEngine");
     expect(text).not.toContain("Chrome");
 
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
     const engNode = doc.getRoot().listNodes().find((n) => n.getName() === "StockEngine");
-    expect(engNode).toBeUndefined();
+    expect(engNode).toBeTruthy();
+    expect(engNode!.getTranslation()).toEqual([0, 0, 0]);
+    const engMesh = engNode!.getMesh();
+    expect(engMesh?.getName()).toBe("StockEngine");
+    expect(engMesh?.listPrimitives().every((p) => p.getMaterial()?.getName() === "StockEngine")).toBe(true);
+    expect(engMesh?.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture())).toBe(true);
     const wheelNames = doc
       .getRoot()
       .listNodes()
@@ -37,6 +42,10 @@ describe("Donnerbüchse Tripo arcade bake", () => {
           mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
           name,
         ).toBe(true);
+        continue;
+      }
+      if (name === "StockEngine") {
+        expect(mesh.listPrimitives().every((p) => p.getMaterial()?.getName() === "StockEngine"), name).toBe(true);
         continue;
       }
       for (const prim of mesh.listPrimitives()) {
@@ -72,6 +81,22 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     }
     // Chopped cabin / fat rear tires sit on −Z; long hood is the lower +Z half.
     expect(maxYNeg).toBeGreaterThan(maxYPos - 0.02);
+
+    const bodyMesh = doc.getRoot().listMeshes().find((m) => m.getName() === "BodyPaint");
+    expect(bodyMesh).toBeTruthy();
+    let cabin = 0;
+    let grille = 0;
+    for (const prim of bodyMesh!.listPrimitives()) {
+      const pos = prim.getAttribute("POSITION");
+      if (!pos) continue;
+      for (let i = 0; i < pos.getCount(); i++) {
+        const v = pos.getElement(i, []);
+        if (v[2]! < -0.3 && v[1]! > 0.8) cabin++;
+        if (v[2]! > 1.55 && v[1]! > 0.3) grille++;
+      }
+    }
+    expect(cabin).toBeGreaterThan(200);
+    expect(grille).toBeGreaterThan(400);
   });
 
   it("stock BodyPaint albedo has almost no baked door-flame oranges", async () => {

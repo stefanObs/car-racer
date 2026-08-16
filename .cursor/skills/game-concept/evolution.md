@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-16 — Donnerbüchse StockEngine remount (no punch)
+
+- Trigger: user — segment out the Donnerbüchse engine and place it back; do not remove any other part
+- Decision: The wheels bake already left the exposed motor as a second BodyPaint prim. Remount that prim as `StockEngine` at identity (original verts). Do **not** AABB-carve or punch BodyPaint (that deleted cabin/grille/pipes). A new Tripo `simple` segment over-fragments the bay. Runtime: hide `StockEngine` when Großer Motor is equipped. Cabin, grille, chassis, `StockWheel_*` stay.
+- CONCEPT §6.3 Sichtbarkeit → v3.95; `npm run cars:bake-donnerbuechse-segmented-engine`
+
 ### 2026-08-16 — Donnerbüchse wheels-only segment
 
 - Trigger: user — segment away the Donnerbüchse wheels

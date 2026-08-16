@@ -24,7 +24,7 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 - Body / paint: `BodyPaint` (recolor target)
 - Wheels in GLB: `StockWheel_FL` `StockWheel_FR` `StockWheel_RL` `StockWheel_RR`
 - Wheel wrappers (added at load): `WheelSteer_{FL,FR,RL,RR}` + `WheelSpin_{FL,FR,RL,RR}`
-- Stock extras if present: `StockSpoiler` (Blitz Heckspoiler), `StockCage` (Käferkraft, hidden when `reinforced_frame` on), `StockEngine`
+- Stock extras if present: `StockSpoiler` (Blitz Heckspoiler), `StockCage` (Käferkraft, hidden when `reinforced_frame` on), `StockEngine` (Donnerbüchse, hidden when `big_engine` on)
 - Equipped Teile group: `carParts` / objects `carPart-{partId}` (copy `carPart-{partId}-1`…)
 - Große Räder: **scale** root `StockWheel_*` (do not scale `…_1` children); hub drop by radius×(scale−1)
 - Cosmetics: stickers `none|flames|bolt|star` (flames GLB `public/models/stickers/flames.glb`)
@@ -100,6 +100,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="235.8" y="348.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RL</text>
 <rect x="520.8" y="311.7" width="82.9" height="73.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="562.2" y="348.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RR</text>
+<rect x="222.4" y="137.2" width="353.3" height="129.9" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="202.1" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockEngine</text>
 <circle cx="399.0" cy="152.9" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="406.0" y="146.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="399.0" cy="123.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -191,6 +193,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="259.1" y="313.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RL</text>
 <rect x="202.2" y="257.6" width="113.9" height="111.4" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="259.1" y="313.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RR</text>
+<rect x="385.0" y="214.6" width="200.7" height="135.4" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="485.3" y="282.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockEngine</text>
 <circle cx="561.4" cy="351.2" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="568.4" y="345.2" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="607.1" cy="362.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -219,16 +223,18 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `BodyPaint` | `BodyPaint` | 2 | 5521 | (0, 0.777, 0) | (-1.186, 0, -1.9) → (1.186, 1.554, 1.9) | BodyPaint |
+| `BodyPaint` | `BodyPaint` | 1 | 3111 | (0, 0.777, 0) | (-1.186, 0, -1.9) → (1.186, 1.554, 1.9) | BodyPaint |
 | `StockWheel_FR` | `StockWheel_FR` | 1 | 397 | (0.881, 0.383, 1.517) | (0.732, 0, 1.134) → (1.03, 0.766, 1.9) | Tire |
 | `StockWheel_FL` | `StockWheel_FL` | 1 | 392 | (-0.881, 0.383, 1.517) | (-1.03, 0, 1.134) → (-0.732, 0.766, 1.9) | Tire |
 | `StockWheel_RL` | `StockWheel_RL` | 1 | 304 | (-0.952, 0.502, -1.223) | (-1.194, 0, -1.722) → (-0.71, 1.004, -0.725) | Tire |
 | `StockWheel_RR` | `StockWheel_RR` | 1 | 294 | (0.952, 0.502, -1.223) | (0.71, 0, -1.722) → (1.194, 1.004, -0.725) | Tire |
+| `StockEngine` | `StockEngine` | 1 | 2410 | (0, 0.781, 0.755) | (-1.03, 0.171, -0.123) → (1.03, 1.391, 1.632) | StockEngine |
 
 ## Materials
 
 - `BodyPaint`
 - `Tire`
+- `StockEngine`
 
 ## Shop Teile + mounts
 

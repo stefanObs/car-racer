@@ -46,6 +46,7 @@ describe("gltf car pipeline + silhouette collision", () => {
     expect(shouldApplyGaragePaint("Grey")).toBe(false);
     expect(shouldApplyGaragePaint("Black")).toBe(false);
     expect(shouldApplyGaragePaint("Chrome")).toBe(false);
+    expect(shouldApplyGaragePaint("StockEngine")).toBe(false);
     expect(shouldApplyGaragePaint("EyeRed")).toBe(false);
     expect(shouldApplyGaragePaint("Skull")).toBe(false);
     expect(shouldApplyGaragePaint("Seat")).toBe(false);

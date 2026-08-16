@@ -734,12 +734,17 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(eng.yaw).toBeCloseTo(0);
   });
 
-  it("does not hide a separate Donner stock engine (block stays welded in the body)", () => {
+  it("hides Donner StockEngine when Großer Motor is equipped", () => {
     const root = new Group();
     const stock = new Group();
     stock.name = STOCK_ENGINE_MESH;
     root.add(stock);
+    applyStockPartVisibility(root, "donnerbuechse", []);
+    expect(stock.visible).toBe(true);
     applyStockPartVisibility(root, "donnerbuechse", ["big_engine"]);
+    expect(stock.visible).toBe(false);
+    stock.visible = true;
+    applyStockPartVisibility(root, "blitz", ["big_engine"]);
     expect(stock.visible).toBe(true);
   });
 
@@ -764,11 +769,12 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(root.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeTruthy();
   });
 
-  it("ships Donner hot rod without a detached StockEngine node", () => {
+  it("ships Donner hot rod with a detached StockEngine node (body/wheels kept)", () => {
     const buf = readFileSync("public/models/cars/donnerbuechse.glb");
     const text = buf.toString("latin1");
-    expect(text).not.toContain("StockEngine");
+    expect(text).toContain("StockEngine");
     expect(text).toContain("BodyPaint");
+    expect(text).toContain("StockWheel_FL");
     expect(text).not.toContain("Chrome");
   });
 

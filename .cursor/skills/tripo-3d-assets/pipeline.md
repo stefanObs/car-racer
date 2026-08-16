@@ -150,7 +150,11 @@ Same punch/remount contract as Bison/Käferkraft. Body: `blitz-pre-wheel-split.g
 
 ### Mesh segment detach/remount (Donnerbüchse wheels only)
 
-Same punch/remount as Blitz/Käferkraft. Body: `donnerbuechse-pre-wheel-segment.glb` (engine stays a second BodyPaint prim — no `StockEngine` node). Segment: `assets/tripo-out/donnerbuechse/segment-wheels-only-v1/`. Bake: `npm run cars:bake-donnerbuechse-segmented-wheels`. Punch **ground BodyPaint only** so side pipes are not carved with the front tires. Punch only the **outboard tire rubber** (annulus outside the hub disk) so the original painted hub and the cabin/quarter wall stay — a full-length cylinder punch opens the hollow shell. Do not plug the well with a flat body-blue disk. Runtime: skinny front + fat rear `StockWheel_*` roll/steer; Große Räder uniform-scales like Bison/Käferkraft.
+Same punch/remount as Blitz/Käferkraft. Body: `donnerbuechse-pre-wheel-segment.glb`. Segment: `assets/tripo-out/donnerbuechse/segment-wheels-only-v1/`. Bake: `npm run cars:bake-donnerbuechse-segmented-wheels` then `npm run cars:bake-donnerbuechse-segmented-engine`. Punch **ground BodyPaint only** so side pipes are not carved with the front tires. Punch only the **outboard tire rubber** (annulus outside the hub disk) so the original painted hub and the cabin/quarter wall stay — a full-length cylinder punch opens the hollow shell. Do not plug the well with a flat body-blue disk. Runtime: skinny front + fat rear `StockWheel_*` roll/steer; Große Räder uniform-scales like Bison/Käferkraft.
+
+### Mesh segment detach/remount (Donnerbüchse engine)
+
+The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim** (scoop + block + headers). Do **not** AABB-carve or punch it — that deleted cabin/grille/pipes. Remount that prim as `StockEngine` at identity (`npm run cars:bake-donnerbuechse-segmented-engine`). Cabin, grille, chassis, and `StockWheel_*` stay on BodyPaint. Runtime: hide `StockEngine` when Großer Motor is equipped. A fresh Tripo `simple` segment over-fragments the bay (~50 shards); keep the existing prim.
 
 ## Failure modes
 

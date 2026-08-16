@@ -143,6 +143,7 @@ Script: `scripts/bake-blitz-parts-tripo.mjs` — flatten, face +Z, optional 180�
 | Käferkraft segmented wheels | original body + wheels-only segment (keep cage in BodyPaint) | `tripo-out/kaeferkraft/segment-wheels-only-v4/` | `cars:bake-kaeferkraft-segmented-parts` |
 | Blitz segmented wheels | pre-split body + wheels-only segment v2 simple | `tripo-out/blitz/segment-wheels-only-v1/` | `cars:bake-blitz-segmented-parts` |
 | Donnerbüchse segmented wheels | pre-split body + wheels-only segment v2 simple | `tripo-out/donnerbuechse/segment-wheels-only-v1/` | `cars:bake-donnerbuechse-segmented-wheels` |
+| Donnerbüchse segmented engine | remount existing hood-bay BodyPaint prim (no punch) | (same car GLB) | `cars:bake-donnerbuechse-segmented-engine` |
 | Blitz parts | `blitz-part-*.png` | `tripo-out/parts/blitz/{id}/` | `cars:bake-blitz-parts-tripo` |
 | FX | `fx-*.png` | `tripo-out/fx/` | `fx:bake-tripo` |
 | Track kit | `track-*.png` (walls, scenery, **obstacles**: ramp/rumble/oil/tire-stack/barrier) | `tripo-out/track/` | `track:bake-tripo` |

@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
- * Split Donnerbüchse stock engine out of the single BodyPaint mesh so
- * Großer Motor can replace it (hide StockEngine when equipped).
+ * @deprecated AABB face-carve — punches cabin/pipes. Use
+ * `npm run cars:bake-donnerbuechse-segmented-engine` (remount the existing
+ * engine prim as StockEngine, no punch).
  *
  * Writes public/models/cars/donnerbuechse.glb with BodyPaint + StockEngine nodes
  * sharing the comic atlas. Backup → assets/tripo-out/donnerbuechse/ (gitignored).

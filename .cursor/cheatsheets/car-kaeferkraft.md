@@ -24,7 +24,7 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 - Body / paint: `BodyPaint` (recolor target)
 - Wheels in GLB: `StockWheel_FL` `StockWheel_FR` `StockWheel_RL` `StockWheel_RR`
 - Wheel wrappers (added at load): `WheelSteer_{FL,FR,RL,RR}` + `WheelSpin_{FL,FR,RL,RR}`
-- Stock extras if present: `StockSpoiler` (Blitz Heckspoiler), `StockCage` (Käferkraft, hidden when `reinforced_frame` on), `StockEngine`
+- Stock extras if present: `StockSpoiler` (Blitz Heckspoiler), `StockCage` (Käferkraft, hidden when `reinforced_frame` on), `StockEngine` (Donnerbüchse, hidden when `big_engine` on)
 - Equipped Teile group: `carParts` / objects `carPart-{partId}` (copy `carPart-{partId}-1`…)
 - Große Räder: **scale** root `StockWheel_*` (do not scale `…_1` children); hub drop by radius×(scale−1)
 - Cosmetics: sticker ids `none|flames|bolt|star` → noses `none|skull|bird|dog` (`buggy-skull.glb` / `buggy-bird.glb` / `buggy-dog.glb`)

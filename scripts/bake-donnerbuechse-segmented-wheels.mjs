@@ -4,13 +4,16 @@
  *
  * Body: `donnerbuechse-pre-wheel-segment.glb` (single atlas, welded tires + engine prim).
  * Segment: wheels-only v2 simple + connectivity — remount `StockWheel_*` only.
- * Engine stays a BodyPaint prim (no StockEngine node). Punch ground prims only
- * so side pipes are not carved with the front tires. Punch only the **outboard
- * tire rubber** (annulus outside the hub disk) so the original painted hub and
- * the cabin/quarter wall stay — a full tire cylinder opens the hollow shell.
+ * Engine stays a second BodyPaint prim until
+ * `cars:bake-donnerbuechse-segmented-engine` remounts it as `StockEngine`
+ * (no punch). Punch ground prims only so side pipes are not carved with the
+ * front tires. Punch only the **outboard tire rubber** (annulus outside the
+ * hub disk) so the original painted hub and the cabin/quarter wall stay — a
+ * full tire cylinder opens the hollow shell.
  *
  *   node scripts/bake-donnerbuechse-segmented-wheels.mjs
  */
+import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -470,3 +473,12 @@ console.log("donnerbuechse.glb ← pre-split body + segmented wheels", {
   punch,
   wheels: wheelSummary,
 });
+
+const engineBake = spawnSync(
+  process.execPath,
+  [join(rootDir, "scripts/bake-donnerbuechse-segmented-engine.mjs")],
+  { stdio: "inherit" },
+);
+if (engineBake.status !== 0) {
+  process.exit(engineBake.status ?? 1);
+}
