@@ -5,16 +5,11 @@ import { buildReinforcedFrame } from "../src/render/carPartBuilders";
 
 const POLE_R = 0.025;
 const INTO = 0.08;
-/** Viewer-right from behind (+Z). 1.5× rail diameter. */
-const RIGHT_OUTBOARD = 1.5 * (POLE_R * 2);
 
-/** BodyPaint garage picks — right rail is then nudged outboard. */
+/** BodyPaint garage picks. +Z is viewer-left from behind. */
 const WAIST_PICKS = [
   { front: new Vector3(-0.551, 1.029, -0.49), rear: new Vector3(0.799, 0.947, -0.498) },
-  {
-    front: new Vector3(-0.534, 1.001, 0.454 + RIGHT_OUTBOARD),
-    rear: new Vector3(0.553, 1.015, 0.564 + RIGHT_OUTBOARD),
-  },
+  { front: new Vector3(-0.504, 1.061, 0.49), rear: new Vector3(0.579, 1.063, 0.57) },
 ] as const;
 
 function cylinderEnds(node: GltfNode): [Vector3, Vector3] {
@@ -71,10 +66,6 @@ function expectWaistCoversPicks(endsByZ: [Vector3, Vector3][]): void {
     expect(projectT(pick.rear, front, rear)).toBeGreaterThan(0.8);
     expect(projectT(pick.rear, front, rear)).toBeLessThan(0.98);
   }
-  const right = endsByZ.find((ends) => ends[0].z + ends[1].z > 0);
-  expect(right).toBeTruthy();
-  const originalFront = new Vector3(-0.534, 1.001, 0.454);
-  expect(distToSegment(originalFront, right![0], right![1])).toBeCloseTo(RIGHT_OUTBOARD, 2);
 }
 
 describe("Käferkraft pole-frame waist", () => {

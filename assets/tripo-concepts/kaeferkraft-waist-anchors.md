@@ -1,6 +1,6 @@
 # Käferkraft `Waist` anchor picker
 
-Pick **front + rear** IDs per side. Mesh space, meters, **nose −X**. Left `z ≈ −0.49`, right `z ≈ +0.53…0.64` (picks + 1.5× rail width outboard).
+Pick **front + rear** IDs per side. Mesh space, meters, **nose −X**. Viewer-left from behind is **+Z** `(0.490…0.570)`; viewer-right is **−Z**.
 
 ![Käferkraft Waist anchors](./kaeferkraft-waist-anchors.png)
 
@@ -8,8 +8,8 @@ Red ring on the sheet is a **candidate grid** — live poles use BodyPaint garag
 
 | Side | Front (nose −X) | Rear |
 | --- | --- | --- |
-| Left −Z | (−0.551, 1.029, −0.490) | (0.799, 0.947, −0.498) |
-| Right +Z (BodyPaint + 1.5× width toward viewer-right) | (−0.534, 1.001, 0.529) | (0.553, 1.015, 0.639) |
+| Viewer-right from behind (−Z) | (−0.551, 1.029, −0.490) | (0.799, 0.947, −0.498) |
+| Viewer-left from behind (+Z) | (−0.504, 1.061, 0.490) | (0.579, 1.063, 0.570) |
 
 | ID | x | y | z | Meaning |
 | --- | --- | --- | --- | --- |
