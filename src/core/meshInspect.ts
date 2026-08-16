@@ -19,13 +19,16 @@ export type MeshInspectSelection = {
   yaw?: number;
   pitch?: number;
   roll?: number;
+  sx?: number;
+  sy?: number;
+  sz?: number;
 };
 
 export type MeshInspectPointerKind = "orbit" | "copy" | "selectOrMove" | "ignore";
 
 export type MeshInspectDragMode = "free" | "keepY" | "onlyY";
 
-export type MeshInspectTool = "move" | "rotate";
+export type MeshInspectTool = "move" | "rotate" | "scaleUniform" | "scaleFree";
 
 export type MeshInspectComponent = "object" | "edge";
 
@@ -38,6 +41,12 @@ export const MESH_INSPECT_ROTATE = (5 * Math.PI) / 180;
 export const MESH_INSPECT_ROTATE_FINE = Math.PI / 180;
 export const MESH_INSPECT_ROTATE_COARSE = (15 * Math.PI) / 180;
 export const MESH_INSPECT_ROTATE_PX = 0.008;
+export const MESH_INSPECT_SCALE_PX = 0.008;
+export const MESH_INSPECT_SCALE_MIN = 0.05;
+export const MESH_INSPECT_SCALE_MAX = 20;
+export const MESH_INSPECT_SCALE = 1.05;
+export const MESH_INSPECT_SCALE_FINE = 1.01;
+export const MESH_INSPECT_SCALE_COARSE = 1.15;
 
 export function formatMeshInspectCoord(n: number, digits = MESH_INSPECT_DECIMALS): string {
   const v = Number.isFinite(n) ? n : 0;
@@ -45,13 +54,32 @@ export function formatMeshInspectCoord(n: number, digits = MESH_INSPECT_DECIMALS
 }
 
 export function formatMeshInspectLine(
-  hit: { name: string; x: number; y: number; z: number; kind?: "object" | "edge"; yaw?: number },
+  hit: {
+    name: string;
+    x: number;
+    y: number;
+    z: number;
+    kind?: "object" | "edge";
+    yaw?: number;
+    sx?: number;
+    sy?: number;
+    sz?: number;
+  },
   digits = MESH_INSPECT_DECIMALS,
 ): string {
   const xyz = `${hit.name}  ${formatMeshInspectCoord(hit.x, digits)}, ${formatMeshInspectCoord(hit.y, digits)}, ${formatMeshInspectCoord(hit.z, digits)}`;
   const labeled = hit.kind === "edge" ? `Kante ${xyz}` : xyz;
-  if (typeof hit.yaw === "number") return `${labeled}  yaw ${formatMeshInspectCoord(hit.yaw, 1)}°`;
-  return labeled;
+  const withYaw =
+    typeof hit.yaw === "number" ? `${labeled}  yaw ${formatMeshInspectCoord(hit.yaw, 1)}°` : labeled;
+  if (typeof hit.sx !== "number") return withYaw;
+  const sx = hit.sx;
+  const sy = hit.sy ?? sx;
+  const sz = hit.sz ?? sx;
+  const uniform = Math.abs(sx - sy) < 0.005 && Math.abs(sx - sz) < 0.005;
+  const scale = uniform
+    ? `×${formatMeshInspectCoord(sx, 2)}`
+    : `×${formatMeshInspectCoord(sx, 2)}, ${formatMeshInspectCoord(sy, 2)}, ${formatMeshInspectCoord(sz, 2)}`;
+  return `${withYaw}  ${scale}`;
 }
 
 /** Panel / clipboard body: one named element per line, nearest first. */
@@ -154,6 +182,8 @@ export function meshInspectYawDelta(
 export function meshInspectToolFromKey(code: string): MeshInspectTool | null {
   if (code === "KeyG") return "move";
   if (code === "KeyR") return "rotate";
+  if (code === "KeyS") return "scaleUniform";
+  if (code === "KeyX") return "scaleFree";
   return null;
 }
 
@@ -182,9 +212,32 @@ export function meshInspectGestureAfterDrag(opts: {
   hitEmpty: boolean;
   tool?: MeshInspectTool;
   hasEdge?: boolean;
-}): "move" | "rotate" | "moveEdge" | "orbit" {
+}): "move" | "rotate" | "moveEdge" | "scaleUniform" | "scaleFree" | "orbit" {
   if (!(opts.edit && opts.hasSelection && opts.hitIsSelection)) return "orbit";
+  if (opts.tool === "scaleUniform") return "scaleUniform";
+  if (opts.tool === "scaleFree") return "scaleFree";
   if (opts.hasEdge && opts.tool !== "rotate") return "moveEdge";
   if (opts.tool === "rotate") return "rotate";
   return "move";
+}
+
+export function meshInspectScaleStep(mods: { shift?: boolean; ctrl?: boolean }): number {
+  if (mods.ctrl) return MESH_INSPECT_SCALE_COARSE;
+  if (mods.shift) return MESH_INSPECT_SCALE_FINE;
+  return MESH_INSPECT_SCALE;
+}
+
+/** + / − grow or shrink while keeping the current ratio. */
+export function meshInspectScaleFactor(code: string, mods: { shift?: boolean; ctrl?: boolean }): number | null {
+  const step = meshInspectScaleStep(mods);
+  switch (code) {
+    case "Equal":
+    case "NumpadAdd":
+      return step;
+    case "Minus":
+    case "NumpadSubtract":
+      return 1 / step;
+    default:
+      return null;
+  }
 }

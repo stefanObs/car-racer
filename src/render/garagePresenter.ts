@@ -56,6 +56,8 @@ import {
   applyMeshSpaceDelta,
   applyMeshSpaceRotation,
   applyViewDragRotation,
+  applyViewDragScale,
+  applyUniformScale,
   applyWorldDeltaToObject,
   cameraPlaneWorldDelta,
   constrainWorldDeltaInMeshSpace,
@@ -506,6 +508,20 @@ export class GaragePresenter {
     const car = this.idleCar;
     if (!obj || !car) return;
     applyMeshSpaceRotation(obj, carMeshSpaceRoot(car), radians, 0);
+    this.syncMeshInspectSelectHelper();
+  }
+
+  scaleMeshInspect(dxPx: number, dyPx: number, mode: MeshInspectDragMode, uniform: boolean): void {
+    const obj = this.meshInspectSelected;
+    if (!obj) return;
+    applyViewDragScale(obj, dxPx, dyPx, mode, uniform);
+    this.syncMeshInspectSelectHelper();
+  }
+
+  scaleMeshInspectUniform(factor: number): void {
+    const obj = this.meshInspectSelected;
+    if (!obj) return;
+    applyUniformScale(obj, factor);
     this.syncMeshInspectSelectHelper();
   }
 

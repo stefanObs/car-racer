@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   applyMeshSpaceDelta,
   applyMeshSpaceRotation,
+  applyUniformScale,
+  applyViewDragScale,
   applyWorldDeltaToObject,
   cameraPlaneWorldDelta,
   constrainWorldDeltaInMeshSpace,
@@ -87,5 +89,21 @@ describe("mesh inspect transform", () => {
     expect(Math.abs(pole.quaternion.y)).toBeGreaterThan(0.5);
     expect(restoreMeshInspectHome(pole)).toBe(true);
     expect(pole.quaternion.y).toBeCloseTo(0, 5);
+  });
+
+  it("scales 1:1 without changing the ratio and restores home scale", () => {
+    const pole = new Mesh(new BoxGeometry(0.1, 0.1, 1), new MeshBasicMaterial());
+    pole.scale.set(1, 2, 1);
+    rememberMeshInspectHome(pole);
+    applyUniformScale(pole, 1.5);
+    expect(pole.scale.x).toBeCloseTo(1.5, 5);
+    expect(pole.scale.y).toBeCloseTo(3, 5);
+    expect(pole.scale.z).toBeCloseTo(1.5, 5);
+    applyViewDragScale(pole, 40, 0, "free", false);
+    expect(pole.scale.x).not.toBeCloseTo(pole.scale.y, 2);
+    expect(restoreMeshInspectHome(pole)).toBe(true);
+    expect(pole.scale.x).toBeCloseTo(1, 5);
+    expect(pole.scale.y).toBeCloseTo(2, 5);
+    expect(pole.scale.z).toBeCloseTo(1, 5);
   });
 });

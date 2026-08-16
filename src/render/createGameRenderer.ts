@@ -50,6 +50,8 @@ export type GameRenderer = {
   nudgeMeshInspect: (dx: number, dy: number, dz: number) => void;
   yawMeshInspect: (radians: number) => void;
   rotateMeshInspect: (dxPx: number, dyPx: number, mode: MeshInspectDragMode) => void;
+  scaleMeshInspect: (dxPx: number, dyPx: number, mode: MeshInspectDragMode, uniform: boolean) => void;
+  scaleMeshInspectUniform: (factor: number) => void;
   dragMeshInspectEdge: (
     fromClientX: number,
     fromClientY: number,

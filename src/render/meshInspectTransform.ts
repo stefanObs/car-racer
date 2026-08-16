@@ -1,6 +1,9 @@
 import { Euler, Plane, Quaternion, Raycaster, Vector2, Vector3, type Camera, type Object3D } from "three";
 import {
   MESH_INSPECT_ROTATE_PX,
+  MESH_INSPECT_SCALE_MAX,
+  MESH_INSPECT_SCALE_MIN,
+  MESH_INSPECT_SCALE_PX,
   type MeshInspectDragMode,
   type MeshInspectSelection,
 } from "../core/meshInspect";
@@ -64,16 +67,20 @@ export function selectionPose(obj: Object3D, space: Object3D, name: string): Mes
     yaw: (_euler.y * 180) / Math.PI,
     pitch: (_euler.x * 180) / Math.PI,
     roll: (_euler.z * 180) / Math.PI,
+    sx: obj.scale.x,
+    sy: obj.scale.y,
+    sz: obj.scale.z,
   };
 }
 
-type HomePose = { position: Vector3; quaternion: Quaternion };
+type HomePose = { position: Vector3; quaternion: Quaternion; scale: Vector3 };
 
 export function rememberMeshInspectHome(obj: Object3D): void {
   if (obj.userData[HOME_KEY]) return;
   obj.userData[HOME_KEY] = {
     position: obj.position.clone(),
     quaternion: obj.quaternion.clone(),
+    scale: obj.scale.clone(),
   } satisfies HomePose;
 }
 
@@ -82,6 +89,7 @@ export function restoreMeshInspectHome(obj: Object3D): boolean {
   if (!home) return false;
   obj.position.copy(home.position);
   obj.quaternion.copy(home.quaternion);
+  if (home.scale) obj.scale.copy(home.scale);
   return true;
 }
 
@@ -175,4 +183,53 @@ export function applyViewDragRotation(
   if (mode === "keepY") pitch = 0;
   if (mode === "onlyY") yaw = 0;
   applyMeshSpaceRotation(obj, space, yaw, pitch);
+}
+
+function clampScaleComponent(n: number): number {
+  if (!Number.isFinite(n) || n === 0) return MESH_INSPECT_SCALE_MIN;
+  const sign = n < 0 ? -1 : 1;
+  return sign * Math.min(MESH_INSPECT_SCALE_MAX, Math.max(MESH_INSPECT_SCALE_MIN, Math.abs(n)));
+}
+
+export function clampObjectScale(obj: Object3D): void {
+  obj.scale.set(
+    clampScaleComponent(obj.scale.x),
+    clampScaleComponent(obj.scale.y),
+    clampScaleComponent(obj.scale.z),
+  );
+}
+
+/** Multiply all axes — keeps the current ratio. */
+export function applyUniformScale(obj: Object3D, factor: number): void {
+  rememberMeshInspectHome(obj);
+  if (!Number.isFinite(factor) || factor === 0) return;
+  obj.scale.multiplyScalar(factor);
+  clampObjectScale(obj);
+}
+
+export function applyViewDragScale(
+  obj: Object3D,
+  dxPx: number,
+  dyPx: number,
+  mode: MeshInspectDragMode,
+  uniform: boolean,
+): void {
+  rememberMeshInspectHome(obj);
+  if (uniform) {
+    applyUniformScale(obj, Math.exp((dxPx - dyPx) * MESH_INSPECT_SCALE_PX));
+    return;
+  }
+  const fx = Math.exp(dxPx * MESH_INSPECT_SCALE_PX);
+  const fy = Math.exp(-dyPx * MESH_INSPECT_SCALE_PX);
+  if (mode === "keepY") {
+    obj.scale.x *= fx;
+    obj.scale.z *= fx;
+  } else if (mode === "onlyY") {
+    obj.scale.y *= fy;
+  } else {
+    obj.scale.x *= fx;
+    obj.scale.y *= fy;
+    obj.scale.z *= fx;
+  }
+  clampObjectScale(obj);
 }

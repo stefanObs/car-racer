@@ -137,6 +137,7 @@ export class GameApp {
       clearMeshInspectSelection: () => this.renderer.clearMeshInspectSelection(),
       nudgeMeshInspect: (dx, dy, dz) => this.renderer.nudgeMeshInspect(dx, dy, dz),
       yawMeshInspect: (radians) => this.renderer.yawMeshInspect(radians),
+      scaleMeshInspectUniform: (factor) => this.renderer.scaleMeshInspectUniform(factor),
       resetMeshInspectSelection: () => this.renderer.resetMeshInspectSelection(),
       meshInspectPlaceTool: () => this.renderer.meshInspectPlaceTool(),
       setMeshInspectPlaceTool: (tool) => this.renderer.setMeshInspectPlaceTool(tool),
@@ -234,7 +235,7 @@ export class GameApp {
         y: number;
         type: string;
         button: number;
-        inspect?: "pending" | "orbit" | "move" | "rotate" | "moveEdge";
+        inspect?: "pending" | "orbit" | "move" | "rotate" | "moveEdge" | "scaleUniform" | "scaleFree";
         startX?: number;
         startY?: number;
         hitId?: string | null;
@@ -370,6 +371,13 @@ export class GameApp {
               dx,
               dy,
               meshInspectDragMode({ shift: e.shiftKey, ctrl: e.ctrlKey }),
+            );
+          } else if (prev.inspect === "scaleUniform" || prev.inspect === "scaleFree") {
+            this.renderer.scaleMeshInspect(
+              dx,
+              dy,
+              meshInspectDragMode({ shift: e.shiftKey, ctrl: e.ctrlKey }),
+              prev.inspect === "scaleUniform",
             );
           } else if (prev.inspect === "moveEdge") {
             this.renderer.dragMeshInspectEdge(

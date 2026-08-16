@@ -222,6 +222,14 @@ export class RaceRenderer {
     this.garage.rotateMeshInspect(dxPx, dyPx, mode);
   }
 
+  scaleMeshInspect(dxPx: number, dyPx: number, mode: MeshInspectDragMode, uniform: boolean): void {
+    this.garage.scaleMeshInspect(dxPx, dyPx, mode, uniform);
+  }
+
+  scaleMeshInspectUniform(factor: number): void {
+    this.garage.scaleMeshInspectUniform(factor);
+  }
+
   dragMeshInspectEdge(
     fromClientX: number,
     fromClientY: number,

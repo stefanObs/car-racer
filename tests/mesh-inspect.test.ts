@@ -14,6 +14,7 @@ import {
   meshInspectGestureAfterDrag,
   meshInspectNudgeDelta,
   meshInspectPointerAction,
+  meshInspectScaleFactor,
   meshInspectToolFromKey,
   meshInspectYawDelta,
   meshInspectWantParent,
@@ -30,6 +31,15 @@ describe("F5 mesh inspect panel", () => {
   it("formats element then mesh-space coordinates", () => {
     const hit: MeshInspectHit = { name: "StockWheel_FL", x: -0.6732, y: 0.2864, z: 1.0211 };
     expect(formatMeshInspectLine(hit)).toBe("StockWheel_FL  -0.673, 0.286, 1.021");
+  });
+
+  it("formats locked vs free scale on the selection line", () => {
+    expect(
+      formatMeshInspectLine({ name: "Waist", x: 1, y: 2, z: 3, sx: 1.5, sy: 1.5, sz: 1.5 }),
+    ).toBe("Waist  1.000, 2.000, 3.000  ×1.50");
+    expect(
+      formatMeshInspectLine({ name: "Waist", x: 1, y: 2, z: 3, sx: 1.5, sy: 0.8, sz: 1.5 }),
+    ).toBe("Waist  1.000, 2.000, 3.000  ×1.50, 0.80, 1.50");
   });
 
   it("lists every hit and uses (nichts) when empty", () => {
@@ -96,6 +106,25 @@ describe("F5 mesh inspect panel", () => {
         hasEdge: true,
       }),
     ).toBe("moveEdge");
+    expect(
+      meshInspectGestureAfterDrag({
+        edit: true,
+        hasSelection: true,
+        hitIsSelection: true,
+        hitEmpty: false,
+        hasEdge: true,
+        tool: "scaleUniform",
+      }),
+    ).toBe("scaleUniform");
+    expect(
+      meshInspectGestureAfterDrag({
+        edit: true,
+        hasSelection: true,
+        hitIsSelection: true,
+        hitEmpty: false,
+        tool: "scaleFree",
+      }),
+    ).toBe("scaleFree");
     expect(meshInspectEscapeStep({ hasEdge: true, hasSelection: true, edit: true })).toBe("clearEdge");
   });
 
@@ -112,7 +141,11 @@ describe("F5 mesh inspect panel", () => {
     expect(meshInspectEscapeStep({ hasSelection: false, edit: false })).toBe("leaveStudio");
     expect(meshInspectToolFromKey("KeyR")).toBe("rotate");
     expect(meshInspectToolFromKey("KeyG")).toBe("move");
+    expect(meshInspectToolFromKey("KeyS")).toBe("scaleUniform");
+    expect(meshInspectToolFromKey("KeyX")).toBe("scaleFree");
     expect(meshInspectYawDelta("BracketLeft", {})).toBeCloseTo((5 * Math.PI) / 180);
+    expect(meshInspectScaleFactor("Equal", {})).toBeCloseTo(1.05);
+    expect(meshInspectScaleFactor("Minus", { shift: true })).toBeCloseTo(1 / 1.01);
   });
 
   it("renders each element with coordinates behind it", () => {
@@ -136,8 +169,12 @@ describe("F5 mesh inspect panel", () => {
     expect(html).toContain("Waist  0.100, 1.000, -0.500");
     expect(html).toContain("Ziehen versetzen");
     expect(html).toContain("Drehen");
+    expect(html).toContain("1:1");
+    expect(html).toContain("Strecken");
     expect(html).toContain("Kante");
     expect(meshInspectHint({ edit: false })).toContain("E Platzieren");
+    expect(meshInspectHint({ edit: true, selection: { name: "Waist", id: "u1", x: 0, y: 0, z: 0 }, tool: "scaleUniform" })).toContain("Ziehen 1:1");
+    expect(meshInspectHint({ edit: true, selection: { name: "Waist", id: "u1", x: 0, y: 0, z: 0 }, tool: "scaleFree" })).toContain("Ziehen strecken");
   });
 
   it("toggles the studio chrome class", () => {

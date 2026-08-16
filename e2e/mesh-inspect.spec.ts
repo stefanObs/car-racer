@@ -18,10 +18,16 @@ test.describe("F5 mesh studio", () => {
     await page.keyboard.press("E");
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.edit']")).toHaveText("Platzieren AN");
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.rotate']")).toBeVisible();
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.scaleUniform']")).toBeVisible();
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.scaleFree']")).toBeVisible();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.comp.edge']")).toBeVisible();
 
     await page.keyboard.press("R");
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.rotate']")).toHaveClass(/is-on/);
+    await page.keyboard.press("S");
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.scaleUniform']")).toHaveClass(/is-on/);
+    await page.keyboard.press("X");
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.scaleFree']")).toHaveClass(/is-on/);
     await page.keyboard.press("K");
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.comp.edge']")).toHaveClass(/is-on/);
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.hint']")).toContainText("Klick Kante");

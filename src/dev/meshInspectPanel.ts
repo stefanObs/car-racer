@@ -30,15 +30,21 @@ export function meshInspectHint(opts: MeshInspectPanelOpts): string {
   if (opts.copied) return "Kopiert";
   if (!opts.edit) return "LMB drehen · RMB kopieren · E Platzieren · F5 zu";
   if (opts.component === "edge") {
-    return "Klick Kante · Ziehen versetzen · R dreht Mesh · [ ] yaw · Pos1 zurück · Esc weg";
+    return "Klick Kante · Ziehen versetzen · R dreht Mesh · S 1:1 · Pos1 zurück · Esc weg";
   }
   if (opts.selection && opts.tool === "rotate") {
-    return "Ziehen drehen · Shift nur yaw · G versetzen · [ ] yaw · K Kante · Pos1 zurück";
+    return "Ziehen drehen · Shift nur yaw · S 1:1 · X strecken · G versetzen · Pos1 zurück";
+  }
+  if (opts.selection && opts.tool === "scaleUniform") {
+    return "Ziehen 1:1 · +/− Größe · X strecken · G versetzen · Pos1 zurück";
+  }
+  if (opts.selection && opts.tool === "scaleFree") {
+    return "Ziehen strecken · Shift XZ · Ctrl nur Y · S 1:1 · +/− · Pos1 zurück";
   }
   if (opts.selection) {
-    return "Ziehen versetzen · R drehen · [ ] yaw · K Kante · Shift+Klick Teil · Pos1 zurück";
+    return "Ziehen versetzen · R drehen · S 1:1 · X strecken · K Kante · Pos1 zurück";
   }
-  return "Klick Mesh · K Kante · R drehen · LMB orbit · E aus";
+  return "Klick Mesh · K Kante · R drehen · S 1:1 · LMB orbit · E aus";
 }
 
 export function renderMeshInspectPanelHtml(
@@ -59,6 +65,8 @@ export function renderMeshInspectPanelHtml(
     ? `<div class="dev-mesh-inspect-tools">
   <button type="button" data-mesh-inspect-tool="move" class="${tool === "move" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.tool.move">Versetzen</button>
   <button type="button" data-mesh-inspect-tool="rotate" class="${tool === "rotate" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.tool.rotate">Drehen</button>
+  <button type="button" data-mesh-inspect-tool="scaleUniform" class="${tool === "scaleUniform" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.tool.scaleUniform">1:1</button>
+  <button type="button" data-mesh-inspect-tool="scaleFree" class="${tool === "scaleFree" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.tool.scaleFree">Strecken</button>
   <button type="button" data-mesh-inspect-comp="object" class="${component === "object" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.comp.object">Mesh</button>
   <button type="button" data-mesh-inspect-comp="edge" class="${component === "edge" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.comp.edge">Kante</button>
 </div>`

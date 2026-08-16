@@ -131,7 +131,7 @@ tests/
 | F2 | Set CHF |
 | F3 | Force-finish current race at a chosen place |
 | F4 | Start Debug-Raster pad (handling) |
-| F5 | Mesh studio: car on green (violet if the paint is green), mesh names + mesh-space meters; RMB copies. **E** / **Platzieren**: click mesh, **K** one edge, **R** turn whole mesh, **G** move; [ ] yaw; Home resets |
+| F5 | Mesh studio: car on green (violet if the paint is green), mesh names + mesh-space meters; RMB copies. **E** / **Platzieren**: click mesh, **K** one edge, **R** turn, **S** scale 1:1, **X** stretch axes, **G** move; [ ] yaw; +/− size; Home resets |
 | F6 | Photo mode (hide UI chrome) |
 | F7 | Live Teile swap this race only |
 

@@ -3,6 +3,7 @@ import {
   meshInspectComponentFromKey,
   meshInspectEscapeStep,
   meshInspectNudgeDelta,
+  meshInspectScaleFactor,
   meshInspectToolFromKey,
   meshInspectYawDelta,
 } from "../core/meshInspect";
@@ -47,6 +48,7 @@ type DevHooks = {
   clearMeshInspectSelection: () => boolean;
   nudgeMeshInspect: (dx: number, dy: number, dz: number) => void;
   yawMeshInspect: (radians: number) => void;
+  scaleMeshInspectUniform: (factor: number) => void;
   resetMeshInspectSelection: () => boolean;
   meshInspectPlaceTool: () => MeshInspectTool;
   setMeshInspectPlaceTool: (tool: MeshInspectTool) => void;
@@ -206,6 +208,13 @@ export class DevTools {
       if (yaw !== null && this.hooks.meshInspectSelection()) {
         e.preventDefault();
         this.hooks.yawMeshInspect(yaw);
+        this.syncInspectPanel();
+        return;
+      }
+      const scale = meshInspectScaleFactor(e.code, { shift: e.shiftKey, ctrl: e.ctrlKey });
+      if (scale !== null && this.hooks.meshInspectSelection()) {
+        e.preventDefault();
+        this.hooks.scaleMeshInspectUniform(scale);
         this.syncInspectPanel();
         return;
       }
