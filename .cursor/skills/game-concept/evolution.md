@@ -14,6 +14,20 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-16 — Donnerbüchse StockEngine body-paint blue return
+
+- Trigger: user — sample `(-0.593, 1.097, 0.284)`; everything with that blue belongs on BodyPaint, not the engine
+- RCA: Albedo there is RGB `40,111,217` (hue ~216°). AABB grille swap left ~765 same-blue faces on `StockEngine` (bay walls / cowl). Hiding the engine deleted body paint.
+- Decision: After remount, return faces whose albedo matches that body blue (including darker AO). Keep chrome header-tail swap. No punch.
+- CONCEPT §6.3 unchanged (v3.95); `npm run cars:bake-donnerbuechse-segmented-engine`
+
+### 2026-08-16 — Donnerbüchse StockEngine face swap (grille vs zoomie tails)
+
+- Trigger: user — Großer Motor hides some body blue; a lower exhaust tail stays on the car
+- RCA: Tripo's engine prim included ~50 grille/nose faces (`z>1.46`); BodyPaint kept ~100 aft header-tail faces (`|x|≥0.58`, `z≤0.38`). Hiding `StockEngine` correctly hid the wrong faces.
+- Decision: After remount, swap those two sets. No punch. Tests lock both counts.
+- CONCEPT §6.3 unchanged (v3.95); `npm run cars:bake-donnerbuechse-segmented-engine`
+
 ### 2026-08-16 — Donnerbüchse StockEngine remount (no punch)
 
 - Trigger: user — segment out the Donnerbüchse engine and place it back; do not remove any other part

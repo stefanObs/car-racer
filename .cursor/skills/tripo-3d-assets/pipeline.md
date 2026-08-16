@@ -154,7 +154,7 @@ Same punch/remount as Blitz/Käferkraft. Body: `donnerbuechse-pre-wheel-segment.
 
 ### Mesh segment detach/remount (Donnerbüchse engine)
 
-The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim** (scoop + block + headers). Do **not** AABB-carve or punch it — that deleted cabin/grille/pipes. Remount that prim as `StockEngine` at identity (`npm run cars:bake-donnerbuechse-segmented-engine`). Cabin, grille, chassis, and `StockWheel_*` stay on BodyPaint. Runtime: hide `StockEngine` when Großer Motor is equipped. A fresh Tripo `simple` segment over-fragments the bay (~50 shards); keep the existing prim.
+The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim** (scoop + block + headers). Do **not** AABB-carve or punch it — that deleted cabin/grille/pipes. Remount that prim as `StockEngine` at identity (`npm run cars:bake-donnerbuechse-segmented-engine`), then **return body-paint-blue faces** (albedo matching RGB `40,111,217` at mesh `(-0.593, 1.097, 0.284)`) onto BodyPaint and aft chrome header tails onto StockEngine. AABB-only grille swap missed the blue bay walls. Runtime: hide `StockEngine` when Großer Motor is equipped. A fresh Tripo `simple` segment over-fragments the bay (~50 shards); keep the existing prim + color/tail swap.
 
 ## Failure modes
 
@@ -165,7 +165,7 @@ The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim**
 | Scoop on roof | Snap max-Y near windshield | Set `preferY` / smaller `snapRadius` |
 | Blitz trunk hole / invisible rear | Spoiler punch AABB or lip rule deletes the trunk lid / wing underside | Do not segment or punch the GT wing; wheels-only remount |
 | Wrong car silhouette | Reused Blitz kit | Per-car GLB or procedural; `preferGlb: false` |
-| 0 credits | Empty Tripo balance | Ask user to `tripo topup` |
+| Donner engine hide deletes blue body / leaves a zoomie tail | Engine prim included body-paint-blue faces; BodyPaint kept header tails | Color-swap body blue (`40,111,217`) + chrome tails after remount — do not AABB-punch |
 
 ## Related paths
 
