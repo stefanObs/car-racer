@@ -229,7 +229,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 ## Waist anchor picker
 
-Picker is a candidate grid. Live `Waist` poles follow BodyPaint picks (left −0.551→0.799, right −0.534→0.553); caps bury 8 cm into the hull.
+Picker is a candidate grid. Live `Waist` poles follow BodyPaint picks (left −0.551→0.799, right −0.534→0.553 then +1.5× rail width toward viewer-right); caps bury 8 cm into the hull.
 
 ![Käferkraft Waist anchors](../../assets/tripo-concepts/kaeferkraft-waist-anchors.png)
 
@@ -366,7 +366,7 @@ Root AABB (-0.555, 0, -0.605) → (0.555, 0.4, 0.605)
 
 ![public/models/parts/kaeferkraft-reinforced_frame.glb](./img/part-kaeferkraft-reinforced_frame.png)
 
-Root AABB (-0.632, 0.917, -0.523) → (0.89, 1.503, 0.597)
+Root AABB (-0.632, 0.917, -0.523) → (0.89, 1.503, 0.672)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
 <rect x="0" y="0" width="760" height="520" fill="#f4efe6"/>
@@ -419,10 +419,10 @@ Root AABB (-0.632, 0.917, -0.523) → (0.89, 1.503, 0.597)
 <text x="420.3" y="312.8" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">Waist</text>
 <rect x="356.0" y="308.5" width="195.6" height="7.6" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="453.8" y="312.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop</text>
-<rect x="293.3" y="191.8" width="214.6" height="19.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="400.6" y="201.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">Waist</text>
-<rect x="355.8" y="191.7" width="153.7" height="15.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="432.7" y="199.6" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop</text>
+<rect x="293.3" y="183.4" width="214.6" height="19.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="400.6" y="193.2" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">Waist</text>
+<rect x="355.8" y="183.5" width="153.8" height="24.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="432.7" y="195.4" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">public/models/parts/kaeferkraft-reinforced_frame.glb — top XZ</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
@@ -431,8 +431,8 @@ Root AABB (-0.632, 0.917, -0.523) → (0.89, 1.503, 0.597)
 | --- | --- | --- | --- | --- | --- | --- |
 | `Waist` | `Waist` | 1 | 52 | (0.124, 0.988, -0.494) | (-0.632, 0.917, -0.523) → (0.88, 1.059, -0.465) | Grey |
 | `WaistToFrontTop` | `WaistToFrontTop` | 1 | 52 | (0.319, 1.211, -0.489) | (-0.251, 0.92, -0.523) → (0.89, 1.503, -0.455) | Grey |
-| `Waist` | `Waist` | 1 | 52 | (0.009, 1.008, 0.509) | (-0.616, 0.975, 0.421) → (0.635, 1.041, 0.597) | Grey |
-| `WaistToFrontTop` | `WaistToFrontTop` | 1 | 52 | (0.196, 1.248, 0.526) | (-0.252, 0.994, 0.455) → (0.644, 1.502, 0.597) | Grey |
+| `Waist` | `Waist` | 1 | 52 | (0.009, 1.008, 0.584) | (-0.616, 0.975, 0.496) → (0.635, 1.041, 0.672) | Grey |
+| `WaistToFrontTop` | `WaistToFrontTop` | 1 | 52 | (0.196, 1.248, 0.564) | (-0.252, 0.994, 0.455) → (0.645, 1.502, 0.672) | Grey |
 
 ## Part / extra `public/models/parts/kaeferkraft-lightweight_body.glb`
 
