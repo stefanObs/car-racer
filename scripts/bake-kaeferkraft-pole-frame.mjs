@@ -41,17 +41,23 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outPath = join(rootDir, "public/models/parts/kaeferkraft-reinforced_frame.glb");
 
 const RADIUS = 0.025;
+const RAIL_WIDTH = RADIUS * 2;
+/** +Z rail sit from before the last BodyPaint retarget (1.5× width outboard). */
+const RIGHT_OUTBOARD = 1.5 * RAIL_WIDTH;
 /** Bury both caps along the pole so cut edges sit inside BodyPaint. */
 const INTO = 0.08;
 /**
  * Live Waist span — BodyPaint garage picks (mesh m, nose −X).
  * Keep in sync with `buildReinforcedFrame("buggy")` in src/render/carPartBuilders.ts.
- * Viewer-right from behind (−Z): (−0.551, 1.029, −0.490) → (0.799, 0.947, −0.498)
- * Viewer-left from behind (+Z): (−0.504, 1.061, 0.490) → (0.579, 1.063, 0.570)
+ * −Z unchanged: (−0.551, 1.029, −0.490) → (0.799, 0.947, −0.498)
+ * +Z restored to pre-v0.3.244 outboard sit.
  */
 const WAIST_SPANS = [
   { front: [-0.551, 1.029, -0.49], rear: [0.799, 0.947, -0.498] },
-  { front: [-0.504, 1.061, 0.49], rear: [0.579, 1.063, 0.57] },
+  {
+    front: [-0.534, 1.001, 0.454 + RIGHT_OUTBOARD],
+    rear: [0.553, 1.015, 0.564 + RIGHT_OUTBOARD],
+  },
 ];
 /** Stock cage top-front tube (mesh space, nose −X). */
 const CAGE_FRONT_TOP = { x: -0.24, y: 1.48, z: 0.48 };

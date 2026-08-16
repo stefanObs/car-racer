@@ -97,7 +97,6 @@ test.describe("Käferkraft waist poles", () => {
     expect(right!.mid[0]).toBeLessThan(0.15);
     expect(left!.half).toBeGreaterThan(0.7);
     expect(right!.half).toBeGreaterThan(0.55);
-    expect(right!.mid[2]).toBeGreaterThan(0.5);
-    expect(right!.mid[2]).toBeLessThan(0.58);
+    expect(right!.mid[2]).toBeGreaterThan(0.55);
   });
 });
