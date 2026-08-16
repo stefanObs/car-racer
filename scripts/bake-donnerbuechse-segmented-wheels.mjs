@@ -5,8 +5,9 @@
  * Body: `donnerbuechse-pre-wheel-segment.glb` (single atlas, welded tires + engine prim).
  * Segment: wheels-only v2 simple + connectivity — remount `StockWheel_*` only.
  * Engine stays a BodyPaint prim (no StockEngine node). Punch ground prims only
- * so side pipes are not carved with the front tires. Remount the original
- * outboard hub/spoke faces (pre-split UVs) just inboard of each StockWheel.
+ * so side pipes are not carved with the front tires. Punch only the **outboard
+ * tire rubber** (annulus outside the hub disk) so the original painted hub and
+ * the cabin/quarter wall stay — a full tire cylinder opens the hollow shell.
  *
  *   node scripts/bake-donnerbuechse-segmented-wheels.mjs
  */
@@ -164,7 +165,7 @@ function alignSegmentToBody(segDoc, bodyDoc) {
   return { scale };
 }
 
-function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material, offset = [0, 0, 0]) {
+function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material) {
   const used = new Map();
   const newPos = [];
   const newNrm = [];
@@ -175,7 +176,7 @@ function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material, 
       if (!used.has(old)) {
         used.set(old, newPos.length / 3);
         const v = srcPos.getElement(old, []);
-        newPos.push(v[0] + offset[0], v[1] + offset[1], v[2] + offset[2]);
+        newPos.push(v[0], v[1], v[2]);
         if (srcNrm) {
           const n = srcNrm.getElement(old, []);
           newNrm.push(n[0], n[1], n[2]);
@@ -267,15 +268,13 @@ function inTireCylinder(px, py, pz, tire) {
   return dy * dy + dz * dz <= r * r && Math.abs(dx) <= halfW;
 }
 
-/** Original outboard hub/spoke disk — the look through the old painted rim. */
-function isOriginalHubFace(cx, cy, cz, nx, tire) {
-  if (!inTireCylinder(cx, cy, cz, tire)) return false;
+/** Outer tire rubber only — keep the painted hub disk that seals the shell. */
+function isOutboardTireRubber(cx, cy, cz, tire) {
   const sign = Math.sign(tire.center[0]) || 1;
-  if (sign * nx < 0.35) return false;
-  const dy = cy - tire.center[1];
-  const dz = cz - tire.center[2];
-  const r = Math.max(tire.size[1], tire.size[2]) * 0.5;
-  return dy * dy + dz * dz <= (r * 0.75) * (r * 0.75);
+  if (sign * cx < sign * tire.center[0] - 0.01) return false;
+  const r = Math.hypot(cy - tire.center[1], cz - tire.center[2]);
+  const hubKeepR = Math.max(tire.size[1], tire.size[2]) * 0.5 * 0.55;
+  return r > hubKeepR;
 }
 
 function punchTireVolumes(bodyDoc, tires) {
@@ -294,7 +293,6 @@ function punchTireVolumes(bodyDoc, tires) {
 
   let keepTotal = 0;
   let droppedTire = 0;
-  let keptWell = 0;
   for (const { mesh, prim } of found) {
     const pos = prim.getAttribute("POSITION");
     const idx = prim.getIndices();
@@ -304,7 +302,6 @@ function punchTireVolumes(bodyDoc, tires) {
     if (!uv) throw new Error("BodyPaint missing TEXCOORD_0");
 
     const keep = [];
-    const hubFaces = tires.map(() => []);
     const triCount = idx.getCount() / 3;
     for (let t = 0; t < triCount; t++) {
       const i0 = idx.getScalar(t * 3);
@@ -316,16 +313,11 @@ function punchTireVolumes(bodyDoc, tires) {
       const cx = (a[0] + b[0] + c[0]) / 3;
       const cy = (a[1] + b[1] + c[1]) / 3;
       const cz = (a[2] + b[2] + c[2]) / 3;
-      let nx = (b[1] - a[1]) * (c[2] - a[2]) - (b[2] - a[2]) * (c[1] - a[1]);
-      if (nrm) {
-        const na = nrm.getElement(i0, []);
-        const nb = nrm.getElement(i1, []);
-        const nc = nrm.getElement(i2, []);
-        nx = (na[0] + nb[0] + nc[0]) / 3;
-      }
-      const tireIdx = tires.findIndex((tire) => inTireCylinder(cx, cy, cz, tire));
-      if (tireIdx >= 0) {
-        if (isOriginalHubFace(cx, cy, cz, nx, tires[tireIdx])) hubFaces[tireIdx].push([i0, i1, i2]);
+      const tire = tires.find(
+        (candidate) =>
+          inTireCylinder(cx, cy, cz, candidate) && isOutboardTireRubber(cx, cy, cz, candidate),
+      );
+      if (tire) {
         droppedTire++;
         continue;
       }
@@ -341,18 +333,10 @@ function punchTireVolumes(bodyDoc, tires) {
     mesh.removePrimitive(prim);
     mesh.addPrimitive(next);
     mesh.setName("BodyPaint");
-    for (let i = 0; i < tires.length; i++) {
-      const faces = hubFaces[i];
-      if (faces.length < 20) throw new Error(`original hub face sparse (${tires[i].corner}): ${faces.length}`);
-      keptWell += faces.length;
-      const sign = Math.sign(tires[i].center[0]) || 1;
-      const shiftX = -sign * (tires[i].size[0] + 0.02);
-      mesh.addPrimitive(remappedPrimitive(bodyDoc, buffer, faces, pos, nrm, uv, mat, [shiftX, 0, 0]));
-    }
   }
   if (keepTotal < 800) throw new Error(`body faces too low after punch: ${keepTotal}`);
-  if (keptWell < 80) throw new Error(`original hub faces too sparse: ${keptWell}`);
-  return { keep: keepTotal, droppedTire, keptWell };
+  if (droppedTire < 400) throw new Error(`outboard tire punch too sparse: ${droppedTire}`);
+  return { keep: keepTotal, droppedTire };
 }
 
 function copyTireMaterial(destDoc, srcPrim, name) {

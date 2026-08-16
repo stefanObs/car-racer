@@ -31,5 +31,14 @@ test.describe("Donnerbüchse wheel wells", () => {
     await expect(page.locator(".garage-car.is-active .garage-car__name")).toHaveText("Donnerbüchse");
     await page.waitForTimeout(1200);
     await page.locator("#game-canvas").screenshot({ path: "tmp/donner-wells-3q.png" });
+    await page.evaluate(() => {
+      const car = (window as unknown as { __idleCar?: { traverse: (fn: (o: { name?: string; visible: boolean }) => void) => void } })
+        .__idleCar;
+      car?.traverse((o) => {
+        if (o.name?.startsWith("StockWheel_")) o.visible = false;
+      });
+    });
+    await page.waitForTimeout(200);
+    await page.locator("#game-canvas").screenshot({ path: "tmp/donner-wells-hidden.png" });
   });
 });

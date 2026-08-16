@@ -462,12 +462,17 @@ describe("stock wheels + Große Räder", () => {
         };
       });
     const leftover: Record<string, number> = {};
-    const wellFaces: Record<string, { n: number; uMin: number; uMax: number; vMin: number; vMax: number }> = {};
+    const chassisWell: Record<string, number> = {};
+    const hubDisk: Record<string, number> = {};
+    const wellUv: Record<string, { uMin: number; uMax: number; vMin: number; vMax: number }> = {};
     for (const h of hubs) {
       leftover[h.name!] = 0;
-      wellFaces[h.name!] = { n: 0, uMin: 1, uMax: 0, vMin: 1, vMax: 0 };
+      chassisWell[h.name!] = 0;
+      hubDisk[h.name!] = 0;
+      wellUv[h.name!] = { uMin: 1, uMax: 0, vMin: 1, vMax: 0 };
     }
     let syntheticCaps = 0;
+    let remountedHubPrims = 0;
     for (const mesh of doc.getRoot().listMeshes()) {
       if (mesh.getName()?.startsWith("StockWheel_")) continue;
       for (const prim of mesh.listPrimitives()) {
@@ -492,6 +497,7 @@ describe("stock wheels + Große Räder", () => {
         const uv = prim.getAttribute("TEXCOORD_0");
         if (!idx) continue;
         const compact = maxZ - minZ < 3;
+        if (compact && pos.getCount() > 20 && pos.getCount() < 200) remountedHubPrims += 1;
         for (let t = 0; t < idx.getCount() / 3; t++) {
           const a = pos.getElement(idx.getScalar(t * 3), []);
           const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
@@ -501,32 +507,38 @@ describe("stock wheels + Große Räder", () => {
           const cz = (a[2]! + b[2]! + c[2]!) / 3;
           for (const h of hubs) {
             const sign = Math.sign(h.cx);
-            const inYz = Math.abs(cy - h.cy) <= h.hy && Math.abs(cz - h.cz) <= h.hz;
+            const rHub = Math.max(h.hy, h.hz);
+            const r = Math.hypot(cy - h.cy, cz - h.cz);
+            const inYz = r <= rHub + 0.02;
             const inX = Math.abs(cx - h.cx) <= h.hx + 0.04;
             if (!inYz || !inX) continue;
             if (sign * cx < sign * h.cx - 0.02) {
-              wellFaces[h.name!]!.n += 1;
-              if (uv) {
-                const u = uv.getElement(idx.getScalar(t * 3), []);
-                wellFaces[h.name!]!.uMin = Math.min(wellFaces[h.name!]!.uMin, u[0]!);
-                wellFaces[h.name!]!.uMax = Math.max(wellFaces[h.name!]!.uMax, u[0]!);
-                wellFaces[h.name!]!.vMin = Math.min(wellFaces[h.name!]!.vMin, u[1]!);
-                wellFaces[h.name!]!.vMax = Math.max(wellFaces[h.name!]!.vMax, u[1]!);
+              if (!compact) {
+                chassisWell[h.name!]! += 1;
+                if (uv) {
+                  const u = uv.getElement(idx.getScalar(t * 3), []);
+                  wellUv[h.name!]!.uMin = Math.min(wellUv[h.name!]!.uMin, u[0]!);
+                  wellUv[h.name!]!.uMax = Math.max(wellUv[h.name!]!.uMax, u[0]!);
+                  wellUv[h.name!]!.vMin = Math.min(wellUv[h.name!]!.vMin, u[1]!);
+                  wellUv[h.name!]!.vMax = Math.max(wellUv[h.name!]!.vMax, u[1]!);
+                }
               }
               continue;
             }
             if (compact) continue;
-            leftover[h.name!]! += 1;
+            if (r <= rHub * 0.55) hubDisk[h.name!]! += 1;
+            else leftover[h.name!]! += 1;
           }
         }
       }
     }
     expect(syntheticCaps, "no flat body-blue well plugs").toBe(0);
+    expect(remountedHubPrims, "no shifted hub patches").toBe(0);
     for (const h of hubs) {
-      expect(leftover[h.name!], `${h.name} outboard leftover`).toBeLessThan(10);
-      expect(wellFaces[h.name!]!.n, `${h.name} original inner well`).toBeGreaterThan(15);
-      expect(wellFaces[h.name!]!.uMax - wellFaces[h.name!]!.uMin, `${h.name} well UV U`).toBeGreaterThan(0.15);
-      expect(wellFaces[h.name!]!.vMax - wellFaces[h.name!]!.vMin, `${h.name} well UV V`).toBeGreaterThan(0.15);
+      expect(leftover[h.name!], `${h.name} outboard leftover rubber`).toBeLessThan(10);
+      expect(hubDisk[h.name!], `${h.name} original hub disk kept`).toBeGreaterThan(30);
+      expect(chassisWell[h.name!], `${h.name} kept original inner wall`).toBeGreaterThan(40);
+      expect(wellUv[h.name!]!.uMax - wellUv[h.name!]!.uMin, `${h.name} well UV U`).toBeGreaterThan(0.1);
     }
   });
 

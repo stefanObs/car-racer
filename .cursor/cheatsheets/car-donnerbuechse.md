@@ -90,8 +90,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="48" y="188.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="114.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">3</text>
-<rect x="222.4" y="119.6" width="353.3" height="279.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="259.1" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
+<rect x="195.6" y="117.4" width="406.8" height="281.2" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
 <rect x="524.6" y="117.4" width="51.0" height="56.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="550.1" y="145.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
 <rect x="222.4" y="117.4" width="51.0" height="56.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
@@ -181,8 +181,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="151.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">3</text>
-<rect x="181.8" y="196.5" width="431.1" height="169.2" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="397.3" y="281.1" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
+<rect x="181.8" y="196.5" width="434.5" height="172.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="282.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
 <rect x="528.7" y="284.0" width="87.6" height="85.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="572.4" y="326.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
 <rect x="528.7" y="284.0" width="87.6" height="85.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
@@ -219,7 +219,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `BodyPaint` | `BodyPaint` | 6 | 5091 | (0, 0.792, -0.015) | (-1.03, 0.03, -1.9) → (1.03, 1.554, 1.87) | BodyPaint |
+| `BodyPaint` | `BodyPaint` | 2 | 5521 | (0, 0.777, 0) | (-1.186, 0, -1.9) → (1.186, 1.554, 1.9) | BodyPaint |
 | `StockWheel_FR` | `StockWheel_FR` | 1 | 397 | (0.881, 0.383, 1.517) | (0.732, 0, 1.134) → (1.03, 0.766, 1.9) | Tire |
 | `StockWheel_FL` | `StockWheel_FL` | 1 | 392 | (-0.881, 0.383, 1.517) | (-1.03, 0, 1.134) → (-0.732, 0.766, 1.9) | Tire |
 | `StockWheel_RL` | `StockWheel_RL` | 1 | 304 | (-0.952, 0.502, -1.223) | (-1.194, 0, -1.722) → (-0.71, 1.004, -0.725) | Tire |
