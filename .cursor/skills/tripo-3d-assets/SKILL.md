@@ -36,7 +36,7 @@ Named nodes, AABBs, mount anchors, and meter grids: `.cursor/cheatsheets/` — *
 
 | Prefer Tripo (required on cars) | Prefer procedural (`carPartBuilders.ts`) |
 |--------------|------------------------------------------|
-| Full cars, FX blobs, track walls, garage props | `better_brakes` calipers; `big_wheels` procedural overlays (except Blitz / Bison / Käferkraft / Donnerbüchse: Tripo-segmented `StockWheel_*` — Blitz width ×1.2, others uniform scale) |
+| Full cars, FX blobs, track walls, garage props | `better_brakes` calipers; `big_wheels` procedural overlays (except Blitz / Bison / Käferkraft / Donnerbüchse / Bunker: Tripo-segmented `StockWheel_*` — Blitz width ×1.2, others uniform scale) |
 | Silhouette Teile: `big_engine`, `spike_bumper`, `nitro_kit`, `rear_spoiler`, `reinforced_frame`, `lightweight_body` | Load-time fallback if a GLB failed to load (never leave `preferGlb: false` once a kit ships); `better_brakes` calipers; procedural `big_wheels` where stock tires stay welded |
 | Per-class kits matching parts-look sheets | Temporary authoring only until bake lands — then flip `preferGlb: true` |
 
@@ -81,9 +81,9 @@ Canonical example: **Bison tires** (`npm run cars:bake-bison-segmented-wheels`).
 5. **Runtime** (`loadCarGltf.ts` / `carParts.ts` / `stockWheels.ts`):
    - Keep authored maps on Tire; flat rubber only if no map (`ComicPalette.tire`).
    - Cars with authored `StockWheel_*`: **`collectWheelUvTriangles` returns `[]`** — never feed Tire-atlas UVs into BodyPaint paint-skip (causes blotches / “paint broken”).
-   - Bison / Käferkraft / Donnerbüchse Große Räder: **scale** root `StockWheel_*` only (`BISON_BIG_WHEEL_SCALE` / `KAEFERKRAFT_BIG_WHEEL_SCALE` / `DONNER_BIG_WHEEL_SCALE` = 1.35; do not scale GLTF `…_1` children) and **drop hubs** by `radius×(scale−1)` so tops stay on the stock fender line and growth goes down; no procedural `UpgradeTire` overlays.
+   - Bison / Käferkraft / Donnerbüchse / Bunker Große Räder: **scale** root `StockWheel_*` only (`BISON_BIG_WHEEL_SCALE` / `KAEFERKRAFT_BIG_WHEEL_SCALE` / `DONNER_BIG_WHEEL_SCALE` / `BUNKER_BIG_WHEEL_SCALE` = 1.35; do not scale GLTF `…_1` children) and **drop hubs** by `radius×(scale−1)` so tops stay on the stock fender line and growth goes down; no procedural `UpgradeTire` overlays.
    - Blitz Große Räder: **width-scale** root `StockWheel_*` ×1.2 along the axle (same diameter); shift hubs outboard by extra half-width; keep stock visible (replaces overlays).
-6. **Tests**: `tests/bison-tripo.test.ts`, `tests/car-wheels.test.ts`, garage paint recolor on BodyPaint atlas.
+6. **Tests**: `tests/bison-tripo.test.ts`, `tests/bunker-tripo.test.ts`, `tests/car-wheels.test.ts`, garage paint recolor on BodyPaint atlas.
 
 Detail + CLI notes: [pipeline.md](pipeline.md) § Mesh segment detach/remount.
 

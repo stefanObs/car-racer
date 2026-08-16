@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-17 — Bunker tires: Tripo segment + Bison remount (not UV-carve)
+
+- Trigger: user — segment away the tires from bunker; use the Bison method for the bigger wheels
+- RCA: UV-carve destroyed the APC (v3.61). Restocking the welded bake left tires on BodyPaint, so Große Räder still hid stock and mounted procedural overlays.
+- Decision: Tripo mesh segment v2 simple on `bunker-pre-wheel-split.glb`. Bake remounts `StockWheel_*` with comic Tire albedo + face disks (same as Bison). Punch tire ellipsoids out of BodyPaint; do not UV-carve. Große Räder uniform-scales StockWheel_* ×1.35 + hub drop like Bison (no procedural overlays).
+
 ### 2026-08-17 — Restore Bunker welded tires and original atlas
 
 - Trigger: user — bunker looks destroyed; reset tire and coloring changes

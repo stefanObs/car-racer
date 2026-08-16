@@ -13,7 +13,7 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 | Runtime yaw | 0 rad — bake nose +Z (runtime yaw 0) |
 | Collision radius | 1.25 m (silhouette, not mesh) |
 | Default paint | `#868e96` |
-| Root AABB | (-0.983, 0, -1.925) → (0.983, 2.117, 1.925) |
+| Root AABB | (-1.013, 0, -1.925) → (1.013, 2.117, 1.925) |
 
 ## Model
 
@@ -26,7 +26,7 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 - Wheel wrappers (added at load): `WheelSteer_{FL,FR,RL,RR}` + `WheelSpin_{FL,FR,RL,RR}`
 - Stock extras if present: `StockSpoiler` (Blitz Heckspoiler), `StockCage` (Käferkraft, hidden when `reinforced_frame` on), `StockEngine` (Donnerbüchse, hidden when `big_engine` on)
 - Equipped Teile group: `carParts` / objects `carPart-{partId}` (copy `carPart-{partId}-1`…)
-- Große Räder: hide stock wheels + procedural overlays (not Blitz/Bison/Käferkraft/Donnerbüchse)
+- Große Räder: **scale** root `StockWheel_*` (do not scale `…_1` children); hub drop by radius×(scale−1)
 - Cosmetics: stickers `none|flames|bolt|star` (flames GLB `public/models/stickers/flames.glb`)
 
 ## Coordinate grids (meters)
@@ -92,6 +92,14 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">3</text>
 <rect x="230.4" y="115.6" width="337.2" height="284.9" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_3d7e6051-486f-4e09-a1e6-30c1d9e8c730</text>
+<rect x="510.8" y="139.0" width="62.0" height="63.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="541.8" y="170.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
+<rect x="225.2" y="139.0" width="62.0" height="63.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="256.2" y="170.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FL</text>
+<rect x="225.2" y="311.8" width="62.0" height="63.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="256.2" y="343.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RL</text>
+<rect x="510.8" y="311.8" width="62.0" height="63.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="541.8" y="343.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RR</text>
 <circle cx="399.0" cy="172.9" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="406.0" y="166.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="399.0" cy="115.9" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -167,8 +175,16 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="151.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">3</text>
-<rect x="178.9" y="134.0" width="440.2" height="235.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="251.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_3d7e6051-486f-4e09-a1e6-30c1d9e8c730</text>
+<rect x="178.9" y="134.0" width="440.2" height="229.1" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="248.6" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_3d7e6051-486f-4e09-a1e6-30c1d9e8c730</text>
+<rect x="485.6" y="274.5" width="97.3" height="94.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="534.2" y="321.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
+<rect x="485.6" y="268.6" width="97.3" height="94.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="534.2" y="315.9" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FL</text>
+<rect x="218.5" y="268.6" width="97.3" height="94.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="267.2" y="315.9" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RL</text>
+<rect x="218.5" y="269.5" width="97.3" height="93.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="267.2" y="316.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RR</text>
 <circle cx="530.5" cy="246.9" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="537.5" y="240.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="618.5" cy="326.8" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -191,18 +207,23 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tripo_node_3d7e6051-486f-4e09-a1e6-30c1d9e8c730` | `tripo_mesh_3d7e6051-486f-4e09-a1e6-30c1d9e8c730` | 1 | 6854 | (0, 1.059, 0) | (-0.983, 0, -1.925) → (0.983, 2.117, 1.925) | BodyPaint |
+| `tripo_node_3d7e6051-486f-4e09-a1e6-30c1d9e8c730` | `BodyPaint` | 1 | 4045 | (0, 1.085, 0) | (-0.983, 0.053, -1.925) → (0.983, 2.117, 1.925) | BodyPaint |
+| `StockWheel_FR` | `StockWheel_FR` | 3 | 800 | (0.833, 0.426, 1.183) | (0.652, 0, 0.757) → (1.013, 0.851, 1.609) | Tire |
+| `StockWheel_FL` | `StockWheel_FL` | 3 | 780 | (-0.833, 0.478, 1.183) | (-1.013, 0.053, 0.757) → (-0.652, 0.904, 1.609) | Tire |
+| `StockWheel_RL` | `StockWheel_RL` | 3 | 772 | (-0.833, 0.478, -1.153) | (-1.013, 0.053, -1.578) → (-0.652, 0.904, -0.727) | Tire |
+| `StockWheel_RR` | `StockWheel_RR` | 3 | 780 | (0.833, 0.475, -1.153) | (0.652, 0.053, -1.578) → (1.013, 0.897, -0.727) | Tire |
 
 ## Materials
 
 - `BodyPaint`
+- `Tire`
 
 ## Shop Teile + mounts
 
 | Part id | German | Shop | GLB | Mount xyz (yaw, scale) |
 | --- | --- | --- | --- | --- |
 | `big_engine` | Großer Motor | yes | `public/models/parts/bunker-big_engine.glb` | (0, 1.1, 1.15) yaw 0° ×1.05 |
-| `big_wheels` | Große Räder | yes | procedural / missing | — |
+| `big_wheels` | Große Räder | yes | StockWheel scale | — |
 | `spike_bumper` | Spike-Stoßstange | yes | `public/models/parts/bunker-spike_bumper.glb` | (0, 0.38, 1.92) yaw 0° ×1.25 |
 | `reinforced_frame` | Verstärkter Rahmen | yes | `public/models/parts/bunker-reinforced_frame.glb` | (0, 0.28, 0) yaw 90° ×1.02 |
 | `lightweight_body` | Leichtbau-Karosserie | yes | `public/models/parts/bunker-lightweight_body.glb` | (-1.02, 0.55, 0.1) yaw 90° ×1.08<br>(1.02, 0.55, 0.1) yaw -90° ×1.08 |

@@ -108,7 +108,7 @@ const CARS = [
     defaultPaint: "#868e96",
     shopSkip: ["better_brakes", "offroad_suspension"],
     shopStatsOnly: [],
-    scaledWheels: false,
+    scaledWheels: true,
     stickers: true,
     noses: false,
     sideU: 2,

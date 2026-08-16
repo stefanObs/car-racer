@@ -99,6 +99,14 @@ export function donnerBigWheelHubDrop(scale = DONNER_BIG_WHEEL_SCALE): number {
   if (scale <= 1) return 0;
   return DONNER_STOCK_WHEEL_RADIUS * (scale - 1);
 }
+
+/** Bunker Tripo StockWheel_* (chunky APC disks; radius from bake AABB). */
+export const BUNKER_STOCK_WHEEL_RADIUS = 0.43;
+export const BUNKER_BIG_WHEEL_SCALE = 1.35;
+export function bunkerBigWheelHubDrop(scale = BUNKER_BIG_WHEEL_SCALE): number {
+  if (scale <= 1) return 0;
+  return BUNKER_STOCK_WHEEL_RADIUS * (scale - 1);
+}
 export const SUSPENSION_LIFT = 0.06;
 export const BLITZ_SUSPENSION_LIFT = SUSPENSION_LIFT;
 
@@ -475,17 +483,14 @@ function layoutDonner(): CarVisualLayout {
 
 function layoutBunker(): CarVisualLayout {
   // Mesh bounds ~ x±0.98 y≤2.12 z±1.93 — nose +Z. Hood ~y0.95–1.1 at z1.2–1.5; roof ~y1.9–2.1.
+  const wheelLift = bunkerBigWheelHubDrop() + BUNKER_STOCK_WHEEL_RADIUS * (BUNKER_BIG_WHEEL_SCALE - 1);
   return {
-    wheelLift: 0.14,
+    wheelLift,
     suspensionLift: 0,
     brakes: [],
     springs: [],
-    wheelHints: [
-      { x: 1.02, y: 0.62, z: 1.2, yaw: 0, scale: 1, snap: false },
-      { x: -1.02, y: 0.62, z: 1.2, yaw: 0, scale: 1, snap: false },
-      { x: 1.02, y: 0.62, z: -1.15, yaw: 0, scale: 1, snap: false },
-      { x: -1.02, y: 0.62, z: -1.15, yaw: 0, scale: 1, snap: false },
-    ],
+    // Große Räder scales Tripo-segmented StockWheel_* — no procedural overlays.
+    wheelHints: [],
     big_engine: {
       // Look sheet panel 1: compact scoop on mid-hood yellow stripe (not nose lip / roof).
       // scaleY lifts the flat Tripo bake so the intake still reads at garage distance.
@@ -1193,9 +1198,15 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
   }
 }
 
-/** Blitz / Bison / Käferkraft / Donnerbüchse Große Räder scales Tripo StockWheel_* (no overlays). */
+/** Blitz / Bison / Käferkraft / Donnerbüchse / Bunker Große Räder scales Tripo StockWheel_* (no overlays). */
 export function usesScaledStockWheels(carId: CarId): boolean {
-  return carId === "blitz" || carId === "bison" || carId === "kaeferkraft" || carId === "donnerbuechse";
+  return (
+    carId === "blitz" ||
+    carId === "bison" ||
+    carId === "kaeferkraft" ||
+    carId === "donnerbuechse" ||
+    carId === "bunker"
+  );
 }
 
 /** Bison / Käferkraft Große Räder scales Tripo StockWheel_* (no procedural stand-ins). */
@@ -1208,6 +1219,7 @@ function stockWheelHubDropFor(carId: CarId, equippedParts: readonly PartId[]): n
   if (carId === "bison") return bisonBigWheelHubDrop(BISON_BIG_WHEEL_SCALE);
   if (carId === "kaeferkraft") return kaeferkraftBigWheelHubDrop(KAEFERKRAFT_BIG_WHEEL_SCALE);
   if (carId === "donnerbuechse") return donnerBigWheelHubDrop(DONNER_BIG_WHEEL_SCALE);
+  if (carId === "bunker") return bunkerBigWheelHubDrop(BUNKER_BIG_WHEEL_SCALE);
   return 0;
 }
 
@@ -1216,6 +1228,7 @@ function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): numbe
   if (carId === "bison") return BISON_BIG_WHEEL_SCALE;
   if (carId === "kaeferkraft") return KAEFERKRAFT_BIG_WHEEL_SCALE;
   if (carId === "donnerbuechse") return DONNER_BIG_WHEEL_SCALE;
+  if (carId === "bunker") return BUNKER_BIG_WHEEL_SCALE;
   return 1;
 }
 
@@ -1231,11 +1244,8 @@ function stockWheelOutboardShiftFor(carId: CarId, equippedParts: readonly PartId
   return 0;
 }
 
-function upgradeWheelFor(carId: CarId) {
-  if (carId === "bunker") {
-    return () => buildUpgradeWheel({ radius: 0.48, width: 0.38 });
-  }
-  // blitz / bison / kaeferkraft / donnerbuechse use scaled StockWheel_* (see applyStockPartVisibility).
+function upgradeWheelFor(_carId: CarId) {
+  // Scaled-stock cars skip this; leftover procedural overlays (none shipped) use a fat tire.
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 

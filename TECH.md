@@ -85,7 +85,7 @@ tests/
 - Boot calls `preloadCarModels()`; all five GLBs are required (no procedural fallback).
 - Bison mesh: Tripo3D authoring bake (`cars:bake-bison-tripo`); runtime is the shipped GLB (no Tripo at play time).
 - Donnerbüchse mesh: Tripo3D authoring bake (`cars:bake-donnerbuechse-tripo`); runtime is the shipped GLB (no Tripo at play time).
-- Bunker mesh: Tripo3D authoring bake (`cars:bake-bunker-tripo`); runtime is the shipped GLB (no Tripo at play time).
+- Bunker mesh: Tripo3D authoring bake (`cars:bake-bunker-tripo` then `cars:bake-bunker-segmented-wheels`); runtime is the shipped GLB (no Tripo at play time).
 - Käferkraft mesh + nose props: Tripo3D authoring bake (`cars:bake-kaeferkraft-tripo`); runtime is the shipped GLBs (no Tripo at play time).
 - Blitz mesh: Tripo3D authoring bake (`cars:bake-blitz-tripo`); runtime is the shipped GLB (no Tripo at play time).
 - Blitz equipped Teile: small add-on GLBs (`public/models/parts/blitz-*.glb`) — visuals only; stats stay in `mergeStats`. Bake: `cars:bake-blitz-parts-tripo`. **Agent skill:** `.cursor/skills/tripo-3d-assets/` (concept → Tripo → bake). Other cars use class procedural parts until per-car kits ship — do not remount Blitz kits on them.

@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.278",
+  "version": "0.3.279",
   "private": true,
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -33,6 +33,7 @@
     "cars:bake-donnerbuechse-segmented-engine": "node scripts/bake-donnerbuechse-segmented-engine.mjs",
     "cars:strip-donner-flames": "node scripts/strip-donner-flames.mjs",
     "cars:bake-bunker-tripo": "node scripts/bake-bunker-tripo.mjs",
+    "cars:bake-bunker-segmented-wheels": "node scripts/bake-bunker-segmented-wheels.mjs",
     "cars:reshape-buggy-horns": "node scripts/reshape-buggy-skull-horns.mjs",
     "cars:fetch-buggy-noses": "node scripts/fetch-buggy-noses.mjs",
     "cars:bake-buggy-noses": "node scripts/bake-buggy-noses.mjs",

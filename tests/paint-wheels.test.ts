@@ -87,30 +87,28 @@ describe("shared BodyPaint atlas skips wheel texels", () => {
     expect(shouldApplyGaragePaint("BodyPaint")).toBe(true);
   });
 
-  it("bunker wheel-island greys stay put while armor still paints", async () => {
-    const { data, width, height, mask } = await atlasAndWheelMask("bunker");
+  it("bunker armor still paints after StockWheel_* remount", async () => {
+    const doc = await io.read(resolve("public/models/cars/bunker.glb"));
+    const bodyMat = doc.getRoot().listMaterials().find((m) => m.getName() === "BodyPaint");
+    const tex = bodyMat?.getBaseColorTexture();
+    if (!tex?.getImage()) throw new Error("bunker BodyPaint has no albedo");
+    const { data, info } = await sharp(tex.getImage()!).ensureAlpha().raw().toBuffer({
+      resolveWithObject: true,
+    });
     const baked = Uint8ClampedArray.from(data);
-    recolorNearWhitePixels(baked, 0.88, 0.19, 0.19, mask);
+    recolorNearWhitePixels(baked, 0.88, 0.19, 0.19);
 
-    let wheelKept = 0;
-    let wheelWouldPaint = 0;
     let armorPainted = 0;
-    for (let i = 0; i < width * height; i++) {
+    for (let i = 0; i < info.width * info.height; i++) {
       const o = i * 4;
       const r = data[o]!;
       const g = data[o + 1]!;
       const b = data[o + 2]!;
       if (!isNearWhitePaintPixel(r, g, b)) continue;
-      if (mask[i]) {
-        wheelWouldPaint++;
-        if (baked[o] === r && baked[o + 1] === g && baked[o + 2] === b) wheelKept++;
-      } else if (baked[o] !== r || baked[o + 1] !== g || baked[o + 2] !== b) {
-        armorPainted++;
-      }
+      if (baked[o] !== r || baked[o + 1] !== g || baked[o + 2] !== b) armorPainted++;
     }
-    expect(wheelWouldPaint).toBeGreaterThan(20);
-    expect(wheelKept).toBe(wheelWouldPaint);
     expect(armorPainted).toBeGreaterThan(200);
+    expect(doc.getRoot().listNodes().some((n) => n.getName()?.startsWith("StockWheel_"))).toBe(true);
   });
 
   it("blitz wheel-island texels are not recolored by red paint", async () => {

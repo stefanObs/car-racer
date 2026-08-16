@@ -15,6 +15,9 @@ import {
   blitzPartObjectName,
   BLITZ_BIG_WHEEL_WIDTH_SCALE,
   BLITZ_STOCK_WHEEL_WIDTH,
+  BUNKER_BIG_WHEEL_SCALE,
+  BUNKER_STOCK_WHEEL_RADIUS,
+  bunkerBigWheelHubDrop,
   CAR_PART_LAYOUTS,
   carStanceLift,
   DONNER_BIG_WHEEL_SCALE,
@@ -385,17 +388,28 @@ describe("stock wheels + Große Räder", () => {
     }
   });
 
-  it("ships Bunker without StockWheel_* (tires still welded)", async () => {
+  it("ships Bunker with Tripo-segmented StockWheel_* (comic Tire albedo)", async () => {
+    expect(existsSync("scripts/bake-bunker-segmented-wheels.mjs")).toBe(true);
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
       resolve("public/models/cars/bunker.glb"),
     );
-    const names = doc
-      .getRoot()
-      .listNodes()
-      .map((n) => n.getName())
-      .filter((n) => n?.startsWith("StockWheel_"));
-    expect(names).toEqual([]);
-    expect(doc.getRoot().listMaterials().map((m) => m.getName())).toEqual(["BodyPaint"]);
+    const names = doc.getRoot().listNodes().map((n) => n.getName());
+    expect(names.filter((n) => n?.startsWith("StockWheel_")).sort()).toEqual([
+      "StockWheel_FL",
+      "StockWheel_FR",
+      "StockWheel_RL",
+      "StockWheel_RR",
+    ]);
+    expect(doc.getRoot().listMaterials().map((m) => m.getName()).sort()).toEqual(["BodyPaint", "Tire"]);
+    for (const mesh of doc.getRoot().listMeshes()) {
+      const name = mesh.getName() ?? "";
+      if (!name.startsWith("StockWheel_")) continue;
+      expect(mesh.listPrimitives().every((p) => p.getMaterial()?.getName() === "Tire"), name).toBe(true);
+      expect(
+        mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
+        name,
+      ).toBe(true);
+    }
   });
 
   it("ships Donnerbüchse with Tripo-segmented StockWheel_* (skinny front, fat rear)", async () => {
@@ -625,6 +639,29 @@ describe("stock wheels + Große Räder", () => {
       DONNER_STOCK_WHEEL_RADIUS - donnerBigWheelHubDrop(),
     );
     applyEquippedPartVisuals(root, "donnerbuechse", ["big_wheels"]);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
+  });
+
+  it("Bunker Große Räder scales StockWheel_* instead of procedural tires", () => {
+    expect(CAR_PART_LAYOUTS.bunker.wheelHints).toHaveLength(0);
+    expect(BUNKER_BIG_WHEEL_SCALE).toBeCloseTo(BISON_BIG_WHEEL_SCALE);
+    const root = new Group();
+    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
+      const stock = new Mesh(new BoxGeometry(0.36, 0.86, 0.86), new MeshBasicMaterial());
+      stock.name = stockWheelName(corner);
+      stock.userData.isStockWheel = true;
+      stock.position.y = BUNKER_STOCK_WHEEL_RADIUS;
+      root.add(stock);
+    }
+    applyStockPartVisibility(root, "bunker", []);
+    expect(root.children[0]!.scale.x).toBeCloseTo(1);
+    applyStockPartVisibility(root, "bunker", ["big_wheels"]);
+    expect(root.children[0]!.scale.x).toBeCloseTo(BUNKER_BIG_WHEEL_SCALE);
+    expect(root.children[0]!.position.y).toBeCloseTo(
+      BUNKER_STOCK_WHEEL_RADIUS - bunkerBigWheelHubDrop(),
+    );
+    applyEquippedPartVisuals(root, "bunker", ["big_wheels"]);
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
     expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
   });

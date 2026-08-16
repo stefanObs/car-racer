@@ -126,7 +126,7 @@ Exact CLI flags evolve — use `tripo mesh segment --help` / Tripo docs; park ou
 
 - `convertToComicMaterial`: keep Tire `map`; `NearestFilter` + no mipmaps; unmapped rubber → `ComicPalette.tire`.
 - `hasAuthoredStockWheels` → `collectWheelUvTriangles` returns **empty** (Tire UV space ≠ BodyPaint).
-- Bison / Käferkraft / Donnerbüchse Große Räder: `usesScaledStockWheels` + scale **root** `StockWheel_*` only + hub drop `radius×(scale−1)` so tops stay on the stock fender line (no procedural overlays; never scale GLTF `…_1` children).
+- Bison / Käferkraft / Donnerbüchse / Bunker Große Räder: `usesScaledStockWheels` + scale **root** `StockWheel_*` only + hub drop `radius×(scale−1)` so tops stay on the stock fender line (no procedural overlays; never scale GLTF `…_1` children).
 - Blitz Große Räder: `usesScaledStockWheels` + **width** ×1.2 along axle (same diameter, outboard shift, no hub drop / overlay).
 - Wheel roll: axle = thinnest local AABB axis (Bison X, Käferkraft Z); front yaw negated vs stick; no garage idle spin.
 - Garage paint: `bakeAuthoredGreenToPaint` on BodyPaint only; verify swatches on **owned** Bison.
@@ -151,6 +151,10 @@ Same punch/remount contract as Bison/Käferkraft. Body: `blitz-pre-wheel-split.g
 ### Mesh segment detach/remount (Donnerbüchse wheels only)
 
 Same punch/remount as Blitz/Käferkraft. Body: `donnerbuechse-pre-wheel-segment.glb`. Segment: `assets/tripo-out/donnerbuechse/segment-wheels-only-v1/`. Bake: `npm run cars:bake-donnerbuechse-segmented-wheels` then `npm run cars:bake-donnerbuechse-segmented-engine`. Punch **ground BodyPaint only** so side pipes are not carved with the front tires. Punch only the **outboard tire rubber** (annulus outside the hub disk) so the original painted hub and the cabin/quarter wall stay — a full-length cylinder punch opens the hollow shell. Do not plug the well with a flat body-blue disk. Runtime: skinny front + fat rear `StockWheel_*` roll/steer; Große Räder uniform-scales like Bison/Käferkraft.
+
+### Mesh segment detach/remount (Bunker wheels)
+
+Same punch/remount + comic albedo as Bison (chunky APC tires, ~820 verts). Body: `assets/tripo-out/bunker/bunker-pre-wheel-split.glb`. Segment: `assets/tripo-out/bunker/segment-wheels-only-v1/`. Albedo: `assets/tripo-concepts/bunker-tire-albedo.png`. Bake: `npm run cars:bake-bunker-segmented-wheels`. Identify tires in Tripo-normalized space (disk ≈0.22, axle along X), then `alignSegmentToBody` by Z length. Do **not** UV-carve BodyPaint. Runtime: Große Räder uniform-scales `StockWheel_*` ×1.35 + hub drop like Bison.
 
 ### Mesh segment detach/remount (Donnerbüchse engine)
 

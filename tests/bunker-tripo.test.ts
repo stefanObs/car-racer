@@ -27,32 +27,67 @@ describe("Bunker Tripo arcade bake", () => {
     expect(CAR_MODELS.bunker.yaw).toBe(0);
   });
 
-  it("keeps welded textured tires on BodyPaint (no UV-carve Tire prims)", async () => {
+  it("ships Tripo-segmented StockWheel_* with comic Tire albedo", async () => {
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
       resolve("public/models/cars/bunker.glb"),
     );
-    expect(doc.getRoot().listMaterials().map((m) => m.getName())).toEqual(["BodyPaint"]);
-    expect(doc.getRoot().listNodes().some((n) => n.getName()?.startsWith("StockWheel_"))).toBe(false);
+    expect(doc.getRoot().listMaterials().map((m) => m.getName()).sort()).toEqual(["BodyPaint", "Tire"]);
 
-    const prims = doc.getRoot().listMeshes().flatMap((m) => m.listPrimitives());
-    expect(prims).toHaveLength(1);
-    const prim = prims[0]!;
-    expect(prim.getMaterial()?.getBaseColorTexture()).toBeTruthy();
-    const pos = prim.getAttribute("POSITION");
-    const idx = prim.getIndices();
-    expect(pos).toBeTruthy();
-    expect(idx).toBeTruthy();
-    expect(idx!.getCount() / 3).toBeGreaterThan(4000);
-
-    let tireVolumeVerts = 0;
-    for (let i = 0; i < pos!.getCount(); i++) {
-      const [x, y, z] = pos!.getElement(i, []);
-      const front = z! >= 0.7 && z! <= 1.85;
-      const rear = z! <= -0.55 && z! >= -1.85;
-      if (y! >= 0 && y! <= 0.72 && Math.abs(x!) >= 0.55 && Math.abs(x!) <= 1.05 && (front || rear)) {
-        tireVolumeVerts++;
+    let bodyMaps = 0;
+    const wheels: string[] = [];
+    for (const mesh of doc.getRoot().listMeshes()) {
+      const name = mesh.getName() ?? "";
+      for (const prim of mesh.listPrimitives()) {
+        const mat = prim.getMaterial();
+        const tex = mat?.getBaseColorTexture();
+        const uv = prim.getAttribute("TEXCOORD_0");
+        if (mat?.getName() === "BodyPaint") {
+          expect(tex, name).toBeTruthy();
+          expect(uv, name).toBeTruthy();
+          if (tex) bodyMaps += 1;
+        }
       }
+      if (!name.startsWith("StockWheel_")) continue;
+      wheels.push(name);
+      expect(mesh.listPrimitives().every((p) => p.getMaterial()?.getName() === "Tire"), name).toBe(true);
+      expect(
+        mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
+        name,
+      ).toBe(true);
+      const face = mesh.listPrimitives().find((p) => p.getAttribute("TEXCOORD_0")?.getCount() === 33);
+      expect(face, name).toBeTruthy();
     }
-    expect(tireVolumeVerts).toBeGreaterThan(800);
+    expect(bodyMaps).toBeGreaterThan(0);
+    expect([...new Set(wheels)].sort()).toEqual([
+      "StockWheel_FL",
+      "StockWheel_FR",
+      "StockWheel_RL",
+      "StockWheel_RR",
+    ]);
+  });
+
+  it("keeps a hub hole on every StockWheel so face disks are not warped by rubber", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/bunker.glb"),
+    );
+    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
+      const mesh = doc.getRoot().listMeshes().find((m) => m.getName() === `StockWheel_${corner}`);
+      expect(mesh, corner).toBeTruthy();
+      const rubber = mesh!
+        .listPrimitives()
+        .find((p) => (p.getAttribute("TEXCOORD_0")?.getCount() ?? 0) !== 33);
+      expect(rubber, corner).toBeTruthy();
+      const pos = rubber!.getAttribute("POSITION")!;
+      let rMin = Infinity;
+      let rMax = 0;
+      for (let i = 0; i < pos.getCount(); i++) {
+        const v = pos.getElement(i, []);
+        const r = Math.hypot(v[1]!, v[2]!);
+        if (r < 1e-5) continue;
+        rMin = Math.min(rMin, r);
+        rMax = Math.max(rMax, r);
+      }
+      expect(rMin / rMax, corner).toBeGreaterThan(0.35);
+    }
   });
 });
