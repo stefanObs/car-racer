@@ -19,7 +19,7 @@ One sheet per car, the garage, and each cup track. Each sheet lists **nodes, mes
 - [Donnerbüchse](./car-donnerbuechse.md) — `donnerbuechse`
 - [Bunker](./car-bunker.md) — `bunker`
 
-Käferkraft `Waist` picker (named front/rear candidates): [kaeferkraft-waist-anchors.md](../../assets/tripo-concepts/kaeferkraft-waist-anchors.md).
+Käferkraft detached `WaistL` / `WaistR`: [kaeferkraft-waist-anchors.md](../../assets/tripo-concepts/kaeferkraft-waist-anchors.md).
 
 ## Garage
 

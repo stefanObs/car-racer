@@ -67,17 +67,17 @@ test.describe("Käferkraft waist poles", () => {
         position: { x: number; y: number; z: number };
       };
       const car = (window as unknown as { __idleCar?: Obj }).__idleCar;
-      if (!car) return { error: "no idle car", waists: [], stays: 0 };
-      const waists: { mid: [number, number, number]; half: number }[] = [];
+      if (!car) return { error: "no idle car", waists: [] as { name: string; mid: [number, number, number]; half: number }[], stays: 0 };
+      const waists: { name: string; mid: [number, number, number]; half: number }[] = [];
       let stays = 0;
       const walk = (o: Obj) => {
-        if (o.name === "Waist" || o.name === "Waist_1") {
+        if (o.name === "WaistL" || o.name === "WaistR") {
           o.geometry?.computeBoundingBox?.();
           const bb = o.geometry?.boundingBox;
           const half = bb ? (bb.max.y - bb.min.y) / 2 : 0;
-          waists.push({ mid: [o.position.x, o.position.y, o.position.z], half });
+          waists.push({ name: o.name, mid: [o.position.x, o.position.y, o.position.z], half });
         }
-        if (o.name.startsWith("WaistToFrontTop")) stays += 1;
+        if (o.name === "WaistToFrontTop_L" || o.name === "WaistToFrontTop_R") stays += 1;
         for (const c of o.children) walk(c);
       };
       walk(car);
@@ -87,16 +87,19 @@ test.describe("Käferkraft waist poles", () => {
     expect(coverage.error).toBe("");
     expect(coverage.waists).toHaveLength(2);
     expect(coverage.stays).toBe(2);
-    const left = coverage.waists.find((w) => w.mid[2] < 0);
-    const right = coverage.waists.find((w) => w.mid[2] > 0);
+    const left = coverage.waists.find((w) => w.name === "WaistL");
+    const right = coverage.waists.find((w) => w.name === "WaistR");
     expect(left).toBeTruthy();
     expect(right).toBeTruthy();
+    expect(left!.mid[2]).toBeLessThan(0);
+    expect(right!.mid[2]).toBeGreaterThan(0);
     expect(left!.mid[0]).toBeGreaterThan(0.05);
     expect(left!.mid[0]).toBeLessThan(0.25);
     expect(right!.mid[0]).toBeGreaterThan(-0.05);
     expect(right!.mid[0]).toBeLessThan(0.15);
     expect(left!.half).toBeGreaterThan(0.7);
     expect(right!.half).toBeGreaterThan(0.55);
-    expect(right!.mid[2]).toBeGreaterThan(0.55);
+    expect(right!.mid[2]).toBeGreaterThan(0.5);
+    expect(right!.mid[2]).toBeLessThan(0.58);
   });
 });

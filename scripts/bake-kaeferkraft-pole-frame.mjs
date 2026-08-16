@@ -41,27 +41,29 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outPath = join(rootDir, "public/models/parts/kaeferkraft-reinforced_frame.glb");
 
 const RADIUS = 0.025;
-const RAIL_WIDTH = RADIUS * 2;
-/** +Z rail sit from before the last BodyPaint retarget (1.5× width outboard). */
-const RIGHT_OUTBOARD = 1.5 * RAIL_WIDTH;
 /** Bury both caps along the pole so cut edges sit inside BodyPaint. */
 const INTO = 0.08;
-/**
- * Live Waist span — BodyPaint garage picks (mesh m, nose −X).
- * Keep in sync with `buildReinforcedFrame("buggy")` in src/render/carPartBuilders.ts.
- * −Z unchanged: (−0.551, 1.029, −0.490) → (0.799, 0.947, −0.498)
- * +Z restored to pre-v0.3.244 outboard sit.
- */
-const WAIST_SPANS = [
-  { front: [-0.551, 1.029, -0.49], rear: [0.799, 0.947, -0.498] },
-  {
-    front: [-0.534, 1.001, 0.454 + RIGHT_OUTBOARD],
-    rear: [0.553, 1.015, 0.564 + RIGHT_OUTBOARD],
-  },
-];
 /** Stock cage top-front tube (mesh space, nose −X). */
 const CAGE_FRONT_TOP = { x: -0.24, y: 1.48, z: 0.48 };
 const GREY = 0x6a7078;
+
+/**
+ * Independent waist rails (mesh m, nose −X). Command `WaistL` or `WaistR` alone.
+ * Keep in sync with `buildReinforcedFrame("buggy")`.
+ * Sit = v0.3.244 (undo the v0.3.245 +Z restore).
+ */
+const WAIST_L = {
+  name: "WaistL",
+  stay: "WaistToFrontTop_L",
+  front: [-0.551, 1.029, -0.49],
+  rear: [0.799, 0.947, -0.498],
+};
+const WAIST_R = {
+  name: "WaistR",
+  stay: "WaistToFrontTop_R",
+  front: [-0.504, 1.061, 0.49],
+  rear: [0.579, 1.063, 0.57],
+};
 
 function extendIntoFrame(a, b, into) {
   const dx = b[0] - a[0];
@@ -99,10 +101,10 @@ function addPole(parent, a, b, name) {
 
 const g = new Group();
 g.name = "kaeferkraft-reinforced_frame";
-for (const span of WAIST_SPANS) {
-  const [front, rear] = extendIntoFrame(span.front, span.rear, INTO);
-  addPole(g, front, rear, "Waist");
-  addPole(g, rear, [CAGE_FRONT_TOP.x, CAGE_FRONT_TOP.y, Math.sign(span.rear[2]) * CAGE_FRONT_TOP.z], "WaistToFrontTop");
+for (const side of [WAIST_L, WAIST_R]) {
+  const [front, rear] = extendIntoFrame(side.front, side.rear, INTO);
+  addPole(g, front, rear, side.name);
+  addPole(g, rear, [CAGE_FRONT_TOP.x, CAGE_FRONT_TOP.y, Math.sign(side.rear[2]) * CAGE_FRONT_TOP.z], side.stay);
 }
 
 const exporter = new GLTFExporter();

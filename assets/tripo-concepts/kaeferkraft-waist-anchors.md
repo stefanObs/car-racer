@@ -1,15 +1,19 @@
-# Käferkraft `Waist` anchor picker
+# Käferkraft waist rails
 
-Pick **front + rear** IDs per side. Mesh space, meters, **nose −X**. −Z `(−0.49)`; +Z outboard sit `z ≈ +0.53…0.64`.
+Live poles are **detached**. Command **`WaistL`** or **`WaistR`** — never a shared `Waist` name.
+
+Mesh space, meters, **nose −X**. Caps bury 8 cm into the hull.
+
+| Node | From behind | Front | Rear |
+| --- | --- | --- | --- |
+| `WaistL` | −Z | (−0.551, 1.029, −0.490) | (0.799, 0.947, −0.498) |
+| `WaistR` | +Z | (−0.504, 1.061, 0.490) | (0.579, 1.063, 0.570) |
+
+Stays: `WaistToFrontTop_L` / `WaistToFrontTop_R`.
 
 ![Käferkraft Waist anchors](./kaeferkraft-waist-anchors.png)
 
-Red ring on the sheet is a **candidate grid** — live poles use BodyPaint garage picks (caps buried 8 cm into the hull):
-
-| Side | Front (nose −X) | Rear |
-| --- | --- | --- |
-| −Z | (−0.551, 1.029, −0.490) | (0.799, 0.947, −0.498) |
-| +Z (1.5× width outboard) | (−0.534, 1.001, 0.529) | (0.553, 1.015, 0.639) |
+Picker grid (candidates only):
 
 | ID | x | y | z | Meaning |
 | --- | --- | --- | --- | --- |
@@ -22,6 +26,5 @@ Red ring on the sheet is a **candidate grid** — live poles use BodyPaint garag
 | `LR3` / `RR3` | 0.58 | 1.20 | ±0.55 | rear hoop mid |
 | `LR4` / `RR4` | 0.90 | 0.90 | ±0.55 | rear deck behind seats |
 
-Live poles: `Waist` / `WaistToFrontTop` in `public/models/parts/kaeferkraft-reinforced_frame.glb`. Rebuild with `node scripts/bake-kaeferkraft-pole-frame.mjs`.
-
+Rebuild poles: `node scripts/bake-kaeferkraft-pole-frame.mjs`  
 Rebuild picker image: `node scripts/overlay-kaeferkraft-waist-anchors.mjs`
