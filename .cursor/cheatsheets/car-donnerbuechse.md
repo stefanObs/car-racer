@@ -26,7 +26,7 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 - Wheel wrappers (added at load): `WheelSteer_{FL,FR,RL,RR}` + `WheelSpin_{FL,FR,RL,RR}`
 - Stock extras if present: `StockSpoiler` (Blitz Heckspoiler), `StockCage` (Käferkraft, hidden when `reinforced_frame` on), `StockEngine`
 - Equipped Teile group: `carParts` / objects `carPart-{partId}` (copy `carPart-{partId}-1`…)
-- Große Räder: hide stock wheels + procedural overlays (not Blitz/Bison/Käferkraft)
+- Große Räder: **scale** root `StockWheel_*` (do not scale `…_1` children); hub drop by radius×(scale−1)
 - Cosmetics: stickers `none|flames|bolt|star` (flames GLB `public/models/stickers/flames.glb`)
 
 ## Coordinate grids (meters)
@@ -90,8 +90,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="48" y="188.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="114.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">3</text>
-<rect x="222.4" y="122.4" width="353.3" height="276.2" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="260.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
+<rect x="222.4" y="120.8" width="353.3" height="277.8" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="259.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
 <rect x="524.6" y="117.4" width="51.0" height="56.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="550.1" y="145.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
 <rect x="222.4" y="117.4" width="51.0" height="56.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
@@ -112,14 +112,14 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="234.5" y="302.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">nitro_kit</text>
 <circle cx="399.0" cy="363.1" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="406.0" y="357.1" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">rear_spoiler</text>
-<circle cx="553.3" cy="165.5" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="560.3" y="159.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[0]</text>
-<circle cx="244.7" cy="165.5" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="251.7" y="159.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[1]</text>
-<circle cx="570.5" cy="339.4" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="577.5" y="333.4" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[2]</text>
-<circle cx="227.5" cy="339.4" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="234.5" y="333.4" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[3]</text>
+<circle cx="549.9" cy="145.5" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="556.9" y="139.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[0]</text>
+<circle cx="248.1" cy="145.5" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="255.1" y="139.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[1]</text>
+<circle cx="561.9" cy="348.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="568.9" y="342.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[2]</text>
+<circle cx="236.1" cy="348.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="243.1" y="342.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[3]</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">Donnerbüchse — top (mesh XZ)</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
@@ -181,8 +181,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="151.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">3</text>
-<rect x="181.8" y="196.5" width="426.8" height="158.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="395.2" y="275.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
+<rect x="181.8" y="196.5" width="429.2" height="167.4" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="396.4" y="280.2" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">BodyPaint</text>
 <rect x="528.7" y="284.0" width="87.6" height="85.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="572.4" y="326.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_FR</text>
 <rect x="528.7" y="284.0" width="87.6" height="85.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
@@ -203,14 +203,14 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="328.3" y="265.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">nitro_kit</text>
 <circle cx="236.6" cy="258.0" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="243.6" y="252.0" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">rear_spoiler</text>
-<circle cx="541.9" cy="326.8" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="548.9" y="320.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[0]</text>
-<circle cx="541.9" cy="326.8" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="548.9" y="320.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[1]</text>
-<circle cx="273.2" cy="315.7" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="280.2" y="309.7" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[2]</text>
-<circle cx="273.2" cy="315.7" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="280.2" y="309.7" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[3]</text>
+<circle cx="572.8" cy="326.8" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="579.8" y="320.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[0]</text>
+<circle cx="572.8" cy="326.8" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="579.8" y="320.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[1]</text>
+<circle cx="259.5" cy="313.5" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="266.5" y="307.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[2]</text>
+<circle cx="259.5" cy="313.5" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="266.5" y="307.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">better_brakes[3]</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">Donnerbüchse — side</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+Z length (nose +Z) → right · +Y up → up · origin = red (+Z length (nose +Z)) / blue (+Y up) · meters</text>
 </svg>
@@ -219,7 +219,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `BodyPaint` | `BodyPaint` | 2 | 4586 | (0, 0.84, -0.033) | (-1.03, 0.126, -1.9) → (1.03, 1.554, 1.833) | BodyPaint |
+| `BodyPaint` | `BodyPaint` | 6 | 4884 | (0, 0.8, -0.023) | (-1.03, 0.046, -1.9) → (1.03, 1.554, 1.854) | BodyPaint |
 | `StockWheel_FR` | `StockWheel_FR` | 1 | 397 | (0.881, 0.383, 1.517) | (0.732, 0, 1.134) → (1.03, 0.766, 1.9) | Tire |
 | `StockWheel_FL` | `StockWheel_FL` | 1 | 392 | (-0.881, 0.383, 1.517) | (-1.03, 0, 1.134) → (-0.732, 0.766, 1.9) | Tire |
 | `StockWheel_RL` | `StockWheel_RL` | 1 | 304 | (-0.952, 0.502, -1.223) | (-1.194, 0, -1.722) → (-0.71, 1.004, -0.725) | Tire |
@@ -235,9 +235,9 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 | Part id | German | Shop | GLB | Mount xyz (yaw, scale) |
 | --- | --- | --- | --- | --- |
 | `big_engine` | Großer Motor | yes | `public/models/parts/donnerbuechse-big_engine.glb` | (0, 0.16, 1.42) yaw 0° ×3.15 |
-| `big_wheels` | Große Räder | yes | procedural / missing | — |
+| `big_wheels` | Große Räder | yes | StockWheel scale | — |
 | `spike_bumper` | Spike-Stoßstange | yes | `public/models/parts/donnerbuechse-spike_bumper.glb` | (0, 0.06, 1.82) yaw 0° ×0.98 |
-| `better_brakes` | Bessere Bremsen | yes | procedural / missing | (0.9, 0.38, 1.25) yaw 0° ×0.95<br>(-0.9, 0.38, 1.25) yaw 180° ×0.95<br>(1, 0.48, -1.1) yaw 0° ×1.1<br>(-1, 0.48, -1.1) yaw 180° ×1.1 |
+| `better_brakes` | Bessere Bremsen | yes | procedural / missing | (0.88, 0.38, 1.52) yaw 0° ×0.95<br>(-0.88, 0.38, 1.52) yaw 180° ×0.95<br>(0.95, 0.5, -1.22) yaw 0° ×1.1<br>(-0.95, 0.5, -1.22) yaw 180° ×1.1 |
 | `reinforced_frame` | Verstärkter Rahmen | yes | `public/models/parts/donnerbuechse-reinforced_frame.glb` | (0, 0.15, -1.3) yaw -90° ×1.1 |
 | `lightweight_body` | Leichtbau-Karosserie | yes | `public/models/parts/donnerbuechse-lightweight_body.glb` | (0, 0, -0.2) yaw 90° ×1.5 |
 | `nitro_kit` | Nitro-Kit | yes | `public/models/parts/donnerbuechse-nitro_kit.glb` | (-1, 0.88, -0.68) yaw -90° ×0.95 |

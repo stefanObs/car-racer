@@ -280,6 +280,7 @@ function convertToComicMaterial(mesh: Mesh, carId: CarId): void {
           : tireMesh || stockWheel
             ? "Tire"
             : (mat?.name ?? mesh.name ?? "BodyPaint");
+    if (typeof std.side === "number") toon.side = std.side;
     return toon;
   });
   mesh.material = next.length === 1 ? next[0]! : next;

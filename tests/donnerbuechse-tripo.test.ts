@@ -7,20 +7,38 @@ import { getBounds } from "@gltf-transform/functions";
 import { CAR_MODELS } from "../src/data/carModels";
 
 describe("Donnerbüchse Tripo arcade bake", () => {
-  it("is a BodyPaint hot rod with length along +Z and cabin toward the rear", async () => {
+  it("is a BodyPaint hot rod with length along +Z, cabin aft, and segmented StockWheel_*", async () => {
     const path = resolve("public/models/cars/donnerbuechse.glb");
     expect(statSync(path).size).toBeGreaterThan(40_000);
     const text = readFileSync(path).toString("latin1");
     expect(text).toContain("BodyPaint");
+    expect(text).toContain("StockWheel_FL");
     expect(text).not.toContain("StockEngine");
     expect(text).not.toContain("Chrome");
 
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
     const engNode = doc.getRoot().listNodes().find((n) => n.getName() === "StockEngine");
     expect(engNode).toBeUndefined();
+    const wheelNames = doc
+      .getRoot()
+      .listNodes()
+      .map((n) => n.getName())
+      .filter((n) => n?.startsWith("StockWheel_"))
+      .sort();
+    expect(wheelNames).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
     const mats = doc.getRoot().listMaterials().map((m) => m.getName());
-    expect(mats).toEqual(["BodyPaint"]);
+    expect(mats).toContain("BodyPaint");
+    expect(mats).toContain("Tire");
     for (const mesh of doc.getRoot().listMeshes()) {
+      const name = mesh.getName() ?? "";
+      if (name.startsWith("StockWheel_")) {
+        expect(mesh.listPrimitives().every((p) => p.getMaterial()?.getName() === "Tire"), name).toBe(true);
+        expect(
+          mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
+          name,
+        ).toBe(true);
+        continue;
+      }
       for (const prim of mesh.listPrimitives()) {
         expect(prim.getMaterial()?.getName()).toBe("BodyPaint");
       }
@@ -56,14 +74,15 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     expect(maxYNeg).toBeGreaterThan(maxYPos - 0.02);
   });
 
-  it("stock albedo has almost no baked door-flame oranges", async () => {
+  it("stock BodyPaint albedo has almost no baked door-flame oranges", async () => {
     const path = resolve("public/models/cars/donnerbuechse.glb");
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
     const sharp = (await import("sharp")).default;
     let orange = 0;
     let total = 0;
-    for (const tex of doc.getRoot().listTextures()) {
-      const raw = tex.getImage();
+    for (const mat of doc.getRoot().listMaterials()) {
+      if (mat.getName() !== "BodyPaint") continue;
+      const raw = mat.getBaseColorTexture()?.getImage();
       if (!raw) continue;
       const { data } = await sharp(Buffer.from(raw)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
       for (let i = 0; i < data.length; i += 4) {

@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-16 — Donnerbüchse wheels-only segment
+
+- Trigger: user — segment away the Donnerbüchse wheels
+- Decision: Tripo mesh segment v2 simple + connectivity on `donnerbuechse-pre-wheel-segment.glb`. Bake remounts `StockWheel_*` with segment Tire albedo (skinny front, fat rear slicks). Punch ground BodyPaint only — engine prim stays welded (no `StockEngine` node). Große Räder uniform-scales StockWheel_* ×1.35 + hub drop like Bison/Käferkraft (no procedural overlays).
+- CONCEPT §6.3 Sichtbarkeit → v3.94; `npm run cars:bake-donnerbuechse-segmented-wheels`
+
 ### 2026-08-16 — Blitz Große Räder: detached StockWheel_* 20% wider
 
 - Trigger: user — implement Große Räder on Blitz using detached wheels; wider by 20%, not bigger; replace stock (no overlay)

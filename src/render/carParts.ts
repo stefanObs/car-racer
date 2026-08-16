@@ -90,6 +90,14 @@ export function kaeferkraftBigWheelHubDrop(scale = KAEFERKRAFT_BIG_WHEEL_SCALE):
   if (scale <= 1) return 0;
   return KAEFERKRAFT_STOCK_WHEEL_RADIUS * (scale - 1);
 }
+
+/** Donnerbüchse front StockWheel_* radius (rear slicks are larger; drop uses the front). */
+export const DONNER_STOCK_WHEEL_RADIUS = 0.38;
+export const DONNER_BIG_WHEEL_SCALE = 1.35;
+export function donnerBigWheelHubDrop(scale = DONNER_BIG_WHEEL_SCALE): number {
+  if (scale <= 1) return 0;
+  return DONNER_STOCK_WHEEL_RADIUS * (scale - 1);
+}
 export const SUSPENSION_LIFT = 0.06;
 export const BLITZ_SUSPENSION_LIFT = SUSPENSION_LIFT;
 
@@ -412,22 +420,18 @@ function layoutKaeferkraft(): CarVisualLayout {
 
 function layoutDonner(): CarVisualLayout {
   // Mesh bounds ~ x±1.19 y≤1.55 z±1.9 — nose +Z, cabin aft.
+  const wheelLift = donnerBigWheelHubDrop() + DONNER_STOCK_WHEEL_RADIUS * (DONNER_BIG_WHEEL_SCALE - 1);
   return {
-    wheelLift: 0.12,
+    wheelLift,
     suspensionLift: 0,
     brakes: [
-      { x: 0.9, y: 0.38, z: 1.25, yaw: 0, scale: 0.95, snap: false },
-      { x: -0.9, y: 0.38, z: 1.25, yaw: Math.PI, scale: 0.95, snap: false },
-      { x: 1.0, y: 0.48, z: -1.1, yaw: 0, scale: 1.1, snap: false },
-      { x: -1.0, y: 0.48, z: -1.1, yaw: Math.PI, scale: 1.1, snap: false },
+      { x: 0.88, y: 0.38, z: 1.52, yaw: 0, scale: 0.95, snap: false },
+      { x: -0.88, y: 0.38, z: 1.52, yaw: Math.PI, scale: 0.95, snap: false },
+      { x: 0.95, y: 0.5, z: -1.22, yaw: 0, scale: 1.1, snap: false },
+      { x: -0.95, y: 0.5, z: -1.22, yaw: Math.PI, scale: 1.1, snap: false },
     ],
     springs: [],
-    wheelHints: [
-      { x: 1.02, y: 0.44, z: 1.25, yaw: 0, scale: 1, snap: false },
-      { x: -1.02, y: 0.44, z: 1.25, yaw: 0, scale: 1, snap: false },
-      { x: 1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
-      { x: -1.12, y: 0.54, z: -1.1, yaw: 0, scale: 1, snap: false },
-    ],
+    wheelHints: [],
     big_engine: {
       // Look sheet: pack against grille; intakes above beltline (silver Tripo GLB).
       // Mesh mass sits aft in the bbox — high +Z closes the grille gap.
@@ -1172,9 +1176,9 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
   }
 }
 
-/** Blitz / Bison / Käferkraft Große Räder scales Tripo StockWheel_* (no overlays). */
+/** Blitz / Bison / Käferkraft / Donnerbüchse Große Räder scales Tripo StockWheel_* (no overlays). */
 export function usesScaledStockWheels(carId: CarId): boolean {
-  return carId === "blitz" || carId === "bison" || carId === "kaeferkraft";
+  return carId === "blitz" || carId === "bison" || carId === "kaeferkraft" || carId === "donnerbuechse";
 }
 
 /** Bison / Käferkraft Große Räder scales Tripo StockWheel_* (no procedural stand-ins). */
@@ -1186,6 +1190,7 @@ function stockWheelHubDropFor(carId: CarId, equippedParts: readonly PartId[]): n
   if (!equippedParts.includes("big_wheels")) return 0;
   if (carId === "bison") return bisonBigWheelHubDrop(BISON_BIG_WHEEL_SCALE);
   if (carId === "kaeferkraft") return kaeferkraftBigWheelHubDrop(KAEFERKRAFT_BIG_WHEEL_SCALE);
+  if (carId === "donnerbuechse") return donnerBigWheelHubDrop(DONNER_BIG_WHEEL_SCALE);
   return 0;
 }
 
@@ -1193,6 +1198,7 @@ function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): numbe
   if (!equippedParts.includes("big_wheels")) return 1;
   if (carId === "bison") return BISON_BIG_WHEEL_SCALE;
   if (carId === "kaeferkraft") return KAEFERKRAFT_BIG_WHEEL_SCALE;
+  if (carId === "donnerbuechse") return DONNER_BIG_WHEEL_SCALE;
   return 1;
 }
 
@@ -1212,10 +1218,7 @@ function upgradeWheelFor(carId: CarId) {
   if (carId === "bunker") {
     return () => buildUpgradeWheel({ radius: 0.48, width: 0.38 });
   }
-  if (carId === "donnerbuechse") {
-    return () => buildUpgradeWheel({ radius: 0.44, width: 0.36 });
-  }
-  // blitz / bison / kaeferkraft use scaled StockWheel_* (see applyStockPartVisibility).
+  // blitz / bison / kaeferkraft / donnerbuechse use scaled StockWheel_* (see applyStockPartVisibility).
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 

@@ -17,6 +17,9 @@ import {
   BLITZ_STOCK_WHEEL_WIDTH,
   CAR_PART_LAYOUTS,
   carStanceLift,
+  DONNER_BIG_WHEEL_SCALE,
+  DONNER_STOCK_WHEEL_RADIUS,
+  donnerBigWheelHubDrop,
   KAEFERKRAFT_BIG_WHEEL_SCALE,
   KAEFERKRAFT_STOCK_WHEEL_RADIUS,
   kaeferkraftBigWheelHubDrop,
@@ -35,6 +38,8 @@ import {
 } from "../src/render/carWheels";
 import { collectWheelUvTriangles, shouldApplyGaragePaint } from "../src/render/loadCarGltf";
 import { groundContactMinY, stockWheelName } from "../src/render/stockWheels";
+import sharp from "sharp";
+import { isBlueBodyPixel } from "../src/render/paintAuthoredWhite";
 import { resolve } from "node:path";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
@@ -382,17 +387,157 @@ describe("stock wheels + Große Räder", () => {
     }
   });
 
-  it("ships remaining cars without StockWheel_* (tires still welded)", async () => {
-    for (const id of ["donnerbuechse", "bunker"] as const) {
-      const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
-        resolve(`public/models/cars/${id}.glb`),
-      );
-      const names = doc
-        .getRoot()
-        .listNodes()
-        .map((n) => n.getName())
-        .filter((n) => n?.startsWith("StockWheel_"));
-      expect(names, id).toEqual([]);
+  it("ships Bunker without StockWheel_* (tires still welded)", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/bunker.glb"),
+    );
+    const names = doc
+      .getRoot()
+      .listNodes()
+      .map((n) => n.getName())
+      .filter((n) => n?.startsWith("StockWheel_"));
+    expect(names).toEqual([]);
+  });
+
+  it("ships Donnerbüchse with Tripo-segmented StockWheel_* (skinny front, fat rear)", async () => {
+    expect(existsSync("scripts/bake-donnerbuechse-segmented-wheels.mjs")).toBe(true);
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/cars/donnerbuechse.glb"),
+    );
+    const names = doc.getRoot().listNodes().map((n) => n.getName());
+    expect(names.filter((n) => n?.startsWith("StockWheel_")).sort()).toEqual([
+      "StockWheel_FL",
+      "StockWheel_FR",
+      "StockWheel_RL",
+      "StockWheel_RR",
+    ]);
+    const radii: Record<string, number> = {};
+    for (const mesh of doc.getRoot().listMeshes()) {
+      const name = mesh.getName() ?? "";
+      if (!name.startsWith("StockWheel_")) continue;
+      expect(mesh.listPrimitives().every((p) => p.getMaterial()?.getName() === "Tire"), name).toBe(true);
+      expect(
+        mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
+        name,
+      ).toBe(true);
+      const pos = mesh.listPrimitives()[0]?.getAttribute("POSITION");
+      expect(pos?.getCount(), name).toBeGreaterThan(250);
+      let minY = Infinity;
+      let maxY = -Infinity;
+      for (let i = 0; i < (pos?.getCount() ?? 0); i++) {
+        const v = pos!.getElement(i, []);
+        minY = Math.min(minY, v[1]!);
+        maxY = Math.max(maxY, v[1]!);
+      }
+      radii[name] = (maxY - minY) / 2;
+    }
+    expect(radii.StockWheel_RL!).toBeGreaterThan(radii.StockWheel_FL! + 0.08);
+    expect(radii.StockWheel_RR!).toBeGreaterThan(radii.StockWheel_FR! + 0.08);
+    // Chassis BodyPaint (full-length prim) must not keep welded rubber in the hubs.
+    const hubs = doc
+      .getRoot()
+      .listNodes()
+      .filter((n) => n.getName()?.startsWith("StockWheel_"))
+      .map((n) => {
+        const mesh = n.getMesh()!;
+        let min = [Infinity, Infinity, Infinity];
+        let max = [-Infinity, -Infinity, -Infinity];
+        for (const prim of mesh.listPrimitives()) {
+          const pos = prim.getAttribute("POSITION")!;
+          for (let i = 0; i < pos.getCount(); i++) {
+            const v = pos.getElement(i, []);
+            for (let k = 0; k < 3; k++) {
+              min[k] = Math.min(min[k]!, v[k]!);
+              max[k] = Math.max(max[k]!, v[k]!);
+            }
+          }
+        }
+        const t = n.getTranslation();
+        return {
+          name: n.getName(),
+          cx: t[0]! + (min[0]! + max[0]!) / 2,
+          cy: t[1]! + (min[1]! + max[1]!) / 2,
+          cz: t[2]! + (min[2]! + max[2]!) / 2,
+          hx: (max[0]! - min[0]!) / 2,
+          hy: (max[1]! - min[1]!) / 2,
+          hz: (max[2]! - min[2]!) / 2,
+        };
+      });
+    const leftover: Record<string, number> = {};
+    for (const h of hubs) leftover[h.name!] = 0;
+    const capXs: number[] = [];
+    for (const mesh of doc.getRoot().listMeshes()) {
+      if (mesh.getName()?.startsWith("StockWheel_")) continue;
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION");
+        if (!pos) continue;
+        let minX = Infinity;
+        let maxX = -Infinity;
+        let minZ = Infinity;
+        let maxZ = -Infinity;
+        for (let i = 0; i < pos.getCount(); i++) {
+          const v = pos.getElement(i, []);
+          minX = Math.min(minX, v[0]!);
+          maxX = Math.max(maxX, v[0]!);
+          minZ = Math.min(minZ, v[2]!);
+          maxZ = Math.max(maxZ, v[2]!);
+        }
+        if (pos.getCount() === 66) {
+          capXs.push((minX + maxX) / 2);
+          continue;
+        }
+        if (maxZ - minZ < 3) continue;
+        const idx = prim.getIndices();
+        if (!idx) continue;
+        for (let t = 0; t < idx.getCount() / 3; t++) {
+          const a = pos.getElement(idx.getScalar(t * 3), []);
+          const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
+          const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
+          const cx = (a[0]! + b[0]! + c[0]!) / 3;
+          const cy = (a[1]! + b[1]! + c[1]!) / 3;
+          const cz = (a[2]! + b[2]! + c[2]!) / 3;
+          for (const h of hubs) {
+            const inner = Math.abs(h.cx) - h.hx;
+            if (Math.abs(cx) < inner - 0.01) continue;
+            if (Math.abs(cx - h.cx) <= h.hx && Math.abs(cy - h.cy) <= h.hy && Math.abs(cz - h.cz) <= h.hz) {
+              leftover[h.name!]! += 1;
+            }
+          }
+        }
+      }
+    }
+    const sortedCaps = capXs.sort((a, b) => a - b);
+    expect(sortedCaps).toHaveLength(4);
+    expect(sortedCaps[0]).toBeLessThan(-0.65);
+    expect(sortedCaps[1]).toBeLessThan(-0.65);
+    expect(sortedCaps[2]).toBeGreaterThan(0.65);
+    expect(sortedCaps[3]).toBeGreaterThan(0.65);
+    // Runtime comic materials are FrontSide — caps must wind toward the outside or they vanish.
+    for (const mesh of doc.getRoot().listMeshes()) {
+      if (mesh.getName()?.startsWith("StockWheel_")) continue;
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION");
+        const idx = prim.getIndices();
+        if (!pos || !idx || pos.getCount() !== 66) continue;
+        const a = pos.getElement(idx.getScalar(0), []);
+        const b = pos.getElement(idx.getScalar(1), []);
+        const c = pos.getElement(idx.getScalar(2), []);
+        const nx = (b[1]! - a[1]!) * (c[2]! - a[2]!) - (b[2]! - a[2]!) * (c[1]! - a[1]!);
+        expect(Math.sign(nx), `cap at x=${a[0]}`).toBe(Math.sign(a[0]!));
+        const uv = prim.getAttribute("TEXCOORD_0")!.getElement(0, []);
+        const tex = prim.getMaterial()?.getBaseColorTexture()?.getImage();
+        expect(tex, "cap BodyPaint atlas").toBeTruthy();
+        const { data, info } = await sharp(Buffer.from(tex!)).ensureAlpha().raw().toBuffer({
+          resolveWithObject: true,
+        });
+        const x = Math.round(uv[0]! * (info.width - 1));
+        const y = Math.round(uv[1]! * (info.height - 1));
+        const i = (y * info.width + x) * info.channels;
+        expect(isBlueBodyPixel(data[i]!, data[i + 1]!, data[i + 2]!), `cap UV ${uv}`).toBe(true);
+      }
+    }
+    for (const h of hubs) {
+      expect(leftover[h.name!], `${h.name} chassis leftover`).toBeLessThan(10);
     }
   });
 
@@ -455,6 +600,29 @@ describe("stock wheels + Große Räder", () => {
       KAEFERKRAFT_STOCK_WHEEL_RADIUS - kaeferkraftBigWheelHubDrop(),
     );
     applyEquippedPartVisuals(root, "kaeferkraft", ["big_wheels"]);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
+  });
+
+  it("Donnerbüchse Große Räder scales StockWheel_* instead of procedural tires", () => {
+    expect(CAR_PART_LAYOUTS.donnerbuechse.wheelHints).toHaveLength(0);
+    expect(DONNER_BIG_WHEEL_SCALE).toBeCloseTo(BISON_BIG_WHEEL_SCALE);
+    const root = new Group();
+    for (const corner of ["FL", "FR", "RL", "RR"] as const) {
+      const stock = new Mesh(new BoxGeometry(0.3, 0.76, 0.76), new MeshBasicMaterial());
+      stock.name = stockWheelName(corner);
+      stock.userData.isStockWheel = true;
+      stock.position.y = DONNER_STOCK_WHEEL_RADIUS;
+      root.add(stock);
+    }
+    applyStockPartVisibility(root, "donnerbuechse", []);
+    expect(root.children[0]!.scale.x).toBeCloseTo(1);
+    applyStockPartVisibility(root, "donnerbuechse", ["big_wheels"]);
+    expect(root.children[0]!.scale.x).toBeCloseTo(DONNER_BIG_WHEEL_SCALE);
+    expect(root.children[0]!.position.y).toBeCloseTo(
+      DONNER_STOCK_WHEEL_RADIUS - donnerBigWheelHubDrop(),
+    );
+    applyEquippedPartVisuals(root, "donnerbuechse", ["big_wheels"]);
     expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
     expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
   });

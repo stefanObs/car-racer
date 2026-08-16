@@ -1,12 +1,9 @@
 #!/usr/bin/env node
 /**
- * Split Donnerbüchse dark-grey tires out of BodyPaint into recentered StockWheel_*
- * so Große Räder can upscale the same meshes (blue chassis stays on the body).
- *
- * Mesh space: nose +Z, width ±X (CAR_MODELS.donnerbuechse yaw 0).
+ * @deprecated Use `npm run cars:bake-donnerbuechse-segmented-wheels` (Tripo mesh
+ * segment + remount). UV/color carve of BodyPaint islands fails texture/QA.
  *
  *   node scripts/extract-donner-stock-wheels.mjs
- *   node scripts/extract-donner-stock-wheels.mjs --from=path/to/backup.glb
  */
 import { copyFileSync, mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";

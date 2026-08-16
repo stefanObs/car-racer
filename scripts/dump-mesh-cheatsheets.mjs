@@ -90,7 +90,7 @@ const CARS = [
     defaultPaint: "#339af0",
     shopSkip: [],
     shopStatsOnly: [],
-    scaledWheels: false,
+    scaledWheels: true,
     stickers: true,
     noses: false,
     sideU: 2,
@@ -189,10 +189,10 @@ const MOUNTS = {
     nitro_kit: [{ x: -1.0, y: 0.88, z: -0.68, yaw: -Math.PI / 2, scale: 0.95 }],
     rear_spoiler: [{ x: 0, y: 1.0, z: -1.42, yaw: Math.PI, scale: 1.15 }],
     better_brakes: [
-      { x: 0.9, y: 0.38, z: 1.25, yaw: 0, scale: 0.95 },
-      { x: -0.9, y: 0.38, z: 1.25, yaw: Math.PI, scale: 0.95 },
-      { x: 1.0, y: 0.48, z: -1.1, yaw: 0, scale: 1.1 },
-      { x: -1.0, y: 0.48, z: -1.1, yaw: Math.PI, scale: 1.1 },
+      { x: 0.88, y: 0.38, z: 1.52, yaw: 0, scale: 0.95 },
+      { x: -0.88, y: 0.38, z: 1.52, yaw: Math.PI, scale: 0.95 },
+      { x: 0.95, y: 0.5, z: -1.22, yaw: 0, scale: 1.1 },
+      { x: -0.95, y: 0.5, z: -1.22, yaw: Math.PI, scale: 1.1 },
     ],
   },
   bunker: {
@@ -613,7 +613,7 @@ async function dumpCar(car, dest) {
       ? "- Große Räder: **width-scale** root `StockWheel_*` ×1.2 along axle (same diameter; replaces stock; no procedural overlay)"
       : car.scaledWheels
         ? "- Große Räder: **scale** root `StockWheel_*` (do not scale `…_1` children); hub drop by radius×(scale−1)"
-        : "- Große Räder: hide stock wheels + procedural overlays (not Blitz/Bison/Käferkraft)",
+        : "- Große Räder: hide stock wheels + procedural overlays (not Blitz/Bison/Käferkraft/Donnerbüchse)",
     car.noses
       ? "- Cosmetics: sticker ids `none|flames|bolt|star` → noses `none|skull|bird|dog` (`buggy-skull.glb` / `buggy-bird.glb` / `buggy-dog.glb`)"
       : "- Cosmetics: stickers `none|flames|bolt|star` (flames GLB `public/models/stickers/flames.glb`)",
