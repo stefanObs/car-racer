@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-16 — Blitz Große Räder: detached StockWheel_* 20% wider
+
+- Trigger: user — implement Große Räder on Blitz using detached wheels; wider by 20%, not bigger; replace stock (no overlay)
+- Decision: Keep Tripo-segmented `StockWheel_*`. Equip scales axle (width) ×1.2, diameter unchanged, hubs shift outboard by extra half-width so inner faces stay in the wells. No procedural `UpgradeTire`, no stance lift. Bison/Käferkraft still uniform-scale + hub drop.
+- CONCEPT §6.3 Sichtbarkeit → v3.93
+
 ### 2026-08-16 — Blitz wheels-only segment (revert spoiler punch)
 
 - Trigger: user — revert Blitz wing segmentation; segment wheels only. Punching the GT wing deleted the trunk lid / made the rear vanish when `StockSpoiler` was hidden.

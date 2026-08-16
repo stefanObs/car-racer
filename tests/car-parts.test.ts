@@ -26,6 +26,7 @@ import {
   registerCarPartTemplate,
   STOCK_ENGINE_MESH,
   STOCK_CAGE_MESH,
+  usesScaledStockWheels,
 } from "../src/render/carParts";
 
 function fakePartTemplate(): Group {
@@ -219,18 +220,18 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(sy).toBeGreaterThan(0.08);
     expect(sy).toBeLessThan(0.4);
 
-    // Mounted length must sit in the clear span between Blitz wheel hubs
-    // (wheelHints ±1.15; tire/arch inners ~±0.74) — no Z intersection with tires.
+    // Mounted length must sit in the clear span between Blitz wheel arches
+    // (arch openings ~±1.15; tire/arch inners ~±0.74) — no Z intersection with tires.
     const meshHalfZ = (b.max[2]! - b.min[2]!) / 2;
     const mountedHalfZ = meshHalfZ * (a.scaleZ ?? a.scale);
-    const frontHubZ = CAR_PART_LAYOUTS.blitz.wheelHints[0]!.z;
-    const rearHubZ = CAR_PART_LAYOUTS.blitz.wheelHints[2]!.z;
-    expect(frontHubZ).toBeGreaterThan(1.1);
-    expect(rearHubZ).toBeLessThan(-1.1);
+    const frontArchZ = 1.15;
+    const rearArchZ = -1.15;
+    expect(frontArchZ).toBeGreaterThan(1.1);
+    expect(rearArchZ).toBeLessThan(-1.1);
     expect(mountedHalfZ).toBeLessThan(0.75);
     expect(mountedHalfZ).toBeGreaterThan(0.65);
-    expect(a.z + mountedHalfZ).toBeLessThan(frontHubZ - 0.35);
-    expect(a.z - mountedHalfZ).toBeGreaterThan(rearHubZ + 0.35);
+    expect(a.z + mountedHalfZ).toBeLessThan(frontArchZ - 0.35);
+    expect(a.z - mountedHalfZ).toBeGreaterThan(rearArchZ + 0.35);
   });
 
   it("does not seal Blitz cabin with opaque glass planes", () => {
@@ -256,12 +257,16 @@ describe("Equipped-part visuals (all cars)", () => {
       expect(root.getObjectByName(blitzPartObjectName("spike_bumper")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("rear_spoiler")), id).toBeTruthy();
       expect(root.getObjectByName(blitzPartObjectName("big_engine")), id).toBeTruthy();
-      if (id === "bison") {
+      if (usesScaledStockWheels(id)) {
         expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeFalsy();
       } else {
         expect(root.getObjectByName(blitzPartObjectName("big_wheels")), id).toBeTruthy();
       }
-      expect(carStanceLift(id, ["big_wheels"])).toBeGreaterThan(0);
+      if (id === "blitz") {
+        expect(carStanceLift(id, ["big_wheels"])).toBe(0);
+      } else {
+        expect(carStanceLift(id, ["big_wheels"])).toBeGreaterThan(0);
+      }
       if (id === "blitz") {
         expect(root.getObjectByName(blitzPartObjectName("better_brakes")), id).toBeFalsy();
         expect(root.getObjectByName(blitzPartObjectName("offroad_suspension")), id).toBeTruthy();
@@ -307,15 +312,15 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(withPart.grip).toBeGreaterThan(bare.grip);
   });
 
-  it("raises stance for big_wheels and mounts procedural UpgradeTire overlays", () => {
+  it("width-scales Blitz StockWheel_* instead of procedural UpgradeTire overlays", () => {
     expect(blitzStanceLift(["big_wheels"])).toBeCloseTo(BLITZ_WHEEL_LIFT);
+    expect(BLITZ_WHEEL_LIFT).toBe(0);
     const root = new Group();
     root.position.y = 0;
     applyBlitzParts(root, ["big_wheels"]);
-    expect(root.position.y).toBeCloseTo(BLITZ_WHEEL_LIFT);
-    expect(root.getObjectByName("WheelSpin_FL")).toBeUndefined();
-    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeTruthy();
-    expect(root.getObjectByName("UpgradeTire")).toBeTruthy();
+    expect(root.position.y).toBeCloseTo(0);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
     applyBlitzParts(root, []);
     expect(root.position.y).toBeCloseTo(0);
   });
@@ -363,7 +368,7 @@ describe("Equipped-part visuals (all cars)", () => {
       if (id === "blitz" || id === "bison" || id === "kaeferkraft" || id === "bunker") {
         expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(0);
       } else expect(CAR_PART_LAYOUTS[id].brakes.length).toBe(4);
-      expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(id === "bison" ? 0 : 4);
+      expect(CAR_PART_LAYOUTS[id].wheelHints.length).toBe(usesScaledStockWheels(id) ? 0 : 4);
     }
   });
 

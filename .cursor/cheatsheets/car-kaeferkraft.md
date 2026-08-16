@@ -215,7 +215,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 | Part id | German | Shop | GLB | Mount xyz (yaw, scale) |
 | --- | --- | --- | --- | --- |
 | `big_engine` | Großer Motor | yes | `public/models/parts/blitz-big_engine.glb` | (-0.88, 0.5, 0) yaw -90° ×0.72 — reuses blitz-big_engine.glb |
-| `big_wheels` | Große Räder | yes | procedural / missing | — |
+| `big_wheels` | Große Räder | yes | StockWheel scale | — |
 | `spike_bumper` | Spike-Stoßstange | yes | `public/models/parts/kaeferkraft-spike_bumper.glb` | (-1.55, 0.45, 0) yaw -90° ×0.85 |
 | `reinforced_frame` | Verstärkter Rahmen | yes | `public/models/parts/kaeferkraft-reinforced_frame.glb` | (0, 0, 0) yaw 0° ×1 — authored in mesh space; poles Waist / WaistToFrontTop |
 | `lightweight_body` | Leichtbau-Karosserie | yes | `public/models/parts/kaeferkraft-lightweight_body.glb` | (0.2, 0.5, 0) yaw 90° ×1.12 |

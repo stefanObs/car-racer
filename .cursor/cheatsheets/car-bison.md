@@ -231,7 +231,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 | Part id | German | Shop | GLB | Mount xyz (yaw, scale) |
 | --- | --- | --- | --- | --- |
 | `big_engine` | Großer Motor | yes | `public/models/parts/bison-big_engine.glb` | (0, 0.9, 1.17) yaw 180° ×0.9 |
-| `big_wheels` | Große Räder | yes | procedural / missing | — |
+| `big_wheels` | Große Räder | yes | StockWheel scale | — |
 | `spike_bumper` | Spike-Stoßstange | yes | `public/models/parts/bison-spike_bumper.glb` | (0, 0.28, 1.72) yaw 0° ×0.82 |
 | `reinforced_frame` | Verstärkter Rahmen | yes | `public/models/parts/bison-reinforced_frame.glb` | (0, 0.64, -0.82) yaw 0° ×0.88 |
 | `lightweight_body` | Leichtbau-Karosserie | yes (stats) | stats-only / no mesh | (0, 1.03, 1) yaw 0° ×1.05 — preferGlb false — stats only |

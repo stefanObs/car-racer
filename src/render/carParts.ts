@@ -2,7 +2,8 @@
  * Equipped-Teile visuals for every car (CONCEPT §6.3 + parts-look sheets).
  * Silhouette Teile (engine/scoop, spike, nitro, spoiler, frame, lightweight)
  * use per-car Tripo/extracted GLBs (`preferGlb: true`). Procedural: better_brakes
- * calipers + big_wheels overlays (except Bison/Käferkraft: scale Tripo StockWheel_*).
+ * calipers + big_wheels overlays (except Blitz/Bison/Käferkraft: scale Tripo
+ * StockWheel_* — Blitz width-only ×1.2, others uniform + hub drop).
  * Hood/deck parts surface-snap. Meshes are cosmetic — stats stay in mergeStats.
  */
 import {
@@ -54,8 +55,17 @@ export const STOCK_ENGINE_MESH = "StockEngine";
 export const STOCK_CAGE_MESH = "StockCage";
 
 export const WHEEL_LIFT = 0.1;
-/** Blitz goes wider, not taller — tiny ride lift only. */
-export const BLITZ_WHEEL_LIFT = 0.02;
+/** Blitz Große Räder keeps stock diameter — no ride lift. */
+export const BLITZ_WHEEL_LIFT = 0;
+/** Blitz StockWheel axle thickness (cheat-sheet AABB ~0.24 m). */
+export const BLITZ_STOCK_WHEEL_WIDTH = 0.24;
+/** Große Räder on Blitz: +20% width along the axle, same diameter. */
+export const BLITZ_BIG_WHEEL_WIDTH_SCALE = 1.2;
+/** Extra half-width pushed outboard so the inner face stays in the well. */
+export function blitzBigWheelOutboardShift(widthScale = BLITZ_BIG_WHEEL_WIDTH_SCALE): number {
+  if (widthScale <= 1) return 0;
+  return (BLITZ_STOCK_WHEEL_WIDTH * (widthScale - 1)) / 2;
+}
 /**
  * Bison Große Räder = uniform scale of Tripo-segmented StockWheel_*.
  * Hub drop is exactly radius×(scale−1) so tire tops stay at the stock fender
@@ -209,12 +219,8 @@ function layoutBlitz(): CarVisualLayout {
     // Blitz drops Bessere Bremsen from the shop — no caliper anchors.
     brakes: [],
     springs: BLITZ_PART_PLACEMENT.offroad_suspension,
-    wheelHints: [
-      { x: 0.8, y: 0.3, z: 1.15, yaw: 0, scale: 1, snap: false },
-      { x: -0.8, y: 0.3, z: 1.15, yaw: 0, scale: 1, snap: false },
-      { x: 0.8, y: 0.3, z: -1.15, yaw: 0, scale: 1, snap: false },
-      { x: -0.8, y: 0.3, z: -1.15, yaw: 0, scale: 1, snap: false },
-    ],
+    // Große Räder width-scales Tripo StockWheel_* — no procedural overlays.
+    wheelHints: [],
     big_engine: {
       anchors: BLITZ_PART_PLACEMENT.big_engine,
       build: () => buildHoodScoop("triple"),
@@ -1156,15 +1162,19 @@ export function applyStockPartVisibility(root: Object3D, carId: CarId, equippedP
     applyStockWheelVisibility(root, false);
     const scale = bigWheelScaleFor(carId, equippedParts);
     const hubDrop = stockWheelHubDropFor(carId, equippedParts);
-    applyStockWheelScale(root, scale, hubDrop);
+    applyStockWheelScale(root, scale, hubDrop, {
+      widthScale: bigWheelWidthScaleFor(carId, equippedParts),
+      outboardShift: stockWheelOutboardShiftFor(carId, equippedParts),
+    });
   } else {
     applyStockWheelScale(root, 1, 0);
     applyStockWheelVisibility(root, equippedParts.includes("big_wheels"));
   }
 }
 
-function usesScaledStockWheels(carId: CarId): boolean {
-  return carId === "bison" || carId === "kaeferkraft";
+/** Blitz / Bison / Käferkraft Große Räder scales Tripo StockWheel_* (no overlays). */
+export function usesScaledStockWheels(carId: CarId): boolean {
+  return carId === "blitz" || carId === "bison" || carId === "kaeferkraft";
 }
 
 /** Bison / Käferkraft Große Räder scales Tripo StockWheel_* (no procedural stand-ins). */
@@ -1186,17 +1196,26 @@ function bigWheelScaleFor(carId: CarId, equippedParts: readonly PartId[]): numbe
   return 1;
 }
 
+function bigWheelWidthScaleFor(carId: CarId, equippedParts: readonly PartId[]): number {
+  if (!equippedParts.includes("big_wheels")) return 1;
+  if (carId === "blitz") return BLITZ_BIG_WHEEL_WIDTH_SCALE;
+  return bigWheelScaleFor(carId, equippedParts);
+}
+
+function stockWheelOutboardShiftFor(carId: CarId, equippedParts: readonly PartId[]): number {
+  if (!equippedParts.includes("big_wheels")) return 0;
+  if (carId === "blitz") return blitzBigWheelOutboardShift();
+  return 0;
+}
+
 function upgradeWheelFor(carId: CarId) {
-  if (carId === "blitz") {
-    return () => buildUpgradeWheel({ radius: 0.32, width: 0.4 });
-  }
   if (carId === "bunker") {
     return () => buildUpgradeWheel({ radius: 0.48, width: 0.38 });
   }
   if (carId === "donnerbuechse") {
     return () => buildUpgradeWheel({ radius: 0.44, width: 0.36 });
   }
-  // bison / kaeferkraft use scaled StockWheel_* (see applyStockPartVisibility).
+  // blitz / bison / kaeferkraft use scaled StockWheel_* (see applyStockPartVisibility).
   return () => buildUpgradeWheel({ radius: 0.4, width: 0.36 });
 }
 

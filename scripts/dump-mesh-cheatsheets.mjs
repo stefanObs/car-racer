@@ -34,7 +34,8 @@ const CARS = [
     defaultPaint: "#e03131",
     shopSkip: ["better_brakes"],
     shopStatsOnly: ["lightweight_body"],
-    scaledWheels: false,
+    scaledWheels: true,
+    wideWheels: true,
     stickers: true,
     noses: false,
     sideU: 2,
@@ -599,9 +600,11 @@ async function dumpCar(car, dest) {
     "- Wheel wrappers (added at load): `WheelSteer_{FL,FR,RL,RR}` + `WheelSpin_{FL,FR,RL,RR}`",
     "- Stock extras if present: `StockSpoiler` (Blitz Heckspoiler), `StockCage` (Käferkraft, hidden when `reinforced_frame` on), `StockEngine`",
     "- Equipped Teile group: `carParts` / objects `carPart-{partId}` (copy `carPart-{partId}-1`…)",
-    car.scaledWheels
-      ? "- Große Räder: **scale** root `StockWheel_*` (do not scale `…_1` children); hub drop by radius×(scale−1)"
-      : "- Große Räder: hide stock wheels + procedural overlays (not Bison/Käferkraft)",
+    car.wideWheels
+      ? "- Große Räder: **width-scale** root `StockWheel_*` ×1.2 along axle (same diameter; replaces stock; no procedural overlay)"
+      : car.scaledWheels
+        ? "- Große Räder: **scale** root `StockWheel_*` (do not scale `…_1` children); hub drop by radius×(scale−1)"
+        : "- Große Räder: hide stock wheels + procedural overlays (not Blitz/Bison/Käferkraft)",
     car.noses
       ? "- Cosmetics: sticker ids `none|flames|bolt|star` → noses `none|skull|bird|dog` (`buggy-skull.glb` / `buggy-bird.glb` / `buggy-dog.glb`)"
       : "- Cosmetics: stickers `none|flames|bolt|star` (flames GLB `public/models/stickers/flames.glb`)",
@@ -632,7 +635,16 @@ async function dumpCar(car, dest) {
       shop.map((id) => {
         const path = partGlbPath(car.id, id);
         const exists = existsSync(path);
-        const stats = car.shopStatsOnly.includes(id) ? "stats-only / no mesh" : exists ? `\`${rel(path)}\`` : "procedural / missing";
+        const scaledNote = id === "big_wheels" && car.scaledWheels
+          ? (car.wideWheels ? "StockWheel width ×1.2" : "StockWheel scale")
+          : null;
+        const stats = car.shopStatsOnly.includes(id)
+          ? "stats-only / no mesh"
+          : scaledNote
+            ? scaledNote
+            : exists
+              ? `\`${rel(path)}\``
+              : "procedural / missing";
         const anchors = (MOUNTS[car.id]?.[id] ?? []).map(
           (a) => `${fmtVec([a.x, a.y, a.z])} yaw ${yawDeg(a.yaw ?? 0)} ×${fmt(a.scale ?? 1)}${a.note ? ` — ${a.note}` : ""}`,
         );

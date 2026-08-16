@@ -22,7 +22,7 @@ Use these **exact names** in commands (node / mesh / part id). Coordinates are *
 - Wheel wrappers (added at load): `WheelSteer_{FL,FR,RL,RR}` + `WheelSpin_{FL,FR,RL,RR}`
 - Stock extras if present: `StockSpoiler` (Blitz Heckspoiler), `StockCage` (Käferkraft, hidden when `reinforced_frame` on), `StockEngine`
 - Equipped Teile group: `carParts` / objects `carPart-{partId}` (copy `carPart-{partId}-1`…)
-- Große Räder: hide stock wheels + procedural overlays (not Bison/Käferkraft)
+- Große Räder: **width-scale** root `StockWheel_*` ×1.2 along axle (same diameter; replaces stock; no procedural overlay)
 - Cosmetics: stickers `none|flames|bolt|star` (flames GLB `public/models/stickers/flames.glb`)
 
 ## Coordinate grids (meters)
@@ -222,7 +222,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 | Part id | German | Shop | GLB | Mount xyz (yaw, scale) |
 | --- | --- | --- | --- | --- |
 | `big_engine` | Großer Motor | yes | `public/models/parts/blitz-big_engine.glb` | (0, 0.42, 1.2) yaw 0° ×0.92 |
-| `big_wheels` | Große Räder | yes | procedural / missing | — |
+| `big_wheels` | Große Räder | yes | StockWheel width ×1.2 | — |
 | `spike_bumper` | Spike-Stoßstange | yes | `public/models/parts/blitz-spike_bumper.glb` | (0, 0.1, 1.88) yaw 0° ×0.98 |
 | `reinforced_frame` | Verstärkter Rahmen | yes | `public/models/parts/blitz-reinforced_frame.glb` | (0, 0.12, 0) yaw 0° ×1.1 |
 | `lightweight_body` | Leichtbau-Karosserie | yes (stats) | stats-only / no mesh | — |

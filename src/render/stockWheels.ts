@@ -93,20 +93,100 @@ export function extractStockWheels(root: Object3D): void {
   }
 }
 
+export type StockWheelScaleOpts = {
+  /** Scale along the axle (tire width). Defaults to `scale` (uniform). */
+  widthScale?: number;
+  /**
+   * Shift hubs outboard so extra width does not grow into the body.
+   * Skipped when the wheel is already parented under `WheelSpin_*`.
+   */
+  outboardShift?: number;
+};
+
+const _axleSize = new Vector3();
+const _axleBox = new Box3();
+
 /**
- * Uniform scale about each tire's local origin (bake recenters geometry).
- * Optional `hubDropY` lowers hubs so growth goes into the ground / stance lift
- * instead of up into fenders (caller restores drop=0 when scale returns to 1).
- * Only root StockWheel_* nodes are scaled — nested primitive meshes inherit.
+ * Thinnest **geometry** AABB axis (ignores object.scale) = axle.
+ * Blitz/Bison bake thin on X; Käferkraft thin on Z.
  */
-export function applyStockWheelScale(root: Object3D, scale: number, hubDropY = 0): void {
+export function stockWheelAxleAxis(obj: Object3D): 0 | 1 | 2 {
+  _axleBox.makeEmpty();
+  let any = false;
+  obj.traverse((child) => {
+    const mesh = child as Mesh;
+    if (!mesh.isMesh || !mesh.geometry) return;
+    if (!mesh.geometry.boundingBox) mesh.geometry.computeBoundingBox();
+    const bb = mesh.geometry.boundingBox;
+    if (!bb) return;
+    if (!any) {
+      _axleBox.copy(bb);
+      any = true;
+    } else {
+      _axleBox.union(bb);
+    }
+  });
+  if (!any) return 0;
+  _axleBox.getSize(_axleSize);
+  const x = Math.max(_axleSize.x, 1e-4);
+  const y = Math.max(_axleSize.y, 1e-4);
+  const z = Math.max(_axleSize.z, 1e-4);
+  if (x <= y && x <= z) return 0;
+  if (y <= x && y <= z) return 1;
+  return 2;
+}
+
+function stockWheelOutboardSign(name: string): 1 | -1 {
+  const corner = name.startsWith(STOCK_WHEEL_PREFIX) ? name.slice(STOCK_WHEEL_PREFIX.length) : name;
+  return corner.startsWith("FL") || corner.startsWith("RL") ? -1 : 1;
+}
+
+/**
+ * Scale about each tire's local origin (bake recenters geometry).
+ * Uniform `scale` grows the disk; `widthScale` (default = scale) stretches the
+ * axle so Große Räder can go wider without a larger diameter.
+ * Optional `hubDropY` lowers hubs so radial growth goes into the ground /
+ * stance lift instead of up into fenders (caller restores drop=0 when scale
+ * returns to 1). Only root StockWheel_* nodes are scaled — nested primitive
+ * meshes inherit.
+ */
+export function applyStockWheelScale(
+  root: Object3D,
+  scale: number,
+  hubDropY = 0,
+  opts?: StockWheelScaleOpts,
+): void {
+  const widthScale = opts?.widthScale ?? scale;
+  const outboardShift = opts?.outboardShift ?? 0;
   root.traverse((obj) => {
     if (!isStockWheelRoot(obj)) return;
     if (typeof obj.userData.stockWheelBaseY !== "number") {
       obj.userData.stockWheelBaseY = obj.position.y;
     }
-    obj.scale.setScalar(scale);
+    if (typeof obj.userData.stockWheelBaseX !== "number") {
+      obj.userData.stockWheelBaseX = obj.position.x;
+    }
+    if (typeof obj.userData.stockWheelBaseZ !== "number") {
+      obj.userData.stockWheelBaseZ = obj.position.z;
+    }
+    const axis = widthScale === scale ? 0 : stockWheelAxleAxis(obj);
+    if (widthScale === scale) {
+      obj.scale.setScalar(scale);
+    } else {
+      obj.scale.set(
+        axis === 0 ? widthScale : scale,
+        axis === 1 ? widthScale : scale,
+        axis === 2 ? widthScale : scale,
+      );
+    }
     obj.position.y = obj.userData.stockWheelBaseY - hubDropY;
+    const mounted = obj.parent?.name.startsWith("WheelSpin_");
+    if (mounted) return;
+    const side = stockWheelOutboardSign(obj.name);
+    const dx = axis === 0 ? side * outboardShift : 0;
+    const dz = axis === 2 ? side * outboardShift : 0;
+    obj.position.x = obj.userData.stockWheelBaseX + dx;
+    obj.position.z = obj.userData.stockWheelBaseZ + dz;
   });
 }
 

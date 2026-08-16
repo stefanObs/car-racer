@@ -28,6 +28,6 @@ Per-class kits for the five look-sheet deltas:
 
 Concepts: `assets/tripo-concepts/{car}-part-{part}.png`. Look sheets: `assets/tripo-concepts/parts-look/`.
 
-Große Räder / Bessere Bremsen stay procedural (stance / calipers). Leichtbau / Gelände stay procedural until Tripo kits land.
+Große Räder: Blitz/Bison/Käferkraft scale detached `StockWheel_*` (Blitz +20% width). Donnerbüchse/Bunker keep procedural tires. Bessere Bremsen stay procedural calipers (Donnerbüchse only).
 
 **Authoring:** concept PNG → `./scripts/tripo-make-car-parts.sh [carId]` → `assets/tripo-out/parts/{car}/{id}/` → `npm run cars:bake-car-parts-tripo` (Blitz: `cars:bake-blitz-parts-tripo`). Full agent workflow: `.cursor/skills/tripo-3d-assets/`.

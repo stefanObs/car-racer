@@ -4,7 +4,6 @@ import { describe, expect, it } from "vitest";
 import { CAR_IDS, CARS, type CarId } from "../src/data/cars";
 import { carSupportsPart, partsForCar } from "../src/data/partsCatalog";
 import { mergeStats } from "../src/data/parts";
-import { buildUpgradeWheel } from "../src/render/carPartBuilders";
 import {
   applyEquippedPartVisuals,
   applyStockPartVisibility,
@@ -12,8 +11,10 @@ import {
   BISON_STOCK_WHEEL_RADIUS,
   BISON_BIG_WHEEL_ARCH_CLEARANCE,
   bisonBigWheelHubDrop,
+  blitzBigWheelOutboardShift,
   blitzPartObjectName,
-  BLITZ_WHEEL_LIFT,
+  BLITZ_BIG_WHEEL_WIDTH_SCALE,
+  BLITZ_STOCK_WHEEL_WIDTH,
   CAR_PART_LAYOUTS,
   carStanceLift,
   KAEFERKRAFT_BIG_WHEEL_SCALE,
@@ -21,6 +22,7 @@ import {
   kaeferkraftBigWheelHubDrop,
   partGlbUrl,
   registerCarPartTemplate,
+  usesScaledStockWheels,
 } from "../src/render/carParts";
 import {
   collectSpinMounts,
@@ -394,9 +396,9 @@ describe("stock wheels + Große Räder", () => {
     }
   });
 
-  it("Große Räder mounts procedural UpgradeTire overlays except Bison/Käferkraft", () => {
+  it("Große Räder mounts procedural UpgradeTire overlays except scaled-stock cars", () => {
     for (const id of CAR_IDS as CarId[]) {
-      if (id === "bison" || id === "kaeferkraft") continue;
+      if (usesScaledStockWheels(id)) continue;
       const hints = CAR_PART_LAYOUTS[id].wheelHints;
       expect(hints.length, id).toBe(4);
       const root = new Group();
@@ -492,11 +494,44 @@ describe("stock wheels + Große Räder", () => {
     expect(contact).toBeCloseTo(0, 2);
   });
 
-  it("Blitz upgrade tires are wider (not taller stance)", () => {
-    expect(carStanceLift("blitz", ["big_wheels"])).toBeCloseTo(BLITZ_WHEEL_LIFT);
-    expect(BLITZ_WHEEL_LIFT).toBeLessThan(0.05);
-    const w = buildUpgradeWheel({ radius: 0.32, width: 0.4 });
-    expect(w.getObjectByName("UpgradeTire")).toBeTruthy();
+  it("Blitz Große Räder width-scales StockWheel_* instead of procedural tires", () => {
+    expect(CAR_PART_LAYOUTS.blitz.wheelHints).toHaveLength(0);
+    expect(BLITZ_BIG_WHEEL_WIDTH_SCALE).toBeCloseTo(1.2);
+    expect(blitzBigWheelOutboardShift()).toBeCloseTo(BLITZ_STOCK_WHEEL_WIDTH * 0.1);
+    const root = new Group();
+    const hubs = [
+      { corner: "FL" as const, x: -0.67, z: 1.02 },
+      { corner: "FR" as const, x: 0.68, z: 1.02 },
+      { corner: "RL" as const, x: -0.71, z: -1.08 },
+      { corner: "RR" as const, x: 0.72, z: -1.08 },
+    ];
+    for (const h of hubs) {
+      // Thin X = axle (Blitz bake); YZ = tire disk.
+      const stock = new Mesh(new BoxGeometry(0.24, 0.57, 0.57), new MeshBasicMaterial());
+      stock.name = stockWheelName(h.corner);
+      stock.userData.isStockWheel = true;
+      stock.position.set(h.x, 0.286, h.z);
+      root.add(stock);
+    }
+    applyStockPartVisibility(root, "blitz", []);
+    expect(root.children[0]!.scale.x).toBeCloseTo(1);
+    expect(root.children[0]!.scale.y).toBeCloseTo(1);
+    applyStockPartVisibility(root, "blitz", ["big_wheels"]);
+    const fl = root.getObjectByName(stockWheelName("FL"))!;
+    const fr = root.getObjectByName(stockWheelName("FR"))!;
+    expect(fl.scale.x).toBeCloseTo(BLITZ_BIG_WHEEL_WIDTH_SCALE);
+    expect(fl.scale.y).toBeCloseTo(1);
+    expect(fl.scale.z).toBeCloseTo(1);
+    expect(fl.visible).toBe(true);
+    expect(fl.position.x).toBeCloseTo(-0.67 - blitzBigWheelOutboardShift());
+    expect(fr.position.x).toBeCloseTo(0.68 + blitzBigWheelOutboardShift());
+    expect(fl.position.y).toBeCloseTo(0.286);
+    applyEquippedPartVisuals(root, "blitz", ["big_wheels"]);
+    expect(root.getObjectByName(blitzPartObjectName("big_wheels"))).toBeFalsy();
+    expect(root.getObjectByName("UpgradeTire")).toBeFalsy();
+    applyStockPartVisibility(root, "blitz", []);
+    expect(fl.scale.x).toBeCloseTo(1);
+    expect(fl.position.x).toBeCloseTo(-0.67);
   });
 
   it("Bison Gelände-Federung lifts stance without enlarging StockWheel_*", () => {
@@ -670,6 +705,33 @@ describe("StockWheel spin + front steer", () => {
     expect(fl.scale.x).toBeCloseTo(BISON_BIG_WHEEL_SCALE);
     expect(fl.position.y).toBeCloseTo(0);
     expect(root.getObjectByName("WheelSteer_FL")!.position.y).toBeCloseTo(beforeY);
+  });
+
+  it("keeps Blitz width scale after mount (same diameter, X axle)", () => {
+    const root = new Group();
+    for (const [name, x, y, z] of [
+      ["StockWheel_FL", -0.67, 0.286, 1.02],
+      ["StockWheel_FR", 0.68, 0.286, 1.02],
+      ["StockWheel_RL", -0.71, 0.286, -1.08],
+      ["StockWheel_RR", 0.72, 0.286, -1.08],
+    ] as const) {
+      const mesh = new Mesh(new BoxGeometry(0.24, 0.57, 0.57), new MeshBasicMaterial({ name: "Tire" }));
+      mesh.name = name;
+      mesh.userData.isStockWheel = true;
+      mesh.position.set(x, y, z);
+      root.add(mesh);
+    }
+    applyEquippedPartVisuals(root, "blitz", ["big_wheels"]);
+    const beforeX = root.getObjectByName("StockWheel_FL")!.position.x;
+    expect(beforeX).toBeCloseTo(-0.67 - blitzBigWheelOutboardShift());
+    const wheels = mountCarWheels(root);
+    expect(wheels).toHaveLength(4);
+    const fl = root.getObjectByName("StockWheel_FL")!;
+    expect(fl.scale.x).toBeCloseTo(BLITZ_BIG_WHEEL_WIDTH_SCALE);
+    expect(fl.scale.y).toBeCloseTo(1);
+    expect(fl.position.y).toBeCloseTo(0);
+    expect(root.getObjectByName("WheelSteer_FL")!.position.x).toBeCloseTo(beforeX);
+    expect(wheels.find((w) => w.spinner.name === "WheelSpin_FL")!.axis).toBe(0);
   });
 
   it("Käferkraft Große Räder keeps scale after mount like Bison", () => {

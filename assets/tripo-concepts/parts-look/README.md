@@ -28,7 +28,7 @@ Naming: `{carId}-item-{partId}.png`
 | PartId | German name | Mount cue |
 |--------|-------------|-----------|
 | `big_engine` | Großer Motor | Hood / engine scoop (intakes toward nose); Käferkraft = rear block |
-| `big_wheels` | Große Räder | Fatter tires + raised stance |
+| `big_wheels` | Große Räder | Fatter tires + raised stance; **Blitz** = +20% width, same diameter |
 | `spike_bumper` | Spike-Stoßstange | Spiked front bumper / brush guard |
 | `better_brakes` | Bessere Bremsen | Oversized comic calipers / discs |
 | `reinforced_frame` | Verstärkter Rahmen | Sill armor + rear half-cage / bed bar / exo |
