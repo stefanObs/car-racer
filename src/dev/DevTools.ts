@@ -70,7 +70,7 @@ type DevHooks = {
 
 /**
  * F1 name overlay, F2 CHF setter, F3 force-finish, F4 raster pad,
- * F5 mesh studio, F6 Foto, F7 Teile.
+ * F4 raster pad, F5 Foto, F6 mesh studio, F7 Teile.
  * Mounts outside the main UI so GameApp re-renders do not wipe dialogs.
  */
 export class DevTools {
@@ -175,7 +175,7 @@ export class DevTools {
       this.hooks.startDebugPad();
       return;
     }
-    if (e.code === "F5") {
+    if (e.code === "F6") {
       e.preventDefault();
       if (!this.hooks.canMeshInspect() && !this.hooks.isMeshInspect()) return;
       this.dialog = "none";
@@ -255,7 +255,7 @@ export class DevTools {
         return;
       }
     }
-    if (e.code === "F6") {
+    if (e.code === "F5") {
       e.preventDefault();
       this.setPhotoMode(!isPhotoMode(document.documentElement));
       return;
@@ -335,8 +335,8 @@ export class DevTools {
   }
 
   private render(): void {
-    const photo = isPhotoMode(document.documentElement) ? "F6 Foto AN" : "F6 Foto";
-    const mesh = this.hooks.isMeshInspect() ? "F5 Mesh AN" : "F5 Mesh";
+    const photo = isPhotoMode(document.documentElement) ? "F5 Foto AN" : "F5 Foto";
+    const mesh = this.hooks.isMeshInspect() ? "F6 Mesh AN" : "F6 Mesh";
     const badge = this.showNames ? "F1 Namen AN" : "F1 Namen AUS";
     let dialog = "";
     if (this.dialog === "money") {

@@ -32,7 +32,7 @@ import {
   renderMeshInspectPanelHtml,
 } from "../src/dev/meshInspectPanel";
 
-describe("F5 mesh inspect panel", () => {
+describe("F6 mesh inspect panel", () => {
   it("formats element then mesh-space coordinates", () => {
     const hit: MeshInspectHit = { name: "StockWheel_FL", x: -0.6732, y: 0.2864, z: 1.0211 };
     expect(formatMeshInspectLine(hit)).toBe("StockWheel_FL  -0.673, 0.286, 1.021");
@@ -241,7 +241,7 @@ describe("F5 mesh inspect panel", () => {
     expect(css).toContain(".dev-mesh-inspect-catalog");
   });
 
-  it("does not snap garage pitch when releasing the mouse in F5 studio", () => {
+  it("does not snap garage pitch when releasing the mouse in F6 studio", () => {
     const presenter = readFileSync(
       resolve(dirname(fileURLToPath(import.meta.url)), "../src/render/garagePresenter.ts"),
       "utf8",

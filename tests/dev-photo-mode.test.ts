@@ -6,7 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { applyPhotoMode, isPhotoMode, PHOTO_MODE_CLASS } from "../src/dev/cheats";
 
-describe("F6 Foto mode", () => {
+describe("F5 Foto mode", () => {
   it("toggles the photo-mode class used to hide garage chrome", () => {
     const el = document.createElement("div");
     expect(isPhotoMode(el)).toBe(false);

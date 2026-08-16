@@ -1,13 +1,13 @@
 import { expect, test } from "@playwright/test";
 
-test.describe("F5 mesh studio", () => {
+test.describe("F6 mesh studio", () => {
   test("shows the car on a green void with a coordinate panel", async ({ page }) => {
     test.setTimeout(90_000);
     await page.goto("/");
-    await expect(page.locator("[data-dev-name='dev.badge']")).toContainText("F5 Mesh");
+    await expect(page.locator("[data-dev-name='dev.badge']")).toContainText("F6 Mesh");
     await expect(page.getByRole("button", { name: "Cup" })).toBeVisible({ timeout: 45_000 });
 
-    await page.keyboard.press("F5");
+    await page.keyboard.press("F6");
     await expect(page.locator("html")).toHaveClass(/dev-mesh-inspect-mode/);
     await expect(page.locator("[data-dev-name='dev.mesh-inspect']")).toBeVisible();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect']")).toContainText("Mesh-Raum");
@@ -20,7 +20,7 @@ test.describe("F5 mesh studio", () => {
     await page.locator(".dev-mesh-inspect-catalog-list button", { hasText: /^BodyPaint$/ }).first().click();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.edit']")).toHaveText("Platzieren AN");
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.selected']")).toContainText("BodyPaint");
-    await page.screenshot({ path: "tmp/f5-mesh-inspect.png" });
+    await page.screenshot({ path: "tmp/f6-mesh-inspect.png" });
 
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.rotate']")).toBeVisible();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.scaleUniform']")).toBeVisible();
@@ -40,7 +40,7 @@ test.describe("F5 mesh studio", () => {
     await page.locator("[data-dev-name='dev.mesh-inspect.edit']").click();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.edit']")).toHaveText("Platzieren AUS");
 
-    await page.keyboard.press("F5");
+    await page.keyboard.press("F6");
     await expect(page.locator("html")).not.toHaveClass(/dev-mesh-inspect-mode/);
     await expect(page.locator(".panel.garage")).toBeVisible();
   });

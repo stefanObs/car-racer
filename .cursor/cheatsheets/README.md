@@ -13,7 +13,7 @@ One sheet per car, the garage, and each cup track. Each sheet lists **nodes, mes
 
 ## F5 PATCH (apply forever)
 
-When the user pastes a `CRASH CIRCUIT F5 PATCH v1` block (copied from F5 **Änderung kopieren** / C / RMB after moving a part):
+When the user pastes a `CRASH CIRCUIT F5 PATCH v1` block (copied from F6 **Änderung kopieren** / C / RMB after moving a part):
 
 1. Save it to a file (e.g. `tmp/f5-patch.txt`).
 2. Run **`npm run mesh:apply-f5-patch -- tmp/f5-patch.txt`** for `apply: glb-node` rows (writes the named GLB).

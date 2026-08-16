@@ -1,4 +1,4 @@
-/** Dev F5 mesh studio — hits in car mesh space (cheat-sheet meters). */
+/** Dev F6 mesh studio — hits in car mesh space (cheat-sheet meters). */
 
 export type MeshInspectHit = {
   name: string;
@@ -390,7 +390,7 @@ export function meshInspectComponentFromKey(code: string): MeshInspectComponent 
   return null;
 }
 
-/** Esc: drop edge, then object, then place mode, then F5. */
+/** Esc: drop edge, then object, then place mode, then F6. */
 export function meshInspectEscapeStep(opts: {
   hasEdge?: boolean;
   hasSelection: boolean;

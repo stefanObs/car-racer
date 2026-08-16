@@ -43,7 +43,7 @@ test.describe("Käferkraft waist poles", () => {
     await expect(page.locator(".garage-car.is-active .garage-car__name")).toHaveText("Käferkraft");
     await expect(page.locator('[data-part="reinforced_frame"]')).toContainText("Ablegen");
     await page.waitForTimeout(1200);
-    await page.keyboard.press("F6");
+    await page.keyboard.press("F5");
     await page.waitForTimeout(200);
     const canvas = page.locator("#game-canvas");
     const box = await canvas.boundingBox();

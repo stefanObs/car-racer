@@ -31,7 +31,7 @@ export function isMeshInspectMode(target: Element): boolean {
 
 export function meshInspectHint(opts: MeshInspectPanelOpts): string {
   if (opts.copied) return "Kopiert";
-  if (!opts.edit) return "LMB drehen · RMB/C kopieren · Liste wählt Teil · E Platzieren · F5 zu";
+  if (!opts.edit) return "LMB drehen · RMB/C kopieren · Liste wählt Teil · E Platzieren · F6 zu";
   if ((opts.dirtyCount ?? 0) > 0) {
     return "Änderung kopieren / C / RMB → Patch an den Agenten · Pos1 zurück";
   }
