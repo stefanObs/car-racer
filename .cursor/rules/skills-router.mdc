@@ -16,6 +16,7 @@ Before nontrivial work, select and **read** every matching project skill below. 
 | Images, UI art, VFX, mockups, visuals, CSS look, GenerateImage | `.cursor/skills/asphalt-comic-art/SKILL.md` |
 | Tracks, levels, cups, free/ad-hoc, obstacles, level JSON | `.cursor/skills/level-editor/SKILL.md` |
 | Tripo, GLB bake, 3D cars/parts/FX/garage/track kit meshes | `.cursor/skills/tripo-3d-assets/SKILL.md` (+ asphalt-comic-art) |
+| Named meshes/nodes, car/garage/track coordinates, “move this part” commands | `.cursor/cheatsheets/README.md` |
 | Driving physics, race feel, grip/slide, jumps, nitro, mass shove, car stats→forces | `.cursor/skills/arcade-physics/SKILL.md` (+ clean-programming; game-concept if CONCEPT §4 moves) |
 
 After each implementation step: version → commit on `master` → push (see `.cursor/rules/delivery-workflow.mdc`). No feature branches.

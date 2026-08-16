@@ -17,6 +17,8 @@ Always also read `.cursor/skills/asphalt-comic-art/` for concept images. For equ
 
 Full CLI / path cookbook: [pipeline.md](pipeline.md).
 
+Named nodes, AABBs, mount anchors, and meter grids: `.cursor/cheatsheets/` (`npm run docs:cheatsheets`).
+
 ## Hard rules
 
 1. **Concept first** — Asphalt-Comic PNG (GenerateImage + style lock + `reference.png`), then Tripo, then bake.

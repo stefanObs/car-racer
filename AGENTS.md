@@ -19,6 +19,8 @@ Project Cursor subagents (`.cursor/agents/`): `architecture`, `clean-programming
 
 Source of truth for design: `CONCEPT.md`. Tech (free-only, adopted): `TECH.md`.
 
+**Mesh cheat sheets** (exact node/mesh names + meter grids for clearer commands): [`.cursor/cheatsheets/`](.cursor/cheatsheets/README.md) — regenerate with `npm run docs:cheatsheets`.
+
 **Delivery:** each implementation step → version bump → commit on `master` → push. No feature branches.
 
 **Start:** `./start.sh` / `start.bat` / `.\start.ps1` — must always work; bootstrap portable Node into `.tools/` when Node is not installed (network once).
