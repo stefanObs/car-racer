@@ -11,5 +11,6 @@ When the task touches tracks, cups, free-mode layouts, ad-hoc seeds, obstacles, 
 2. Obey asphalt → grass → wall (tires in corners, concrete on straights)
 3. Use `.cursor/skills/level-editor/track-spec.md`
 4. For track art/mockups, also follow `.cursor/skills/asphalt-comic-art/`
+5. After layout, obstacle, theme, or track-kit GLB changes: **`npm run docs:cheatsheets`** and commit `.cursor/cheatsheets/track-*.md` in the same step
 
 If the task is unrelated to levels, skip deep level work but still respect track rules if code mentions them.

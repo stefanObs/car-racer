@@ -15,5 +15,6 @@ Hard rules:
 - **Types owned once** (`GarageLook`, `StickerId`); no duplicate unions
 - **Do not** split `CarState` / rewrite `vehicle.ts` for size; **do not** add a second WebGL canvas
 - After import/ownership edits: **`npm run test:arch`** must pass
+- After car/garage/track mesh or catalog edits: **`npm run docs:cheatsheets`**
 
 Cursor subagent: `.cursor/agents/architecture.md` (use when moving modules or adding layers).

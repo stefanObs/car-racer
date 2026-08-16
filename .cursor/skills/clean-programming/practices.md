@@ -30,6 +30,7 @@ Layer imports, type ownership, and “what not to split” live in `.cursor/skil
 |-------------|---------|
 | Pure logic (physics helpers, rewards, segment stitch) | Unit tests |
 | Level JSON / generator validity | Schema / validation tests |
+| Car / garage / track meshes, named nodes, mounts | `npm run docs:cheatsheets` + `tests/mesh-cheatsheets.test.ts` |
 | Bug fix | Regression test from the repro |
 | UI-only copy | Manual check OK if no logic; still note how you verified |
 

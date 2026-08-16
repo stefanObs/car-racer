@@ -3,10 +3,13 @@
  * Generate mesh/node cheat sheets with coordinate grids.
  *
  *   node scripts/dump-mesh-cheatsheets.mjs
+ *   node scripts/dump-mesh-cheatsheets.mjs --out=/tmp/sheets
  *   npm run docs:cheatsheets
+ *
+ * New car / track / garage prop / mount: update the catalogs in this file, then dump.
  */
 import { existsSync, mkdirSync, readdirSync, writeFileSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   aabbCenter,
@@ -18,7 +21,7 @@ import {
 } from "./lib/inspect-glb.mjs";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
-const outDir = join(rootDir, ".cursor/cheatsheets");
+const DEFAULT_OUT = join(rootDir, ".cursor/cheatsheets");
 
 const CARS = [
   {
@@ -545,7 +548,7 @@ function mountPointsForGrid(car, uIdx, vIdx) {
   return points;
 }
 
-async function dumpCar(car) {
+async function dumpCar(car, dest) {
   const glbPath = pub("models/cars", `${car.id}.glb`);
   const dump = await inspectGlb(glbPath);
   const meshNodes = collapseUnnamed(dump);
@@ -680,10 +683,10 @@ async function dumpCar(car) {
     );
   }
 
-  writeFileSync(join(outDir, `car-${car.id}.md`), `${lines.join("\n")}\n`);
+  writeFileSync(join(dest, `car-${car.id}.md`), `${lines.join("\n")}\n`);
 }
 
-async function dumpGarage() {
+async function dumpGarage(dest) {
   const lines = [
     "# Garage — mesh cheat sheet",
     "",
@@ -793,10 +796,10 @@ async function dumpGarage() {
     );
   }
 
-  writeFileSync(join(outDir, "garage.md"), `${lines.join("\n")}\n`);
+  writeFileSync(join(dest, "garage.md"), `${lines.join("\n")}\n`);
 }
 
-async function dumpTrack(track) {
+async function dumpTrack(track, dest) {
   const built = buildCenterline(track.segments);
   const half = track.asphaltWidth / 2;
   const poly = built.points.map((p) => [p.x, p.z]);
@@ -921,16 +924,16 @@ async function dumpTrack(track) {
     );
   }
 
-  writeFileSync(join(outDir, track.file), `${lines.join("\n")}\n`);
+  writeFileSync(join(dest, track.file), `${lines.join("\n")}\n`);
 }
 
-function writeIndex() {
+function writeIndex(dest) {
   const body = [
     "# Mesh cheat sheets",
     "",
     "One sheet per car, the garage, and each cup track. Each sheet lists **nodes, meshes, submeshes, materials, runtime names**, plus **meter coordinates** on an SVG **grid** (origin through the axes).",
     "",
-    "Regenerate after rebakes: `npm run docs:cheatsheets`.",
+    "**Keep in sync:** after any car/garage/track GLB, named node, mount, or catalog change, run `npm run docs:cheatsheets` in the same step. New ids go in `scripts/dump-mesh-cheatsheets.mjs` first.",
     "",
     "## How to command",
     "",
@@ -952,27 +955,32 @@ function writeIndex() {
     ...TRACKS.map((t) => `- [${t.name}](./${t.file}) — \`${t.id}\` · theme \`${t.theme}\``),
     "",
   ];
-  writeFileSync(join(outDir, "README.md"), `${body.join("\n")}\n`);
+  writeFileSync(join(dest, "README.md"), `${body.join("\n")}\n`);
 }
 
-async function main() {
-  mkdirSync(outDir, { recursive: true });
-  writeIndex();
+export async function generateCheatsheets(dest = DEFAULT_OUT, { quiet = false } = {}) {
+  mkdirSync(dest, { recursive: true });
+  writeIndex(dest);
   for (const car of CARS) {
-    process.stdout.write(`car ${car.id}… `);
-    await dumpCar(car);
-    console.log("ok");
+    if (!quiet) process.stdout.write(`car ${car.id}… `);
+    await dumpCar(car, dest);
+    if (!quiet) console.log("ok");
   }
-  process.stdout.write("garage… ");
-  await dumpGarage();
-  console.log("ok");
+  if (!quiet) process.stdout.write("garage… ");
+  await dumpGarage(dest);
+  if (!quiet) console.log("ok");
   for (const track of TRACKS) {
-    process.stdout.write(`track ${track.name}… `);
-    await dumpTrack(track);
-    console.log("ok");
+    if (!quiet) process.stdout.write(`track ${track.name}… `);
+    await dumpTrack(track, dest);
+    if (!quiet) console.log("ok");
   }
-  const files = readdirSync(outDir).sort();
-  console.log("wrote", files.length, "files in", rel(outDir));
+  const files = readdirSync(dest).sort();
+  if (!quiet) console.log("wrote", files.length, "files in", rel(dest));
+  return files;
 }
 
-await main();
+const invoked = process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invoked) {
+  const outArg = process.argv.find((a) => a.startsWith("--out="))?.slice(6);
+  await generateCheatsheets(outArg ? resolve(outArg) : DEFAULT_OUT);
+}

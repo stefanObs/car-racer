@@ -2,7 +2,7 @@
 
 One sheet per car, the garage, and each cup track. Each sheet lists **nodes, meshes, submeshes, materials, runtime names**, plus **meter coordinates** on an SVG **grid** (origin through the axes).
 
-Regenerate after rebakes: `npm run docs:cheatsheets`.
+**Keep in sync:** after any car/garage/track GLB, named node, mount, or catalog change, run `npm run docs:cheatsheets` in the same step. New ids go in `scripts/dump-mesh-cheatsheets.mjs` first.
 
 ## How to command
 

@@ -17,5 +17,6 @@ When invoked:
 4. Do **not** split `CarState` / rewrite `src/sim/vehicle.ts` for line count. Do **not** add a second `WebGLRenderer` or ECS/React.
 5. `GameApp` is the composition root (thick shell OK). Feature logic belongs in `raceFlow`, `uiActions`, screens, presenters — not a new god class.
 6. Run `npm run test:arch` (or `npm test`) and report violations with file → import spec.
+7. If the change adds or renames a car, garage prop, cup track, or named mesh: `npm run docs:cheatsheets` in the same step.
 
 Output: layer verdict, any leaks, where the code should live, and whether the static guard is green.

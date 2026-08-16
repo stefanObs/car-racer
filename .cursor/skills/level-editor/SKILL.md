@@ -87,6 +87,7 @@ Task Progress:
 - [ ] 6. Write level JSON per track-spec.md
 - [ ] 7. Run validation checklist below
 - [ ] 8. If art/mockup: asphalt-comic-art skill + reference.png
+- [ ] 9. `npm run docs:cheatsheets` (update `TRACKS` in `scripts/dump-mesh-cheatsheets.mjs` if you added a cup)
 ```
 
 ## Validation checklist
@@ -112,3 +113,5 @@ Task Progress:
 - Ad-hoc is runtime; store seeds under `levels/adhoc/seeds.json` if persisted
 
 When implementing editor UI or generator code, keep this skill’s rules as the source of truth for legality — not ad-hoc exceptions in code comments.
+
+**Cheat sheets:** cup layout, theme kit, or obstacle changes must refresh `.cursor/cheatsheets/track-*.md` via `npm run docs:cheatsheets` in the same step.

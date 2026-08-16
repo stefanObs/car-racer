@@ -14,6 +14,7 @@ When invoked:
 2. **Bugs:** restate expected vs observed → reproduce → written RCA → verify RCA → failing test → smallest fix. Never guess-patch.
 3. New behavior needs tests. Refactors keep existing tests green.
 4. After import/ownership changes: `npm run test:arch` must pass.
-5. Player-facing changes need `.cursor/skills/review-testing/` (server + browser) — do not sign off from unit tests alone.
+5. After car/garage/track GLB, named-node, mount, or catalog edits: `npm run docs:cheatsheets` — `tests/mesh-cheatsheets.test.ts` must stay green.
+6. Player-facing changes need `.cursor/skills/review-testing/` (server + browser) — do not sign off from unit tests alone.
 
 Do not rewrite architecture “while here.” Delivery: version → commit `master` → push (project workflow).

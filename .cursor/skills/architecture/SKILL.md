@@ -63,6 +63,7 @@ Task Progress:
 - [ ] 3. No second GarageLook / StickerId / palette / theme hex
 - [ ] 4. Do not grow GameApp / RaceRenderer with feature logic that has a home
 - [ ] 5. `npm run test:arch` green (or full `npm test`)
+- [ ] 6. If cars/garage/tracks/named nodes/mounts changed: `npm run docs:cheatsheets`
 ```
 
 If a feature needs a new shared token (color, id, DTO), put it in `data/` or `core/` — never copy it into ui and render.

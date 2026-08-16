@@ -1,0 +1,29 @@
+---
+description: Keep car/garage/track mesh cheat sheets in sync with shipped meshes and catalogs.
+alwaysApply: true
+---
+
+# Mesh cheat sheets (always current)
+
+Exact node/mesh names and meter grids live in `.cursor/cheatsheets/`. Agents and humans use them to name `StockWheel_*`, garage instances, track kit pieces, and mounts.
+
+**Read** `.cursor/cheatsheets/README.md` (and the matching car/garage/track sheet) before mesh or layout commands.
+
+## Must regenerate in the same step
+
+If the task changes any of:
+
+- GLBs under `public/models/cars/`, `parts/`, `garage/`, `track/`, `props/`, `stickers/`
+- Named nodes / wrappers (`StockWheel_*`, `StockCage`, `BodyPaint`, `carPart-*`, garage instance names)
+- Teil mounts or shop catalogs (`src/render/carParts.ts`, `src/data/parts.ts`, `partsCatalog.ts`)
+- Cars / garage props / cup tracks (`src/data/cars.ts`, `carModels.ts`, `garageProps.ts`, `levels.ts`, `trackModels.ts`, `src/render/garageBay.ts`, `themeScenery.ts`)
+- The dump catalogs in `scripts/dump-mesh-cheatsheets.mjs`
+
+then:
+
+1. If you **added or renamed** a car, track, garage prop, or part id — update the catalogs in `scripts/dump-mesh-cheatsheets.mjs` first (CARS / TRACKS / GARAGE_* / MOUNTS).
+2. Run **`npm run docs:cheatsheets`**.
+3. Commit the updated `.cursor/cheatsheets/` files **in the same implementation step** (version → master → push).
+4. `tests/mesh-cheatsheets.test.ts` must stay green (fresh dump matches committed sheets).
+
+Do **not** ship a bake, mount move, or new cup layout with stale cheat sheets.

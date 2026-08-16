@@ -11,6 +11,8 @@ For every **implementation step** (scaffold, feature slice, fix that ships):
 2. **Commit** on **`master`** with a clear message (include version, e.g. `v0.1.0: …`)
 3. **Push** to `origin/master`
 
+If the step changed cars, garage, tracks, shipped GLBs, named nodes, or Teil mounts: run **`npm run docs:cheatsheets`** and include `.cursor/cheatsheets/` in that commit (see `.cursor/rules/mesh-cheatsheets.mdc`).
+
 **Do not** create feature branches, PRs-for-branching, or long-lived side branches. Work directly on `master`.
 
 Small doc-only tweaks may share the next implementation commit; do not leave finished implementation steps unpushed.

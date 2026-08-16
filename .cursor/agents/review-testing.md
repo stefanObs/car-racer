@@ -14,7 +14,7 @@ When invoked:
 1. Start the server (`./start.sh` / `npm run dev`). **Never** `pkill -f vite`.
 2. Open http://127.0.0.1:5173/ in browser tools; smoke Garage-Hub; exercise the flow.
 3. Judge doability for a ~10+ German player. Graphics = Asphalt-Comic only.
-4. Regression lists **all** shipped level IDs run. Architecture: `npm run test:arch` if `src/` layers changed.
+4. Regression lists **all** shipped level IDs run. Architecture: `npm run test:arch` if `src/` layers changed. Mesh catalogs: cheat sheets in `.cursor/cheatsheets/` must match the levels/cars you just shipped (`npm run docs:cheatsheets` if they drifted).
 5. Report with doability verdict, server+browser evidence, severity-ranked findings.
 
 Do not claim done from code inspection or Vitest alone.

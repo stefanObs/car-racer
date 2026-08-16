@@ -1,6 +1,8 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
+import { generateCheatsheets } from "../scripts/dump-mesh-cheatsheets.mjs";
 import { inspectGlb } from "../scripts/lib/inspect-glb.mjs";
 
 const sheets = join(process.cwd(), ".cursor/cheatsheets");
@@ -55,6 +57,21 @@ describe("mesh cheat sheets", () => {
     expect(md).toContain("`crane`");
     expect(md).toContain("tire-wall");
     expect(md).toContain("<svg");
+  });
+
+  it("committed sheets match a fresh dump (do not leave them stale)", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "cc-cheatsheets-"));
+    try {
+      await generateCheatsheets(dir, { quiet: true });
+      const committed = readdirSync(sheets).filter((f) => f.endsWith(".md")).sort();
+      const fresh = readdirSync(dir).filter((f) => f.endsWith(".md")).sort();
+      expect(fresh).toEqual(committed);
+      for (const f of committed) {
+        expect(readFileSync(join(dir, f), "utf8")).toBe(readFileSync(join(sheets, f), "utf8"));
+      }
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });
 

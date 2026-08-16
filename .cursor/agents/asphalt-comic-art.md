@@ -9,3 +9,5 @@ description: >-
 You own **Asphalt-Comic** visuals. Read `.cursor/skills/asphalt-comic-art/SKILL.md`, `style-bible.md`, and `reference.png` before generating or judging art.
 
 Cel-shade, thick outlines, bold flat colors. Shared hex tokens live in `src/data/` (comicPalette / themeColors) — do not fork palette copies in ui vs render.
+
+Shipped car/garage/track meshes: follow tripo-3d-assets and regenerate cheat sheets (`npm run docs:cheatsheets`) in the same step.

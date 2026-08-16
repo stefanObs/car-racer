@@ -163,4 +163,5 @@ Same punch/remount contract as Bison/Käferkraft. Body: `blitz-pre-wheel-split.g
 - Mounts: `src/render/carParts.ts`, `src/render/carPartBuilders.ts`
 - Look sheets: `assets/tripo-concepts/parts-look/README.md`
 - Shipped parts: `public/models/parts/README.md`
+- Mesh cheat sheets (must refresh after bake): `.cursor/cheatsheets/` via `npm run docs:cheatsheets`
 - TECH overview: `TECH.md` § Car visuals / Race FX / Track kit

@@ -17,7 +17,7 @@ Always also read `.cursor/skills/asphalt-comic-art/` for concept images. For equ
 
 Full CLI / path cookbook: [pipeline.md](pipeline.md).
 
-Named nodes, AABBs, mount anchors, and meter grids: `.cursor/cheatsheets/` (`npm run docs:cheatsheets`).
+Named nodes, AABBs, mount anchors, and meter grids: `.cursor/cheatsheets/` — **regenerate in the same step** (`npm run docs:cheatsheets`). New car/part ids: update catalogs in `scripts/dump-mesh-cheatsheets.mjs` first.
 
 ## Hard rules
 
@@ -27,7 +27,7 @@ Named nodes, AABBs, mount anchors, and meter grids: `.cursor/cheatsheets/` (`npm
 4. **Credits before generate** — `tripo doctor` / `tripo balance`. Stop and ask the user to top up if balance is 0.
 5. **Ship only baked outputs** — commit `public/models/**/*.glb` + bake scripts/tests; never commit `assets/tripo-out/` or `.tripo/`.
 6. **Visuals ≠ stats** — equipped Teile meshes are cosmetic; stats stay in `mergeStats`.
-7. **Delivery** — version → commit `master` → push after a bake that changes shipped GLBs.
+7. **Delivery** — version → **`npm run docs:cheatsheets`** → commit `master` → push after a bake that changes shipped GLBs (sheets must match the new meshes).
 8. **Detach ≠ UV carve** — to remove a welded part (tires, etc.), use Tripo **mesh segment** + remount bake. Do **not** carve `StockWheel_*` from BodyPaint UV islands alone (fails texture/QA).
 
 ## When Tripo vs procedural
@@ -50,7 +50,8 @@ Task Progress:
 - [ ] 4. Bake script → public/models/...
 - [ ] 5. Wire preload / mounts / paint if needed
 - [ ] 6. Unit + e2e / browser garage or race QA
-- [ ] 7. Version + commit master + push
+- [ ] 7. `npm run docs:cheatsheets` (update dump catalogs if you added a car/part/prop)
+- [ ] 8. Version + commit master + push (include `.cursor/cheatsheets/`)
 ```
 
 ## Mesh segment: detach a part, remount with color + texture

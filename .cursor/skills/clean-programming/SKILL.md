@@ -43,6 +43,7 @@ Details and checklists: [practices.md](practices.md).
 - Refactor → existing tests must stay green; add coverage if gaps blocked the refactor
 - Run the relevant test command before claiming done
 - After `src/` import, new-file, or type-ownership edits: **`npm run test:arch`** (layer guard) must pass
+- After car/garage/track GLB, named-node, mount, or catalog edits: **`npm run docs:cheatsheets`** — `tests/mesh-cheatsheets.test.ts` must stay green
 - If no harness exists yet, add a minimal one before non-trivial logic ships
 
 ## Bug workflow: reproduce → root cause → verify → fix

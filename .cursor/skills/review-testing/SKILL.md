@@ -93,7 +93,8 @@ Task Progress:
 - [ ] 6. Graphics consistency (Asphalt-Comic + track zones) via screenshots
 - [ ] 7. Regression: ALL shipped levels + sample ad-hoc seeds
 - [ ] 8. Concept compliance (mechanics & economy)
-- [ ] 9. Report with severity + repro steps + browser evidence
+- [ ] 9. If cars/tracks/garage meshes changed this pass: cheat sheets regenerated
+- [ ] 10. Report with severity + repro steps + browser evidence
 ```
 
 ## 1) User doability

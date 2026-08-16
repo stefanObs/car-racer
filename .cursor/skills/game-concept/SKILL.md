@@ -23,6 +23,7 @@ Sibling skills must stay aligned when concept changes:
 | Art | `.cursor/skills/asphalt-comic-art/` |
 | 3D / Tripo | `.cursor/skills/tripo-3d-assets/` |
 | Levels | `.cursor/skills/level-editor/` |
+| Mesh cheat sheets | `.cursor/cheatsheets/` (`npm run docs:cheatsheets` when cars/tracks/garage catalogs move) |
 | Arcade physics / race feel | `.cursor/skills/arcade-physics/` |
 | Code quality | `.cursor/skills/clean-programming/` |
 | Architecture / layers | `.cursor/skills/architecture/` |
