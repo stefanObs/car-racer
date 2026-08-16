@@ -1,6 +1,6 @@
 {
   "name": "car-racer",
-  "version": "0.3.277",
+  "version": "0.3.278",
   "private": true,
   "type": "module",
   "license": "PolyForm-Noncommercial-1.0.0",
@@ -46,7 +46,6 @@
     "cars:extract-donner-stock-engine": "node scripts/extract-donner-stock-engine.mjs",
     "cars:extract-kaeferkraft-stock-cage": "node scripts/extract-kaeferkraft-stock-cage.mjs",
     "cars:extract-kaeferkraft-stock-wheels": "node scripts/extract-kaeferkraft-stock-wheels.mjs",
-    "cars:extract-bunker-stock-wheels": "node scripts/extract-bunker-stock-wheels.mjs",
     "docs:cheatsheets": "node scripts/render-cheatsheet-previews.mjs && node scripts/dump-mesh-cheatsheets.mjs"
   },
   "engines": {

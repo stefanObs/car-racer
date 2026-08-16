@@ -191,12 +191,11 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tripo_node_3d7e6051-486f-4e09-a1e6-30c1d9e8c730` | `tripo_mesh_3d7e6051-486f-4e09-a1e6-30c1d9e8c730` | 5 | 7065 | (0, 1.059, 0) | (-0.983, 0, -1.925) → (0.983, 2.117, 1.925) | BodyPaint, Tire |
+| `tripo_node_3d7e6051-486f-4e09-a1e6-30c1d9e8c730` | `tripo_mesh_3d7e6051-486f-4e09-a1e6-30c1d9e8c730` | 1 | 6854 | (0, 1.059, 0) | (-0.983, 0, -1.925) → (0.983, 2.117, 1.925) | BodyPaint |
 
 ## Materials
 
 - `BodyPaint`
-- `Tire`
 
 ## Shop Teile + mounts
 

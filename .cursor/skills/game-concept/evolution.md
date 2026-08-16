@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-17 — Restore Bunker welded tires and original atlas
+
+- Trigger: user — bunker looks destroyed; reset tire and coloring changes
+- RCA: UV-carving dark-grey BodyPaint islands into flat Tire prims (v3.61) punched the APC and dropped the Tripo tire albedo. Window recolor (v3.99) and bumper/light paint-skip (v3.100) further scrambled pale atlas islands. Flattening StockWheel_* back onto the body kept the carve.
+- Decision: Restock `bunker.glb` from the pre-split Tripo bake (single BodyPaint prim, welded textured tires). Drop `extract-bunker-stock-wheels` and bumper/light paint-skip. Große Räder stays hide-stock + procedural overlays (CONCEPT §6.3). Do not UV-carve Bunker wheels again.
+
 ### 2026-08-16 — Donnerbüchse nose after engine gap takes garage paint
 
 - Trigger: user — front panels after the engine-bay gap do not take garage paint; they are not engine

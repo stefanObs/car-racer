@@ -395,6 +395,7 @@ describe("stock wheels + Große Räder", () => {
       .map((n) => n.getName())
       .filter((n) => n?.startsWith("StockWheel_"));
     expect(names).toEqual([]);
+    expect(doc.getRoot().listMaterials().map((m) => m.getName())).toEqual(["BodyPaint"]);
   });
 
   it("ships Donnerbüchse with Tripo-segmented StockWheel_* (skinny front, fat rear)", async () => {
