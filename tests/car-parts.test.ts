@@ -433,7 +433,7 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(spike.y).toBeLessThan(0.55);
     expect(spike.yaw).toBeCloseTo(-Math.PI / 2);
     expect(spike.scale).toBeLessThan(0.55);
-    expect(L.spike_bumper.tint).toBe(0x2c3136);
+    expect(L.spike_bumper.tint).toBe(ComicPalette.outline);
 
     const nitro = L.nitro_kit.anchors[0]!;
     const engine = L.big_engine.anchors[0]!;
@@ -484,6 +484,10 @@ describe("Equipped-part visuals (all cars)", () => {
 
   it("tints Käferkraft Verstärkter Rahmen like the dark stock cage", () => {
     expect(CAR_PART_LAYOUTS.kaeferkraft.reinforced_frame.tint).toBe(ComicPalette.outline);
+  });
+
+  it("tints Käferkraft spike bumper like the dark pole frame", () => {
+    expect(CAR_PART_LAYOUTS.kaeferkraft.spike_bumper.tint).toBe(ComicPalette.outline);
   });
 
   it("lazy-loads per-car kits via ensureCarPartTemplates", () => {

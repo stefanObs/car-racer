@@ -22,6 +22,7 @@ import {
   weld,
 } from "@gltf-transform/functions";
 import { MeshoptSimplifier } from "meshoptimizer";
+import { recolorKaeferkraftSpikeAlbedo } from "./recolor-kaeferkraft-spike-bumper.mjs";
 
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(rootDir, "public/models/parts");
@@ -321,6 +322,9 @@ async function bakeJob(carId, job) {
     sized = centerSitScale(doc, { targetSpan: job.targetSpan, maxH: job.maxH });
   }
   comicMaterial(doc, job.material ?? MAT[job.id] ?? "Carbon");
+  if (carId === "kaeferkraft" && job.id === "spike_bumper") {
+    await recolorKaeferkraftSpikeAlbedo(doc);
+  }
   await simplifyDoc(doc, job.simplify);
   mkdirSync(outDir, { recursive: true });
   const bytes = await io.writeBinary(doc);

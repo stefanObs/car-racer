@@ -376,7 +376,7 @@ function layoutKaeferkraft(): CarVisualLayout {
       anchors: [{ x: -1.55, y: 0.45, z: 0, yaw: -Math.PI / 2, scale: 0.85, snap: false }],
       build: () => buildSpikeBumper(4, 1.2),
       preferGlb: true,
-      tint: 0x2c3136,
+      tint: ComicPalette.outline,
     },
     reinforced_frame: {
       // Straight pole kit is authored in mesh space (nose −X).
