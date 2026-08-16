@@ -1894,14 +1894,80 @@ html.dev-mesh-inspect-mode .dev-badge {
   pointer-events: none !important;
 }
 
-.dev-mesh-inspect {
+.dev-mesh-inspect-dock {
   pointer-events: none;
   position: absolute;
   z-index: 30;
+  top: max(12px, env(safe-area-inset-top));
   right: max(12px, env(safe-area-inset-right));
   bottom: max(12px, env(safe-area-inset-bottom));
-  min-width: 220px;
-  max-width: min(420px, calc(100% - 24px));
+  width: min(280px, calc(100% - 24px));
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dev-mesh-inspect-catalog {
+  pointer-events: auto;
+  flex: 1 1 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 10px 8px 8px;
+  background: rgba(12, 18, 32, 0.92);
+  border: 2px solid #ffe066;
+  color: #f8f9fa;
+  font-size: 0.78rem;
+}
+
+.dev-mesh-inspect-catalog h3 {
+  margin: 0 0 6px;
+  padding: 0 4px;
+  font-size: 0.85rem;
+  color: #ffe066;
+}
+
+.dev-mesh-inspect-catalog-list {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow: auto;
+}
+
+.dev-mesh-inspect-catalog-list button {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 3px 8px;
+  border: 0;
+  border-left: 3px solid transparent;
+  background: transparent;
+  color: #f8f9fa;
+  font: inherit;
+  font-size: 0.72rem;
+  font-family: ui-monospace, "Cascadia Mono", monospace;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dev-mesh-inspect-catalog-list button:hover {
+  background: rgba(255, 224, 102, 0.16);
+}
+
+.dev-mesh-inspect-catalog-list button.is-on {
+  color: #191919;
+  background: #ffe066;
+  border-left-color: #191919;
+}
+
+.dev-mesh-inspect {
+  pointer-events: none;
+  position: relative;
+  z-index: 30;
+  flex: 0 0 auto;
+  max-height: 42%;
+  overflow: auto;
+  min-width: 0;
+  max-width: none;
   padding: 10px 12px;
   background: rgba(12, 18, 32, 0.92);
   border: 2px solid #ffe066;

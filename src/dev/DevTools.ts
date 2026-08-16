@@ -1,4 +1,10 @@
-import type { MeshInspectComponent, MeshInspectHit, MeshInspectSelection, MeshInspectTool } from "../core/meshInspect";
+import type {
+  MeshInspectCatalogEntry,
+  MeshInspectComponent,
+  MeshInspectHit,
+  MeshInspectSelection,
+  MeshInspectTool,
+} from "../core/meshInspect";
 import {
   meshInspectComponentFromKey,
   meshInspectEscapeStep,
@@ -45,6 +51,8 @@ type DevHooks = {
   isMeshInspectEdit: () => boolean;
   setMeshInspectEdit: (on: boolean) => void;
   meshInspectSelection: () => MeshInspectSelection | null;
+  meshInspectCatalog: () => MeshInspectCatalogEntry[];
+  selectMeshInspectById: (id: string) => boolean;
   clearMeshInspectSelection: () => boolean;
   nudgeMeshInspect: (dx: number, dy: number, dz: number) => void;
   yawMeshInspect: (radians: number) => void;
@@ -259,22 +267,27 @@ export class DevTools {
   }
 
   private syncInspectPanel(): void {
-    const existing = this.root.querySelector(".dev-mesh-inspect");
+    const existing = this.root.querySelector(".dev-mesh-inspect-dock") ?? this.root.querySelector(".dev-mesh-inspect");
     if (!this.hooks.isMeshInspect()) {
       existing?.remove();
       applyMeshInspectMode(document.documentElement, false);
       return;
     }
     applyMeshInspectMode(document.documentElement, true);
+    const list = this.root.querySelector(".dev-mesh-inspect-catalog-list");
+    const scroll = list instanceof HTMLElement ? list.scrollTop : 0;
     const html = renderMeshInspectPanelHtml(this.inspectHits, {
       copied: this.inspectCopied,
       edit: this.hooks.isMeshInspectEdit(),
       selection: this.hooks.meshInspectSelection(),
       tool: this.hooks.meshInspectPlaceTool(),
       component: this.hooks.meshInspectPlaceComponent(),
+      catalog: this.hooks.meshInspectCatalog(),
     });
     if (existing) existing.outerHTML = html;
     else this.root.insertAdjacentHTML("beforeend", html);
+    const nextList = this.root.querySelector(".dev-mesh-inspect-catalog-list");
+    if (nextList instanceof HTMLElement) nextList.scrollTop = scroll;
     this.root.querySelector("[data-mesh-inspect-edit]")?.addEventListener("click", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
@@ -294,6 +307,15 @@ export class DevTools {
         ev.preventDefault();
         ev.stopPropagation();
         this.hooks.setMeshInspectPlaceComponent(btn.dataset.meshInspectComp as MeshInspectComponent);
+        this.syncInspectPanel();
+      });
+    });
+    this.root.querySelectorAll<HTMLButtonElement>("[data-mesh-inspect-select]").forEach((btn) => {
+      btn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const id = btn.dataset.meshInspectSelect;
+        if (id) this.hooks.selectMeshInspectById(id);
         this.syncInspectPanel();
       });
     });

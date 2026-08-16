@@ -32,6 +32,13 @@ export type MeshInspectTool = "move" | "rotate" | "scaleUniform" | "scaleFree";
 
 export type MeshInspectComponent = "object" | "edge";
 
+/** Named node in the F5 catalog — pick internals the ray cannot see. */
+export type MeshInspectCatalogEntry = {
+  id: string;
+  name: string;
+  depth: number;
+};
+
 export const MESH_INSPECT_DECIMALS = 3;
 export const MESH_INSPECT_DRAG_PX = 4;
 export const MESH_INSPECT_NUDGE = 0.05;

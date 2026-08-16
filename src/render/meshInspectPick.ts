@@ -9,7 +9,7 @@ import {
   type Object3D,
   type Texture,
 } from "three";
-import type { MeshInspectHit } from "../core/meshInspect";
+import type { MeshInspectCatalogEntry, MeshInspectHit } from "../core/meshInspect";
 import { isUnderCarFx } from "./garageSit";
 
 /** Default F5 void — green so red/blue cars stay readable. */
@@ -290,6 +290,10 @@ export function sampleHitRgb(hit: Intersection): { r: number; g: number; b: numb
 
 function skipPickObject(obj: Object3D): boolean {
   if (!obj.visible) return true;
+  return skipCatalogSubtree(obj);
+}
+
+function skipCatalogSubtree(obj: Object3D): boolean {
   if (
     obj.name === "carGroundBlob" ||
     obj.name === MESH_INSPECT_MARKER_NAME ||
@@ -299,6 +303,25 @@ function skipPickObject(obj: Object3D): boolean {
     return true;
   }
   return isUnderCarFx(obj);
+}
+
+/**
+ * Every named selectable node under the car, depth-first.
+ * Includes hidden internals (StockEngine inside BodyPaint) that a pick ray never hits.
+ */
+export function listMeshInspectCatalog(carRoot: Object3D): MeshInspectCatalogEntry[] {
+  const space = carMeshSpaceRoot(carRoot);
+  const out: MeshInspectCatalogEntry[] = [];
+  const walk = (obj: Object3D, depth: number): void => {
+    if (skipCatalogSubtree(obj)) return;
+    const name = obj.name?.trim() ?? "";
+    const listThis = obj !== space && isUsefulName(name);
+    if (listThis) out.push({ id: obj.uuid, name, depth });
+    const nextDepth = listThis ? depth + 1 : depth;
+    for (const child of obj.children) walk(child, nextDepth);
+  };
+  walk(space, 0);
+  return out;
 }
 
 /**

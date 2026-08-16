@@ -12,6 +12,7 @@ import {
   meshInspectPartName,
   meshInspectSelectableParent,
   pickFillRgbFromPatch,
+  listMeshInspectCatalog,
   MESH_INSPECT_BG,
   MESH_INSPECT_BG_ON_GREEN,
   MESH_INSPECT_MARKER_BLUE,
@@ -67,6 +68,28 @@ function carWithParts(): { root: Group; camera: PerspectiveCamera } {
 }
 
 describe("mesh inspect picking", () => {
+  it("lists nested and hidden named parts that a pick ray cannot see", () => {
+    const { root } = carWithParts();
+    const engine = new Mesh(new BoxGeometry(0.4, 0.4, 0.4), new MeshBasicMaterial());
+    engine.name = "StockEngine";
+    engine.visible = false;
+    root.getObjectByName("BakeRoot")!.add(engine);
+    const catalog = listMeshInspectCatalog(root);
+    const names = catalog.map((e) => e.name);
+    expect(names).toContain("BodyPaint");
+    expect(names).toContain("StockEngine");
+    expect(names).toContain("carPart-reinforced_frame");
+    expect(names).toContain("Waist");
+    expect(names).toContain("StockWheel_FL");
+    expect(names).not.toContain("WheelSteer_FL");
+    expect(names).not.toContain("WheelSpin_FL");
+    const part = catalog.find((e) => e.name === "carPart-reinforced_frame");
+    const waist = catalog.find((e) => e.name === "Waist");
+    expect(part?.depth).toBe(0);
+    expect(waist?.depth).toBe(1);
+    expect(waist?.id).not.toBe(part?.id);
+  });
+
   it("uses the authored GLB child as mesh space", () => {
     const { root } = carWithParts();
     expect(carMeshSpaceRoot(root).name).toBe("BakeRoot");

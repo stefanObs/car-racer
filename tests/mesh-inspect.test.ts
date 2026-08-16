@@ -158,12 +158,18 @@ describe("F5 mesh inspect panel", () => {
     expect(html).toContain("carPart-rear_spoiler  0.000, 0.710, -1.620");
     expect(html).toContain("RMB kopieren");
     expect(html).toContain("Platzieren AUS");
+    expect(html).toContain("Komponenten");
+    expect(html).toContain("Keine Komponenten");
   });
 
   it("shows the selected origin and place-mode hint", () => {
     const html = renderMeshInspectPanelHtml([], {
       edit: true,
       selection: { name: "Waist", id: "u1", x: 0.1, y: 1, z: -0.5 },
+      catalog: [
+        { id: "eng", name: "StockEngine", depth: 0 },
+        { id: "u1", name: "Waist", depth: 1 },
+      ],
     });
     expect(html).toContain("Platzieren AN");
     expect(html).toContain("Waist  0.100, 1.000, -0.500");
@@ -172,7 +178,11 @@ describe("F5 mesh inspect panel", () => {
     expect(html).toContain("1:1");
     expect(html).toContain("Strecken");
     expect(html).toContain("Kante");
-    expect(meshInspectHint({ edit: false })).toContain("E Platzieren");
+    expect(html).toContain("StockEngine");
+    expect(html).toContain('data-mesh-inspect-select="eng"');
+    expect(html).toContain('data-mesh-inspect-select="u1"');
+    expect(html).toMatch(/class="is-on" data-mesh-inspect-select="u1"/);
+    expect(meshInspectHint({ edit: false })).toContain("Liste wählt Teil");
     expect(meshInspectHint({ edit: true, selection: { name: "Waist", id: "u1", x: 0, y: 0, z: 0 }, tool: "scaleUniform" })).toContain("Ziehen 1:1");
     expect(meshInspectHint({ edit: true, selection: { name: "Waist", id: "u1", x: 0, y: 0, z: 0 }, tool: "scaleFree" })).toContain("Ziehen strecken");
   });
@@ -191,6 +201,7 @@ describe("F5 mesh inspect panel", () => {
     expect(css).toContain("html.dev-mesh-inspect-mode .ui-root");
     expect(css).toContain(".dev-mesh-inspect-edit");
     expect(css).toContain(".dev-mesh-inspect-tools");
+    expect(css).toContain(".dev-mesh-inspect-catalog");
   });
 
   it("does not snap garage pitch when releasing the mouse in F5 studio", () => {

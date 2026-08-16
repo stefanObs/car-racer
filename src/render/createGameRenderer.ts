@@ -1,4 +1,5 @@
 import type {
+  MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectDragMode,
   MeshInspectHit,
@@ -29,6 +30,8 @@ export type GameRenderer = {
   isMeshInspectEdit: () => boolean;
   setMeshInspectEdit: (on: boolean) => void;
   meshInspectSelection: () => MeshInspectSelection | null;
+  meshInspectCatalog: () => MeshInspectCatalogEntry[];
+  selectMeshInspectById: (id: string) => boolean;
   meshInspectHitIsSelection: (hitId: string | null | undefined) => boolean;
   pickMeshInspect: (clientX: number, clientY: number, canvas: HTMLCanvasElement) => MeshInspectHit[];
   selectMeshInspectAt: (

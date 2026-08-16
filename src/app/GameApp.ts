@@ -134,6 +134,8 @@ export class GameApp {
       isMeshInspectEdit: () => this.renderer.isMeshInspectEdit(),
       setMeshInspectEdit: (on) => this.renderer.setMeshInspectEdit(on),
       meshInspectSelection: () => this.renderer.meshInspectSelection(),
+      meshInspectCatalog: () => this.renderer.meshInspectCatalog(),
+      selectMeshInspectById: (id) => this.renderer.selectMeshInspectById(id),
       clearMeshInspectSelection: () => this.renderer.clearMeshInspectSelection(),
       nudgeMeshInspect: (dx, dy, dz) => this.renderer.nudgeMeshInspect(dx, dy, dz),
       yawMeshInspect: (radians) => this.renderer.yawMeshInspect(radians),

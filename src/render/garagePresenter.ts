@@ -49,6 +49,7 @@ import {
   meshInspectBackgroundHex,
   meshInspectHitName,
   pickMeshInspectHits,
+  listMeshInspectCatalog,
   pointerToNdc,
   type MeshInspectMarkerPose,
 } from "./meshInspectPick";
@@ -75,6 +76,7 @@ import {
   type PickedMeshEdge,
 } from "./meshInspectEdges";
 import type {
+  MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectDragMode,
   MeshInspectHit,
@@ -363,6 +365,21 @@ export class GaragePresenter {
 
   meshInspectSelection(): MeshInspectSelection | null {
     return this.selectionPoseOrNull();
+  }
+
+  meshInspectCatalog(): MeshInspectCatalogEntry[] {
+    if (!this.meshInspect || !this.idleCar) return [];
+    return listMeshInspectCatalog(this.idleCar);
+  }
+
+  selectMeshInspectById(id: string): boolean {
+    if (!this.meshInspect || !this.idleCar) return false;
+    const obj = findObjectByUuid(this.idleCar, id);
+    if (!obj) return false;
+    if (!this.meshInspectEdit) this.setMeshInspectEdit(true);
+    this.clearMeshInspectEdge();
+    this.setMeshInspectSelected(obj);
+    return true;
   }
 
   meshInspectHitIsSelection(hitId: string | null | undefined): boolean {

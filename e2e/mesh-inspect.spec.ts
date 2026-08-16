@@ -13,10 +13,15 @@ test.describe("F5 mesh studio", () => {
     await expect(page.locator("[data-dev-name='dev.mesh-inspect']")).toContainText("Mesh-Raum");
     await expect(page.locator(".panel.garage")).toBeHidden();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.edit']")).toHaveText("Platzieren AUS");
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.catalog']")).toBeVisible();
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.catalog']")).toContainText("BodyPaint", {
+      timeout: 15_000,
+    });
+    await page.locator(".dev-mesh-inspect-catalog-list button", { hasText: /^BodyPaint$/ }).first().click();
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.edit']")).toHaveText("Platzieren AN");
+    await expect(page.locator("[data-dev-name='dev.mesh-inspect.selected']")).toContainText("BodyPaint");
     await page.screenshot({ path: "tmp/f5-mesh-inspect.png" });
 
-    await page.keyboard.press("E");
-    await expect(page.locator("[data-dev-name='dev.mesh-inspect.edit']")).toHaveText("Platzieren AN");
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.rotate']")).toBeVisible();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.scaleUniform']")).toBeVisible();
     await expect(page.locator("[data-dev-name='dev.mesh-inspect.tool.scaleFree']")).toBeVisible();

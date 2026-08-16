@@ -2,6 +2,7 @@ import {
   formatMeshInspectClipboard,
   formatMeshInspectLine,
   formatMeshInspectLines,
+  type MeshInspectCatalogEntry,
   type MeshInspectComponent,
   type MeshInspectHit,
   type MeshInspectSelection,
@@ -16,6 +17,7 @@ export type MeshInspectPanelOpts = {
   selection?: MeshInspectSelection | null;
   tool?: MeshInspectTool;
   component?: MeshInspectComponent;
+  catalog?: readonly MeshInspectCatalogEntry[];
 };
 
 export function applyMeshInspectMode(target: Element, on: boolean): void {
@@ -28,7 +30,7 @@ export function isMeshInspectMode(target: Element): boolean {
 
 export function meshInspectHint(opts: MeshInspectPanelOpts): string {
   if (opts.copied) return "Kopiert";
-  if (!opts.edit) return "LMB drehen · RMB kopieren · E Platzieren · F5 zu";
+  if (!opts.edit) return "LMB drehen · RMB kopieren · Liste wählt Teil · E Platzieren · F5 zu";
   if (opts.component === "edge") {
     return "Klick Kante · Ziehen versetzen · R dreht Mesh · S 1:1 · Pos1 zurück · Esc weg";
   }
@@ -44,7 +46,23 @@ export function meshInspectHint(opts: MeshInspectPanelOpts): string {
   if (opts.selection) {
     return "Ziehen versetzen · R drehen · S 1:1 · X strecken · K Kante · Pos1 zurück";
   }
-  return "Klick Mesh · K Kante · R drehen · S 1:1 · LMB orbit · E aus";
+  return "Klick Mesh · Liste innen · K Kante · R drehen · S 1:1 · E aus";
+}
+
+export function renderMeshInspectCatalogHtml(
+  catalog: readonly MeshInspectCatalogEntry[],
+  selectedId?: string | null,
+): string {
+  if (catalog.length === 0) {
+    return `<p class="dim" data-dev-name="dev.mesh-inspect.catalog.empty">Keine Komponenten</p>`;
+  }
+  return catalog
+    .map((entry) => {
+      const on = entry.id === selectedId ? "is-on" : "";
+      const pad = 8 + entry.depth * 12;
+      return `<button type="button" class="${on}" data-mesh-inspect-select="${escapeAttr(entry.id)}" style="padding-left:${pad}px">${escapePre(entry.name)}</button>`;
+    })
+    .join("");
 }
 
 export function renderMeshInspectPanelHtml(
@@ -57,6 +75,7 @@ export function renderMeshInspectPanelHtml(
   const selection = opts.selection ?? null;
   const tool = opts.tool ?? "move";
   const component = opts.component ?? "object";
+  const catalog = opts.catalog ?? [];
   const status = meshInspectHint({ copied: opts.copied, edit, selection, tool, component });
   const selectedBlock = selection
     ? `<p class="dev-mesh-inspect-selected" data-dev-name="dev.mesh-inspect.selected">${escapePre(formatMeshInspectLine(selection))}</p>`
@@ -71,14 +90,20 @@ export function renderMeshInspectPanelHtml(
   <button type="button" data-mesh-inspect-comp="edge" class="${component === "edge" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.comp.edge">Kante</button>
 </div>`
     : "";
-  return `<aside class="dev-mesh-inspect" data-dev-name="dev.mesh-inspect" aria-label="Mesh-Koordinaten">
+  return `<div class="dev-mesh-inspect-dock" data-dev-name="dev.mesh-inspect.dock">
+  <nav class="dev-mesh-inspect-catalog" data-dev-name="dev.mesh-inspect.catalog" aria-label="Komponenten">
+    <h3 data-dev-name="dev.mesh-inspect.catalog.title">Komponenten</h3>
+    <div class="dev-mesh-inspect-catalog-list" data-dev-name="dev.mesh-inspect.catalog.list">${renderMeshInspectCatalogHtml(catalog, selection?.id)}</div>
+  </nav>
+  <aside class="dev-mesh-inspect" data-dev-name="dev.mesh-inspect" aria-label="Mesh-Koordinaten">
   <h3 data-dev-name="dev.mesh-inspect.title">Mesh-Raum (m)</h3>
   ${selectedBlock}
   <pre data-dev-name="dev.mesh-inspect.hits">${escapePre(formatMeshInspectLines(hits))}</pre>
   <p class="dim" data-dev-name="dev.mesh-inspect.hint">${status}</p>
   ${tools}
   <button type="button" class="dev-mesh-inspect-edit" data-mesh-inspect-edit data-dev-name="dev.mesh-inspect.edit">${edit ? "Platzieren AN" : "Platzieren AUS"}</button>
-</aside>`;
+</aside>
+</div>`;
 }
 
 export function meshInspectClipboardText(
@@ -90,4 +115,8 @@ export function meshInspectClipboardText(
 
 function escapePre(text: string): string {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function escapeAttr(text: string): string {
+  return escapePre(text).replace(/"/g, "&quot;");
 }
