@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
  * Käferkraft Verstärkter Rahmen: straight Grey cylinders in mesh space (nose −X).
- * Replaces the Tripo blob. Layout matches the garage red-line overlay
- * (waist rail + diagonal from the waist’s rear insertion to the cage top-front).
- * Radius matches the welded stock cage.
+ * Replaces the Tripo blob. Waist rails follow BodyPaint garage picks
+ * (caps buried into the hull) plus a diagonal from the rear insertion
+ * to the cage top-front. Radius matches the welded stock cage.
  *
  *   node scripts/bake-kaeferkraft-pole-frame.mjs
  */
@@ -41,16 +41,35 @@ const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outPath = join(rootDir, "public/models/parts/kaeferkraft-reinforced_frame.glb");
 
 const RADIUS = 0.025;
+/** Bury both caps along the pole so cut edges sit inside BodyPaint. */
 const INTO = 0.08;
-/** Waist: a bit above hip, slightly outboard of 0.52 — still outside the seats. */
-const WAIST_Z = 0.55;
-const WAIST_Y = 0.96;
-/** Front (−X) stops short of the teal cowl; only the rear is extended into the joint. */
-const WAIST_FRONT_X = -0.32;
-const WAIST_REAR_X = 0.5;
+/**
+ * Live Waist span — BodyPaint garage picks (mesh m, nose −X).
+ * Keep in sync with `buildReinforcedFrame("buggy")` in src/render/carPartBuilders.ts.
+ * Left −Z: (−0.551, 1.029, −0.490) → (0.799, 0.947, −0.498)
+ * Right +Z: (−0.534, 1.001, 0.454) → (0.553, 1.015, 0.564)
+ */
+const WAIST_SPANS = [
+  { front: [-0.551, 1.029, -0.49], rear: [0.799, 0.947, -0.498] },
+  { front: [-0.534, 1.001, 0.454], rear: [0.553, 1.015, 0.564] },
+];
 /** Stock cage top-front tube (mesh space, nose −X). */
 const CAGE_FRONT_TOP = { x: -0.24, y: 1.48, z: 0.48 };
 const GREY = 0x6a7078;
+
+function extendIntoFrame(a, b, into) {
+  const dx = b[0] - a[0];
+  const dy = b[1] - a[1];
+  const dz = b[2] - a[2];
+  const len = Math.hypot(dx, dy, dz);
+  const ux = dx / len;
+  const uy = dy / len;
+  const uz = dz / len;
+  return [
+    [a[0] - ux * into, a[1] - uy * into, a[2] - uz * into],
+    [b[0] + ux * into, b[1] + uy * into, b[2] + uz * into],
+  ];
+}
 
 function addPole(parent, a, b, name) {
   const ax = new Vector3(...a);
@@ -74,11 +93,10 @@ function addPole(parent, a, b, name) {
 
 const g = new Group();
 g.name = "kaeferkraft-reinforced_frame";
-for (const side of [-1, 1]) {
-  const waistZ = WAIST_Z * side;
-  const rear = [WAIST_REAR_X + INTO, WAIST_Y, waistZ];
-  addPole(g, [WAIST_FRONT_X, WAIST_Y, waistZ], rear, "Waist");
-  addPole(g, rear, [CAGE_FRONT_TOP.x, CAGE_FRONT_TOP.y, CAGE_FRONT_TOP.z * side], "WaistToFrontTop");
+for (const span of WAIST_SPANS) {
+  const [front, rear] = extendIntoFrame(span.front, span.rear, INTO);
+  addPole(g, front, rear, "Waist");
+  addPole(g, rear, [CAGE_FRONT_TOP.x, CAGE_FRONT_TOP.y, Math.sign(span.rear[2]) * CAGE_FRONT_TOP.z], "WaistToFrontTop");
 }
 
 const exporter = new GLTFExporter();

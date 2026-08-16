@@ -229,7 +229,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 ## Waist anchor picker
 
-Picker only — not the live `Waist` poles. Say an ID (e.g. `LF3` + `LR2`) to retune `WAIST_*`.
+Picker is a candidate grid. Live `Waist` poles follow BodyPaint picks (left −0.551→0.799, right −0.534→0.553); caps bury 8 cm into the hull.
 
 ![Käferkraft Waist anchors](../../assets/tripo-concepts/kaeferkraft-waist-anchors.png)
 
@@ -238,11 +238,11 @@ Full legend: [kaeferkraft-waist-anchors.md](../../assets/tripo-concepts/kaeferkr
 | ID | x | y | z | Meaning |
 | --- | --- | --- | --- | --- |
 | `LF1` / `RF1` | -0.55 | 0.96 | ±0.55 | deeper into teal cowl |
-| `LF2` / `RF2` | -0.32 | 0.96 | ±0.55 | **now** (front) |
+| `LF2` / `RF2` | -0.32 | 0.96 | ±0.55 | previous front |
 | `LF3` / `RF3` | -0.32 | 0.72 | ±0.55 | lower sill / hip |
 | `LF4` / `RF4` | -0.32 | 1.15 | ±0.55 | higher belt / A-pillar |
 | `LR1` / `RR1` | 0.40 | 0.85 | ±0.55 | seat-back foot |
-| `LR2` / `RR2` | 0.58 | 0.96 | ±0.55 | **now** (rear joint) |
+| `LR2` / `RR2` | 0.58 | 0.96 | ±0.55 | previous rear joint |
 | `LR3` / `RR3` | 0.58 | 1.20 | ±0.55 | rear hoop mid |
 | `LR4` / `RR4` | 0.90 | 0.90 | ±0.55 | rear deck behind seats |
 
@@ -366,23 +366,27 @@ Root AABB (-0.555, 0, -0.605) → (0.555, 0.4, 0.605)
 
 ![public/models/parts/kaeferkraft-reinforced_frame.glb](./img/part-kaeferkraft-reinforced_frame.png)
 
-Root AABB (-0.32, 0.935, -0.575) → (0.593, 1.501, 0.575)
+Root AABB (-0.632, 0.917, -0.523) → (0.89, 1.503, 0.597)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
 <rect x="0" y="0" width="760" height="520" fill="#f4efe6"/>
 <rect x="56" y="36" width="686" height="444" fill="#efe8dc" stroke="#1a1a1a" stroke-width="2"/>
 <line x1="56.0" y1="36" x2="56.0" y2="480" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="113.2" y1="36" x2="113.2" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="170.3" y1="36" x2="170.3" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="227.5" y1="36" x2="227.5" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="284.7" y1="36" x2="284.7" y2="480" stroke="#e03131" stroke-width="2"/>
-<line x1="341.8" y1="36" x2="341.8" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="399.0" y1="36" x2="399.0" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="456.2" y1="36" x2="456.2" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="513.3" y1="36" x2="513.3" y2="480" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="570.5" y1="36" x2="570.5" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="627.7" y1="36" x2="627.7" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="684.8" y1="36" x2="684.8" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="98.9" y1="36" x2="98.9" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="141.8" y1="36" x2="141.8" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="184.6" y1="36" x2="184.6" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="227.5" y1="36" x2="227.5" y2="480" stroke="#c4b8a4" stroke-width="1"/>
+<line x1="270.4" y1="36" x2="270.4" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="313.3" y1="36" x2="313.3" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="356.1" y1="36" x2="356.1" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="399.0" y1="36" x2="399.0" y2="480" stroke="#e03131" stroke-width="2"/>
+<line x1="441.9" y1="36" x2="441.9" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="484.8" y1="36" x2="484.8" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="527.6" y1="36" x2="527.6" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="570.5" y1="36" x2="570.5" y2="480" stroke="#c4b8a4" stroke-width="1"/>
+<line x1="613.4" y1="36" x2="613.4" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="656.3" y1="36" x2="656.3" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="699.1" y1="36" x2="699.1" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="742.0" y1="36" x2="742.0" y2="480" stroke="#c4b8a4" stroke-width="1"/>
 <line x1="56" y1="480.0" x2="742" y2="480.0" stroke="#c4b8a4" stroke-width="1"/>
 <line x1="56" y1="452.3" x2="742" y2="452.3" stroke="#ddd4c6" stroke-width="0.6"/>
@@ -401,33 +405,34 @@ Root AABB (-0.32, 0.935, -0.575) → (0.593, 1.501, 0.575)
 <line x1="56" y1="91.5" x2="742" y2="91.5" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="63.8" x2="742" y2="63.8" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="36.0" x2="742" y2="36.0" stroke="#c4b8a4" stroke-width="1"/>
-<text x="56.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-1</text>
-<text x="284.7" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
-<text x="513.3" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
+<text x="56.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-2</text>
+<text x="227.5" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-1</text>
+<text x="399.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
+<text x="570.5" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="742.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
 <text x="48" y="484.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-2</text>
 <text x="48" y="373.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-1</text>
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
 <text x="48" y="151.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
-<rect x="211.5" y="316.3" width="205.8" height="5.6" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="314.4" y="319.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">Waist</text>
-<rect x="226.7" y="308.5" width="193.7" height="13.3" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="323.5" y="315.2" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop</text>
-<rect x="211.5" y="194.2" width="205.8" height="5.6" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="314.4" y="196.9" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">Waist</text>
-<rect x="226.7" y="194.2" width="193.7" height="13.3" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="323.5" y="200.8" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop</text>
+<rect x="290.5" y="309.6" width="259.4" height="6.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="420.3" y="312.8" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">Waist</text>
+<rect x="356.0" y="308.5" width="195.6" height="7.6" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="453.8" y="312.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop</text>
+<rect x="293.3" y="191.8" width="214.6" height="19.5" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="400.6" y="201.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">Waist</text>
+<rect x="355.8" y="191.7" width="153.7" height="15.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="432.7" y="199.6" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">WaistToFrontTop</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">public/models/parts/kaeferkraft-reinforced_frame.glb — top XZ</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `Waist` | `Waist` | 1 | 52 | (0.13, 0.96, -0.55) | (-0.32, 0.935, -0.575) → (0.58, 0.985, -0.525) | Grey |
-| `WaistToFrontTop` | `WaistToFrontTop` | 1 | 52 | (0.17, 1.22, -0.515) | (-0.253, 0.939, -0.575) → (0.593, 1.501, -0.455) | Grey |
-| `Waist` | `Waist` | 1 | 52 | (0.13, 0.96, 0.55) | (-0.32, 0.935, 0.525) → (0.58, 0.985, 0.575) | Grey |
-| `WaistToFrontTop` | `WaistToFrontTop` | 1 | 52 | (0.17, 1.22, 0.515) | (-0.253, 0.939, 0.455) → (0.593, 1.501, 0.575) | Grey |
+| `Waist` | `Waist` | 1 | 52 | (0.124, 0.988, -0.494) | (-0.632, 0.917, -0.523) → (0.88, 1.059, -0.465) | Grey |
+| `WaistToFrontTop` | `WaistToFrontTop` | 1 | 52 | (0.319, 1.211, -0.489) | (-0.251, 0.92, -0.523) → (0.89, 1.503, -0.455) | Grey |
+| `Waist` | `Waist` | 1 | 52 | (0.009, 1.008, 0.509) | (-0.616, 0.975, 0.421) → (0.635, 1.041, 0.597) | Grey |
+| `WaistToFrontTop` | `WaistToFrontTop` | 1 | 52 | (0.196, 1.248, 0.526) | (-0.252, 0.994, 0.455) → (0.644, 1.502, 0.597) | Grey |
 
 ## Part / extra `public/models/parts/kaeferkraft-lightweight_body.glb`
 
