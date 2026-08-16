@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-16 — Donnerbüchse StockEngine +X cowl / 2/3-blue walls
+
+- Trigger: user — one side mostly fine with a small hole; fix the other side the same way
+- RCA: Centroid UV sampling missed faces whose verts are body-blue but the centroid hits an atlas seam (23 leftover on +X vs 8 on −X at y≥0.75). Four dark −X cowl-lip faces at the sample height stayed on `StockEngine` (exact mirrors already on BodyPaint).
+- Decision: Return a face if 2/3 verts (or centroid) match body blue, plus the cowl-lip band around `(±0.593, 1.097, 0.284)`. Do not pull outboard zoomies back onto the body.
+- CONCEPT §6.3 unchanged; `npm run cars:bake-donnerbuechse-segmented-engine`
+
 ### 2026-08-16 — Donnerbüchse StockEngine body-paint blue return
 
 - Trigger: user — sample `(-0.593, 1.097, 0.284)`; everything with that blue belongs on BodyPaint, not the engine

@@ -181,6 +181,61 @@ function faceAlbedoRgb(prim, tex, i0, i1, i2) {
   return sampleAlbedoRgb(tex, u, v);
 }
 
+function countBodyPaintBlueVerts(prim, tex, i0, i1, i2) {
+  const uv = prim.getAttribute("TEXCOORD_0");
+  if (!uv) return 0;
+  let n = 0;
+  for (const i of [i0, i1, i2]) {
+    const [u, v] = uv.getElement(i, []);
+    if (isDonnerBodyPaintBlue(sampleAlbedoRgb(tex, u, v))) n++;
+  }
+  return n;
+}
+
+/** Inner fender / cowl around the user sample (±0.593, 1.097, 0.284). */
+export function isDonnerCowlLip(p) {
+  const ax = Math.abs(p[0]);
+  return ax >= 0.45 && ax <= 0.72 && p[1] >= 0.95 && p[1] <= 1.22 && p[2] >= 0.12 && p[2] <= 0.5;
+}
+
+function isOutboardZoomie(p) {
+  const ax = Math.abs(p[0]);
+  return ax >= 0.55 && p[1] <= 0.72 && p[2] <= 0.9;
+}
+
+/** Centroid-or-2/3 body blue, plus the dark cowl lip the centroid missses. */
+function faceShouldReturnToBody(prim, tex, i0, i1, i2) {
+  const pos = prim.getAttribute("POSITION");
+  if (!pos) return false;
+  const p = triCentroid(pos, i0, i1, i2);
+  if (isDonnerCowlLip(p)) return true;
+  if (isHeaderTailCentroid(p) || isOutboardZoomie(p)) return false;
+  const nBlue = countBodyPaintBlueVerts(prim, tex, i0, i1, i2);
+  return nBlue >= 2 || isDonnerBodyPaintBlue(faceAlbedoRgb(prim, tex, i0, i1, i2));
+}
+
+function collectCentroids(mesh) {
+  const out = [];
+  for (const prim of mesh.listPrimitives()) {
+    const pos = prim.getAttribute("POSITION");
+    const idx = prim.getIndices();
+    if (!pos || !idx) continue;
+    for (let t = 0; t < idx.getCount() / 3; t++) {
+      out.push(triCentroid(pos, idx.getScalar(t * 3), idx.getScalar(t * 3 + 1), idx.getScalar(t * 3 + 2)));
+    }
+  }
+  return out;
+}
+
+function hasMirroredBodyCowl(p, bodyCents, radius = 0.04) {
+  if (!isDonnerCowlLip(p)) return false;
+  const mx = -p[0];
+  for (const q of bodyCents) {
+    if (Math.hypot(q[0] - mx, q[1] - p[1], q[2] - p[2]) <= radius) return true;
+  }
+  return false;
+}
+
 /** Aft lower zoomie tails left on BodyPaint. */
 function isHeaderTailCentroid(p) {
   const ax = Math.abs(p[0]);
@@ -247,8 +302,13 @@ async function reclassifyDonnerEngineFaces(doc) {
   const engTex = await materialAlbedo(engMat);
 
   const blueToBody = transferTakenFaces(doc, engMesh, bodyMesh, bodyMat, (prim, i0, i1, i2) =>
-    isDonnerBodyPaintBlue(faceAlbedoRgb(prim, engTex, i0, i1, i2)),
+    faceShouldReturnToBody(prim, engTex, i0, i1, i2),
   );
+  const bodyCents = collectCentroids(bodyMesh);
+  const mirrorToBody = transferTakenFaces(doc, engMesh, bodyMesh, bodyMat, (prim, i0, i1, i2) => {
+    const pos = prim.getAttribute("POSITION");
+    return Boolean(pos && hasMirroredBodyCowl(triCentroid(pos, i0, i1, i2), bodyCents));
+  });
   const tailsToEngine = transferTakenFaces(doc, bodyMesh, engMesh, engMat, (prim, i0, i1, i2) => {
     const pos = prim.getAttribute("POSITION");
     if (!pos || !isHeaderTailCentroid(triCentroid(pos, i0, i1, i2))) return false;
@@ -256,18 +316,23 @@ async function reclassifyDonnerEngineFaces(doc) {
   });
 
   const leftoverBlue = countMatchingFaces(engMesh, (prim, i0, i1, i2) =>
-    isDonnerBodyPaintBlue(faceAlbedoRgb(prim, engTex, i0, i1, i2)),
+    faceShouldReturnToBody(prim, engTex, i0, i1, i2),
   );
+  const leftoverCowl = countMatchingFaces(engMesh, (prim, i0, i1, i2) => {
+    const pos = prim.getAttribute("POSITION");
+    return Boolean(pos && isDonnerCowlLip(triCentroid(pos, i0, i1, i2)));
+  });
   const leftoverTails = countMatchingFaces(bodyMesh, (prim, i0, i1, i2) => {
     const pos = prim.getAttribute("POSITION");
     if (!pos || !isHeaderTailCentroid(triCentroid(pos, i0, i1, i2))) return false;
     return !isDonnerBodyPaintBlue(faceAlbedoRgb(prim, bodyTex, i0, i1, i2));
   });
   if (leftoverBlue > 12) throw new Error(`body-paint blue still on StockEngine: ${leftoverBlue}`);
+  if (leftoverCowl > 2) throw new Error(`cowl lip still on StockEngine: ${leftoverCowl}`);
   if (leftoverTails > 8) throw new Error(`header tails still on BodyPaint: ${leftoverTails}`);
   if (engMesh.listPrimitives().length < 1) throw new Error("StockEngine emptied by blue return");
   if (bodyMesh.listPrimitives().length < 1) throw new Error("BodyPaint emptied by tail return");
-  return { blueToBody, tailsToEngine, leftoverBlue, leftoverTails };
+  return { blueToBody, mirrorToBody, tailsToEngine, leftoverBlue, leftoverCowl, leftoverTails };
 }
 
 /**

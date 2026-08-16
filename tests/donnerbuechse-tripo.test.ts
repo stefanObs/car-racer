@@ -8,6 +8,7 @@ import { CAR_MODELS } from "../src/data/carModels";
 import {
   DONNER_BODY_PAINT_BLUE,
   isDonnerBodyPaintBlue,
+  isDonnerCowlLip,
 } from "../scripts/bake-donnerbuechse-segmented-engine.mjs";
 import sharp from "sharp";
 
@@ -244,6 +245,52 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     expect(blueOnEngine, "body-paint blue welded onto StockEngine").toBeLessThan(12);
     const blueOnBody = await countBodyPaintBlueFaces(body!);
     expect(blueOnBody).toBeGreaterThan(400);
+
+    const right = [0.593, 1.097, 0.284];
+    let bestR: { name: string; d: number } | null = null;
+    let cowlL = 0;
+    let cowlR = 0;
+    let twoThirdsHighL = 0;
+    let twoThirdsHighR = 0;
+    for (const mesh of [body!, engine!]) {
+      for (const prim of mesh.listPrimitives()) {
+        const pos = prim.getAttribute("POSITION");
+        const uv = prim.getAttribute("TEXCOORD_0");
+        const idx = prim.getIndices();
+        if (!pos || !idx) continue;
+        const tex = uv ? await albedoOf(prim.getMaterial()) : null;
+        for (let t = 0; t < idx.getCount() / 3; t++) {
+          const a = pos.getElement(idx.getScalar(t * 3), []);
+          const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
+          const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
+          const p = [(a[0]! + b[0]! + c[0]!) / 3, (a[1]! + b[1]! + c[1]!) / 3, (a[2]! + b[2]! + c[2]!) / 3];
+          const dR = Math.hypot(p[0]! - right[0]!, p[1]! - right[1]!, p[2]! - right[2]!);
+          if (!bestR || dR < bestR.d) bestR = { name: mesh.getName() ?? "", d: dR };
+          if (mesh.getName() !== "StockEngine") continue;
+          if (isDonnerCowlLip(p)) {
+            if (p[0]! < 0) cowlL++;
+            else cowlR++;
+          }
+          if (!uv || !tex || p[1]! < 0.75) continue;
+          let nBlue = 0;
+          for (let k = 0; k < 3; k++) {
+            const u = uv.getElement(idx.getScalar(t * 3 + k), []);
+            if (isDonnerBodyPaintBlue(sampleRgb(tex, u[0]!, u[1]!))) nBlue++;
+          }
+          if (nBlue >= 2) {
+            if (p[0]! < 0) twoThirdsHighL++;
+            else twoThirdsHighR++;
+          }
+        }
+      }
+    }
+    expect(bestR).toBeTruthy();
+    expect(bestR!.d).toBeLessThan(0.08);
+    expect(bestR!.name, "+X cowl must match −X on BodyPaint").toBe("BodyPaint");
+    expect(cowlL, "leftover −X cowl lip on StockEngine").toBeLessThan(2);
+    expect(cowlR, "leftover +X cowl lip on StockEngine").toBeLessThan(2);
+    expect(twoThirdsHighL, "2/3-blue −X wall still on engine").toBeLessThan(6);
+    expect(twoThirdsHighR, "2/3-blue +X wall still on engine").toBeLessThan(6);
   });
 
   it("stock BodyPaint albedo has almost no baked door-flame oranges", async () => {

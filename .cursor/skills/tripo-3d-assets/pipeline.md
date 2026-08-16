@@ -154,7 +154,7 @@ Same punch/remount as Blitz/Käferkraft. Body: `donnerbuechse-pre-wheel-segment.
 
 ### Mesh segment detach/remount (Donnerbüchse engine)
 
-The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim** (scoop + block + headers). Do **not** AABB-carve or punch it — that deleted cabin/grille/pipes. Remount that prim as `StockEngine` at identity (`npm run cars:bake-donnerbuechse-segmented-engine`), then **return body-paint-blue faces** (albedo matching RGB `40,111,217` at mesh `(-0.593, 1.097, 0.284)`) onto BodyPaint and aft chrome header tails onto StockEngine. AABB-only grille swap missed the blue bay walls. Runtime: hide `StockEngine` when Großer Motor is equipped. A fresh Tripo `simple` segment over-fragments the bay (~50 shards); keep the existing prim + color/tail swap.
+The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim** (scoop + block + headers). Do **not** AABB-carve or punch it — that deleted cabin/grille/pipes. Remount that prim as `StockEngine` at identity (`npm run cars:bake-donnerbuechse-segmented-engine`), then **return body-paint-blue faces** (albedo matching RGB `40,111,217` at mesh `(-0.593, 1.097, 0.284)`, including the +X mirror and 2/3-vert matches) onto BodyPaint and aft chrome header tails onto StockEngine. Also return the dark cowl-lip band around that sample so a leftover hole does not stay on one side. Runtime: hide `StockEngine` when Großer Motor is equipped. A fresh Tripo `simple` segment over-fragments the bay (~50 shards); keep the existing prim + color/tail swap.
 
 ## Failure modes
 
