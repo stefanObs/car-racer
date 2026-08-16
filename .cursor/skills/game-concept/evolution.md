@@ -14,6 +14,13 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-16 — Donnerbüchse nose after engine gap takes garage paint
+
+- Trigger: user — front panels after the engine-bay gap do not take garage paint; they are not engine
+- RCA: The inner nose (`z≥1.22`) was returned to BodyPaint, but washed cyan albedo (RGB `218,237,252` at `(-0.316, 0.987, 1.28)`) fails `isBlueBodyPixel` (`chroma/max < 0.32`). Garage paint skips those texels, so they stay stock-colored while the outer shell recolors. They are not engine.
+- Decision: Keep the nose-after-gap band on BodyPaint. Retarget washed/body-blue faces that fail garage-paint chroma onto a canonical body-blue UV. Keep scoop/pulleys and outboard zoomies on StockEngine.
+- CONCEPT §6.3 unchanged; `npm run cars:bake-donnerbuechse-segmented-engine`
+
 ### 2026-08-16 — Donnerbüchse StockEngine +X cowl / 2/3-blue walls
 
 - Trigger: user — one side mostly fine with a small hole; fix the other side the same way

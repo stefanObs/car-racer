@@ -9,7 +9,11 @@ import {
   DONNER_BODY_PAINT_BLUE,
   isDonnerBodyPaintBlue,
   isDonnerCowlLip,
+  isDonnerNoseAfterGap,
+  isDonnerNosePaintBand,
+  noseFaceNeedsGaragePaintRetarget,
 } from "../scripts/bake-donnerbuechse-segmented-engine.mjs";
+import { isBlueBodyPixel } from "../src/render/paintAuthoredWhite";
 import sharp from "sharp";
 
 function countTriCentroids(mesh: { listPrimitives: () => Array<{
@@ -291,6 +295,54 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     expect(cowlR, "leftover +X cowl lip on StockEngine").toBeLessThan(2);
     expect(twoThirdsHighL, "2/3-blue −X wall still on engine").toBeLessThan(6);
     expect(twoThirdsHighR, "2/3-blue +X wall still on engine").toBeLessThan(6);
+  });
+
+  it("keeps the nose after the engine gap on BodyPaint (paint target, not StockEngine)", async () => {
+    const doc = await new NodeIO()
+      .registerExtensions(ALL_EXTENSIONS)
+      .read(resolve("public/models/cars/donnerbuechse.glb"));
+    const body = doc.getRoot().listMeshes().find((m) => m.getName() === "BodyPaint");
+    const engine = doc.getRoot().listMeshes().find((m) => m.getName() === "StockEngine");
+    expect(body).toBeTruthy();
+    expect(engine).toBeTruthy();
+    const noseOnEngine = countTriCentroids(engine!, isDonnerNoseAfterGap);
+    const noseOnBody = countTriCentroids(body!, isDonnerNoseAfterGap);
+    expect(noseOnEngine, "nose after engine gap stuck on StockEngine").toBeLessThan(3);
+    expect(noseOnBody).toBeGreaterThan(20);
+
+    let unpainted = 0;
+    let sampleRgbAtGap: [number, number, number] | null = null;
+    let sampleDist = Infinity;
+    for (const prim of body!.listPrimitives()) {
+      const pos = prim.getAttribute("POSITION");
+      const uv = prim.getAttribute("TEXCOORD_0");
+      const idx = prim.getIndices();
+      if (!pos || !uv || !idx) continue;
+      const tex = await albedoOf(prim.getMaterial());
+      for (let t = 0; t < idx.getCount() / 3; t++) {
+        const i0 = idx.getScalar(t * 3);
+        const i1 = idx.getScalar(t * 3 + 1);
+        const i2 = idx.getScalar(t * 3 + 2);
+        const a = pos.getElement(i0, []);
+        const b = pos.getElement(i1, []);
+        const c = pos.getElement(i2, []);
+        const p = [(a[0]! + b[0]! + c[0]!) / 3, (a[1]! + b[1]! + c[1]!) / 3, (a[2]! + b[2]! + c[2]!) / 3];
+        if (!isDonnerNosePaintBand(p)) continue;
+        const ua = uv.getElement(i0, []);
+        const ub = uv.getElement(i1, []);
+        const uc = uv.getElement(i2, []);
+        const rgb = sampleRgb(tex, (ua[0]! + ub[0]! + uc[0]!) / 3, (ua[1]! + ub[1]! + uc[1]!) / 3);
+        if (noseFaceNeedsGaragePaintRetarget(rgb)) unpainted++;
+        const d = Math.hypot(p[0]! + 0.316, p[1]! - 0.987, p[2]! - 1.28);
+        if (d < sampleDist) {
+          sampleDist = d;
+          sampleRgbAtGap = rgb;
+        }
+      }
+    }
+    expect(unpainted, "inner nose after gap must take garage paint (not washed cyan)").toBe(0);
+    expect(sampleRgbAtGap, "inner nose sample after the engine gap").toBeTruthy();
+    expect(isBlueBodyPixel(...sampleRgbAtGap!), "gap sample must be garage-paint blue").toBe(true);
   });
 
   it("stock BodyPaint albedo has almost no baked door-flame oranges", async () => {

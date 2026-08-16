@@ -66,7 +66,7 @@ function countRegion(prim, pred) {
   return n;
 }
 
-function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material) {
+function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material, uvOverride = null) {
   const used = new Map();
   const newPos = [];
   const newNrm = [];
@@ -82,7 +82,9 @@ function remappedPrimitive(doc, buffer, faces, srcPos, srcNrm, srcUv, material) 
           const n = srcNrm.getElement(old, []);
           newNrm.push(n[0], n[1], n[2]);
         }
-        if (srcUv) {
+        if (uvOverride) {
+          newUv.push(uvOverride[0], uvOverride[1]);
+        } else if (srcUv) {
           const u = srcUv.getElement(old, []);
           newUv.push(u[0], u[1]);
         }
@@ -198,6 +200,53 @@ export function isDonnerCowlLip(p) {
   return ax >= 0.45 && ax <= 0.72 && p[1] >= 0.95 && p[1] <= 1.22 && p[2] >= 0.12 && p[2] <= 0.5;
 }
 
+/** Nose / radiator surround forward of the engine-bay gap (not scoop, pulleys, or zoomies). */
+export function isDonnerNoseAfterGap(p) {
+  const ax = Math.abs(p[0]);
+  return p[2] >= 1.22 && p[1] >= 0.68 && ax >= 0.15 && ax <= 0.55;
+}
+
+/** Outer + inner radiator shell on BodyPaint (UV retarget). Wider than the engine-return box. */
+export function isDonnerNosePaintBand(p) {
+  const ax = Math.abs(p[0]);
+  return p[2] >= 1.15 && p[1] >= 0.48 && p[1] <= 1.22 && ax >= 0.12 && ax <= 0.72;
+}
+
+/**
+ * Same chroma rule as `isBlueBodyPixel` in paintAuthoredWhite.ts (no tire skip —
+ * the nose band is not rubber). Garage paint only recolors these texels.
+ */
+export function isDonnerGaragePaintBlue(rgb) {
+  const r = rgb[0];
+  const g = rgb[1];
+  const b = rgb[2];
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const chroma = max - min;
+  if (max < 16 || b < max) return false;
+  if (chroma / max < 0.32) return false;
+  if (b < r + 8 || b < g + 16) return false;
+  if (g >= b * 0.78 && g > r + 40) return false;
+  if (r >= b * 0.38 && r > g + 20) return false;
+  return true;
+}
+
+/** Washed inner-nose cyan/grey-blue that looks like body but fails garage-paint chroma. */
+export function isDonnerWashedBodyBlue(rgb) {
+  const [h, s, v] = rgbToHsv(rgb[0], rgb[1], rgb[2]);
+  if (v < 0.42) return false;
+  if (h < 170 || h > 245) return false;
+  if (rgb[2] < rgb[0]) return false;
+  if (rgb[1] < rgb[0] - 8) return false;
+  if (s < 0.03) return false;
+  return true;
+}
+
+export function noseFaceNeedsGaragePaintRetarget(rgb) {
+  if (isDonnerGaragePaintBlue(rgb)) return false;
+  return isDonnerWashedBodyBlue(rgb) || isDonnerBodyPaintBlue(rgb);
+}
+
 function isOutboardZoomie(p) {
   const ax = Math.abs(p[0]);
   return ax >= 0.55 && p[1] <= 0.72 && p[2] <= 0.9;
@@ -208,7 +257,7 @@ function faceShouldReturnToBody(prim, tex, i0, i1, i2) {
   const pos = prim.getAttribute("POSITION");
   if (!pos) return false;
   const p = triCentroid(pos, i0, i1, i2);
-  if (isDonnerCowlLip(p)) return true;
+  if (isDonnerCowlLip(p) || isDonnerNoseAfterGap(p)) return true;
   if (isHeaderTailCentroid(p) || isOutboardZoomie(p)) return false;
   const nBlue = countBodyPaintBlueVerts(prim, tex, i0, i1, i2);
   return nBlue >= 2 || isDonnerBodyPaintBlue(faceAlbedoRgb(prim, tex, i0, i1, i2));
@@ -259,7 +308,7 @@ function partitionPrimFaces(prim, takePred) {
   return { keep, take, pos, nrm: prim.getAttribute("NORMAL"), uv: prim.getAttribute("TEXCOORD_0") };
 }
 
-function transferTakenFaces(doc, srcMesh, destMesh, destMat, takePred) {
+function transferTakenFaces(doc, srcMesh, destMesh, destMat, takePred, takeUvOverride = null) {
   const buffer = doc.getRoot().listBuffers()[0];
   let moved = 0;
   for (const prim of [...srcMesh.listPrimitives()]) {
@@ -270,10 +319,30 @@ function transferTakenFaces(doc, srcMesh, destMesh, destMat, takePred) {
     if (keep.length) {
       srcMesh.addPrimitive(remappedPrimitive(doc, buffer, keep, pos, nrm, uv, srcMat));
     }
-    destMesh.addPrimitive(remappedPrimitive(doc, buffer, take, pos, nrm, uv, destMat));
+    destMesh.addPrimitive(remappedPrimitive(doc, buffer, take, pos, nrm, uv, destMat, takeUvOverride));
     moved += take.length;
   }
   return moved;
+}
+
+function findBodyPaintBlueUv(tex) {
+  const [tr, tg, tb] = DONNER_BODY_PAINT_BLUE;
+  let best = null;
+  let bestD = Infinity;
+  for (let py = 0; py < tex.h; py++) {
+    for (let px = 0; px < tex.w; px++) {
+      const i = (py * tex.w + px) * 4;
+      const rgb = [tex.data[i], tex.data[i + 1], tex.data[i + 2]];
+      if (!isDonnerGaragePaintBlue(rgb) || !isDonnerBodyPaintBlue(rgb)) continue;
+      const d = Math.abs(rgb[0] - tr) + Math.abs(rgb[1] - tg) + Math.abs(rgb[2] - tb);
+      if (d >= bestD) continue;
+      bestD = d;
+      best = [(px + 0.5) / tex.w, 1 - (py + 0.5) / tex.h];
+      if (d === 0) return best;
+    }
+  }
+  if (!best) throw new Error("no BodyPaint texel matches garage-paint body blue");
+  return best;
 }
 
 function countMatchingFaces(mesh, pred) {
@@ -322,17 +391,55 @@ async function reclassifyDonnerEngineFaces(doc) {
     const pos = prim.getAttribute("POSITION");
     return Boolean(pos && isDonnerCowlLip(triCentroid(pos, i0, i1, i2)));
   });
+  const leftoverNose = countMatchingFaces(engMesh, (prim, i0, i1, i2) => {
+    const pos = prim.getAttribute("POSITION");
+    return Boolean(pos && isDonnerNoseAfterGap(triCentroid(pos, i0, i1, i2)));
+  });
   const leftoverTails = countMatchingFaces(bodyMesh, (prim, i0, i1, i2) => {
     const pos = prim.getAttribute("POSITION");
     if (!pos || !isHeaderTailCentroid(triCentroid(pos, i0, i1, i2))) return false;
     return !isDonnerBodyPaintBlue(faceAlbedoRgb(prim, bodyTex, i0, i1, i2));
   });
+
+  const paintUv = findBodyPaintBlueUv(bodyTex);
+  const nosePaintRetarget = transferTakenFaces(
+    doc,
+    bodyMesh,
+    bodyMesh,
+    bodyMat,
+    (prim, i0, i1, i2) => {
+      const pos = prim.getAttribute("POSITION");
+      if (!pos || !isDonnerNosePaintBand(triCentroid(pos, i0, i1, i2))) return false;
+      return noseFaceNeedsGaragePaintRetarget(faceAlbedoRgb(prim, bodyTex, i0, i1, i2));
+    },
+    paintUv,
+  );
+  const leftoverNoseUnpainted = countMatchingFaces(bodyMesh, (prim, i0, i1, i2) => {
+    const pos = prim.getAttribute("POSITION");
+    if (!pos || !isDonnerNosePaintBand(triCentroid(pos, i0, i1, i2))) return false;
+    return noseFaceNeedsGaragePaintRetarget(faceAlbedoRgb(prim, bodyTex, i0, i1, i2));
+  });
+
   if (leftoverBlue > 12) throw new Error(`body-paint blue still on StockEngine: ${leftoverBlue}`);
   if (leftoverCowl > 2) throw new Error(`cowl lip still on StockEngine: ${leftoverCowl}`);
+  if (leftoverNose > 2) throw new Error(`nose after engine gap still on StockEngine: ${leftoverNose}`);
+  if (leftoverNoseUnpainted > 0) {
+    throw new Error(`nose after engine gap still skips garage paint: ${leftoverNoseUnpainted}`);
+  }
   if (leftoverTails > 8) throw new Error(`header tails still on BodyPaint: ${leftoverTails}`);
   if (engMesh.listPrimitives().length < 1) throw new Error("StockEngine emptied by blue return");
   if (bodyMesh.listPrimitives().length < 1) throw new Error("BodyPaint emptied by tail return");
-  return { blueToBody, mirrorToBody, tailsToEngine, leftoverBlue, leftoverCowl, leftoverTails };
+  return {
+    blueToBody,
+    mirrorToBody,
+    tailsToEngine,
+    nosePaintRetarget,
+    leftoverBlue,
+    leftoverCowl,
+    leftoverNose,
+    leftoverNoseUnpainted,
+    leftoverTails,
+  };
 }
 
 /**

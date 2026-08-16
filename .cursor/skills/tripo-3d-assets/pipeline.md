@@ -154,7 +154,7 @@ Same punch/remount as Blitz/Käferkraft. Body: `donnerbuechse-pre-wheel-segment.
 
 ### Mesh segment detach/remount (Donnerbüchse engine)
 
-The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim** (scoop + block + headers). Do **not** AABB-carve or punch it — that deleted cabin/grille/pipes. Remount that prim as `StockEngine` at identity (`npm run cars:bake-donnerbuechse-segmented-engine`), then **return body-paint-blue faces** (albedo matching RGB `40,111,217` at mesh `(-0.593, 1.097, 0.284)`, including the +X mirror and 2/3-vert matches) onto BodyPaint and aft chrome header tails onto StockEngine. Also return the dark cowl-lip band around that sample so a leftover hole does not stay on one side. Runtime: hide `StockEngine` when Großer Motor is equipped. A fresh Tripo `simple` segment over-fragments the bay (~50 shards); keep the existing prim + color/tail swap.
+The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim** (scoop + block + headers). Do **not** AABB-carve or punch it — that deleted cabin/grille/pipes. Remount that prim as `StockEngine` at identity (`npm run cars:bake-donnerbuechse-segmented-engine`), then **return body-paint-blue faces** (albedo matching RGB `40,111,217` at mesh `(-0.593, 1.097, 0.284)`, including the +X mirror and 2/3-vert matches) onto BodyPaint and aft chrome header tails onto StockEngine. Also return the dark cowl-lip band around that sample and the **nose after the engine-bay gap** (`z≥1.22`, inner fender). Washed inner-nose cyan (e.g. `218,237,252`) fails garage-paint chroma, so retarget those UVs onto a canonical body-blue texel. Runtime: hide `StockEngine` when Großer Motor is equipped. A fresh Tripo `simple` segment over-fragments the bay (~50 shards); keep the existing prim + color/tail swap.
 
 ## Failure modes
 
@@ -166,6 +166,7 @@ The wheels bake leaves the exposed hot-rod engine as a **second BodyPaint prim**
 | Blitz trunk hole / invisible rear | Spoiler punch AABB or lip rule deletes the trunk lid / wing underside | Do not segment or punch the GT wing; wheels-only remount |
 | Wrong car silhouette | Reused Blitz kit | Per-car GLB or procedural; `preferGlb: false` |
 | Donner engine hide deletes blue body / leaves a zoomie tail | Engine prim included body-paint-blue faces; BodyPaint kept header tails | Color-swap body blue (`40,111,217`) + chrome tails after remount — do not AABB-punch |
+| Donner nose after the engine gap stays stock-colored | Faces sit on BodyPaint but washed cyan fails `isBlueBodyPixel` chroma | Retarget those UVs to a body-blue texel in the engine bake |
 
 ## Related paths
 
