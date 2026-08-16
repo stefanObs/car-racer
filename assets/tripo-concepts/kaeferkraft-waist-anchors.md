@@ -2,11 +2,11 @@
 
 Live poles are **detached**. Command **`WaistL`** or **`WaistR`** — never a shared `Waist` name.
 
-Mesh space, meters, **nose −X**. Caps bury 8 cm into the hull.
+Mesh space, meters, **nose −X**. `WaistL` is the original pole (front stops short of the cowl; rear +8 cm on +X). `WaistR` buries both caps along the pole.
 
 | Node | From behind | Front | Rear |
 | --- | --- | --- | --- |
-| `WaistL` | −Z | (−0.551, 1.029, −0.490) | (0.799, 0.947, −0.498) |
+| `WaistL` | −Z | (−0.32, 0.96, −0.55) | (0.50, 0.96, −0.55) rear +8 cm on +X |
 | `WaistR` | +Z | (−0.504, 1.061, 0.490) | (0.579, 1.063, 0.570) |
 
 Stays: `WaistToFrontTop_L` / `WaistToFrontTop_R`.

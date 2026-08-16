@@ -208,17 +208,22 @@ export function buildReinforcedFrame(
     const waistL = {
       name: "WaistL",
       stay: "WaistToFrontTop_L",
-      front: [-0.551, 1.029, -0.49] as PoleEnd,
-      rear: [0.799, 0.947, -0.498] as PoleEnd,
+      front: [-0.32, 0.96, -0.55] as PoleEnd,
+      rear: [0.5, 0.96, -0.55] as PoleEnd,
+      bury: "rearX" as const,
     };
     const waistR = {
       name: "WaistR",
       stay: "WaistToFrontTop_R",
       front: [-0.504, 1.061, 0.49] as PoleEnd,
       rear: [0.579, 1.063, 0.57] as PoleEnd,
+      bury: "both" as const,
     };
     for (const side of [waistL, waistR]) {
-      const [front, rear] = extendPoleIntoFrame(side.front, side.rear, into);
+      const [front, rear] =
+        side.bury === "rearX"
+          ? [side.front, [side.rear[0] + into, side.rear[1], side.rear[2]] as PoleEnd]
+          : extendPoleIntoFrame(side.front, side.rear, into);
       addStraightPole(g, front, rear, r, GREY, side.name);
       addStraightPole(
         g,

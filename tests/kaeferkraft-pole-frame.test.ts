@@ -8,8 +8,8 @@ const INTO = 0.08;
 
 const WAIST_L_PICK = {
   name: "WaistL",
-  front: new Vector3(-0.551, 1.029, -0.49),
-  rear: new Vector3(0.799, 0.947, -0.498),
+  front: new Vector3(-0.32, 0.96, -0.55),
+  rear: new Vector3(0.5, 0.96, -0.55),
 };
 const WAIST_R_PICK = {
   name: "WaistR",
@@ -69,8 +69,18 @@ function expectRailCovers(ends: [Vector3, Vector3], pick: { front: Vector3; rear
   expect(projectT(pick.rear, front, rear)).toBeLessThan(0.98);
 }
 
+/** Original WaistL: front is the pole cap; only the rear is buried +INTO on +X. */
+function expectRailRearBuriedOnX(ends: [Vector3, Vector3], pick: { front: Vector3; rear: Vector3 }): void {
+  const [front, rear] = orderFrontRear(ends[0], ends[1]);
+  expect(front.distanceTo(pick.front)).toBeLessThan(POLE_R);
+  expect(distToSegment(pick.rear, front, rear)).toBeLessThan(POLE_R);
+  expect(rear.x).toBeGreaterThan(pick.rear.x + INTO * 0.85);
+  expect(Math.abs(rear.y - pick.rear.y)).toBeLessThan(POLE_R);
+  expect(Math.abs(rear.z - pick.rear.z)).toBeLessThan(POLE_R);
+}
+
 describe("Käferkraft pole-frame waist", () => {
-  it("ships detached WaistL / WaistR covering their own BodyPaint spans", async () => {
+  it("ships detached WaistL on the original sit and WaistR on the BodyPaint span", async () => {
     const { NodeIO } = await import("@gltf-transform/core");
     const { ALL_EXTENSIONS } = await import("@gltf-transform/extensions");
     const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
@@ -81,7 +91,7 @@ describe("Käferkraft pole-frame waist", () => {
     expect(left).toBeTruthy();
     expect(right).toBeTruthy();
     expect(doc.getRoot().listNodes().some((n) => n.getName() === "Waist" || n.getName() === "Waist_1")).toBe(false);
-    expectRailCovers(cylinderEnds(left!), WAIST_L_PICK);
+    expectRailRearBuriedOnX(cylinderEnds(left!), WAIST_L_PICK);
     expectRailCovers(cylinderEnds(right!), WAIST_R_PICK);
 
     expect(named("WaistToFrontTop_L")).toBeTruthy();
@@ -102,7 +112,7 @@ describe("Käferkraft pole-frame waist", () => {
       const b = new Vector3(0, half / 2, 0).applyQuaternion(mesh.quaternion).add(mesh.position);
       return [a, b] as [Vector3, Vector3];
     };
-    expectRailCovers(endsOf(left!), WAIST_L_PICK);
+    expectRailRearBuriedOnX(endsOf(left!), WAIST_L_PICK);
     expectRailCovers(endsOf(right!), WAIST_R_PICK);
     expect(g.children.some((c) => c.name === "WaistToFrontTop_L")).toBe(true);
     expect(g.children.some((c) => c.name === "WaistToFrontTop_R")).toBe(true);

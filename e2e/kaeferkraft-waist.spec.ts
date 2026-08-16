@@ -95,9 +95,14 @@ test.describe("Käferkraft waist poles", () => {
     expect(right!.mid[2]).toBeGreaterThan(0);
     expect(left!.mid[0]).toBeGreaterThan(0.05);
     expect(left!.mid[0]).toBeLessThan(0.25);
+    expect(left!.mid[1]).toBeGreaterThan(0.93);
+    expect(left!.mid[1]).toBeLessThan(0.99);
+    expect(left!.mid[2]).toBeGreaterThan(-0.58);
+    expect(left!.mid[2]).toBeLessThan(-0.52);
     expect(right!.mid[0]).toBeGreaterThan(-0.05);
     expect(right!.mid[0]).toBeLessThan(0.15);
-    expect(left!.half).toBeGreaterThan(0.7);
+    expect(left!.half).toBeGreaterThan(0.4);
+    expect(left!.half).toBeLessThan(0.5);
     expect(right!.half).toBeGreaterThan(0.55);
     expect(right!.mid[2]).toBeGreaterThan(0.5);
     expect(right!.mid[2]).toBeLessThan(0.58);
