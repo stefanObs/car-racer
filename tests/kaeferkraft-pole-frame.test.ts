@@ -10,7 +10,7 @@ const RIGHT_OUTBOARD = 1.5 * (POLE_R * 2);
 
 /** BodyPaint garage picks — right rail is then nudged outboard. */
 const WAIST_PICKS = [
-  { front: new Vector3(-0.551, 1.029, -0.49), rear: new Vector3(0.574, 1.061, -0.603) },
+  { front: new Vector3(-0.551, 1.029, -0.49), rear: new Vector3(0.799, 0.947, -0.498) },
   {
     front: new Vector3(-0.534, 1.001, 0.454 + RIGHT_OUTBOARD),
     rear: new Vector3(0.553, 1.015, 0.564 + RIGHT_OUTBOARD),
