@@ -222,14 +222,14 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 | `big_wheels` | Große Räder | yes | StockWheel scale | — |
 | `spike_bumper` | Spike-Stoßstange | yes | `public/models/parts/kaeferkraft-spike_bumper.glb` | (-1.55, 0.45, 0) yaw -90° ×0.85 |
 | `reinforced_frame` | Verstärkter Rahmen | yes | `public/models/parts/kaeferkraft-reinforced_frame.glb` | (0, 0, 0) yaw 0° ×1 — authored in mesh space; poles WaistL / WaistR |
-| `lightweight_body` | Leichtbau-Karosserie | yes | `public/models/parts/kaeferkraft-lightweight_body.glb` | (0.2, 0.5, 0) yaw 90° ×1.12 |
+| `lightweight_body` | Leichtbau-Karosserie | yes | `public/models/parts/kaeferkraft-lightweight_body.glb` | (0.2, 0.5, 0) yaw 90° ×1.12 — panels LightweightL (−Z) / LightweightR (+Z) after yaw |
 | `nitro_kit` | Nitro-Kit | yes | `public/models/parts/kaeferkraft-nitro_kit.glb` | (0.95, 0.78, 0) yaw 180° ×1 |
 | `offroad_suspension` | Gelände-Federung | yes (stats) | stats-only / no mesh | — |
 | `rear_spoiler` | Heckspoiler | yes | `public/models/parts/kaeferkraft-rear_spoiler.glb` | (1.55, 1, 0) yaw -90° ×1.08 |
 
 ## Waist anchor picker
 
-Live poles are detached: say `WaistL` (−Z) or `WaistR` (+Z). Stays `WaistToFrontTop_L` / `WaistToFrontTop_R` stop at BodyPaint cage picks. Dark charcoal like the stock cage; waist caps bury 8 cm.
+Live poles are detached: say `WaistL` (−Z) or `WaistR` (+Z). Stays `WaistToFrontTop_L` / `WaistToFrontTop_R` stop at BodyPaint cage picks. Dark charcoal like the stock cage; waist caps bury 8 cm. Leichtbau panels are detached the same way: `LightweightL` (mesh +X → car −Z) / `LightweightR` (mesh −X → car +Z).
 
 ![Käferkraft Waist anchors](../../assets/tripo-concepts/kaeferkraft-waist-anchors.png)
 
@@ -487,15 +487,18 @@ Root AABB (-0.8, 0, -0.69) → (0.8, 0.329, 0.69)
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
 <text x="48" y="151.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
-<rect x="261.8" y="181.4" width="274.4" height="153.3" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">kaeferkraft-lightweight_body</text>
+<rect x="514.2" y="181.4" width="22.0" height="153.3" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="525.2" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">LightweightL</text>
+<rect x="261.8" y="181.4" width="22.0" height="153.3" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="272.8" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">LightweightR</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">public/models/parts/kaeferkraft-lightweight_body.glb — top XZ</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `kaeferkraft-lightweight_body` | `kaeferkraft-lightweight_body` | 1 | 206 | (0, 0.164, 0) | (-0.8, 0, -0.69) → (0.8, 0.329, 0.69) | Carbon |
+| `LightweightL` | `LightweightL` | 1 | 103 | (0.736, 0.164, 0) | (0.672, 0, -0.69) → (0.8, 0.329, 0.69) | Carbon |
+| `LightweightR` | `LightweightR` | 1 | 103 | (-0.736, 0.164, 0) | (-0.8, 0, -0.69) → (-0.672, 0.329, 0.69) | Carbon |
 
 ## Part / extra `public/models/parts/kaeferkraft-nitro_kit.glb`
 
@@ -544,7 +547,7 @@ Root AABB (-0.291, 0, -0.288) → (0.291, 0.65, 0.288)
 
 ![public/models/parts/kaeferkraft-rear_spoiler.glb](./img/part-kaeferkraft-rear_spoiler.png)
 
-Root AABB (-0.525, 0, -0.089) → (0.525, 0.224, 0.089)
+Root AABB (-0.527, 0.001, -0.045) → (0.523, 0.225, 0.134)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
 <rect x="0" y="0" width="760" height="520" fill="#f4efe6"/>
@@ -583,15 +586,15 @@ Root AABB (-0.525, 0, -0.089) → (0.525, 0.224, 0.089)
 <text x="48" y="484.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-1</text>
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
-<rect x="309.0" y="238.2" width="180.1" height="39.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_855903af-1907-4062-aad1-a16a98bb50b4</text>
+<rect x="308.6" y="228.3" width="180.1" height="39.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="398.7" y="248.1" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_855903af-1907-4062-aad1-a16a98bb50b4</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">public/models/parts/kaeferkraft-rear_spoiler.glb — top XZ</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tripo_node_855903af-1907-4062-aad1-a16a98bb50b4` | `tripo_mesh_855903af-1907-4062-aad1-a16a98bb50b4` | 1 | 4748 | (0, 0.112, 0) | (-0.525, 0, -0.089) → (0.525, 0.224, 0.089) | Spoiler |
+| `tripo_node_855903af-1907-4062-aad1-a16a98bb50b4` | `tripo_mesh_855903af-1907-4062-aad1-a16a98bb50b4` | 1 | 4748 | (-0.002, 0.113, 0.044) | (-0.527, 0.001, -0.045) → (0.523, 0.225, 0.134) | Spoiler |
 
 ## Part / extra `public/models/props/buggy-skull.glb`
 

@@ -496,11 +496,11 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(existsSync("scripts/extract-kaeferkraft-stock-cage.mjs")).toBe(true);
 
     const light = L.lightweight_body.anchors[0]!;
-    // Mirrored hole flank on blue rails; chunky Tripo half removed in fix script.
-    expect(light.y).toBeGreaterThan(0.75);
-    expect(light.y).toBeLessThan(1.0);
-    expect(light.x).toBeCloseTo(0, 1);
-    expect(light.scale).toBeGreaterThan(1.25);
+    // Detached hole flanks LightweightL / LightweightR; chunky Tripo half removed in fix script.
+    expect(light.y).toBeGreaterThan(0.4);
+    expect(light.y).toBeLessThan(0.7);
+    expect(light.x).toBeCloseTo(0.2, 1);
+    expect(light.scale).toBeGreaterThan(1.05);
     expect(L.lightweight_body.tint).toBe(0x22b8cf);
     expect(L.lightweight_body.preferGlb).toBe(true);
     expect(existsSync("public/models/parts/kaeferkraft-lightweight_body.glb")).toBe(true);

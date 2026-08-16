@@ -8,7 +8,7 @@ One sheet per car, the garage, and each cup track. Each sheet lists **nodes, mes
 
 - Prefer **ids and node names** from these sheets (`blitz`, `StockWheel_FL`, `garageCabinet`, `tire-wall`).
 - Car numbers are **mesh space** unless you say world/runtime. Käferkraft bake is **nose −X** (runtime yaw π/2).
-- F6 **Kasten** (B): drag a rectangle, drag the 12 edge dots to resize, LMB turns the car; **Kasten kopieren** / C copies `Mesh-Raum Kasten (m)` min/max; **Zurück** / Pos1 restores the painted size.
+- F6 **Kasten** (B): drag a rectangle, drag the 8 corner dots to resize (last Kasten only). **Seite** (panel or RMB menu) then LMB rolls the car in the view. **Shift+drag** paints another Kasten. **Kasten kopieren** / C copies every Kasten; **Zurück** / Pos1 restores the last painted size; Esc drops the last Kasten.
 - Garage numbers are **world** (`garagePad` at x=1.5). Track overview is **world XZ**; kit pieces are **local**.
 - Green dots on car grids are Teil **mount anchors**, not mesh centroids.
 
@@ -31,7 +31,7 @@ Do not leave the pose as a runtime-only F5 edit.
 - [Donnerbüchse](./car-donnerbuechse.md) — `donnerbuechse`
 - [Bunker](./car-bunker.md) — `bunker`
 
-Käferkraft detached `WaistL` / `WaistR`: [kaeferkraft-waist-anchors.md](../../assets/tripo-concepts/kaeferkraft-waist-anchors.md).
+Käferkraft detached `WaistL` / `WaistR` and Leichtbau `LightweightL` / `LightweightR`: [kaeferkraft-waist-anchors.md](../../assets/tripo-concepts/kaeferkraft-waist-anchors.md).
 
 ## Garage
 

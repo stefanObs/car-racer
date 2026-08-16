@@ -390,6 +390,10 @@ export function buildLightweightBody(style: LightweightStyle = "vents"): Group {
     return g;
   }
   if (style === "holes") {
+    const left = new Group();
+    left.name = "LightweightL";
+    const right = new Group();
+    right.name = "LightweightR";
     for (const [x, y, z] of [
       [-0.55, 0.45, 0.2],
       [-0.55, 0.45, -0.15],
@@ -403,8 +407,10 @@ export function buildLightweightBody(style: LightweightStyle = "vents"): Group {
       const hole = cyl(0.075, 0.075, 0.05, 0x111114, "SpeedHole", 8);
       hole.rotation.z = Math.PI / 2;
       hole.position.set(x, y, z);
-      g.add(hole);
+      // Mesh +X → car left after yaw π/2; mesh −X → car right.
+      (x >= 0 ? left : right).add(hole);
     }
+    g.add(left, right);
     return g;
   }
   // hood louvers only (Blitz look sheet) — raised carbon plates, readable on red paint.

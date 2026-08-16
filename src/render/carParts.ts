@@ -386,8 +386,8 @@ function layoutKaeferkraft(): CarVisualLayout {
       tint: ComicPalette.outline,
     },
     lightweight_body: {
-      // Hole flanks on outer BodyPaint rails (mesh ±X → mesh ±Z after yaw π/2).
-      // Target |z|≈0.90 (paint flare), y≈0.50…0.95 — not inset at 0.72 / floating at y0.88.
+      // Detached hole flanks: LightweightL (mesh +X → car −Z) / LightweightR (mesh −X → car +Z).
+      // Outer BodyPaint rails after yaw π/2: |z|≈0.90, y≈0.50…0.95.
       anchors: [
         {
           x: 0.2,
