@@ -229,7 +229,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 ## Waist anchor picker
 
-Live poles are detached: say `WaistL` (−Z) or `WaistR` (+Z). Stays `WaistToFrontTop_L` / `WaistToFrontTop_R` stop at BodyPaint cage picks. Waist caps bury 8 cm; stays do not punch through the cage.
+Live poles are detached: say `WaistL` (−Z) or `WaistR` (+Z). Stays `WaistToFrontTop_L` / `WaistToFrontTop_R` stop at BodyPaint cage picks. Dark charcoal like the stock cage; waist caps bury 8 cm.
 
 ![Käferkraft Waist anchors](../../assets/tripo-concepts/kaeferkraft-waist-anchors.png)
 
@@ -429,10 +429,10 @@ Root AABB (-0.654, 1.026, -0.635) → (0.674, 1.611, 0.601)
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `WaistL` | `WaistL` | 1 | 52 | (-0.001, 1.056, -0.524) | (-0.654, 1.026, -0.635) → (0.653, 1.086, -0.414) | Grey |
-| `WaistToFrontTop_L` | `WaistToFrontTop_L` | 1 | 52 | (0.29, 1.318, -0.534) | (-0.085, 1.031, -0.635) → (0.664, 1.606, -0.433) | Grey |
-| `WaistR` | `WaistR` | 1 | 52 | (0.037, 1.062, 0.53) | (-0.586, 1.036, 0.459) → (0.661, 1.088, 0.601) | Grey |
-| `WaistToFrontTop_R` | `WaistToFrontTop_R` | 1 | 52 | (0.303, 1.327, 0.508) | (-0.068, 1.043, 0.415) → (0.674, 1.611, 0.601) | Grey |
+| `WaistL` | `WaistL` | 1 | 52 | (-0.001, 1.056, -0.524) | (-0.654, 1.026, -0.635) → (0.653, 1.086, -0.414) | Dark |
+| `WaistToFrontTop_L` | `WaistToFrontTop_L` | 1 | 52 | (0.29, 1.318, -0.534) | (-0.085, 1.031, -0.635) → (0.664, 1.606, -0.433) | Dark |
+| `WaistR` | `WaistR` | 1 | 52 | (0.037, 1.062, 0.53) | (-0.586, 1.036, 0.459) → (0.661, 1.088, 0.601) | Dark |
+| `WaistToFrontTop_R` | `WaistToFrontTop_R` | 1 | 52 | (0.303, 1.327, 0.508) | (-0.068, 1.043, 0.415) → (0.674, 1.611, 0.601) | Dark |
 
 ## Part / extra `public/models/parts/kaeferkraft-lightweight_body.glb`
 

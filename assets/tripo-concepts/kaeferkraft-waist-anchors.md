@@ -2,7 +2,7 @@
 
 Live poles are **detached**. Command **`WaistL`** or **`WaistR`** — never a shared `Waist` name.
 
-Mesh space, meters, **nose −X**. Caps bury 8 cm into the hull.
+Mesh space, meters, **nose −X**. Caps bury 8 cm into the hull. Poles are charcoal (`Dark`, same as the stock cage).
 
 | Node | From behind | Front | Rear |
 | --- | --- | --- | --- |

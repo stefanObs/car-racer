@@ -4,6 +4,7 @@ import { afterEach, describe, expect, it } from "vitest";
 import { CAR_IDS, CARS, type CarId } from "../src/data/cars";
 import { mergeStats, type PartId } from "../src/data/parts";
 import { carSupportsPart, partsForCar } from "../src/data/partsCatalog";
+import { ComicPalette } from "../src/data/comicPalette";
 import {
   applyEquippedPartVisuals,
   applyBlitzParts,
@@ -56,9 +57,9 @@ describe("Equipped-part visuals (all cars)", () => {
 
   it("mounts Blitz Großer Motor on the hood with red tip toward the nose", async () => {
     const scoop = BLITZ_PART_PLACEMENT.big_engine[0]!;
-    expect(scoop.z).toBeGreaterThan(1.1);
-    expect(scoop.y).toBeLessThan(0.5);
-    expect(scoop.y).toBeGreaterThan(0.35);
+    expect(scoop.x).toBeCloseTo(0.004, 3);
+    expect(scoop.y).toBeCloseTo(0.467, 3);
+    expect(scoop.z).toBeCloseTo(1.199, 3);
     // Bake: low tip at local +Z — yaw 0 aims tip at the nose (not π / aft).
     expect(scoop.yaw).toBeCloseTo(0);
     // Fixed deck Y + nose-up pitch buries the aft flange (snap would lift after pitch).
@@ -479,6 +480,10 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(L.lightweight_body.preferGlb).toBe(true);
     expect(existsSync("public/models/parts/kaeferkraft-lightweight_body.glb")).toBe(true);
     expect(existsSync("scripts/fix-kaeferkraft-lightweight.mjs")).toBe(true);
+  });
+
+  it("tints Käferkraft Verstärkter Rahmen like the dark stock cage", () => {
+    expect(CAR_PART_LAYOUTS.kaeferkraft.reinforced_frame.tint).toBe(ComicPalette.outline);
   });
 
   it("lazy-loads per-car kits via ensureCarPartTemplates", () => {

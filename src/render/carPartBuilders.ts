@@ -220,8 +220,8 @@ export function buildReinforcedFrame(
     };
     for (const side of [waistL, waistR]) {
       const [front, rear] = extendPoleIntoFrame(side.front, side.rear, into);
-      addStraightPole(g, front, rear, r, GREY, side.name);
-      addStraightPole(g, rear, side.cage, r, GREY, side.stay);
+      addStraightPole(g, front, rear, r, ComicPalette.outline, side.name);
+      addStraightPole(g, rear, side.cage, r, ComicPalette.outline, side.stay);
     }
     return g;
   }

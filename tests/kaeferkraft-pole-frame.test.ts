@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { Node as GltfNode } from "@gltf-transform/core";
-import { Quaternion, Vector3 } from "three";
+import { Quaternion, Vector3, type MeshToonMaterial } from "three";
 import { buildReinforcedFrame } from "../src/render/carPartBuilders";
+import { ComicPalette } from "../src/data/comicPalette";
 
 const POLE_R = 0.025;
 const INTO = 0.08;
@@ -93,6 +94,13 @@ describe("Käferkraft pole-frame waist", () => {
     expectStayEndsAtCage(cylinderEnds(named("WaistToFrontTop_L")!), WAIST_L_PICK.cage);
     expectStayEndsAtCage(cylinderEnds(named("WaistToFrontTop_R")!), WAIST_R_PICK.cage);
 
+    const cageMat = left!.getMesh()?.listPrimitives()[0]?.getMaterial();
+    expect(cageMat?.getName()).toBe("Dark");
+    const rgb = cageMat!.getBaseColorFactor();
+    expect(rgb[0]).toBeLessThan(0.03);
+    expect(rgb[1]).toBeLessThan(0.03);
+    expect(rgb[2]).toBeLessThan(0.03);
+
     expect(named("WaistToFrontTop_L")).toBeTruthy();
     expect(named("WaistToFrontTop_R")).toBeTruthy();
     expect(doc.getRoot().listNodes().some((n) => n.getName() === "WaistToFrontTop")).toBe(false);
@@ -115,6 +123,7 @@ describe("Käferkraft pole-frame waist", () => {
     expectRailCovers(endsOf(right!), WAIST_R_PICK);
     expectStayEndsAtCage(endsOf(g.children.find((c) => c.name === "WaistToFrontTop_L")!), WAIST_L_PICK.cage);
     expectStayEndsAtCage(endsOf(g.children.find((c) => c.name === "WaistToFrontTop_R")!), WAIST_R_PICK.cage);
+    expect((left!.material as MeshToonMaterial).color.getHex()).toBe(ComicPalette.outline);
     expect(g.children.some((c) => c.name === "WaistToFrontTop_L")).toBe(true);
     expect(g.children.some((c) => c.name === "WaistToFrontTop_R")).toBe(true);
   });

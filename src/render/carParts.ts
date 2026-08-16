@@ -41,6 +41,7 @@ import {
   springColorFor,
 } from "./carPartBuilders";
 import { comicToon } from "./comicMaterials";
+import { ComicPalette } from "./palette";
 import { paintSrgb01 } from "./paintAuthoredWhite";
 import { applyStockWheelScale, applyStockWheelVisibility, isStockWheelObject } from "./stockWheels";
 import { carSupportsPart } from "../data/partsCatalog";
@@ -161,9 +162,9 @@ export const BLITZ_PART_PLACEMENT: Record<BlitzPartMeshId, PartAnchor[]> = {
   // Fixed Y + mild nose-up pitch: bury aft flange, keep black scoop above the deck.
   big_engine: [
     {
-      x: 0,
-      y: 0.42,
-      z: 1.2,
+      x: 0.004,
+      y: 0.467,
+      z: 1.199,
       yaw: 0,
       pitch: -0.16,
       scale: 0.92,
@@ -382,7 +383,7 @@ function layoutKaeferkraft(): CarVisualLayout {
       anchors: [{ x: 0, y: 0, z: 0, yaw: 0, scale: 1, snap: false }],
       build: () => buildReinforcedFrame("buggy"),
       preferGlb: true,
-      tint: 0x8b929a,
+      tint: ComicPalette.outline,
     },
     lightweight_body: {
       // Hole flanks on outer BodyPaint rails (mesh ±X → mesh ±Z after yaw π/2).
@@ -702,8 +703,10 @@ function toonifyPart(root: Object3D, fallbackName: string): void {
       const name = (std.name || fallbackName).toLowerCase();
       const chrome = name.includes("chrome") || name.includes("metal");
       const grey = name.includes("grey") || name.includes("gray");
+      const dark = name.includes("dark");
       let fill = 0xffffff;
       if (chrome && !std.map) fill = 0xdce2e8;
+      else if (dark && !std.map) fill = ComicPalette.outline;
       else if (grey && !std.map) fill = 0x8b929a;
       const toon = comicToon(fill);
       toon.name = std.name || fallbackName;

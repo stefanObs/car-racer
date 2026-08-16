@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Käferkraft Verstärkter Rahmen: straight Grey cylinders in mesh space (nose −X).
+ * Käferkraft Verstärkter Rahmen: straight Dark cylinders in mesh space (nose −X).
  * Replaces the Tripo blob. Waist rails follow BodyPaint garage picks
  * (caps buried into the hull) plus a diagonal from each rear insertion
  * to BodyPaint cage picks. Radius matches the welded stock cage.
@@ -43,7 +43,8 @@ const outPath = join(rootDir, "public/models/parts/kaeferkraft-reinforced_frame.
 const RADIUS = 0.025;
 /** Bury caps along the pole so cut edges sit inside BodyPaint. */
 const INTO = 0.08;
-const GREY = 0x6a7078;
+/** Same charcoal as Käferkraft BodyPaint cage tubes (`ComicPalette.outline`). */
+const CAGE = 0x1b1b1f;
 
 /**
  * Independent waist rails (mesh m, nose −X). Command `WaistL` or `WaistR` alone.
@@ -87,10 +88,10 @@ function addPole(parent, a, b, name) {
   const mesh = new Mesh(
     new CylinderGeometry(RADIUS, RADIUS, len, 8),
     new MeshStandardMaterial({
-      color: GREY,
+      color: CAGE,
       metalness: 0,
       roughness: 0.75,
-      name: "Grey",
+      name: "Dark",
     }),
   );
   mesh.name = name;
