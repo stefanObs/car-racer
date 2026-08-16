@@ -13,8 +13,11 @@ import {
   formatMeshInspectPatch,
   cloneMeshInspectBox,
   collectMeshInspectBox,
+  MESH_INSPECT_BOX_EDGES,
   MESH_INSPECT_PATCH_HEADER,
   meshInspectBoxChanged,
+  meshInspectBoxEdgeFromKey,
+  meshInspectBoxEdgeLocal,
   meshInspectBoxFromPoints,
   meshInspectBoxSamplePoints,
   meshInspectDragExceeded,
@@ -31,6 +34,7 @@ import {
   normalizeMeshInspectScreenRect,
   parseMeshInspectPatch,
   resizeMeshInspectBox,
+  resizeMeshInspectBoxByEdge,
   type MeshInspectHit,
 } from "../src/core/meshInspect";
 import {
@@ -172,6 +176,18 @@ describe("F6 mesh inspect panel", () => {
         { x: 2, y: 0, z: 0 },
       ).min.x,
     ).toBeCloseTo(0.99);
+    expect(MESH_INSPECT_BOX_EDGES).toHaveLength(12);
+    expect(new Set(MESH_INSPECT_BOX_EDGES.map((e) => e.id)).size).toBe(12);
+    const edgeBox = { min: { x: 0, y: 0, z: 0 }, max: { x: 2, y: 4, z: 6 }, names: [] };
+    const topFront = meshInspectBoxEdgeFromKey("x-maxY-maxZ");
+    expect(topFront).toBeTruthy();
+    const mid = meshInspectBoxEdgeLocal(edgeBox, topFront!);
+    expect(mid).toEqual({ x: 1, y: 4, z: 6 });
+    const pulled = resizeMeshInspectBoxByEdge(edgeBox, topFront!, { x: 9, y: 0.5, z: 0.25 });
+    expect(pulled.max.y).toBeCloseTo(4.5);
+    expect(pulled.max.z).toBeCloseTo(6.25);
+    expect(pulled.min.x).toBe(0);
+    expect(pulled.max.x).toBe(2);
     expect(
       meshInspectGestureAfterDrag({
         edit: true,
@@ -323,7 +339,7 @@ describe("F6 mesh inspect panel", () => {
         boxPaint: true,
         box: { min: { x: 0, y: 0, z: 0 }, max: { x: 1, y: 1, z: 1 }, names: ["BodyPaint"] },
       }),
-    ).toContain("dreht Auto");
+    ).toContain("Kantenpunkte ziehen");
     expect(
       meshInspectHint({
         boxPaint: true,

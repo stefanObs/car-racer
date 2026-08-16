@@ -28,14 +28,33 @@ export type MeshInspectPointerKind = "orbit" | "copy" | "selectOrMove" | "paintB
 
 export type MeshInspectBoxFace = "minX" | "maxX" | "minY" | "maxY" | "minZ" | "maxZ";
 
-export const MESH_INSPECT_BOX_FACES: readonly MeshInspectBoxFace[] = [
-  "minX",
-  "maxX",
-  "minY",
-  "maxY",
-  "minZ",
-  "maxZ",
+/** One AABB edge: along an axis, sitting on two faces. */
+export type MeshInspectBoxEdge = {
+  id: string;
+  along: "x" | "y" | "z";
+  faces: readonly [MeshInspectBoxFace, MeshInspectBoxFace];
+};
+
+function boxEdge(along: "x" | "y" | "z", a: MeshInspectBoxFace, b: MeshInspectBoxFace): MeshInspectBoxEdge {
+  return { id: `${along}-${a}-${b}`, along, faces: [a, b] };
+}
+
+/** 12 wireframe edges — dots live here so they stay visible outside the car. */
+export const MESH_INSPECT_BOX_EDGES: readonly MeshInspectBoxEdge[] = [
+  boxEdge("x", "minY", "minZ"),
+  boxEdge("x", "minY", "maxZ"),
+  boxEdge("x", "maxY", "minZ"),
+  boxEdge("x", "maxY", "maxZ"),
+  boxEdge("y", "minX", "minZ"),
+  boxEdge("y", "minX", "maxZ"),
+  boxEdge("y", "maxX", "minZ"),
+  boxEdge("y", "maxX", "maxZ"),
+  boxEdge("z", "minX", "minY"),
+  boxEdge("z", "minX", "maxY"),
+  boxEdge("z", "maxX", "minY"),
+  boxEdge("z", "maxX", "maxY"),
 ];
+
 export const MESH_INSPECT_BOX_MIN_SIZE = 0.01;
 
 export type MeshInspectDragMode = "free" | "keepY" | "onlyY";
@@ -83,7 +102,9 @@ export const MESH_INSPECT_SCALE = 1.05;
 export const MESH_INSPECT_SCALE_FINE = 1.01;
 export const MESH_INSPECT_SCALE_COARSE = 1.15;
 export const MESH_INSPECT_BOX_SAMPLE = 16;
-export const MESH_INSPECT_BOX_HANDLE_RADIUS = 0.04;
+export const MESH_INSPECT_BOX_HANDLE_RADIUS = 0.07;
+/** Screen-space grab radius around each edge dot (px). */
+export const MESH_INSPECT_BOX_HANDLE_PX = 22;
 
 export function formatMeshInspectCoord(n: number, digits = MESH_INSPECT_DECIMALS): string {
   const v = Number.isFinite(n) ? n : 0;
@@ -256,22 +277,14 @@ export function collectMeshInspectBox(
   return meshInspectBoxFromPoints(points, names);
 }
 
-export function meshInspectBoxHandleLocal(box: MeshInspectBox, face: MeshInspectBoxFace): MeshInspectVec3 {
+export function meshInspectBoxEdgeLocal(box: MeshInspectBox, edge: MeshInspectBoxEdge): MeshInspectVec3 {
   const c = meshInspectBoxCenter(box);
-  switch (face) {
-    case "minX":
-      return { x: box.min.x, y: c.y, z: c.z };
-    case "maxX":
-      return { x: box.max.x, y: c.y, z: c.z };
-    case "minY":
-      return { x: c.x, y: box.min.y, z: c.z };
-    case "maxY":
-      return { x: c.x, y: box.max.y, z: c.z };
-    case "minZ":
-      return { x: c.x, y: c.y, z: box.min.z };
-    case "maxZ":
-      return { x: c.x, y: c.y, z: box.max.z };
+  const p = { x: c.x, y: c.y, z: c.z };
+  for (const face of edge.faces) {
+    const axis = meshInspectBoxResizeAxis(face);
+    p[axis] = face.startsWith("min") ? box.min[axis] : box.max[axis];
   }
+  return p;
 }
 
 export function meshInspectBoxResizeAxis(face: MeshInspectBoxFace): "x" | "y" | "z" {
@@ -280,18 +293,9 @@ export function meshInspectBoxResizeAxis(face: MeshInspectBoxFace): "x" | "y" | 
   return "z";
 }
 
-export function meshInspectBoxFaceFromKey(raw: string | undefined | null): MeshInspectBoxFace | null {
-  if (
-    raw === "minX" ||
-    raw === "maxX" ||
-    raw === "minY" ||
-    raw === "maxY" ||
-    raw === "minZ" ||
-    raw === "maxZ"
-  ) {
-    return raw;
-  }
-  return null;
+export function meshInspectBoxEdgeFromKey(raw: string | undefined | null): MeshInspectBoxEdge | null {
+  if (!raw) return null;
+  return MESH_INSPECT_BOX_EDGES.find((edge) => edge.id === raw) ?? null;
 }
 
 /** Move one AABB face in mesh space; keeps a minimum size. */
@@ -311,6 +315,20 @@ export function resizeMeshInspectBox(
     max[axis] = Math.max(min[axis] + minSize, max[axis] + d);
   }
   return { min, max, names: box.names };
+}
+
+/** Drag an edge midpoint: move the two faces that meet there. */
+export function resizeMeshInspectBoxByEdge(
+  box: MeshInspectBox,
+  edge: MeshInspectBoxEdge,
+  meshDelta: MeshInspectVec3,
+  minSize = MESH_INSPECT_BOX_MIN_SIZE,
+): MeshInspectBox {
+  let next = box;
+  for (const face of edge.faces) {
+    next = resizeMeshInspectBox(next, face, meshDelta, minSize);
+  }
+  return next;
 }
 
 export function cloneMeshInspectBox(box: MeshInspectBox): MeshInspectBox {

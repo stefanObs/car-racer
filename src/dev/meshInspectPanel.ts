@@ -38,8 +38,8 @@ export function meshInspectHint(opts: MeshInspectPanelOpts): string {
   if (opts.copied) return "Kopiert";
   if (opts.boxPaint && opts.box) {
     return opts.boxCanReset
-      ? "Griffe Größe · LMB dreht Auto · Zurück / Pos1 · Kasten kopieren"
-      : "Griffe Größe · LMB dreht Auto · Shift neu · Kasten kopieren";
+      ? "Kantenpunkte ziehen · LMB dreht Auto · Zurück / Pos1 · Kasten kopieren"
+      : "Kantenpunkte ziehen · LMB dreht Auto · Shift neu · Kasten kopieren";
   }
   if (opts.boxPaint) return "Ziehen malt Kasten · danach LMB drehen · B aus · F6 zu";
   if (!opts.edit) return "LMB drehen · B Kasten · RMB/C kopieren · Liste wählt Teil · E Platzieren · F6 zu";

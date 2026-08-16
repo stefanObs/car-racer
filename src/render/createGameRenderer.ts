@@ -1,6 +1,6 @@
 import type {
   MeshInspectBox,
-  MeshInspectBoxFace,
+  MeshInspectBoxEdge,
   MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectDragMode,
@@ -87,9 +87,9 @@ export type GameRenderer = {
     clientX: number,
     clientY: number,
     canvas: HTMLCanvasElement,
-  ) => MeshInspectBoxFace | null;
+  ) => MeshInspectBoxEdge | null;
   resizeMeshInspectBox: (
-    face: MeshInspectBoxFace,
+    edge: MeshInspectBoxEdge,
     fromClientX: number,
     fromClientY: number,
     toClientX: number,

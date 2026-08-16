@@ -24,7 +24,7 @@ import { sampleCenterline } from "../track/buildTrack";
 import { carStateLookKey } from "./carLookKey";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../core/finishCelebrate";
-import type { MeshInspectBoxFace, MeshInspectComponent, MeshInspectDragMode, MeshInspectTool } from "../core/meshInspect";
+import type { MeshInspectBoxEdge, MeshInspectComponent, MeshInspectDragMode, MeshInspectTool } from "../core/meshInspect";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
@@ -308,14 +308,14 @@ export class RaceRenderer {
   }
 
   resizeMeshInspectBox(
-    face: MeshInspectBoxFace,
+    edge: MeshInspectBoxEdge,
     fromClientX: number,
     fromClientY: number,
     toClientX: number,
     toClientY: number,
     canvas: HTMLCanvasElement,
   ): void {
-    this.garage.resizeMeshInspectBox(face, fromClientX, fromClientY, toClientX, toClientY, canvas);
+    this.garage.resizeMeshInspectBox(edge, fromClientX, fromClientY, toClientX, toClientY, canvas);
   }
 
   clearMeshInspectBox(): boolean {

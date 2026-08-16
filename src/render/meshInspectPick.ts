@@ -11,12 +11,17 @@ import {
 } from "three";
 import type {
   MeshInspectBox,
-  MeshInspectBoxFace,
+  MeshInspectBoxEdge,
   MeshInspectCatalogEntry,
   MeshInspectHit,
   MeshInspectScreenRect,
 } from "../core/meshInspect";
-import { collectMeshInspectBox, meshInspectBoxFaceFromKey, meshInspectBoxSamplePoints } from "../core/meshInspect";
+import {
+  collectMeshInspectBox,
+  MESH_INSPECT_BOX_HANDLE_PX,
+  meshInspectBoxEdgeFromKey,
+  meshInspectBoxSamplePoints,
+} from "../core/meshInspect";
 import { isUnderCarFx } from "./garageSit";
 
 /** Default F5 void — green so red/blue cars stay readable. */
@@ -51,6 +56,7 @@ export type MeshInspectPickResult = {
 const _ndc = new Vector2();
 const _local = new Vector3();
 const _towardCam = new Vector3();
+const _handleWorld = new Vector3();
 const _matColor = new Color();
 const _raycaster = new Raycaster();
 
@@ -419,16 +425,42 @@ export function sampleMeshInspectBox(
   });
 }
 
+function boxEdgeFromHandleObject(obj: Object3D): MeshInspectBoxEdge | null {
+  return meshInspectBoxEdgeFromKey(
+    String(obj.userData.boxEdge ?? obj.name.slice(MESH_INSPECT_BOX_HANDLE_PREFIX.length)),
+  );
+}
+
 export function pickMeshInspectBoxHandle(
   handles: Object3D,
   camera: Camera,
   clientX: number,
   clientY: number,
   canvas: { getBoundingClientRect: () => DOMRect },
-): MeshInspectBoxFace | null {
+): MeshInspectBoxEdge | null {
   camera.updateMatrixWorld(true);
+  handles.updateMatrixWorld(true);
   _raycaster.setFromCamera(pointerToNdc(clientX, clientY, canvas), camera);
   const hit = _raycaster.intersectObject(handles, true)[0];
-  if (!hit) return null;
-  return meshInspectBoxFaceFromKey(String(hit.object.userData.boxFace ?? hit.object.name.slice(MESH_INSPECT_BOX_HANDLE_PREFIX.length)));
+  if (hit) return boxEdgeFromHandleObject(hit.object);
+
+  const rect = canvas.getBoundingClientRect();
+  const maxDistSq = MESH_INSPECT_BOX_HANDLE_PX * MESH_INSPECT_BOX_HANDLE_PX;
+  let best: MeshInspectBoxEdge | null = null;
+  let bestDistSq = maxDistSq;
+  handles.traverse((obj) => {
+    if (!obj.userData.boxEdge) return;
+    obj.getWorldPosition(_handleWorld);
+    _handleWorld.project(camera);
+    if (_handleWorld.z < -1 || _handleWorld.z > 1) return;
+    const x = rect.left + (_handleWorld.x * 0.5 + 0.5) * rect.width;
+    const y = rect.top + (-_handleWorld.y * 0.5 + 0.5) * rect.height;
+    const distSq = (x - clientX) ** 2 + (y - clientY) ** 2;
+    if (distSq >= bestDistSq) return;
+    const edge = boxEdgeFromHandleObject(obj);
+    if (!edge) return;
+    bestDistSq = distSq;
+    best = edge;
+  });
+  return best;
 }

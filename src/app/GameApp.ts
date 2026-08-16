@@ -34,7 +34,7 @@ import {
   meshInspectPointerAction,
   meshInspectWantParent,
   normalizeMeshInspectScreenRect,
-  type MeshInspectBoxFace,
+  type MeshInspectBoxEdge,
 } from "../core/meshInspect";
 import { renderMenuHtml } from "../ui/menuHtml";
 import { renderCupPickHtml, renderFreePickHtml, renderTrainingPickHtml } from "../ui/modePickHtml";
@@ -252,7 +252,7 @@ export class GameApp {
         startY?: number;
         hitId?: string | null;
         wantParent?: boolean;
-        boxFace?: MeshInspectBoxFace | null;
+        boxEdge?: MeshInspectBoxEdge | null;
       }
     >();
 
@@ -329,7 +329,7 @@ export class GameApp {
           startY: e.clientY,
           hitId: hits[0]?.id ?? null,
           wantParent: meshInspectWantParent({ shift: e.shiftKey }),
-          boxFace: handle,
+          boxEdge: handle,
         });
         canvas.setPointerCapture(e.pointerId);
         this.renderer.setGarageDragging(true);
@@ -373,7 +373,7 @@ export class GameApp {
               hasEdge: this.renderer.meshInspectHasEdge(),
               boxPaint: this.renderer.isMeshInspectBoxPaint(),
               hasBox: Boolean(this.renderer.meshInspectBox()),
-              hitHandle: Boolean(prev.boxFace),
+              hitHandle: Boolean(prev.boxEdge),
               shiftKey: e.shiftKey,
             });
             canvas.classList.toggle("is-orbiting", prev.inspect === "orbit");
@@ -415,8 +415,8 @@ export class GameApp {
             this.dev.setMeshInspectPaintRect(
               normalizeMeshInspectScreenRect(prev.startX ?? prev.x, prev.startY ?? prev.y, e.clientX, e.clientY),
             );
-          } else if (prev.inspect === "resizeBox" && prev.boxFace) {
-            this.renderer.resizeMeshInspectBox(prev.boxFace, prev.x, prev.y, e.clientX, e.clientY, canvas);
+          } else if (prev.inspect === "resizeBox" && prev.boxEdge) {
+            this.renderer.resizeMeshInspectBox(prev.boxEdge, prev.x, prev.y, e.clientX, e.clientY, canvas);
           }
           prev.x = e.clientX;
           prev.y = e.clientY;

@@ -8,6 +8,7 @@ import {
   Line,
   LineBasicMaterial,
   Mesh,
+  MeshBasicMaterial,
   SphereGeometry,
   Vector2,
   Vector3,
@@ -15,7 +16,6 @@ import {
   type DirectionalLight,
   type Fog,
   type HemisphereLight,
-  type MeshToonMaterial,
   type Object3D,
   type PerspectiveCamera,
   type Scene,
@@ -85,7 +85,7 @@ import {
 } from "./meshInspectEdges";
 import type {
   MeshInspectBox,
-  MeshInspectBoxFace,
+  MeshInspectBoxEdge,
   MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectDragMode,
@@ -96,12 +96,12 @@ import type {
 import {
   cloneMeshInspectBox,
   formatMeshInspectBox,
-  MESH_INSPECT_BOX_FACES,
+  MESH_INSPECT_BOX_EDGES,
   MESH_INSPECT_BOX_HANDLE_RADIUS,
   meshInspectBoxChanged,
-  meshInspectBoxHandleLocal,
+  meshInspectBoxEdgeLocal,
   normalizeMeshInspectScreenRect,
-  resizeMeshInspectBox,
+  resizeMeshInspectBoxByEdge,
 } from "../core/meshInspect";
 import { collectMeshInspectPatch, meshInspectPatchText } from "./meshInspectPatch";
 
@@ -153,7 +153,7 @@ export class GaragePresenter {
   private readonly meshInspectBox3 = new Box3();
   private meshInspectBoxHelper: Box3Helper | null = null;
   private meshInspectBoxHandles: Group | null = null;
-  private meshInspectBoxHover: MeshInspectBoxFace | null = null;
+  private meshInspectBoxHover: MeshInspectBoxEdge | null = null;
   private idlePaint = "#e03131";
   private idleModelId: CarId = "blitz";
   private readonly host: GaragePresenterHost;
@@ -434,19 +434,19 @@ export class GaragePresenter {
     return this.meshInspectBox;
   }
 
-  pickMeshInspectBoxHandle(clientX: number, clientY: number, canvas: HTMLCanvasElement): MeshInspectBoxFace | null {
+  pickMeshInspectBoxHandle(clientX: number, clientY: number, canvas: HTMLCanvasElement): MeshInspectBoxEdge | null {
     const handles = this.meshInspectBoxHandles;
     if (!this.meshInspect || !this.meshInspectBox || !handles) {
       this.highlightMeshInspectBoxHandle(null);
       return null;
     }
-    const face = pickMeshInspectBoxHandle(handles, this.host.camera, clientX, clientY, canvas);
-    this.highlightMeshInspectBoxHandle(face);
-    return face;
+    const edge = pickMeshInspectBoxHandle(handles, this.host.camera, clientX, clientY, canvas);
+    this.highlightMeshInspectBoxHandle(edge);
+    return edge;
   }
 
   resizeMeshInspectBox(
-    face: MeshInspectBoxFace,
+    edge: MeshInspectBoxEdge,
     fromClientX: number,
     fromClientY: number,
     toClientX: number,
@@ -457,7 +457,7 @@ export class GaragePresenter {
     const car = this.idleCar;
     if (!box || !car) return;
     const space = carMeshSpaceRoot(car);
-    const local = meshInspectBoxHandleLocal(box, face);
+    const local = meshInspectBoxEdgeLocal(box, edge);
     space.updateMatrixWorld(true);
     space.localToWorld(this._inspectWorld.set(local.x, local.y, local.z));
     this._inspectFromNdc.copy(pointerToNdc(fromClientX, fromClientY, canvas));
@@ -469,7 +469,7 @@ export class GaragePresenter {
       this._inspectWorld,
     );
     worldDeltaToMeshDelta(space, this._inspectWorld, worldDelta, this._inspectMesh);
-    this.meshInspectBox = resizeMeshInspectBox(box, face, this._inspectMesh);
+    this.meshInspectBox = resizeMeshInspectBoxByEdge(box, edge, this._inspectMesh);
     this.syncMeshInspectBoxHelper();
   }
 
@@ -854,10 +854,10 @@ export class GaragePresenter {
     const group = this.ensureMeshInspectBoxHandles();
     if (group.parent !== space) space.add(group);
     group.visible = true;
-    for (const face of MESH_INSPECT_BOX_FACES) {
-      const handle = group.getObjectByName(`${MESH_INSPECT_BOX_HANDLE_PREFIX}${face}`);
+    for (const edge of MESH_INSPECT_BOX_EDGES) {
+      const handle = group.getObjectByName(`${MESH_INSPECT_BOX_HANDLE_PREFIX}${edge.id}`);
       if (!handle) continue;
-      const local = meshInspectBoxHandleLocal(box, face);
+      const local = meshInspectBoxEdgeLocal(box, edge);
       handle.position.set(local.x, local.y, local.z);
     }
     this.highlightMeshInspectBoxHandle(this.meshInspectBoxHover);
@@ -868,25 +868,34 @@ export class GaragePresenter {
     const group = new Group();
     group.name = MESH_INSPECT_BOX_HANDLES_NAME;
     const geo = new SphereGeometry(MESH_INSPECT_BOX_HANDLE_RADIUS, 16, 12);
-    for (const face of MESH_INSPECT_BOX_FACES) {
-      const mesh = new Mesh(geo, comicToon(0xffe066));
-      mesh.name = `${MESH_INSPECT_BOX_HANDLE_PREFIX}${face}`;
-      mesh.userData.boxFace = face;
+    for (const edge of MESH_INSPECT_BOX_EDGES) {
+      const mesh = new Mesh(
+        geo,
+        new MeshBasicMaterial({
+          color: 0xffe066,
+          depthTest: false,
+          depthWrite: false,
+          toneMapped: false,
+        }),
+      );
+      mesh.name = `${MESH_INSPECT_BOX_HANDLE_PREFIX}${edge.id}`;
+      mesh.userData.boxEdge = edge.id;
       mesh.frustumCulled = false;
+      mesh.renderOrder = 12;
       group.add(mesh);
     }
     this.meshInspectBoxHandles = group;
     return group;
   }
 
-  private highlightMeshInspectBoxHandle(face: MeshInspectBoxFace | null): void {
-    this.meshInspectBoxHover = face;
+  private highlightMeshInspectBoxHandle(edge: MeshInspectBoxEdge | null): void {
+    this.meshInspectBoxHover = edge;
     const group = this.meshInspectBoxHandles;
     if (!group) return;
     for (const child of group.children) {
       if (!(child instanceof Mesh)) continue;
-      const mat = child.material as MeshToonMaterial;
-      const on = child.userData.boxFace === face;
+      const mat = child.material as MeshBasicMaterial;
+      const on = child.userData.boxEdge === edge?.id;
       mat.color.setHex(on ? 0xff6b35 : 0xffe066);
     }
   }

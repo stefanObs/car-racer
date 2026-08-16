@@ -1,4 +1,4 @@
-import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, Vector3 } from "three";
+import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera, SphereGeometry, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { GARAGE_PAINTS } from "../src/data/cosmetics";
 import {
@@ -18,6 +18,7 @@ import {
   MESH_INSPECT_MARKER_BLUE,
   MESH_INSPECT_MARKER_RADIUS,
   MESH_INSPECT_MARKER_RED,
+  pickMeshInspectBoxHandle,
   pickMeshInspectHits,
 } from "../src/render/meshInspectPick";
 
@@ -180,5 +181,25 @@ describe("mesh inspect picking", () => {
     expect(isGreenishRgb(224, 49, 49)).toBe(false);
     const greens = GARAGE_PAINTS.filter((p) => meshInspectBackgroundHex(p) === MESH_INSPECT_BG_ON_GREEN);
     expect(greens).toEqual(["#12b886", "#2f9e44"]);
+  });
+
+  it("picks a Kasten edge dot by screen proximity when the ray misses the sphere", () => {
+    const handles = new Group();
+    const mesh = new Mesh(new SphereGeometry(0.001, 4, 4), new MeshBasicMaterial());
+    mesh.name = "meshInspectBoxHandle-x-minY-minZ";
+    mesh.userData.boxEdge = "x-minY-minZ";
+    handles.add(mesh);
+    handles.updateMatrixWorld(true);
+    const camera = new PerspectiveCamera(50, 1, 0.1, 50);
+    camera.position.set(0, 0, 8);
+    camera.lookAt(0, 0, 0);
+    camera.updateMatrixWorld(true);
+    const ndc = new Vector3(0, 0, 0).project(camera);
+    const x = (ndc.x * 0.5 + 0.5) * 200;
+    const y = (-ndc.y * 0.5 + 0.5) * 200;
+    const near = pickMeshInspectBoxHandle(handles, camera, x + 12, y + 8, fakeCanvas());
+    expect(near?.id).toBe("x-minY-minZ");
+    const far = pickMeshInspectBoxHandle(handles, camera, x + 80, y + 80, fakeCanvas());
+    expect(far).toBeNull();
   });
 });
