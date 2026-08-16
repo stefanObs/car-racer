@@ -1,12 +1,14 @@
 import {
   Color,
   Group,
+  Mesh,
+  MeshBasicMaterial,
+  SphereGeometry,
   Vector3,
   type AmbientLight,
   type DirectionalLight,
   type Fog,
   type HemisphereLight,
-  type Mesh,
   type PerspectiveCamera,
   type Scene,
   type WebGLRenderer,
@@ -30,7 +32,14 @@ import {
 } from "./garageOrbit";
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
 import { carBodyWorldBox, carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
-import { MESH_INSPECT_BG, pickMeshInspectHits } from "./meshInspectPick";
+import {
+  MESH_INSPECT_BG,
+  MESH_INSPECT_MARKER_BLUE,
+  MESH_INSPECT_MARKER_NAME,
+  MESH_INSPECT_MARKER_RED,
+  pickMeshInspectHits,
+  type MeshInspectMarkerPose,
+} from "./meshInspectPick";
 import type { MeshInspectHit } from "../core/meshInspect";
 
 export type { GarageLook } from "./garageLook";
@@ -67,6 +76,7 @@ export class GaragePresenter {
   private fxTime = 0;
   private meshInspect = false;
   private readonly meshInspectHidden: { obj: Group["children"][number]; visible: boolean }[] = [];
+  private meshInspectMarker: Mesh | null = null;
   private readonly host: GaragePresenterHost;
   private readonly _inspectLook = new Vector3();
   private readonly _inspectSize = new Vector3();
@@ -198,6 +208,7 @@ export class GaragePresenter {
   }
 
   setPitchInspect(active: boolean): void {
+    if (this.meshInspect) return;
     this.garagePitch = garagePitchAfterInspectChange(
       this.garagePitchInspect,
       active,
@@ -246,7 +257,7 @@ export class GaragePresenter {
     }
     this.meshInspect = on;
     if (!on) {
-      this.garagePitch = GARAGE_PITCH_DEFAULT;
+      this.hideMeshInspectMarker();
       this.garagePitchInspect = false;
     }
     this.applyMeshInspectView();
@@ -255,8 +266,48 @@ export class GaragePresenter {
   }
 
   pickMeshInspect(clientX: number, clientY: number, canvas: HTMLCanvasElement): MeshInspectHit[] {
-    if (!this.meshInspect || !this.idleCar) return [];
-    return pickMeshInspectHits(this.idleCar, this.host.camera, clientX, clientY, canvas);
+    if (!this.meshInspect || !this.idleCar) {
+      this.hideMeshInspectMarker();
+      return [];
+    }
+    const picked = pickMeshInspectHits(this.idleCar, this.host.camera, clientX, clientY, canvas);
+    this.syncMeshInspectMarker(picked.marker);
+    return picked.hits;
+  }
+
+  private ensureMeshInspectMarker(): Mesh {
+    if (this.meshInspectMarker) return this.meshInspectMarker;
+    const mat = new MeshBasicMaterial({
+      color: MESH_INSPECT_MARKER_RED,
+      depthTest: false,
+      depthWrite: false,
+      toneMapped: false,
+    });
+    const mesh = new Mesh(new SphereGeometry(0.07, 16, 12), mat);
+    mesh.name = MESH_INSPECT_MARKER_NAME;
+    mesh.frustumCulled = false;
+    mesh.renderOrder = 8;
+    mesh.raycast = () => {};
+    this.host.scene.add(mesh);
+    this.meshInspectMarker = mesh;
+    return mesh;
+  }
+
+  private syncMeshInspectMarker(pose: MeshInspectMarkerPose | null): void {
+    const marker = this.ensureMeshInspectMarker();
+    if (!pose) {
+      marker.visible = false;
+      return;
+    }
+    marker.visible = true;
+    marker.position.set(pose.x, pose.y, pose.z);
+    (marker.material as MeshBasicMaterial).color.setHex(
+      pose.onRed ? MESH_INSPECT_MARKER_BLUE : MESH_INSPECT_MARKER_RED,
+    );
+  }
+
+  private hideMeshInspectMarker(): void {
+    if (this.meshInspectMarker) this.meshInspectMarker.visible = false;
   }
 
   private applyMeshInspectView(): void {

@@ -217,6 +217,7 @@ export class GameApp {
       const on = pointers.size > 0;
       this.renderer.setGarageDragging(on);
       canvas.classList.toggle("is-orbiting", on);
+      if (this.renderer.isMeshInspect()) return;
       let inspect = false;
       for (const p of pointers.values()) {
         const count =
@@ -301,7 +302,6 @@ export class GameApp {
           if (dx !== 0 || dy !== 0) {
             this.renderer.addGarageOrbitFromDrag(dx, dy, { yaw: true, pitch: true });
           }
-          return;
         }
         this.dev.setMeshInspectHits(this.renderer.pickMeshInspect(e.clientX, e.clientY, canvas));
         return;

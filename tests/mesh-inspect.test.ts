@@ -66,4 +66,14 @@ describe("F5 mesh inspect panel", () => {
     expect(css).toContain(".dev-mesh-inspect");
     expect(css).toContain("html.dev-mesh-inspect-mode .dev-badge");
   });
+
+  it("does not snap garage pitch when releasing the mouse in F5 studio", () => {
+    const presenter = readFileSync(
+      resolve(dirname(fileURLToPath(import.meta.url)), "../src/render/garagePresenter.ts"),
+      "utf8",
+    );
+    const app = readFileSync(resolve(dirname(fileURLToPath(import.meta.url)), "../src/app/GameApp.ts"), "utf8");
+    expect(presenter).toMatch(/setPitchInspect\([\s\S]*?if \(this\.meshInspect\) return;/);
+    expect(app).toContain("if (this.renderer.isMeshInspect()) return;");
+  });
 });

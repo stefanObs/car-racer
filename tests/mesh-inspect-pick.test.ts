@@ -1,6 +1,16 @@
 import { BoxGeometry, Group, Mesh, MeshBasicMaterial, PerspectiveCamera } from "three";
 import { describe, expect, it } from "vitest";
-import { carMeshSpaceRoot, meshInspectPartName, pickMeshInspectHits } from "../src/render/meshInspectPick";
+import {
+  carMeshSpaceRoot,
+  isInkRgb,
+  isReddishRgb,
+  meshInspectMarkerHex,
+  meshInspectPartName,
+  pickFillRgbFromPatch,
+  MESH_INSPECT_MARKER_BLUE,
+  MESH_INSPECT_MARKER_RED,
+  pickMeshInspectHits,
+} from "../src/render/meshInspectPick";
 
 function fakeCanvas(w = 200, h = 200) {
   return {
@@ -53,10 +63,50 @@ describe("mesh inspect picking", () => {
 
   it("returns every named part along the ray, nearest first", () => {
     const { root, camera } = carWithParts();
-    const hits = pickMeshInspectHits(root, camera, 100, 100, fakeCanvas());
+    const hits = pickMeshInspectHits(root, camera, 100, 100, fakeCanvas()).hits;
     expect(hits.length).toBeGreaterThanOrEqual(1);
     expect(hits.some((h) => h.name === "BodyPaint")).toBe(true);
     const names = hits.map((h) => h.name);
     expect(new Set(names).size).toBe(names.length);
+  });
+
+  it("places a marker at the nearest hit and turns it blue on red paint", () => {
+    const { root, camera } = carWithParts();
+    const body = root.getObjectByName("BodyPaint") as Mesh;
+    (body.material as MeshBasicMaterial).color.setHex(0xe03131);
+    const picked = pickMeshInspectHits(root, camera, 100, 100, fakeCanvas());
+    expect(picked.marker).toBeTruthy();
+    expect(picked.marker!.onRed).toBe(true);
+    expect(meshInspectMarkerHex(224, 49, 49)).toBe(MESH_INSPECT_MARKER_BLUE);
+    expect(meshInspectMarkerHex(30, 30, 30)).toBe(MESH_INSPECT_MARKER_RED);
+    expect(isReddishRgb(224, 49, 49)).toBe(true);
+    expect(isReddishRgb(40, 40, 40)).toBe(false);
+  });
+
+  it("skips comic ink and unused atlas texels when classifying the pick color", () => {
+    const w = 32;
+    const h = 32;
+    const data = new Uint8Array(w * h * 4);
+    for (let i = 0; i < data.length; i += 4) {
+      data[i] = 12;
+      data[i + 1] = 12;
+      data[i + 2] = 12;
+      data[i + 3] = 255;
+    }
+    const paintAt = (x: number, y: number): void => {
+      const i = (y * w + x) * 4;
+      data[i] = 224;
+      data[i + 1] = 49;
+      data[i + 2] = 49;
+    };
+    for (let y = 10; y <= 14; y++) {
+      for (let x = 10; x <= 14; x++) paintAt(x, y);
+    }
+    expect(isInkRgb(12, 12, 12)).toBe(true);
+    const fromInk = pickFillRgbFromPatch(data, w, h, 8, 8);
+    expect(isReddishRgb(fromInk.r, fromInk.g, fromInk.b)).toBe(true);
+    const allInk = pickFillRgbFromPatch(new Uint8Array(8 * 8 * 4), 8, 8, 4, 4);
+    expect(isReddishRgb(allInk.r, allInk.g, allInk.b)).toBe(false);
+    expect(meshInspectMarkerHex(fromInk.r, fromInk.g, fromInk.b)).toBe(MESH_INSPECT_MARKER_BLUE);
   });
 });
