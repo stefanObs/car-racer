@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-16 — Blitz wheels-only segment (revert spoiler punch)
+
+- Trigger: user — revert Blitz wing segmentation; segment wheels only. Punching the GT wing deleted the trunk lid / made the rear vanish when `StockSpoiler` was hidden.
+- Decision: new Tripo mesh segment v2 simple + connectivity on `blitz-pre-wheel-split.glb` (`segment-wheels-only-v1`). Bake remounts `StockWheel_*` only. Welded GT wing stays in BodyPaint. Heckspoiler is the extracted overlay `blitz-rear_spoiler.glb` again (not `StockSpoiler` on the car).
+- CONCEPT §6.3 Sichtbarkeit; `npm run cars:bake-blitz-segmented-parts`
+
 ### 2026-08-15 — Blitz segmented wheels + Heckspoiler
 
 - Trigger: user — Blitz wheels should spin/steer like Bison/Käferkraft; segment the GT wing away from the body

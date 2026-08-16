@@ -321,19 +321,20 @@ describe("stock wheels + Große Räder", () => {
     }
   });
 
-  it("ships Blitz with Tripo-segmented StockWheel_* and StockSpoiler", async () => {
+  it("ships Blitz with Tripo-segmented StockWheel_* only (welded GT wing stays on body)", async () => {
     expect(existsSync("scripts/bake-blitz-segmented-parts.mjs")).toBe(true);
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
       resolve("public/models/cars/blitz.glb"),
     );
-    const names = doc
-      .getRoot()
-      .listNodes()
-      .map((n) => n.getName())
-      .filter((n) => n?.startsWith("StockWheel_"))
-      .sort();
-    expect(names).toEqual(["StockWheel_FL", "StockWheel_FR", "StockWheel_RL", "StockWheel_RR"]);
-    expect(doc.getRoot().listNodes().some((n) => n.getName() === "StockSpoiler")).toBe(true);
+    const names = doc.getRoot().listNodes().map((n) => n.getName());
+    expect(names.filter((n) => n?.startsWith("StockWheel_")).sort()).toEqual([
+      "StockWheel_FL",
+      "StockWheel_FR",
+      "StockWheel_RL",
+      "StockWheel_RR",
+    ]);
+    expect(names.some((n) => n === "StockSpoiler")).toBe(false);
+    expect(names.some((n) => n?.startsWith("StockStrut_"))).toBe(false);
     for (const mesh of doc.getRoot().listMeshes()) {
       const name = mesh.getName() ?? "";
       if (!name.startsWith("StockWheel_")) continue;
@@ -359,7 +360,7 @@ describe("stock wheels + Große Räder", () => {
     ];
     const leftover: Record<string, number> = { FL: 0, FR: 0, RL: 0, RR: 0 };
     for (const mesh of doc.getRoot().listMeshes()) {
-      if (mesh.getName()?.startsWith("StockWheel_") || mesh.getName() === "StockSpoiler" || mesh.getName()?.startsWith("StockStrut_")) continue;
+      if (mesh.getName()?.startsWith("StockWheel_")) continue;
       for (const prim of mesh.listPrimitives()) {
         const pos = prim.getAttribute("POSITION");
         if (!pos) continue;

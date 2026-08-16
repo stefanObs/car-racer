@@ -26,7 +26,6 @@ import {
   registerCarPartTemplate,
   STOCK_ENGINE_MESH,
   STOCK_CAGE_MESH,
-  STOCK_SPOILER_MESH,
 } from "../src/render/carParts";
 
 function fakePartTemplate(): Group {
@@ -753,18 +752,11 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(stock.visible).toBe(true);
   });
 
-  it("shows Blitz StockSpoiler only when Heckspoiler is equipped", () => {
+  it("mounts Blitz Heckspoiler overlay (stock coupe keeps the welded wing)", () => {
     const root = new Group();
-    const stock = new Group();
-    stock.name = STOCK_SPOILER_MESH;
-    root.add(stock);
-    applyStockPartVisibility(root, "blitz", []);
-    expect(stock.visible).toBe(false);
-    applyStockPartVisibility(root, "blitz", ["rear_spoiler"]);
-    expect(stock.visible).toBe(true);
+    registerBlitzPartTemplate("rear_spoiler", fakePartTemplate(), "blitz");
     applyEquippedPartVisuals(root, "blitz", ["rear_spoiler"]);
-    expect(root.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeUndefined();
-    expect(stock.visible).toBe(true);
+    expect(root.getObjectByName(blitzPartObjectName("rear_spoiler"))).toBeTruthy();
   });
 
   it("ships Donner hot rod without a detached StockEngine node", () => {

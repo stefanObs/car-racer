@@ -59,7 +59,7 @@ Pipeline steps per job:
 7. meshopt `simplify` + weld/dedup/prune
 8. Write `public/models/parts/blitz-{id}.glb`
 
-**Not in JOBS:** `rear_spoiler` — remounted from Tripo mesh segment (`npm run cars:bake-blitz-segmented-parts`) as `StockSpoiler` + `public/models/parts/blitz-rear_spoiler.glb`.
+**Not in JOBS:** `rear_spoiler` — extracted GT wing overlay (`public/models/parts/blitz-rear_spoiler.glb`). Stock coupe keeps the welded wing; do not punch it off the car.
 
 ## Extending to another car’s Teile
 
@@ -143,9 +143,9 @@ Exact CLI flags evolve — use `tripo mesh segment --help` / Tripo docs; park ou
 | Detach looks wrong | BodyPaint UV carve / extract | Use segment + remount (this section) |
 | `smartsegment` unusable | Too many body pieces | Prefer segment v2 `simple` |
 
-### Mesh segment detach/remount (Blitz wheels + spoiler)
+### Mesh segment detach/remount (Blitz wheels only)
 
-Same punch/remount contract as Bison. Body: `blitz-pre-wheel-split.glb`. Segment: `assets/tripo-out/blitz/segment-wheels-spoiler-v1/`. Bake: `npm run cars:bake-blitz-segmented-parts`. Punch the GT wing with the vertex rule (blade / endplates only) — **not** a spoiler AABB, which deletes the trunk lid. Runtime: `StockWheel_*` roll/steer; `StockSpoiler` visible only with Heckspoiler; stock coupe keeps a closed rear deck.
+Same punch/remount contract as Bison/Käferkraft. Body: `blitz-pre-wheel-split.glb`. Segment: `assets/tripo-out/blitz/segment-wheels-only-v1/`. Bake: `npm run cars:bake-blitz-segmented-parts`. Punch **tire volumes only** — never the GT wing (AABB / lip rules deleted the trunk lid). Runtime: `StockWheel_*` roll/steer; welded wing stays on BodyPaint; Heckspoiler is `blitz-rear_spoiler.glb` overlay.
 
 ## Failure modes
 
@@ -154,7 +154,7 @@ Same punch/remount contract as Bison. Body: `blitz-pre-wheel-split.glb`. Segment
 | Bake exits missing GLB | Tripo not finished / wrong `-o` | Re-run make; check `findSourceGlb` paths |
 | Part faces sideways | Forgot face+Z or wrong `toward` | Adjust bake job; remount yaw |
 | Scoop on roof | Snap max-Y near windshield | Set `preferY` / smaller `snapRadius` |
-| Blitz trunk hole / invisible rear | Spoiler punch AABB or y≥0.84 “lip” rule deletes the wing underside; remaining lid faces point −Y (backface culled) | Punch blade y≥0.88 + outer endplates only; flip rear-lid winding to +Y |
+| Blitz trunk hole / invisible rear | Spoiler punch AABB or lip rule deletes the trunk lid / wing underside | Do not segment or punch the GT wing; wheels-only remount |
 | Wrong car silhouette | Reused Blitz kit | Per-car GLB or procedural; `preferGlb: false` |
 | 0 credits | Empty Tripo balance | Ask user to `tripo topup` |
 

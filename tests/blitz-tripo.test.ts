@@ -40,7 +40,7 @@ describe("Blitz Tripo arcade bake", () => {
         }
       }
     }
-    // Cabin sits on −Z; nose is the lower +Z half (stock body has no tall wing).
+    // Cabin and welded GT wing sit on −Z; nose is the lower +Z half.
     expect(maxYNeg).toBeGreaterThan(maxYPos - 0.02);
   });
 
@@ -67,55 +67,34 @@ describe("Blitz Tripo arcade bake", () => {
     expect(src).not.toContain("Opaque dark cabin glass");
   });
 
-  it("keeps the full Blitz coupe deck (wing lives on StockSpoiler)", async () => {
+  it("keeps the welded GT wing on BodyPaint and remounts StockWheel_* only", async () => {
     expect(existsSync("scripts/bake-blitz-segmented-parts.mjs")).toBe(true);
 
     const path = resolve("public/models/cars/blitz.glb");
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
+    const names = doc.getRoot().listNodes().map((n) => n.getName());
+    expect(names.some((n) => n === "StockSpoiler")).toBe(false);
+    expect(names.some((n) => n?.startsWith("StockStrut_"))).toBe(false);
+    expect(names.filter((n) => n?.startsWith("StockWheel_")).sort()).toEqual([
+      "StockWheel_FL",
+      "StockWheel_FR",
+      "StockWheel_RL",
+      "StockWheel_RR",
+    ]);
+
     const body = doc.getRoot().listMeshes().find((m) => m.getName() === "BodyPaint");
     expect(body).toBeTruthy();
     let highRearBody = 0;
     let deck = 0;
-    let trunkSheet = 0;
-    let capFaces = 0;
     for (const prim of body!.listPrimitives()) {
       const pos = prim.getAttribute("POSITION")!;
-      const idx = prim.getIndices()!;
       for (let i = 0; i < pos.getCount(); i++) {
         const v = pos.getElement(i, []);
         if (v[2]! < -1.22 && v[1]! >= 0.88) highRearBody++;
         if (v[2]! < -1.2 && v[1]! >= 0.65 && v[1]! < 0.85) deck++;
-        if (v[2]! < -1.45 && v[1]! >= 0.72 && v[1]! < 0.86 && Math.abs(v[0]!) < 0.55) trunkSheet++;
-      }
-      for (let t = 0; t < idx.getCount() / 3; t++) {
-        const a = pos.getElement(idx.getScalar(t * 3), []);
-        const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
-        const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
-        const cx = (a[0]! + b[0]! + c[0]!) / 3;
-        const cy = (a[1]! + b[1]! + c[1]!) / 3;
-        const cz = (a[2]! + b[2]! + c[2]!) / 3;
-        const ny = (b[2]! - a[2]!) * (c[0]! - a[0]!) - (b[0]! - a[0]!) * (c[2]! - a[2]!);
-        if (cz < -1.42 && cz > -1.82 && cy >= 0.68 && cy <= 0.82 && Math.abs(cx) < 0.5 && ny > 0) {
-          capFaces++;
-        }
       }
     }
-    expect(highRearBody).toBeLessThan(20);
+    expect(highRearBody).toBeGreaterThan(80);
     expect(deck).toBeGreaterThan(40);
-    expect(trunkSheet).toBeGreaterThan(40);
-    expect(capFaces).toBeGreaterThan(1);
-
-    const spoiler = doc.getRoot().listNodes().find((n) => n.getName() === "StockSpoiler");
-    expect(spoiler).toBeTruthy();
-    const t = spoiler!.getTranslation();
-    expect(t[2]).toBeLessThan(-1.4);
-    expect(t[1]).toBeGreaterThan(0.7);
-    const strutNames = doc
-      .getRoot()
-      .listNodes()
-      .map((n) => n.getName())
-      .filter((n) => n?.startsWith("StockStrut_"))
-      .sort();
-    expect(strutNames).toEqual(["StockStrut_L", "StockStrut_R"]);
   });
 });

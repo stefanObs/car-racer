@@ -4,7 +4,7 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 
 | Car | File | Source | License |
 |-----|------|--------|---------|
-| **Blitz** (sport) | `blitz.glb` | Tripo3D GT coupe from Asphalt-Comic concept (`npm run cars:bake-blitz-tripo`), then Tripo mesh segment v2 for tires + GT wing (`npm run cars:bake-blitz-segmented-parts`). Wheels remount as `StockWheel_*` (roll/steer). Heckspoiler is `StockSpoiler` (shown when equipped); `blitz-rear_spoiler.glb` is the same segmented wing. Große Räder hides stock and mounts procedural wider tires. | Generated mesh (shipped bake) |
+| **Blitz** (sport) | `blitz.glb` | Tripo3D GT coupe from Asphalt-Comic concept (`npm run cars:bake-blitz-tripo`), then Tripo mesh segment v2 **wheels only** (`npm run cars:bake-blitz-segmented-parts`). Wheels remount as `StockWheel_*` (roll/steer). Welded GT wing stays on BodyPaint; Heckspoiler is overlay `blitz-rear_spoiler.glb`. Große Räder hides stock and mounts procedural wider tires. | Generated mesh (shipped bake) |
 | **Blitz Teile** | `../parts/blitz-*.glb` | Tripo3D add-on props for equipped Teile (`npm run cars:bake-blitz-parts-tripo`). Visuals only — no extra stats. | Generated mesh (shipped bake) |
 | **Bison** (pickup) | `bison.glb` | Tripo3D image-to-mesh (`npm run cars:bake-bison-tripo`), then Tripo mesh segment v2 for tires + remount (`npm run cars:bake-bison-segmented-wheels`). Große Räder scales `StockWheel_*`. | Generated mesh (shipped bake) |
 | **Käferkraft** (buggy) | `kaeferkraft.glb` | Tripo3D image-to-mesh (`npm run cars:bake-kaeferkraft-tripo`), then Tripo mesh segment v2 **wheels only** (`npm run cars:bake-kaeferkraft-segmented-parts` from `kaeferkraft-pre-cage-split.glb` + `segment-wheels-only-v4`). Roll cage stays welded in BodyPaint; Große Räder scales `StockWheel_*` (no procedural overlays). | Generated mesh (shipped bake) |
@@ -28,6 +28,6 @@ All shipped GLBs are free for commercial use. Prefer low-poly comic-friendly mes
 - Rebuild Bison from Tripo sources: `npm run cars:bake-bison-tripo` (needs `assets/tripo-out/bison/`, gitignored)
 - Rebuild Donnerbüchse from Tripo sources: `npm run cars:bake-donnerbuechse-tripo` (needs `assets/tripo-out/donnerbuechse/`, gitignored)
 - Rebuild Käferkraft from Tripo sources: `npm run cars:bake-kaeferkraft-tripo` then `npm run cars:bake-kaeferkraft-segmented-parts` (needs `assets/tripo-out/kaeferkraft/`, gitignored)
-- Rebuild Blitz from Tripo sources: `npm run cars:bake-blitz-tripo` then `npm run cars:bake-blitz-segmented-parts` (needs `assets/tripo-out/blitz/`, gitignored). Stock body has no tall wing; `StockSpoiler` / `rear_spoiler` is the upgrade.
+- Rebuild Blitz from Tripo sources: `npm run cars:bake-blitz-tripo` then `npm run cars:bake-blitz-segmented-parts` (needs `assets/tripo-out/blitz/`, gitignored). Stock body keeps the welded GT wing; `rear_spoiler` is the overlay upgrade.
 - Authored tires stay painted into each car GLB (no shared spinning comic-wheel overlays).
 
