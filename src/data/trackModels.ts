@@ -40,10 +40,14 @@ export const OBSTACLE_TRACK_PROP_IDS = [
   "barrier",
 ] as const;
 
+/** Elevated layout structures (overpass — CONCEPT §4.4.1). */
+export const STRUCTURE_TRACK_PROP_IDS = ["bridge"] as const;
+
 export const OPTIONAL_ALL_TRACK_PROP_IDS = [
   ...OPTIONAL_TRACK_PROP_IDS,
   ...THEME_TRACK_PROP_IDS,
   ...OBSTACLE_TRACK_PROP_IDS,
+  ...STRUCTURE_TRACK_PROP_IDS,
 ] as const;
 
 export const TRACK_PROP_IDS = [...REQUIRED_TRACK_PROP_IDS, ...OPTIONAL_ALL_TRACK_PROP_IDS] as const;
@@ -211,6 +215,13 @@ export const TRACK_PROPS: Record<TrackPropId, TrackPropSpec> = {
     yaw: 0,
     scale: 1,
     tileAlong: 2.4,
+  },
+  bridge: {
+    id: "bridge",
+    url: "/models/track/bridge.glb",
+    yaw: 0,
+    scale: 1,
+    tileAlong: 23,
   },
 };
 

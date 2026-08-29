@@ -148,7 +148,7 @@ Script: `scripts/bake-blitz-parts-tripo.mjs` — flatten, face +Z, optional 180�
 | Donnerbüchse segmented engine | remount existing hood-bay BodyPaint prim (no punch) | (same car GLB) | `cars:bake-donnerbuechse-segmented-engine` |
 | Blitz parts | `blitz-part-*.png` | `tripo-out/parts/blitz/{id}/` | `cars:bake-blitz-parts-tripo` |
 | FX | `fx-*.png` | `tripo-out/fx/` | `fx:bake-tripo` |
-| Track kit | `track-*.png` (walls, scenery, **obstacles**: ramp/rumble/oil/tire-stack/barrier) | `tripo-out/track/` | `track:bake-tripo` |
+| Track kit | `track-*.png` (walls, scenery, **obstacles**: ramp/rumble/oil/tire-stack/barrier, **structures**: bridge) | `tripo-out/track/` | `track:bake-tripo` |
 | Garage props | `garage-*.png` | `tripo-out/garage/` | `garage:bake-tripo` |
 | Stickers / Flammen | `sticker-flames-*.png` | `tripo-out/stickers/flames/` | `stickers:bake-flames-tripo` |
 

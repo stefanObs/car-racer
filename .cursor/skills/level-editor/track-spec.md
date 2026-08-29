@@ -28,7 +28,9 @@ Always keep asphalt / grass / wall materials readable (Asphalt-Comic palette).
 
 Generator stitches segments into a closed loop; samples grass width from level params.
 
-**No self-cross:** centerline must not intersect itself. Ad-hoc uses consistent `curve_r` corners. A future bridge segment may allow over/under only with walls that block the wrong deck.
+**No self-cross (flat):** centerline must not intersect itself in plan view. Ad-hoc uses consistent `curve_r` corners.
+
+**Bridge / 3D (CONCEPT §4.4.1):** plan-view crossing is allowed only with an authored **bridge** (elevated driveable deck + underpass clearance ~2.5–3.5 m) plus **section walls** that block the wrong deck. Centerline samples may carry **elevation Y**; grounded cars follow `surfaceY`. Kit prop: `bridge` (`public/models/track/bridge.glb`). Ad-hoc generator does **not** emit crossings until it has a bridge segment.
 
 ## Obstacle clarity
 

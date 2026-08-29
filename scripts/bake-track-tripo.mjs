@@ -53,6 +53,8 @@ const PROPS = [
   { id: "tire-stack", along: "x", primary: "y", meters: 1.35, maxX: 1.6, maxZ: 1.6, simplify: 0.5 },
   { id: "barrier", along: "x", primary: "y", meters: 1.15, maxX: 2.6, maxZ: 1.1, simplify: 0.48 },
   { id: "ramp", along: "z", primary: "z", meters: 5.2, maxY: 1.05, maxX: 4.5, maxZ: 5.2, simplify: 0.45 },
+  // Elevated overpass (CONCEPT §4.4.1) — driveable deck + underpass clearance
+  { id: "bridge", along: "z", primary: "x", meters: 12, maxY: 5.8, maxZ: 26, simplify: 0.32 },
 ];
 
 function bakeNodeTree(node) {

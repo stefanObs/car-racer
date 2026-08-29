@@ -139,9 +139,23 @@ So belohnt saubere Linienführung; Abkürzen über Gras ist möglich, aber teuer
 **Layout-Regeln (lesbar für ~10+):**
 
 1. **Klarer Fahrkorridor** — Mitte der Bahn ist der Weg; Hindernisse stehen am Rand oder sind eindeutig als Blocker markiert.
-2. **Keine Streckenkreuzung ohne Brücke** — Die Mittellinie darf sich nicht selbst kreuzen. Braucht ein Layout eine Überquerung, dann **Brücke** (oben befahrbar) plus **Mauer**, die den unteren Streckenteil absperrt. MVP-Cups/Ad-hoc: einfache Ovale ohne Kreuzung.
+2. **Keine Streckenkreuzung ohne Brücke** — Die Mittellinie darf sich in der **Draufsicht** nicht selbst kreuzen, außer über/unter einer **Brücke** (siehe §4.4.1). Ad-hoc bleibt ohne Kreuzung, bis der Generator Brücken-Segmente kann.
 3. **Passierbare Props** nur wenn klar erkennbar **und** flach genug zum Darüberfahren (z. B. gelbe Rüttelstreifen, Öl-Pfütze). Hohe Props (Betonsperre, Reifenstapel) sind **nicht** passierbar und kollidieren.
 4. **Bahn nicht verlassen** — Außenmauer hält Autos in Asphalt+Gras; Abprall verhindert Durchqueren der Mauer.
+
+### 4.4.1 Höhe & Brücken (3D-Racing)
+
+Strecken sind **nicht** immer flach. Arcade-3D heißt: die Fahrbahn hat eine **Oberflächenhöhe Y**, Autos sitzen darauf, und Schanzen-Luftzeit ist **relativ zur lokalen Oberfläche** (nicht immer relativ zu Y=0).
+
+| Element | Regel (testbar) |
+|---------|-----------------|
+| **Höhe (Y)** | Centerline darf authored Elevation haben (Rampen, Kuppen, Brückendeck). Geerdete Autos folgen `surfaceY`; Luftzeit = über der lokalen Oberfläche. |
+| **Brücke** | Erhöhtes **befahrbares Asphalt-Deck** mit Auffahrten, seitlichen Geländern und **Durchfahrt darunter**. Unter dem Deck muss klar Platz für ein Auto sein (arcade: ca. **2,5–3,5 m** lichte Höhe). |
+| **Über/Unter** | Draufsicht-Kreuzung nur wenn die Decks **verschiedene Höhenbänder** haben (oben fahren / unten durchfahren). Falsche Ebene: **Sektionsmauer** / Pfeiler blocken. |
+| **Querschnitt** | Auch auf dem Deck: Asphalt → Gras (falls Rand) → Geländer/Mauer. Unten: normaler Asphalt→Gras→Mauer-Korridor unter der Brücke. |
+| **Lesbarkeit** | Gelbe Hazard-Markierungen an Auffahrten/Pfeilern; Deck und Unterführung auf einen Blick unterscheidbar (Asphalt-Comic, Tripo-Kit `bridge`). |
+| **Scope** | Flache Cups bleiben gültig. Erste Brücken-Layouts sind **handautoriert** (Cup/Free). Ad-hoc: **kein** Self-Cross / keine Brücke bis Generator-Support. |
+| **Fantasie** | Brücken dienen **schnellem Überholen / Layout-Tricks**, nicht Demolition — Kontakt bleibt Würze. |
 
 ### 4.5 Rammen & Schaden (Nebeneffekt)
 
@@ -595,7 +609,7 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 | Schaden | Regeneriert über Zeit mit sichtbarem Heil-Effekt; K.O. in ~3 s Comeback auf der Streckenmitte |
 | Unebene Piste | Hüpf-/Wackleffekt; Federung dämpft |
 | Gras | Langsamer; Federung mildert, entfernt nicht |
-| Rand | Gras → Mauer (Reifen in Kurven, Beton sonst); **kein Self-Cross** ohne Brücke; klare Passierbarkeit |
+| Rand | Gras → Mauer (Reifen in Kurven, Beton sonst); Self-Cross nur mit **Brücke** + Sektionsmauer; Höhe/Deck (§4.4.1); klare Passierbarkeit |
 | Catch-up | Hinten: bessere Beschleunigung + minimal mehr Speed; fehlerfreier Spieler fährt davon |
 | Währung | **CHF** |
 | Sitzungs-Pacing | **7–15 min** → Freischalten oder sinnvolles Garage-Upgrade |
@@ -609,4 +623,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.99 — XL cup layouts from proposal sheet; 3-lap races.*
+*Dokumentstand: Konzept v4.0 — Höhe & Brücken (3D-Racing) §4.4.1; Tripo-Kit `bridge`.*

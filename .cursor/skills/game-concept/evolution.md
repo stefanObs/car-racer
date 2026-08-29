@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-29 — Höhe & Brücken (3D-Racing)
+
+- Trigger: user — design a bridge and 3D racing; Tripo for the bridge
+- Decision: CONCEPT §4.4.1 — authored surface height Y; bridge = elevated driveable deck + underpass clearance (~2.5–3.5 m) + section walls; plan-view cross only with distinct height bands. Ship Tripo track kit `bridge`. Flat cups stay valid; ad-hoc still no crossings. Schanze airtime relative to local surface when elevation lands.
+- CONCEPT → v4.0
+
 ### 2026-08-29 — Rebuild all cups from XL proposal sheet
 
 - Trigger: user — check the real cups from the XL plan and redo all layouts

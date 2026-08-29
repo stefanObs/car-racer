@@ -60,7 +60,7 @@ describe("on-track obstacle Tripo kit", () => {
   });
 
   it("includes obstacle kit in the full track preload list", () => {
-    expect(TRACK_PROP_IDS.length).toBe(21);
+    expect(TRACK_PROP_IDS.length).toBe(22);
     for (const id of OBSTACLE_TRACK_PROP_IDS) {
       expect(TRACK_PROP_IDS).toContain(id);
     }

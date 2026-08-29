@@ -7,6 +7,30 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-29 — Bridge / surface height (CONCEPT §4.4.1)
+
+- Trigger: user — bridge + 3D racing; Tripo kit `bridge`
+- Decision: When elevated decks land, grounded `car.y` follows authored `surfaceY`; Schanze airtime stays relative to local surface (not always Y=0). Flat tracks unchanged until a bridge cup ships elevation samples.
+- Follow-up: sample `surfaceY` from centerline; underpass collision vs deck
+
+### 2026-08-29 — Distinct class base stats (CONCEPT §5 v3.98)
+
+- Trigger: user — sharper car identities (confirmed offroad/contact niches)
+- Decision: Retune `cars.ts` stock multipliers + class `grassMitigation` / `nitroBonus` to S–D matrix. Käferkraft owns Federung+Gras; Bunker Gras-strong but suspension C; Bison mild Gras + Masse A; Blitz Tempo/Handling S fragile; Donnerbüchse Accel+Nitro S. Gras still capped (never removed).
+- Tests: `tests/car-class-identities.test.ts`
+
+### 2026-08-16 — Schanze hops half as high and far
+
+- Trigger: user — jumps are now too high; cut max distance and height 50%
+- Decision: `GRAVITY` 30→60 keeps launch `vy` (still clears `RAMP_COMIC_HEIGHT` 0.58 m). Ballistic peak Y and hang time (range at same speed) both drop by half.
+- Tests: arcade-physics peakY 1.8–3.5 and airtime < 0.85 s (old comic hop ~5.3 m / ~1.2 s would fail the caps)
+
+### 2026-08-16 — Low Damage setting restores pre–Fast-KO hits
+
+- Trigger: user — optional settings mode with the older, weaker damage
+- Decision: `lowDamage` on `stepCar` / wall / obstacle uses the pre-v3.92 hit table. Default remains Fast KO (`WALL_HIT_*` 1.15/0.95).
+- Tests: `tests/low-damage.test.ts`, settings persist + panel toggle
+
 ### 2026-08-15 — Do not split vehicle.ts for architecture
 
 - Trigger: architecture cleanup — `vehicle.ts` size is not a modularization failure

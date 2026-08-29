@@ -73,7 +73,8 @@ Obstacles support racing — they are not a demolition derby. Prefer 1–2 signa
 - Expose seed string (e.g. `A7F2`) for share/replay  
 - Parameters: length, curviness, uneven_ratio, grass_width, theme  
 - Validate with `trackSelfIntersects`; if true, regenerate or fall back to a plain oval  
-- Crossings require an authored **bridge** + section **wall** (not in ad-hoc MVP)
+- Crossings require an authored **bridge** + section **wall** (CONCEPT §4.4.1; Tripo kit `bridge`; not in ad-hoc until generator supports it)
+- Elevated decks: authored centerline **Y**; underpass clearance ~2.5–3.5 m; Schanze airtime relative to local surface
 
 ## Authoring workflow
 
