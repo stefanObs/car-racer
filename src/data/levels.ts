@@ -8,14 +8,11 @@ export function yawFromTangent(tx: number, tz: number): number {
   return Math.atan2(tx, tz);
 }
 /**
- * Cup layouts — unique silhouettes per race (one primary turn direction so
- * the loop cannot self-intersect; no figure-8 without a bridge — CONCEPT §4.4).
- * XL scale (~2.5× lap length): wider radii + median barriers block ribbon hops.
- * Long tempo legs use gentle curve_r “bananas” or extra s_curves so they stay
- * interesting without creating hop corridors.
+ * Cup layouts from `assets/tripo-concepts/track-proposals/xl-cup-tracks-plan.png`
+ * (XL silhouettes, closed loops with continuous start/finish heading).
  */
 
-/** Hafenstart — stadium oval with gentle bananas on the long sides. ~840 m. */
+/** 1 Hafenstart (easy) — stadium oval with gentle bananas. ~840 m. */
 function harborSegments(): TrackSegment[] {
   return [
     { type: "straight", length: 90, width: 13 },
@@ -38,48 +35,43 @@ function harborSegments(): TrackSegment[] {
 }
 
 /**
- * Parabolbogen — technical paperclip: double s_curves + choke per long,
- * compound multi-apex hairpins (55/50/65). Mirrored close. ~1000 m.
+ * 2 Parabolbogen (medium) — elongated paperclip: long tempo legs + wide arcs
+ * (proposal: huge Parabolbogen / tight return). Mirrored for seam close. ~1160 m.
  */
 function parabolbogenSegments(): TrackSegment[] {
   const longLeg: TrackSegment[] = [
-    { type: "straight", length: 70, width: 12 },
-    { type: "s_curve", width: 11 },
-    { type: "straight", length: 55, width: 12 },
-    { type: "curve_r", radius: 180, angleDeg: 10, width: 12 },
-    { type: "straight", length: 45, width: 12 },
-    { type: "choke", length: 28, width: 8 },
-    { type: "uneven_field", length: 36, width: 11, intensity: 0.5 },
-    { type: "straight", length: 40, width: 12 },
-    { type: "s_curve", width: 10 },
-    { type: "straight", length: 35, width: 12 },
+    { type: "straight", length: 120, width: 12 },
+    { type: "curve_r", radius: 220, angleDeg: 8, width: 12 },
+    { type: "straight", length: 100, width: 12 },
+    { type: "uneven_field", length: 40, width: 12, intensity: 0.35 },
+    { type: "straight", length: 80, width: 12 },
   ];
-  const hairpin: TrackSegment[] = [
-    { type: "curve_r", radius: 42, angleDeg: 55, width: 10 },
-    { type: "curve_r", radius: 24, angleDeg: 50, width: 9 },
-    { type: "curve_r", radius: 50, angleDeg: 65, width: 10 },
+  return [
+    ...longLeg,
+    { type: "curve_r", radius: 78, angleDeg: 172, width: 11 },
+    ...longLeg,
+    { type: "curve_r", radius: 78, angleDeg: 172, width: 10 },
   ];
-  return [...longLeg, ...hairpin, ...longLeg, ...hairpin];
 }
 
 /**
- * Schikanenring — closed rectangle (equal opposite sides) with s_curves on
- * every leg so the ZIEL seam has no heading kink. ~1360 m.
+ * 3 Schikanenring (harder) — rectangular ring with double s_curves per leg
+ * (proposal: winding city + inner oil risk line). ~1140 m.
  */
 function schikanenringSegments(): TrackSegment[] {
-  const L = 340;
-  const S = 260;
-  const r = 42;
   const long = (width: number): TrackSegment[] => [
-    { type: "straight", length: L * 0.42, width },
+    { type: "straight", length: 90, width },
     { type: "s_curve", width: width - 1 },
-    { type: "straight", length: L * 0.42, width },
+    { type: "straight", length: 70, width },
+    { type: "s_curve", width: width - 2 },
+    { type: "straight", length: 70, width: width - 1 },
   ];
   const short = (width: number): TrackSegment[] => [
-    { type: "straight", length: S * 0.42, width },
+    { type: "straight", length: 75, width },
     { type: "s_curve", width: width - 1 },
-    { type: "straight", length: S * 0.42, width },
+    { type: "straight", length: 75, width },
   ];
+  const r = 40;
   return [
     ...long(13),
     { type: "curve_r", radius: r, angleDeg: 90, width: 11 },
@@ -93,62 +85,54 @@ function schikanenringSegments(): TrackSegment[] {
 }
 
 /**
- * Omegatal — hard omega lobe + technical shorts/return (s_curves, chokes,
- * tight 90s). Tuned L2/S for seam close. ~1400 m.
+ * 4 Omegatal (hard) — Ω lobe (R/L/R) + waterfall uneven + return
+ * (proposal: canyon omega with mid-straight ramp). ~1440 m.
  */
 function omegatalSegments(): TrackSegment[] {
   return [
-    { type: "straight", length: 55, width: 12 },
-    { type: "curve_r", radius: 140, angleDeg: 12, width: 12 },
-    { type: "straight", length: 40, width: 12 },
+    { type: "straight", length: 70, width: 12 },
+    { type: "curve_r", radius: 160, angleDeg: 12, width: 12 },
+    { type: "straight", length: 50, width: 12 },
     { type: "curve_r", radius: 36, angleDeg: 55, width: 9 },
-    { type: "choke", length: 24, width: 8 },
-    { type: "uneven_field", length: 45, width: 11, intensity: 0.6 },
-    { type: "curve_l", radius: 52, angleDeg: 110, width: 11 },
-    { type: "s_curve", width: 10 },
-    { type: "uneven_field", length: 55, width: 11, intensity: 0.8 },
-    { type: "curve_r", radius: 36, angleDeg: 55, width: 10 },
+    { type: "straight", length: 40, width: 11 },
+    { type: "uneven_field", length: 50, width: 11, intensity: 0.55 },
+    { type: "curve_l", radius: 54, angleDeg: 110, width: 11 },
     { type: "straight", length: 45, width: 11 },
+    { type: "uneven_field", length: 70, width: 11, intensity: 0.75 },
+    { type: "curve_r", radius: 36, angleDeg: 55, width: 10 },
+    { type: "straight", length: 40, width: 11 },
+    { type: "curve_r", radius: 35, angleDeg: 78, width: 10 },
+    { type: "straight", length: 100, width: 11 },
+    { type: "curve_r", radius: 35, angleDeg: 90, width: 10 },
+    { type: "straight", length: 150, width: 12 },
     { type: "s_curve", width: 11 },
-    { type: "curve_r", radius: 28, angleDeg: 78, width: 10 },
-    { type: "straight", length: 42, width: 11 },
-    { type: "s_curve", width: 10 },
-    { type: "choke", length: 28, width: 8 },
-    { type: "straight", length: 36.75, width: 11 },
-    { type: "curve_r", radius: 24, angleDeg: 90, width: 9 },
-    { type: "straight", length: 176, width: 12 },
-    { type: "s_curve", width: 11 },
-    { type: "straight", length: 154, width: 12 },
-    { type: "curve_r", radius: 120, angleDeg: 12, width: 12 },
     { type: "straight", length: 40, width: 12 },
-    { type: "curve_r", radius: 28, angleDeg: 78, width: 10 },
-    { type: "straight", length: 90, width: 11 },
-    { type: "s_curve", width: 10 },
-    { type: "straight", length: 78.75, width: 11 },
-    { type: "curve_r", radius: 24, angleDeg: 90, width: 9 },
+    { type: "curve_r", radius: 140, angleDeg: 12, width: 12 },
+    { type: "straight", length: 220, width: 12 },
+    { type: "curve_r", radius: 35, angleDeg: 78, width: 10 },
+    { type: "straight", length: 100, width: 11 },
+    { type: "curve_r", radius: 35, angleDeg: 90, width: 10 },
   ];
 }
 
 /**
- * Kuppenfinale — hard mirrored hexagon (6×60° with bananas): double s_curves,
- * chokes, Kuppen, tighter radii. ~1025 m.
+ * 5 Kuppenfinale (boss) — XL stadium packed with Kuppen / Schikanen / Engstellen
+ * (proposal: long complex with bumps + jumps). ~1165 m.
  */
 function kuppenfinaleSegments(): TrackSegment[] {
   const half = (soft: boolean): TrackSegment[] => [
-    { type: "straight", length: 65, width: 12 },
-    { type: "s_curve", width: 11 },
-    { type: "straight", length: 48, width: 12 },
-    { type: "uneven_field", length: 50, width: 12, intensity: soft ? 0.55 : 0.8 },
-    { type: "curve_r", radius: 26, angleDeg: 60, width: 10 },
-    { type: "straight", length: 40, width: 11 },
-    { type: "choke", length: 30, width: 8 },
-    { type: "s_curve", width: 10 },
-    { type: "straight", length: 35, width: 11 },
-    { type: "curve_r", radius: 20, angleDeg: 60, width: 9 },
-    { type: "straight", length: 55, width: 12 },
-    { type: "curve_r", radius: 180, angleDeg: 8, width: 12 },
+    { type: "straight", length: 100, width: 12 },
+    { type: "curve_r", radius: 200, angleDeg: 10, width: 12 },
+    { type: "straight", length: 70, width: 12 },
+    { type: "uneven_field", length: 55, width: 12, intensity: soft ? 0.55 : 0.75 },
+    { type: "straight", length: 40, width: 12 },
+    { type: "curve_r", radius: 36, angleDeg: 80, width: 10 },
     { type: "straight", length: 45, width: 12 },
-    { type: "curve_r", radius: 30, angleDeg: 52, width: 10 },
+    { type: "s_curve", width: 11 },
+    { type: "uneven_field", length: 40, width: 11, intensity: soft ? 0.5 : 0.7 },
+    { type: "choke", length: 32, width: 8 },
+    { type: "straight", length: 40, width: 12 },
+    { type: "curve_r", radius: 34, angleDeg: 90, width: 10 },
   ];
   return [...half(false), ...half(true)];
 }
@@ -296,39 +280,36 @@ export const CUP_LEVELS: LevelDefinition[] = [
     2,
     "blitz_cup_02_kuestenline",
     "Parabolbogen",
-    "Technisches Papierclip (~1,0 km): Doppel-Schikanen, Engstellen, Mehrfach-Apex-Haarnadeln.",
+    "Tempo (~1,2 km): lange Gerade, riesiger Parabolbogen, enge Rückkehr — Strand-XL.",
     "beach",
     {
       grass: 5,
       asphaltWidth: 12,
       laps: 3,
-      ribbonHazards: [
-        { type: "uneven", along: 200, intensity: 0.45, radius: 5 },
-        { type: "oil", along: 520, side: -1, radius: 2.2 },
-      ],
+      ribbonHazards: [{ type: "uneven", along: 280, intensity: 0.4, radius: 5 }],
     },
   ),
   makeCup(
     3,
     "blitz_cup_03_stadtring",
     "Schikanenring",
-    "Technischer Ring (~1,4 km): viele Schikanen — sichere Linie oder Hot Line.",
+    "Technischer Ring (~1,1 km): Doppel-Schikanen — sichere Linie oder Hot Line (Öl).",
     "city",
     {
       grass: 3,
       asphaltWidth: 13,
       laps: 3,
       vergeBlockers: [
-        { type: "tire_stack", along: 120, side: 1 },
-        { type: "tire_stack", along: 140, side: -1 },
-        { type: "concrete_barrier", along: 800, side: 1 },
-        { type: "tire_stack", along: 820, side: -1 },
+        { type: "tire_stack", along: 100, side: 1 },
+        { type: "tire_stack", along: 160, side: -1 },
+        { type: "concrete_barrier", along: 680, side: 1 },
+        { type: "tire_stack", along: 740, side: -1 },
       ],
       ribbonHazards: [
-        { type: "oil", along: 125, side: -1, radius: 2.2 },
-        { type: "uneven", along: 135, side: -1, intensity: 0.55, radius: 4 },
-        { type: "oil", along: 810, side: -1, radius: 2.1 },
-        { type: "uneven", along: 820, side: -1, intensity: 0.5, radius: 4 },
+        { type: "oil", along: 110, side: -1, radius: 2.2 },
+        { type: "uneven", along: 150, side: -1, intensity: 0.55, radius: 4 },
+        { type: "oil", along: 700, side: -1, radius: 2.1 },
+        { type: "uneven", along: 730, side: -1, intensity: 0.5, radius: 4 },
       ],
     },
   ),
@@ -336,7 +317,7 @@ export const CUP_LEVELS: LevelDefinition[] = [
     4,
     "blitz_cup_04_buckelpiste",
     "Omegatal",
-    "Berg-Omega (~1,4 km): enger Omega-Lappen, Schikanen, Wasserfall — Federung zählt.",
+    "Berg-Omega (~1,4 km): Omega-Doppelkurve, Wasserfall, Schanze auf der Mittelgerade.",
     "canyon",
     {
       grass: 3.5,
@@ -344,16 +325,14 @@ export const CUP_LEVELS: LevelDefinition[] = [
       laps: 3,
       purse: [480, 340, 260, 200, 150, 120],
       vergeBlockers: [
-        { type: "tire_stack", along: 80, side: 1 },
-        { type: "tire_stack", along: 350, side: -1 },
-        { type: "concrete_barrier", along: 900, side: 1 },
+        { type: "tire_stack", along: 90, side: 1 },
+        { type: "tire_stack", along: 400, side: -1 },
       ],
       ribbonHazards: [
-        { type: "uneven", along: 180, intensity: 0.6, radius: 5 },
-        { type: "uneven", along: 320, intensity: 0.8, radius: 6 },
-        { type: "ramp", along: 340, intensity: 0.95, radius: 5 },
-        { type: "oil", along: 700, side: -1, radius: 2.2 },
-        { type: "uneven", along: 1100, intensity: 0.65, radius: 5 },
+        { type: "uneven", along: 220, intensity: 0.55, radius: 5 },
+        { type: "uneven", along: 380, intensity: 0.8, radius: 6 },
+        { type: "ramp", along: 420, intensity: 0.95, radius: 5 },
+        { type: "uneven", along: 460, intensity: 0.65, radius: 5 },
       ],
     },
   ),
@@ -361,7 +340,7 @@ export const CUP_LEVELS: LevelDefinition[] = [
     5,
     "blitz_cup_05_cupfinale",
     "Kuppenfinale",
-    "Cup-Boss (~1,0 km): Sechseck mit Doppel-Schikanen, Engstellen und Kuppen.",
+    "Cup-Boss (~1,2 km): viele Kuppen, Schikanen, Engstellen und Schanzen.",
     "factory",
     {
       grass: 3.5,
@@ -369,16 +348,16 @@ export const CUP_LEVELS: LevelDefinition[] = [
       laps: 3,
       purse: [600, 420, 300, 220, 160, 130],
       vergeBlockers: [
-        { type: "tire_stack", along: 100, side: 1 },
-        { type: "concrete_barrier", along: 400, side: -1 },
-        { type: "tire_stack", along: 700, side: 1 },
+        { type: "tire_stack", along: 120, side: 1 },
+        { type: "concrete_barrier", along: 480, side: -1 },
+        { type: "tire_stack", along: 780, side: 1 },
       ],
       ribbonHazards: [
-        { type: "ramp", along: 180, intensity: 1, radius: 5.5 },
-        { type: "uneven", along: 350, intensity: 0.75, radius: 6 },
-        { type: "ramp", along: 550, intensity: 0.9, radius: 5 },
-        { type: "oil", along: 720, radius: 2.3 },
-        { type: "uneven", along: 850, intensity: 0.65, radius: 5 },
+        { type: "ramp", along: 200, intensity: 1, radius: 5.5 },
+        { type: "uneven", along: 280, intensity: 0.75, radius: 6 },
+        { type: "ramp", along: 650, intensity: 0.9, radius: 5 },
+        { type: "oil", along: 820, radius: 2.3 },
+        { type: "uneven", along: 900, intensity: 0.65, radius: 5 },
       ],
     },
   ),

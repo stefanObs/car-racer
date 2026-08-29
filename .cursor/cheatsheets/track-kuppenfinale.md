@@ -12,7 +12,7 @@ Level id: `blitz_cup_05_cupfinale` · theme: `factory` · free/training reuse th
 | Asphalt width | 12 m |
 | Grass width | 3.5 m |
 | Walls | tires in corners, concrete on straights + fence on jersey |
-| Centerline length (approx) | 1024.8 m |
+| Centerline length (approx) | 1164.9 m |
 | Heading 0 | start at origin, +X forward |
 
 ## World grid (XZ, meters)
@@ -27,12 +27,12 @@ Black polyline = centerline. Orange = ribbon hazards (on asphalt). Red = verge s
 <line x1="93.3" y1="36" x2="93.3" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="112.0" y1="36" x2="112.0" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="130.6" y1="36" x2="130.6" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="149.3" y1="36" x2="149.3" y2="600" stroke="#c4b8a4" stroke-width="1"/>
+<line x1="149.3" y1="36" x2="149.3" y2="600" stroke="#e03131" stroke-width="2"/>
 <line x1="167.9" y1="36" x2="167.9" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="186.6" y1="36" x2="186.6" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="205.2" y1="36" x2="205.2" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="223.8" y1="36" x2="223.8" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="242.5" y1="36" x2="242.5" y2="600" stroke="#e03131" stroke-width="2"/>
+<line x1="242.5" y1="36" x2="242.5" y2="600" stroke="#c4b8a4" stroke-width="1"/>
 <line x1="261.1" y1="36" x2="261.1" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="279.8" y1="36" x2="279.8" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="298.4" y1="36" x2="298.4" y2="600" stroke="#ddd4c6" stroke-width="0.6"/>
@@ -99,15 +99,15 @@ Black polyline = centerline. Orange = ribbon hazards (on asphalt). Red = verge s
 <line x1="56" y1="68.2" x2="802" y2="68.2" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="52.1" x2="802" y2="52.1" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="36.0" x2="802" y2="36.0" stroke="#c4b8a4" stroke-width="1"/>
-<text x="56.0" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-100</text>
-<text x="149.3" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-50</text>
-<text x="242.5" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
-<text x="335.8" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">50</text>
-<text x="429.0" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">100</text>
-<text x="522.3" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">150</text>
-<text x="615.5" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">200</text>
-<text x="708.8" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">250</text>
-<text x="802.0" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">300</text>
+<text x="56.0" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-50</text>
+<text x="149.3" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
+<text x="242.5" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">50</text>
+<text x="335.8" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">100</text>
+<text x="429.0" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">150</text>
+<text x="522.3" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">200</text>
+<text x="615.5" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">250</text>
+<text x="708.8" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">300</text>
+<text x="802.0" y="616" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">350</text>
 <text x="48" y="604.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-50</text>
 <text x="48" y="523.4" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
 <text x="48" y="442.9" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">50</text>
@@ -116,23 +116,23 @@ Black polyline = centerline. Orange = ribbon hazards (on asphalt). Red = verge s
 <text x="48" y="201.1" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">200</text>
 <text x="48" y="120.6" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">250</text>
 <text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">300</text>
-<path d="M242.5,519.4 L249.6,519.4 L256.8,519.4 L263.9,519.4 L271.0,519.4 L278.2,519.4 L285.3,519.4 L292.4,519.4 L299.5,519.4 L306.7,519.4 L313.8,519.4 L320.9,519.4 L328.1,519.4 L335.2,519.4 L342.3,519.4 L349.5,519.4 L356.6,519.4 L363.7,519.4 L367.1,519.2 L370.5,518.7 L373.7,517.7 L376.8,516.4 L379.6,514.8 L382.2,512.8 L384.8,510.9 L387.6,509.2 L390.7,507.9 L393.9,507.0 L397.2,506.4 L400.7,506.2 L408.1,506.2 L415.6,506.2 L423.0,506.2 L430.5,506.2 L438.0,506.2 L445.4,506.2 L452.9,506.2 L460.3,506.2 L467.8,506.2 L475.3,506.2 L482.7,506.2 L490.2,506.2 L497.3,506.2 L504.5,506.2 L511.7,506.2 L518.9,506.2 L526.0,506.2 L533.2,506.2 L540.4,506.2 L547.6,506.2 L554.7,506.2 L561.9,506.2 L569.1,506.2 L576.2,506.2 L583.4,506.2 L590.6,505.7 L597.7,504.4 L604.5,502.1 L610.7,498.9 L616.4,495.0 L621.3,490.4 L625.4,485.3 L629.1,479.7 L632.9,474.1 L636.6,468.5 L640.3,462.9 L644.1,457.4 L647.8,451.8 L651.5,446.2 L655.3,440.6 L659.0,435.0 L662.7,429.4 L666.2,424.2 L669.7,419.0 L673.2,413.7 L676.7,408.5 L680.2,403.3 L683.7,398.0 L687.2,392.8 L690.7,387.6 L692.2,384.9 L693.3,382.1 L694.0,379.2 L694.2,376.3 L694.0,373.4 L693.3,370.5 L692.6,367.6 L692.4,364.6 L692.6,361.7 L693.3,358.8 L694.4,356.0 L695.9,353.3 L699.5,347.9 L703.2,342.5 L706.8,337.1 L710.4,331.6 L714.0,326.2 L717.7,320.8 L721.3,315.3 L724.9,309.9 L728.5,304.5 L731.0,300.2 L732.6,295.6 L733.4,290.8 L733.4,286.0 L732.6,281.2 L731.0,276.6 L728.5,272.3 L724.9,266.8 L721.2,261.3 L717.6,255.8 L713.9,250.3 L710.2,244.9 L706.6,239.4 L702.9,233.9 L699.2,228.4 L695.6,222.9 L691.9,217.4 L688.2,212.0 L684.6,206.5 L680.9,201.0 L677.3,195.5 L673.3,189.7 L669.1,184.0 L664.8,178.3 L660.4,172.8 L655.8,167.3 L651.1,162.0 L646.8,157.2 L642.5,152.4 L638.1,147.7 L633.8,142.9 L629.5,138.2 L625.2,133.4 L620.9,128.6 L616.6,123.9 L612.3,119.1 L608.0,114.3 L603.7,109.6 L599.4,104.8 L593.7,99.4 L587.1,94.8 L579.8,91.1 L572.0,88.4 L563.7,86.8 L555.3,86.2 L548.2,86.2 L541.0,86.2 L533.9,86.2 L526.8,86.2 L519.7,86.2 L512.5,86.2 L505.4,86.2 L498.3,86.2 L491.1,86.2 L484.0,86.2 L476.9,86.2 L469.7,86.2 L462.6,86.2 L455.5,86.2 L448.3,86.2 L441.2,86.2 L434.1,86.2 L430.7,86.4 L427.3,87.0 L424.1,88.0 L421.0,89.3 L418.2,90.9 L415.6,92.8 L413.1,94.8 L410.2,96.4 L407.1,97.7 L403.9,98.7 L400.6,99.3 L397.2,99.5 L389.7,99.5 L382.2,99.5 L374.8,99.5 L367.3,99.5 L359.9,99.5 L352.4,99.5 L344.9,99.5 L337.5,99.5 L330.0,99.5 L322.6,99.5 L315.1,99.5 L307.6,99.5 L300.5,99.5 L293.3,99.5 L286.1,99.5 L278.9,99.5 L271.8,99.5 L264.6,99.5 L257.4,99.5 L250.3,99.5 L243.1,99.5 L235.9,99.5 L228.7,99.5 L221.6,99.5 L214.4,99.5 L207.2,99.9 L200.1,101.3 L193.3,103.6 L187.1,106.7 L181.4,110.6 L176.5,115.2 L172.4,120.4 L168.7,126.0 L164.9,131.6 L161.2,137.2 L157.5,142.7 L153.7,148.3 L150.0,153.9 L146.3,159.5 L142.6,165.1 L138.8,170.6 L135.1,176.2 L131.6,181.5 L128.1,186.7 L124.6,191.9 L121.1,197.2 L117.6,202.4 L114.1,207.6 L110.6,212.9 L107.1,218.1 L105.6,220.7 L104.5,223.5 L103.8,226.4 L103.6,229.4 L103.8,232.3 L104.5,235.2 L105.2,238.1 L105.4,241.1 L105.2,244.0 L104.5,246.9 L103.4,249.7 L101.9,252.3 L98.3,257.8 L94.6,263.2 L91.0,268.6 L87.4,274.0 L83.8,279.5 L80.1,284.9 L76.5,290.3 L72.9,295.7 L69.3,301.2 L66.8,305.5 L65.2,310.1 L64.4,314.9 L64.4,319.7 L65.2,324.5 L66.8,329.1 L69.3,333.4 L72.9,338.9 L76.6,344.4 L80.3,349.9 L83.9,355.3 L87.6,360.8 L91.2,366.3 L94.9,371.8 L98.6,377.3 L102.2,382.7 L105.9,388.2 L109.6,393.7 L113.2,399.2 L116.9,404.7 L120.6,410.2 L124.5,416.0 L128.7,421.7 L133.0,427.3 L137.4,432.9 L142.0,438.3 L146.7,443.7 L151.0,448.5 L155.4,453.2 L159.7,458.0 L164.0,462.8 L168.3,467.5 L172.6,472.3 L176.9,477.0 L181.2,481.8 L185.5,486.6 L189.8,491.3 L194.1,496.1 L198.4,500.8 L204.1,506.2 L210.7,510.8 L218.0,514.5 L225.8,517.2 L234.1,518.9 L242.5,519.4" fill="none" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
-<circle cx="424.9" cy="494.3" r="4.5" fill="#e03131" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="431.9" y="488.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tire_stack@100</text>
-<circle cx="703.3" cy="210.6" r="4.5" fill="#e03131" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="710.3" y="204.6" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">concrete_barrier@400</text>
-<circle cx="210.6" cy="111.7" r="4.5" fill="#e03131" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="217.6" y="105.7" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tire_stack@700</text>
-<circle cx="574.1" cy="506.2" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="581.1" y="500.2" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">ramp@180</text>
-<circle cx="733.4" cy="287.8" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="740.4" y="281.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@350</text>
-<circle cx="485.2" cy="86.2" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="492.2" y="80.2" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">ramp@550</text>
-<circle cx="177.4" cy="114.4" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="184.4" y="108.4" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">oil@720</text>
-<circle cx="70.7" cy="299.0" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="77.7" y="293.0" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@850</text>
+<path d="M149.3,519.4 L156.7,519.4 L164.2,519.4 L171.6,519.4 L179.1,519.4 L186.6,519.4 L194.0,519.4 L201.5,519.4 L208.9,519.4 L216.4,519.4 L223.8,519.4 L231.3,519.4 L238.8,519.4 L246.2,519.4 L253.7,519.4 L261.1,519.4 L268.6,519.4 L276.1,519.4 L283.5,519.4 L291.0,519.4 L298.4,519.4 L305.9,519.4 L313.4,519.4 L320.8,519.4 L328.3,519.4 L335.8,519.4 L346.6,519.3 L357.4,518.9 L368.3,518.2 L379.1,517.2 L389.8,516.0 L400.5,514.5 L407.7,513.4 L414.8,512.4 L421.9,511.3 L429.1,510.2 L436.2,509.1 L443.4,508.0 L450.5,506.9 L457.7,505.8 L464.8,504.7 L471.9,503.7 L479.1,502.6 L486.2,501.5 L493.4,500.4 L500.5,499.3 L507.7,498.2 L514.8,497.1 L521.9,496.0 L529.1,494.9 L536.3,493.8 L543.5,492.7 L550.7,491.6 L557.9,490.5 L565.2,489.4 L572.4,488.3 L579.6,487.2 L586.8,486.2 L594.0,485.1 L601.2,484.0 L608.5,482.9 L615.7,481.8 L622.9,480.7 L630.1,479.6 L637.5,478.4 L644.8,477.3 L652.1,476.2 L659.5,475.1 L666.8,474.0 L674.2,472.8 L681.5,471.7 L688.9,470.6 L696.2,469.5 L703.6,468.4 L713.6,466.1 L723.2,462.6 L732.0,457.8 L739.8,451.9 L746.5,445.0 L751.9,437.3 L755.8,428.9 L758.2,420.2 L759.1,411.2 L759.1,405.2 L759.1,399.1 L759.1,393.1 L759.1,387.1 L759.1,381.0 L759.1,375.0 L759.1,368.9 L759.1,362.9 L759.1,356.8 L759.1,350.8 L759.1,344.8 L759.1,338.7 L758.8,335.8 L758.2,332.9 L757.1,330.1 L755.6,327.4 L753.7,325.0 L751.4,322.8 L749.2,320.5 L747.3,318.1 L745.7,315.4 L744.6,312.7 L744.0,309.8 L743.8,306.8 L743.8,300.4 L743.8,293.9 L743.8,287.5 L743.8,281.0 L743.8,274.6 L743.8,268.1 L743.8,261.7 L743.8,255.2 L743.8,248.8 L743.8,242.4 L743.8,235.9 L743.8,229.5 L743.8,223.0 L743.8,216.6 L743.8,210.1 L743.8,203.7 L743.8,197.2 L743.8,190.8 L743.8,184.3 L743.8,177.9 L743.8,171.5 L743.8,165.0 L743.8,158.6 L743.8,152.1 L743.8,145.7 L743.8,139.2 L743.8,132.8 L743.8,126.3 L743.0,117.8 L740.7,109.4 L736.8,101.5 L731.6,94.1 L725.2,87.6 L717.6,82.0 L709.1,77.5 L699.9,74.2 L690.3,72.2 L680.3,71.5 L672.9,71.5 L665.4,71.5 L658.0,71.5 L650.5,71.5 L643.0,71.5 L635.6,71.5 L628.1,71.5 L620.7,71.5 L613.2,71.5 L605.7,71.5 L598.3,71.5 L590.8,71.5 L583.4,71.5 L575.9,71.5 L568.4,71.5 L561.0,71.5 L553.5,71.5 L546.1,71.5 L538.6,71.5 L531.1,71.5 L523.7,71.5 L516.2,71.5 L508.8,71.5 L501.3,71.5 L493.8,71.5 L483.0,71.7 L472.2,72.1 L461.3,72.8 L450.5,73.7 L439.8,74.9 L429.1,76.4 L421.9,77.5 L414.8,78.6 L407.6,79.7 L400.5,80.8 L393.4,81.9 L386.2,83.0 L379.1,84.1 L371.9,85.1 L364.8,86.2 L357.7,87.3 L350.5,88.4 L343.4,89.5 L336.2,90.6 L329.1,91.7 L321.9,92.8 L314.8,93.9 L307.7,94.9 L300.5,96.0 L293.3,97.1 L286.1,98.2 L278.9,99.3 L271.6,100.4 L264.4,101.5 L257.2,102.6 L250.0,103.7 L242.8,104.8 L235.6,105.9 L228.4,107.0 L221.1,108.1 L213.9,109.2 L206.7,110.3 L199.5,111.4 L192.1,112.5 L184.8,113.7 L177.5,114.8 L170.1,115.9 L162.8,117.0 L155.4,118.1 L148.1,119.3 L140.7,120.4 L133.4,121.5 L126.0,122.6 L115.9,124.9 L106.4,128.4 L97.6,133.2 L89.8,139.1 L83.1,146.0 L77.7,153.7 L73.8,162.0 L71.4,170.8 L70.5,179.7 L70.5,185.8 L70.5,191.8 L70.5,197.9 L70.5,203.9 L70.5,210.0 L70.5,216.0 L70.5,222.0 L70.5,228.1 L70.5,234.1 L70.5,240.2 L70.5,246.2 L70.5,252.3 L70.8,255.2 L71.4,258.1 L72.5,260.9 L74.0,263.5 L75.9,266.0 L78.2,268.2 L80.4,270.4 L82.3,272.9 L83.9,275.5 L85.0,278.3 L85.6,281.2 L85.8,284.2 L85.8,290.6 L85.8,297.1 L85.8,303.5 L85.8,309.9 L85.8,316.4 L85.8,322.8 L85.8,329.3 L85.8,335.7 L85.8,342.2 L85.8,348.6 L85.8,355.1 L85.8,361.5 L85.8,368.0 L85.8,374.4 L85.8,380.8 L85.8,387.3 L85.8,393.7 L85.8,400.2 L85.8,406.6 L85.8,413.1 L85.8,419.5 L85.8,426.0 L85.8,432.4 L85.8,438.9 L85.8,445.3 L85.8,451.7 L85.8,458.2 L85.8,464.6 L86.6,473.2 L88.9,481.6 L92.8,489.5 L98.0,496.8 L104.4,503.4 L112.0,509.0 L120.5,513.5 L129.7,516.7 L139.3,518.8 L149.2,519.4" fill="none" stroke="#1a1a1a" stroke-width="3" stroke-linejoin="round"/>
+<circle cx="371.6" cy="505.9" r="4.5" fill="#e03131" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="378.6" y="499.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tire_stack@120</text>
+<circle cx="757.6" cy="205.4" r="4.5" fill="#e03131" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="764.6" y="199.4" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">concrete_barrier@480</text>
+<circle cx="316.4" cy="105.7" r="4.5" fill="#e03131" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="323.4" y="99.7" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tire_stack@780</text>
+<circle cx="520.1" cy="496.3" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="527.1" y="490.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">ramp@200</text>
+<circle cx="667.0" cy="473.9" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="674.0" y="467.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@280</text>
+<circle cx="554.4" cy="71.5" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="561.4" y="65.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">ramp@650</text>
+<circle cx="240.5" cy="105.2" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="247.5" y="99.2" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">oil@820</text>
+<circle cx="96.3" cy="134.2" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="103.3" y="128.2" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@900</text>
 <text x="410" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">Kuppenfinale — world XZ</text>
 <text x="410" y="632" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
@@ -141,47 +141,43 @@ Black polyline = centerline. Orange = ribbon hazards (on asphalt). Red = verge s
 
 | # | Type | Length / radius | Angle | Width |
 | --- | --- | --- | --- | --- |
-| 0 | `straight` | 65 m | — | 12 |
-| 1 | `s_curve` | — | — | 11 |
-| 2 | `straight` | 48 m | — | 12 |
-| 3 | `uneven_field` | 50 m | — | 12 |
-| 4 | `curve_r` | r 26 m | 60° | 10 |
-| 5 | `straight` | 40 m | — | 11 |
-| 6 | `choke` | 30 m | — | 8 |
-| 7 | `s_curve` | — | — | 10 |
-| 8 | `straight` | 35 m | — | 11 |
-| 9 | `curve_r` | r 20 m | 60° | 9 |
-| 10 | `straight` | 55 m | — | 12 |
-| 11 | `curve_r` | r 180 m | 8° | 12 |
-| 12 | `straight` | 45 m | — | 12 |
-| 13 | `curve_r` | r 30 m | 52° | 10 |
-| 14 | `straight` | 65 m | — | 12 |
-| 15 | `s_curve` | — | — | 11 |
-| 16 | `straight` | 48 m | — | 12 |
-| 17 | `uneven_field` | 50 m | — | 12 |
-| 18 | `curve_r` | r 26 m | 60° | 10 |
-| 19 | `straight` | 40 m | — | 11 |
-| 20 | `choke` | 30 m | — | 8 |
-| 21 | `s_curve` | — | — | 10 |
-| 22 | `straight` | 35 m | — | 11 |
-| 23 | `curve_r` | r 20 m | 60° | 9 |
-| 24 | `straight` | 55 m | — | 12 |
-| 25 | `curve_r` | r 180 m | 8° | 12 |
-| 26 | `straight` | 45 m | — | 12 |
-| 27 | `curve_r` | r 30 m | 52° | 10 |
+| 0 | `straight` | 100 m | — | 12 |
+| 1 | `curve_r` | r 200 m | 10° | 12 |
+| 2 | `straight` | 70 m | — | 12 |
+| 3 | `uneven_field` | 55 m | — | 12 |
+| 4 | `straight` | 40 m | — | 12 |
+| 5 | `curve_r` | r 36 m | 80° | 10 |
+| 6 | `straight` | 45 m | — | 12 |
+| 7 | `s_curve` | — | — | 11 |
+| 8 | `uneven_field` | 40 m | — | 11 |
+| 9 | `choke` | 32 m | — | 8 |
+| 10 | `straight` | 40 m | — | 12 |
+| 11 | `curve_r` | r 34 m | 90° | 10 |
+| 12 | `straight` | 100 m | — | 12 |
+| 13 | `curve_r` | r 200 m | 10° | 12 |
+| 14 | `straight` | 70 m | — | 12 |
+| 15 | `uneven_field` | 55 m | — | 12 |
+| 16 | `straight` | 40 m | — | 12 |
+| 17 | `curve_r` | r 36 m | 80° | 10 |
+| 18 | `straight` | 45 m | — | 12 |
+| 19 | `s_curve` | — | — | 11 |
+| 20 | `uneven_field` | 40 m | — | 11 |
+| 21 | `choke` | 32 m | — | 8 |
+| 22 | `straight` | 40 m | — | 12 |
+| 23 | `curve_r` | r 34 m | 90° | 10 |
 
 ## Obstacles (authored)
 
 | Kind | Type | Along (m) | Side | Kit GLB |
 | --- | --- | --- | --- | --- |
-| verge | `tire_stack` | 100 | 1 | `public/models/track/tire-stack.glb` |
-| verge | `concrete_barrier` | 400 | -1 | `public/models/track/barrier.glb` |
-| verge | `tire_stack` | 700 | 1 | `public/models/track/tire-stack.glb` |
-| ribbon | `ramp` | 180 | 0 | `public/models/track/ramp.glb` |
-| ribbon | `uneven` | 350 | 0 | `public/models/track/rumble.glb` |
-| ribbon | `ramp` | 550 | 0 | `public/models/track/ramp.glb` |
-| ribbon | `oil` | 720 | 0 | `public/models/track/oil.glb` |
-| ribbon | `uneven` | 850 | 0 | `public/models/track/rumble.glb` |
+| verge | `tire_stack` | 120 | 1 | `public/models/track/tire-stack.glb` |
+| verge | `concrete_barrier` | 480 | -1 | `public/models/track/barrier.glb` |
+| verge | `tire_stack` | 780 | 1 | `public/models/track/tire-stack.glb` |
+| ribbon | `ramp` | 200 | 0 | `public/models/track/ramp.glb` |
+| ribbon | `uneven` | 280 | 0 | `public/models/track/rumble.glb` |
+| ribbon | `ramp` | 650 | 0 | `public/models/track/ramp.glb` |
+| ribbon | `oil` | 820 | 0 | `public/models/track/oil.glb` |
+| ribbon | `uneven` | 900 | 0 | `public/models/track/rumble.glb` |
 
 ## Kit meshes used here
 

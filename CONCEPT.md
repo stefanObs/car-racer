@@ -609,4 +609,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.99 — Race length 3 laps; harder cups 2/4/5.*
+*Dokumentstand: Konzept v3.99 — XL cup layouts from proposal sheet; 3-lap races.*

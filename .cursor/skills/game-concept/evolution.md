@@ -14,10 +14,15 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-29 — Rebuild all cups from XL proposal sheet
+
+- Trigger: user — check the real cups from the XL plan and redo all layouts
+- Decision: Rebuild all five cups to match `xl-cup-tracks-plan.png` silhouettes at XL scale; keep **3 Runden**; keep closed start/finish seams.
+
 ### 2026-08-29 — Race length 3 laps; harden cups 2/4/5
 
 - Trigger: user — reduce laps to 3; cups other than 1 and 3 are too easy (need more curves / complex profile)
-- Decision: All modes default **3 Runden**. Keep Hafenstart (1) and Schikanenring (3). Redesign Parabolbogen / Omegatal / Kuppenfinale with tighter multi-apex corners, extra s_curves/chokes, still closed with continuous start/finish heading.
+- Decision: All modes default **3 Runden**. Keep Hafenstart (1) and Schikanenring (3). Redesign Parabolbogen / Omegatal / Kuppenfinale with tighter multi-apex corners, extra s_curves/chokes, still closed with continuous start/finish heading. (Superseded for layout shape by the XL proposal rebuild above.)
 
 ### 2026-08-29 — Distinct class fantasies (roster niches)
 
@@ -25,12 +30,7 @@ Append newest first.
 - Decision: CONCEPT §5 — one peak fantasy each. Offroad: Käferkraft best Gras+Federung/Schanzen; Bunker strong Gras but mediocre Federung (bad hops); Bison mild Gras only. Contact: Bison shove (Masse A); Käferkraft light + high armor; Bunker tankiest (Masse+Panzerung S). Donnerbüchse owns Accel+Nitro; Blitz owns Tempo+Handling, fragile. Gras-Malus never removed. Retune `cars.ts` base stats + class bonuses to match.
 - CONCEPT §5.1/§5.2 → v3.98
 
-### 2026-08-29 — Race length 3 laps; harden cups 2/4/5
-
-- Trigger: user — reduce laps to 3; cups other than 1 and 3 are too easy (need more curves / complex profile)
-- Decision: All modes default **3 Runden**. Keep Hafenstart (1) and Schikanenring (3). Redesign Parabolbogen / Omegatal / Kuppenfinale with tighter multi-apex corners, extra s_curves/chokes, still closed with continuous start/finish heading.
-
-
+### 2026-08-17 — Bunker tires: Tripo segment + Bison remount (not UV-carve)
 
 - Trigger: user — segment away the tires from bunker; use the Bison method for the bigger wheels
 - RCA: UV-carve destroyed the APC (v3.61). Restocking the welded bake left tires on BodyPaint, so Große Räder still hid stock and mounted procedural overlays.
