@@ -6,7 +6,9 @@ import { nearestOnTrack, sampleCenterline } from "../track/buildTrack";
 import { comicToon, withOutline } from "./comicMaterials";
 import { hasTrackProp, propHeightFor } from "./loadTrackGltf";
 import { ComicPalette } from "./palette";
+import type { LevelSceneryPlacement } from "../track/types";
 import { instanceTrackProp } from "./trackKit";
+import { TRACK_PROP_IDS, type TrackPropId } from "../data/trackModels";
 
 const CRANE = 0xe85d04;
 const WATER = 0x2f6f9e;
@@ -134,6 +136,7 @@ export function normalizeTrackTheme(theme: string): string {
   const t = theme.toLowerCase();
   if (t === "scrapyard") return "factory";
   if (t === "mountain") return "canyon";
+  if (t === "overpass") return "harbor";
   return t;
 }
 
@@ -201,10 +204,20 @@ export function planSceneryAnchors(track: BuiltTrack, theme: string): SceneryAnc
   return anchors;
 }
 
-export function buildThemeScenery(track: BuiltTrack, theme: string): Group {
+export function buildThemeScenery(
+  track: BuiltTrack,
+  theme: string,
+  authoredPlacements: LevelSceneryPlacement[] = [],
+): Group {
   const root = new Group();
   const anchors = planSceneryAnchors(track, theme);
   const t = normalizeTrackTheme(theme);
+
+  for (const p of authoredPlacements) {
+    if (!(TRACK_PROP_IDS as readonly string[]).includes(p.kind)) continue;
+    const kit = instanceTrackProp(p.kind as TrackPropId, p.x, p.z, p.yaw, p.y);
+    if (kit) root.add(kit);
+  }
 
   for (const a of anchors) {
     const near = nearestOnTrack(track, { x: a.x, z: a.z });

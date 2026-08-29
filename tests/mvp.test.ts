@@ -76,7 +76,7 @@ describe("mvp core", () => {
     expect(formatChf(500)).toMatch(/CHF|Fr/);
   });
 
-  it("ships five cup levels", () => {
-    expect(CUP_LEVELS).toHaveLength(5);
+  it("ships six cup levels", () => {
+    expect(CUP_LEVELS).toHaveLength(6);
   });
 });

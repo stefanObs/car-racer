@@ -1,5 +1,6 @@
 import { collisionRadiusFor } from "../data/carModels";
 import { nearestOnTrack, sampleCenterline } from "./buildTrack";
+import { isBridgeHeightSeparated } from "./bridgeElevation";
 import type { BuiltTrack } from "./types";
 
 /** Extra gap beyond two wall ribbons + car so medians stay blocked. */
@@ -74,6 +75,7 @@ export function findRibbonPinches(
     for (let j = i + 1; j < samples.length; j++) {
       const b = samples[j]!;
       if (alongDelta(track, a.d, b.d) < RIBBON_PINCH_MIN_ALONG_GAP_M) continue;
+      if (isBridgeHeightSeparated(track, a.d, b.d)) continue;
       const centerDist = Math.hypot(a.x - b.x, a.z - b.z);
       if (centerDist >= minSep) continue;
       const midX = (a.x + b.x) / 2;

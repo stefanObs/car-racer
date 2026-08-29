@@ -9,9 +9,9 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ### 2026-08-29 — Bridge / surface height (CONCEPT §4.4.1)
 
-- Trigger: user — bridge + 3D racing; Tripo kit `bridge`
-- Decision: When elevated decks land, grounded `car.y` follows authored `surfaceY`; Schanze airtime stays relative to local surface (not always Y=0). Flat tracks unchanged until a bridge cup ships elevation samples.
-- Follow-up: sample `surfaceY` from centerline; underpass collision vs deck
+- Trigger: user — bridge + 3D racing; Tripo kit `bridge`; then ship Brückenkreuz layout
+- Decision: `car.surfaceY` from track elevation; grounded cars stick to it; Schanze airtime relative to local surface. Cup 6 figure-8 uses authored elevation (deck 3.4 m). Flat tracks keep elevation 0.
+- Tests: `tests/bridge-cup.test.ts`
 
 ### 2026-08-29 — Distinct class base stats (CONCEPT §5 v3.98)
 

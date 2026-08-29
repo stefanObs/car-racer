@@ -21,6 +21,39 @@ export const WALL_HIT_TIRE = 0.95;
 /** Obstacle hit HP (before armor) at full impact. */
 export const OBSTACLE_HIT_CONCRETE = 0.9;
 export const OBSTACLE_HIT_TIRE = 0.7;
+/** Pre–Fast-KO hit table used by Low Damage (Einstellungen). */
+export const LOW_WALL_HIT_CONCRETE = 0.07;
+export const LOW_WALL_HIT_TIRE = 0.045;
+export const LOW_OBSTACLE_HIT_CONCRETE = 0.055;
+export const LOW_OBSTACLE_HIT_TIRE = 0.035;
+
+export function wallHitAmount(kind: "concrete" | "tire", impact: number, lowDamage: boolean): number {
+  const base = lowDamage
+    ? kind === "concrete"
+      ? LOW_WALL_HIT_CONCRETE
+      : LOW_WALL_HIT_TIRE
+    : kind === "concrete"
+      ? WALL_HIT_CONCRETE
+      : WALL_HIT_TIRE;
+  const floor = lowDamage ? 0.35 : 0.2;
+  return base * (floor + (1 - floor) * impact);
+}
+
+export function obstacleHitAmount(
+  kind: "concrete_barrier" | "tire_stack",
+  impact: number,
+  lowDamage: boolean,
+): number {
+  const base = lowDamage
+    ? kind === "concrete_barrier"
+      ? LOW_OBSTACLE_HIT_CONCRETE
+      : LOW_OBSTACLE_HIT_TIRE
+    : kind === "concrete_barrier"
+      ? OBSTACLE_HIT_CONCRETE
+      : OBSTACLE_HIT_TIRE;
+  const floor = lowDamage ? 0.4 : 0.2;
+  return base * (floor + (1 - floor) * impact);
+}
 
 export interface DriverInput {
   throttle: number; // 0..1
@@ -42,8 +75,10 @@ export interface CarState {
   id: string;
   x: number;
   z: number;
-  /** Height above track (arcade jump / Schanze). */
+  /** World height (surfaceY when grounded; higher while airborne). */
   y: number;
+  /** Authored track surface under the car (bridge decks, ramps). */
+  surfaceY: number;
   heading: number;
   speed: number;
   /** Last driver steer (−1..1) — front-wheel visuals follow this. */
@@ -100,7 +135,8 @@ export const NITRO_ENGAGE_MIN = 0.35;
 export const NITRO_RECHARGE = 0.04;
 /** Base drain per second while boosting. */
 export const NITRO_DRAIN = 0.38;
-export const GRAVITY = 30;
+/** Arcade gravity (m/s²). Doubled from the comic-float 30 so hop height and range both drop 50%. */
+export const GRAVITY = 60;
 const DRAG = 0.14;
 /** Extra coast when throttle lifted — scales up a bit at high pace (engine brake). */
 const COAST_BRAKE = 3.5;
@@ -191,6 +227,7 @@ export function createCarState(
     vz: Math.sin(heading) * speed,
     vy: 0,
     y: 0,
+    surfaceY: 0,
     drift: 0,
     driftTime: 0,
     miniTurboGrace: 0,
@@ -217,6 +254,7 @@ export function createCarState(
     car.vz = Math.sin(car.heading) * car.speed;
   }
   if (partial.y === undefined) car.y = 0;
+  if (partial.surfaceY === undefined) car.surfaceY = 0;
   if (partial.vy === undefined) car.vy = 0;
   if (partial.drift === undefined) car.drift = 0;
   if (partial.driftTime === undefined) car.driftTime = 0;
@@ -227,7 +265,7 @@ export function createCarState(
 }
 
 export function isAirborne(car: CarState): boolean {
-  return car.y > AIRBORNE_EPS || car.vy > 0.5;
+  return car.y > car.surfaceY + AIRBORNE_EPS || car.vy > 0.5;
 }
 
 export function grantLapShield(car: CarState, duration = LAP_SHIELD_DURATION): void {
@@ -243,6 +281,8 @@ export function placeOnRacingLine(car: CarState, track: BuiltTrack): void {
   const s = sampleCenterline(track, car.distanceAlong);
   car.x = s.position.x;
   car.z = s.position.z;
+  car.y = s.y;
+  car.surfaceY = s.y;
   car.heading = Math.atan2(s.tangent.z, s.tangent.x);
 }
 
@@ -252,7 +292,7 @@ function freezeKoMotion(car: CarState): void {
   car.vx = 0;
   car.vz = 0;
   car.vy = 0;
-  car.y = 0;
+  car.y = car.surfaceY;
   car.drift = 0;
   car.driftTime = 0;
   car.miniTurboGrace = 0;
@@ -453,6 +493,7 @@ export function stepCar(
   dt: number,
   catchUp: { accel: number; topSpeed: number },
   obstacles: TrackObstacle[] = [],
+  lowDamage = false,
 ): { hitWall: boolean; stage: DamageStage } {
   if (car.finished) {
     return { hitWall: false, stage: stageFromHp(car.hp) };
@@ -471,7 +512,6 @@ export function stepCar(
 
   const stage = stageFromHp(car.hp);
   const dmg = damageMultipliers(stage);
-  const airborne = isAirborne(car);
   const surface = surfaceAt(
     track,
     car.x,
@@ -480,6 +520,8 @@ export function stepCar(
     car.stats.suspension,
     car.distanceAlong,
   );
+  car.surfaceY = surface.surfaceY;
+  const airborne = isAirborne(car);
   const passable = passableObstacleMods(car.x, car.z, obstacles);
   surface.gripFactor *= passable.gripMul;
   surface.bump = Math.min(1, surface.bump + passable.bumpAdd);
@@ -710,8 +752,11 @@ export function stepCar(
     syncSpeedFromVelocity(car);
   }
 
-  // Schanze launch / airtime / landing (CONCEPT §4.6)
+  // Schanze launch / airtime / landing (CONCEPT §4.6) — relative to local surfaceY
   stepJump(car, passable.rampLaunch, dt);
+  if (!isAirborne(car) && Math.abs(car.vy) < 0.01) {
+    car.y = car.surfaceY;
+  }
 
   // Integrate along velocity (slip = racing feel)
   car.x += car.vx * dt;
@@ -734,11 +779,11 @@ export function stepCar(
     const wallLimit = track.asphaltHalfWidth + track.grassWidth;
     const overflow = Math.abs(afterMove.lateral) - wallLimit;
     if (overflow > 0) {
-      hitWall = applyWallBounce(car, afterMove, overflow, { soft: isAirborne(car) });
+      hitWall = applyWallBounce(car, afterMove, overflow, { soft: isAirborne(car), lowDamage });
     }
   }
 
-  const hitObstacle = resolveObstacles(car, obstacles);
+  const hitObstacle = resolveObstacles(car, obstacles, lowDamage);
 
   const resolved = surfaceAt(
     track,
@@ -782,21 +827,22 @@ export function continuousAlong(prev: number, next: number, totalLength: number,
 /** Arcade jump: ramp launches, gravity, grip/suspension soften landings. */
 export function stepJump(car: CarState, rampLaunch: number, dt: number): void {
   const grounded = !isAirborne(car);
+  const floor = car.surfaceY;
 
   if (grounded && rampLaunch >= RAMP_LAUNCH_GATE && car.speed > 8) {
     // Comic hop: punchy launch; Federung only softens a little.
     const suspEase = Math.min(0.22, Math.max(0, (car.stats.suspension - 0.7) * 0.18));
     const launch = (10.5 + car.speed * 0.38) * rampLaunch * (1 - suspEase);
     car.vy = Math.max(car.vy, launch);
-    car.y = Math.max(car.y, AIRBORNE_EPS + 0.02);
+    car.y = Math.max(car.y, floor + AIRBORNE_EPS + 0.02);
   }
 
   if (isAirborne(car) || car.vy !== 0) {
     car.vy -= GRAVITY * dt;
     car.y += car.vy * dt;
-    if (car.y <= 0) {
+    if (car.y <= floor) {
       const impact = Math.max(0, -car.vy);
-      car.y = 0;
+      car.y = floor;
       car.vy = 0;
       // Hard landing → slip; grip + Federung stabilize (CONCEPT §4.6)
       const soft = Math.min(0.75, Math.max(0, (car.stats.suspension - 0.6) * 0.45));
@@ -823,7 +869,7 @@ export function applyWallBounce(
   car: CarState,
   afterMove: ReturnType<typeof surfaceAt>,
   overflow: number,
-  opts: { soft?: boolean } = {},
+  opts: { soft?: boolean; lowDamage?: boolean } = {},
 ): boolean {
   const soft = Boolean(opts.soft);
   const sign = Math.sign(afterMove.lateral) || 1;
@@ -869,16 +915,19 @@ export function applyWallBounce(
   let damaged = false;
   if (!soft && car.impactCooldown <= 0) {
     const impact = Math.min(1, Math.max(0, outwardVel) / BASE_TOP);
-    const base = afterMove.wallKind === "concrete" ? WALL_HIT_CONCRETE : WALL_HIT_TIRE;
-    const amount = base * (0.2 + 0.8 * impact);
-    damaged = damageCar(car, amount);
+    const kind = afterMove.wallKind === "concrete" ? "concrete" : "tire";
+    damaged = damageCar(car, wallHitAmount(kind, impact, Boolean(opts.lowDamage)));
     car.impactCooldown = IMPACT_DAMAGE_COOLDOWN;
   }
   return damaged || outwardVel > 0.5;
 }
 
 /** Solid on-track props: bounce + light damage. Passable oil/uneven/ramp are surface-only. */
-export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boolean {
+export function resolveObstacles(
+  car: CarState,
+  obstacles: TrackObstacle[],
+  lowDamage = false,
+): boolean {
   if (car.finished || car.koTimer > 0 || isAirborne(car)) return false;
   let hit = false;
   const carR = collisionRadiusFor(car.modelId);
@@ -924,9 +973,9 @@ export function resolveObstacles(car: CarState, obstacles: TrackObstacle[]): boo
     }
 
     if (car.impactCooldown <= 0) {
-      const base = o.type === "concrete_barrier" ? OBSTACLE_HIT_CONCRETE : OBSTACLE_HIT_TIRE;
+      const kind = o.type === "concrete_barrier" ? "concrete_barrier" : "tire_stack";
       const impact = Math.min(1, car.speed / BASE_TOP);
-      damageCar(car, base * (0.2 + 0.8 * impact));
+      damageCar(car, obstacleHitAmount(kind, impact, lowDamage));
       car.impactCooldown = IMPACT_DAMAGE_COOLDOWN;
     }
     hit = true;

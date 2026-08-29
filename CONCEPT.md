@@ -154,7 +154,7 @@ Strecken sind **nicht** immer flach. Arcade-3D heißt: die Fahrbahn hat eine **O
 | **Über/Unter** | Draufsicht-Kreuzung nur wenn die Decks **verschiedene Höhenbänder** haben (oben fahren / unten durchfahren). Falsche Ebene: **Sektionsmauer** / Pfeiler blocken. |
 | **Querschnitt** | Auch auf dem Deck: Asphalt → Gras (falls Rand) → Geländer/Mauer. Unten: normaler Asphalt→Gras→Mauer-Korridor unter der Brücke. |
 | **Lesbarkeit** | Gelbe Hazard-Markierungen an Auffahrten/Pfeilern; Deck und Unterführung auf einen Blick unterscheidbar (Asphalt-Comic, Tripo-Kit `bridge`). |
-| **Scope** | Flache Cups bleiben gültig. Erste Brücken-Layouts sind **handautoriert** (Cup/Free). Ad-hoc: **kein** Self-Cross / keine Brücke bis Generator-Support. |
+| **Scope** | Flache Cups bleiben gültig. **Brückenkreuz** (Cup 6) ist das erste handautorierte Brücken-Layout. Ad-hoc: **kein** Self-Cross / keine Brücke bis Generator-Support. |
 | **Fantasie** | Brücken dienen **schnellem Überholen / Layout-Tricks**, nicht Demolition — Kontakt bleibt Würze. |
 
 ### 4.5 Rammen & Schaden (Nebeneffekt)
@@ -471,6 +471,7 @@ Pro Fahrzeugklasse eine **eigene Cup-Serie** mit ~10 Rennen:
 - **Schikanenring** — Stadt mit Risk/Reward-Schikane (sichere Linie vs. Hot Line); Gebäude/Kontrollturm-Props; Skyline-Panorama  
 - **Omegatal** — Canyon: Omega-Doppelkurve, blinde Kuppe, Wasserfall-Abfahrt (`uneven`/`ramp`); Felsen/Spitzen/Gestrüpp (Tripo)  
 - **Kuppenfinale** — Cup-Boss mit vielen Kuppen/Schanzen; Waldhügel + vereinzelte Hallen (Tripo-Bäume), nicht Havenstadt-Kräne auf der Bahn  
+- **Brückenkreuz** — 3D-∞ mit Tripo-Brücke: oben über das Deck, unten durch die Unterführung (§4.4.1)  
 - Weitere Skins: Schrottplatz-Ring, Bergpass, Strandpiste  
 
 Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse = Sky-Dome + große Panorama-Meshes (keine voll modellierten Fern-Props). Nah-Props = Tripo-Kit **außerhalb** Asphalt/Gras (freie Mittellinie).
@@ -623,4 +624,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v4.0 — Höhe & Brücken (3D-Racing) §4.4.1; Tripo-Kit `bridge`.*
+*Dokumentstand: Konzept v4.1 — Cup 6 Brückenkreuz (∞ + Tripo-Brücke, surfaceY).*

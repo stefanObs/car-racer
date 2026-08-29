@@ -36,6 +36,8 @@ const STYLE_CAP = 120;
 export class RaceSession {
   readonly track: BuiltTrack;
   readonly level: LevelDefinition;
+  /** Pre–Fast-KO wall/obstacle hits when true (Einstellungen: Wenig Schaden). */
+  lowDamage = false;
   cars: CarState[] = [];
   finishedCount = 0;
   styleBonus = 0;
@@ -87,6 +89,8 @@ export class RaceSession {
         isPlayer: true,
         x: start.position.x,
         z: start.position.z,
+        y: start.y ?? 0,
+        surfaceY: start.y ?? 0,
         heading: head,
         paint: this.config.playerPaint,
         sticker: this.config.playerSticker,
@@ -114,6 +118,8 @@ export class RaceSession {
           isPlayer: false,
           x: s.position.x - s.tangent.z * side,
           z: s.position.z + s.tangent.x * side,
+          y: s.y,
+          surfaceY: s.y,
           heading: Math.atan2(s.tangent.z, s.tangent.x),
           paint: ai.paint,
           sticker: (["flames", "bolt", "star", "none", "flames"] as const)[index % 5]!,
@@ -214,7 +220,15 @@ export class RaceSession {
       const input = car.isPlayer ? playerInput : this.aiInput(car);
       const catchUp = catchUpMultipliers(car.place, this.cars.length);
       const prevKo = car.koTimer > 0;
-      const stepped = stepCar(car, input, this.track, dt, catchUp, this.level.obstacles);
+      const stepped = stepCar(
+        car,
+        input,
+        this.track,
+        dt,
+        catchUp,
+        this.level.obstacles,
+        this.lowDamage,
+      );
       if (car.isPlayer && stepped.hitWall) {
         this.pushAudio({ kind: "wall", hard: car.speed > 14 });
       }
@@ -250,7 +264,7 @@ export class RaceSession {
           car.vx = 0;
           car.vz = 0;
           car.vy = 0;
-          car.y = 0;
+          car.y = car.surfaceY;
         }
         this.prevProgress.set(car.id, along);
       }

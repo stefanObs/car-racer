@@ -8,6 +8,7 @@ import { cloneTrackProp, hasTrackProp, propHeightFor, tileAlongFor, trackPropTem
 export type WallPlacement = {
   kind: "tire" | "concrete";
   x: number;
+  y: number;
   z: number;
   yaw: number;
   side: 1 | -1;
@@ -70,7 +71,7 @@ function wallPoseForSample(
   for (const dist of tryDists) {
     const p = offsetOnRibbon(s, dist, side);
     if (!clearsAllRibbonAsphalt(track, p.x, p.z, { selfAlong: along, padding: 0.2 })) continue;
-    return { kind: s.wall, x: p.x, z: p.z, yaw: wallYaw(s, side), side, along };
+    return { kind: s.wall, x: p.x, y: s.y, z: p.z, yaw: wallYaw(s, side), side, along };
   }
   return null;
 }

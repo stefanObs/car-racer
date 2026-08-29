@@ -44,4 +44,5 @@ Käferkraft detached `WaistL` / `WaistR` and Leichtbau `LightweightL` / `Lightwe
 - [Schikanenring](./track-schikanenring.md) — `blitz_cup_03_stadtring` · theme `city`
 - [Omegatal](./track-omegatal.md) — `blitz_cup_04_buckelpiste` · theme `canyon`
 - [Kuppenfinale](./track-kuppenfinale.md) — `blitz_cup_05_cupfinale` · theme `factory`
+- [Brückenkreuz](./track-brueckenkreuz.md) — `blitz_cup_06_brueckenkreuz` · theme `overpass`
 

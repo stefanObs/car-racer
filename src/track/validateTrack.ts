@@ -1,4 +1,5 @@
 import type { BuiltTrack, Vec2 } from "./types";
+import { BRIDGE_CLEARANCE_M } from "./bridgeElevation";
 
 /** Proper intersection of two open segments (not just shared endpoints). */
 export function segmentsCross(a1: Vec2, a2: Vec2, b1: Vec2, b2: Vec2): boolean {
@@ -14,39 +15,49 @@ export function segmentsCross(a1: Vec2, a2: Vec2, b1: Vec2, b2: Vec2): boolean {
   return t > eps && t < 1 - eps && u > eps && u < 1 - eps;
 }
 
+function edgeMidY(elev: number[] | undefined, i: number): number {
+  if (!elev?.length) return 0;
+  const a = elev[i] ?? 0;
+  const b = elev[i + 1] ?? a;
+  return (a + b) * 0.5;
+}
+
 /**
- * True when the centerline ribbon crosses itself (figure-8 / overpass without bridge).
+ * True when the centerline ribbon crosses itself in plan view without a height-separated bridge.
  * Adjacent edges and loop closure neighbors are ignored.
  */
 export function centerlineSelfIntersects(
   points: Vec2[],
-  opts: { minIndexGap?: number } = {},
+  opts: { minIndexGap?: number; elevation?: number[] } = {},
 ): boolean {
   const n = points.length;
   if (n < 6) return false;
   const minGap = opts.minIndexGap ?? 3;
+  const elev = opts.elevation;
+  const illegal = (i: number, j: number): boolean => {
+    if (!segmentsCross(points[i]!, points[i + 1]!, points[j]!, points[j + 1]!)) return false;
+    const dy = Math.abs(edgeMidY(elev, i) - edgeMidY(elev, j));
+    return dy < BRIDGE_CLEARANCE_M;
+  };
   for (let i = 0; i < n - 1; i++) {
-    const a1 = points[i]!;
-    const a2 = points[i + 1]!;
     for (let j = i + minGap; j < n - 1; j++) {
-      // Skip edges that share the loop seam with edge 0
       if (i === 0 && j >= n - 1 - minGap) continue;
-      const b1 = points[j]!;
-      const b2 = points[j + 1]!;
-      if (segmentsCross(a1, a2, b1, b2)) return true;
+      if (illegal(i, j)) return true;
     }
   }
-  // Closing edge (last → first) vs earlier edges
   const c1 = points[n - 1]!;
   const c2 = points[0]!;
   for (let j = minGap; j < n - 1 - minGap; j++) {
-    if (segmentsCross(c1, c2, points[j]!, points[j + 1]!)) return true;
+    if (!segmentsCross(c1, c2, points[j]!, points[j + 1]!)) continue;
+    const yClose = ((elev?.[n - 1] ?? 0) + (elev?.[0] ?? 0)) * 0.5;
+    const yJ = edgeMidY(elev, j);
+    if (Math.abs(yClose - yJ) < BRIDGE_CLEARANCE_M) return true;
   }
   return false;
 }
 
 export function trackSelfIntersects(track: BuiltTrack): boolean {
-  return centerlineSelfIntersects(track.centerline);
+  return centerlineSelfIntersects(track.centerline, { elevation: track.elevation });
 }
 
 /**

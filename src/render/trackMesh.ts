@@ -35,11 +35,12 @@ export function flatRibbonGeometry(
     const lz = s.tangent.x;
     const px = s.position.x;
     const pz = s.position.z;
+    const sy = s.y;
     positions.push(
-      px + lx * halfWidth, yBottom, pz + lz * halfWidth,
-      px - lx * halfWidth, yBottom, pz - lz * halfWidth,
-      px + lx * halfWidth, yTop, pz + lz * halfWidth,
-      px - lx * halfWidth, yTop, pz - lz * halfWidth,
+      px + lx * halfWidth, yBottom + sy, pz + lz * halfWidth,
+      px - lx * halfWidth, yBottom + sy, pz - lz * halfWidth,
+      px + lx * halfWidth, yTop + sy, pz + lz * halfWidth,
+      px - lx * halfWidth, yTop + sy, pz - lz * halfWidth,
     );
     for (let k = 0; k < 4; k++) normals.push(0, 1, 0);
   }
@@ -103,7 +104,11 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
     for (const side of [-1, 1] as const) {
       const curb = new Mesh(new RoundedBoxGeometry(len, 0.2, 0.38, 2, 0.06), comicToon(color));
       const off = track.asphaltHalfWidth + 0.12;
-      curb.position.set(mx + Math.sin(angle) * off * side, 0.14, mz - Math.cos(angle) * off * side);
+      curb.position.set(
+        mx + Math.sin(angle) * off * side,
+        0.14 + (a.y + b.y) * 0.5,
+        mz - Math.cos(angle) * off * side,
+      );
       curb.rotation.y = -angle;
       curb.castShadow = true;
       curb.receiveShadow = true;
@@ -113,7 +118,7 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
     // Center dashes
     if (i % 2 === 0) {
       const dash = new Mesh(new RoundedBoxGeometry(Math.min(len * 0.7, 2.4), 0.05, 0.22, 1, 0.02), comicToon(ComicPalette.asphaltLine));
-      dash.position.set(mx, 0.17, mz);
+      dash.position.set(mx, 0.17 + (a.y + b.y) * 0.5, mz);
       dash.rotation.y = -angle;
       root.add(dash);
     }

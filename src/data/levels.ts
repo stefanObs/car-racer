@@ -1,5 +1,6 @@
 import type { LevelClearanceGauge, LevelDefinition, LevelPanorama, LevelSceneryPlacement, TrackSegment } from "../track/types";
 import { buildTrackFromLevel, nearestOnTrack, sampleCenterline } from "../track/buildTrack";
+import { figureEightBridgeCenterline } from "../track/bridgeElevation";
 import { planMedianBarriers } from "../track/medianBarriers";
 import { pointOnTrack } from "../track/validateTrack";
 
@@ -137,12 +138,27 @@ function kuppenfinaleSegments(): TrackSegment[] {
   return [...half(false), ...half(true)];
 }
 
+/**
+ * 6 Brückenkreuz (3D) — ∞ with elevated deck over underpass (CONCEPT §4.4.1).
+ * Geometry is authored Gerono + elevation; segments are fingerprint stubs.
+ */
+function overpassSegments(): TrackSegment[] {
+  return [
+    { type: "straight", length: 120, width: 11 },
+    { type: "curve_r", radius: 80, angleDeg: 200, width: 11 },
+    { type: "straight", length: 48, width: 11 },
+    { type: "curve_r", radius: 80, angleDeg: 200, width: 11 },
+    { type: "straight", length: 48, width: 11 },
+  ];
+}
+
 const LAYOUTS: Record<string, () => TrackSegment[]> = {
   harbor: harborSegments,
   beach: parabolbogenSegments,
   city: schikanenringSegments,
   canyon: omegatalSegments,
   factory: kuppenfinaleSegments,
+  overpass: overpassSegments,
 };
 
 type VergeBlocker = { type: "tire_stack" | "concrete_barrier"; along: number; side: 1 | -1 };
@@ -164,6 +180,7 @@ function makeCup(
     panorama?: LevelPanorama;
     sceneryPlacements?: LevelSceneryPlacement[];
     clearanceGauges?: LevelClearanceGauge[];
+    authoredCenterline?: Array<{ x: number; z: number; y?: number }>;
   },
 ): LevelDefinition {
   const level: LevelDefinition = {
@@ -186,6 +203,7 @@ function makeCup(
       grassWidth: opts.grass ?? 3,
       segments: LAYOUTS[theme]!(),
       walls: { rule: "tire_in_corners_concrete_on_straights" },
+      ...(opts.authoredCenterline?.length ? { authoredCenterline: opts.authoredCenterline } : {}),
     },
     obstacles: [],
     spawn: {
@@ -207,6 +225,25 @@ function makeCup(
   };
 
   const track = buildTrackFromLevel(level);
+
+  // Spawn on authored polyline: place grid near start, facing travel.
+  if (opts.authoredCenterline?.length) {
+    const start = sampleCenterline(track, 8);
+    const hx = start.tangent.x;
+    const hz = start.tangent.z;
+    const lx = -hz;
+    const lz = hx;
+    level.spawn.headingDeg = (Math.atan2(hz, hx) * 180) / Math.PI;
+    level.spawn.grid = [0, 1, 2, 3, 4, 5].map((i) => {
+      const row = Math.floor(i / 2);
+      const col = i % 2 === 0 ? -1 : 1;
+      const back = -8 - row * 6;
+      return [
+        start.position.x + hx * back + lx * col * 3,
+        start.position.z + hz * back + lz * col * 3,
+      ] as [number, number];
+    });
+  }
 
   if (opts.vergeBlockers?.length) {
     for (const b of opts.vergeBlockers) {
@@ -361,7 +398,54 @@ export const CUP_LEVELS: LevelDefinition[] = [
       ],
     },
   ),
+  makeBridgeCup(),
 ];
+
+/** Cup 6 — figure-8 overpass with Tripo bridge (CONCEPT §4.4.1). */
+function makeBridgeCup(): LevelDefinition {
+  const authored = figureEightBridgeCenterline({ a: 115, samples: 240 });
+  const draft = makeCup(
+    6,
+    "blitz_cup_06_brueckenkreuz",
+    "Brückenkreuz",
+    "3D-Überführung (~0,9 km): ∞-Layout — oben über die Brücke, unten durch die Unterführung.",
+    "overpass",
+    {
+      grass: 3,
+      asphaltWidth: 11,
+      laps: 3,
+      purse: [520, 360, 280, 200, 150, 120],
+      authoredCenterline: authored,
+      panorama: { offsetY: 14, heightScale: 1.45 },
+    },
+  );
+  const track = buildTrackFromLevel(draft);
+  draft.sceneryPlacements = [bridgePlacementAtCrossing(track)];
+  return draft;
+}
+
+function bridgePlacementAtCrossing(
+  track: ReturnType<typeof buildTrackFromLevel>,
+): LevelSceneryPlacement {
+  let bestAlong = 0;
+  let bestY = -1;
+  for (let d = 0; d < track.totalLength; d += 0.5) {
+    const s = sampleCenterline(track, d);
+    const r = Math.hypot(s.position.x, s.position.z);
+    if (s.y >= bestY && r < 12) {
+      bestY = s.y;
+      bestAlong = d;
+    }
+  }
+  const s = sampleCenterline(track, bestAlong);
+  return {
+    kind: "bridge",
+    x: s.position.x,
+    y: 0,
+    z: s.position.z,
+    yaw: yawFromTangent(s.tangent.x, s.tangent.z),
+  };
+}
 
 export function levelById(id: string): LevelDefinition | undefined {
   return CUP_LEVELS.find((l) => l.id === id);

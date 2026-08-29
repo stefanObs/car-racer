@@ -428,6 +428,26 @@ const TRACKS = [
       { type: "curve_r", radius: 34, angleDeg: 90, width: 10 },
     ],
   },
+  {
+    file: "track-brueckenkreuz.md",
+    id: "blitz_cup_06_brueckenkreuz",
+    name: "Brückenkreuz",
+    theme: "overpass",
+    grass: 3,
+    asphaltWidth: 11,
+    scenery: ["crane", "container", "warehouse", "tank", "bridge"],
+    verge: [],
+    ribbon: [],
+    /** Cheat-sheet world grid uses Gerono ∞ (matches runtime authoredCenterline). */
+    figureEight: { a: 115, samples: 240 },
+    segments: [
+      { type: "straight", length: 120, width: 11 },
+      { type: "curve_r", radius: 80, angleDeg: 200, width: 11 },
+      { type: "straight", length: 48, width: 11 },
+      { type: "curve_r", radius: 80, angleDeg: 200, width: 11 },
+      { type: "straight", length: 48, width: 11 },
+    ],
+  },
 ];
 
 const WALL_KIT = ["tire-wall", "concrete-wall", "fence"];
@@ -491,6 +511,22 @@ function partGlbPath(carId, partId) {
     return pub("models/parts/blitz-big_engine.glb");
   }
   return pub("models/parts", `${carId}-${partId}.glb`);
+}
+
+function buildFigureEight(a = 115, samples = 240) {
+  const points = [];
+  for (let i = 0; i < samples; i++) {
+    const t = (i / samples) * Math.PI * 2;
+    points.push({ x: a * Math.cos(t), z: a * Math.sin(t) * Math.cos(t) });
+  }
+  points.push({ ...points[0] });
+  const dists = [0];
+  let total = 0;
+  for (let i = 1; i < points.length; i++) {
+    total += Math.hypot(points[i].x - points[i - 1].x, points[i].z - points[i - 1].z);
+    dists.push(total);
+  }
+  return { points, dists, total: Math.max(total, 1) };
 }
 
 function buildCenterline(segments) {
@@ -901,7 +937,9 @@ async function dumpGarage(dest) {
 }
 
 async function dumpTrack(track, dest) {
-  const built = buildCenterline(track.segments);
+  const built = track.figureEight
+    ? buildFigureEight(track.figureEight.a, track.figureEight.samples)
+    : buildCenterline(track.segments);
   const half = track.asphaltWidth / 2;
   const poly = built.points.map((p) => [p.x, p.z]);
   const points = [];
@@ -938,7 +976,10 @@ async function dumpTrack(track, dest) {
         ["Grass width", `${track.grass} m`],
         ["Walls", "tires in corners, concrete on straights + fence on jersey"],
         ["Centerline length (approx)", `${fmt(built.total, 1)} m`],
-        ["Heading 0", "start at origin, +X forward"],
+        ["Heading 0", track.figureEight ? "Gerono ∞, elevated deck at origin cross" : "start at origin, +X forward"],
+        ...(track.figureEight
+          ? [["3D", "Authored elevation — Brücke kit at crossing (CONCEPT §4.4.1)"]]
+          : []),
       ],
     ),
     "",

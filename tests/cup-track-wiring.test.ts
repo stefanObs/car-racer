@@ -14,12 +14,13 @@ describe("cup tracks wired to proposals (clear asphalt)", () => {
       { id: "blitz_cup_03_stadtring", name: "Schikanenring", theme: "city" },
       { id: "blitz_cup_04_buckelpiste", name: "Omegatal", theme: "canyon" },
       { id: "blitz_cup_05_cupfinale", name: "Kuppenfinale", theme: "factory" },
+      { id: "blitz_cup_06_brueckenkreuz", name: "Brückenkreuz", theme: "overpass" },
     ]);
   });
 
-  it("uses distinct layout fingerprints (not five similar ovals)", () => {
+  it("uses distinct layout fingerprints (not clone ovals)", () => {
     const fps = CUP_LEVELS.map(layoutFingerprint);
-    expect(new Set(fps).size).toBe(5);
+    expect(new Set(fps).size).toBe(CUP_LEVELS.length);
     // Parabolbogen: wide paperclip arcs (proposal tempo track)
     expect(layoutFingerprint(CUP_LEVELS[1]!)).toMatch(/curve_r:(1|2)\d{2}/);
     // Schikanenring: signature S-chicanes

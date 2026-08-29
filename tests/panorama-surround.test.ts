@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { CUP_LEVELS } from "../src/data/levels";
 import { buildTrackFromLevel } from "../src/track/buildTrack";
 import {
+  applyHorizonHeight,
   buildPanoramaSurround,
   GROUND_PLANE_Y,
   HARBOR_HORIZON_PIER_V,
@@ -91,6 +92,21 @@ describe("sky dome + panorama surround", () => {
     }
   });
 
+  it("applyHorizonHeight offsets and stretches the horizon ring from home pose", () => {
+    const track = buildTrackFromLevel(CUP_LEVELS[0]!);
+    const g = buildPanoramaSurround(track, "harbor", themeLook("harbor"));
+    const ring = g.getObjectByName("horizonPanorama");
+    expect(ring).toBeTruthy();
+    const homeY = ring!.position.y;
+    const homeScale = ring!.scale.y;
+    applyHorizonHeight(g, 4, 1.25);
+    expect(ring!.position.y).toBeCloseTo(homeY + 4, 5);
+    expect(ring!.scale.y).toBeCloseTo(homeScale * 1.25, 5);
+    applyHorizonHeight(g, 0, 1);
+    expect(ring!.position.y).toBeCloseTo(homeY, 5);
+    expect(ring!.scale.y).toBeCloseTo(homeScale, 5);
+  });
+
   it("keeps harbor panorama decks and the skyline ring above the ground plane", () => {
     const track = buildTrackFromLevel(CUP_LEVELS[0]!);
     const g = buildPanoramaSurround(track, "harbor", themeLook("harbor"));
@@ -113,6 +129,17 @@ describe("sky dome + panorama surround", () => {
     expect(h.displayName).toBe("Hafenstart");
     expect(h.theme).toBe("harbor");
     expect(h.id).toBe("blitz_cup_01_hafenstart");
+    expect(h.panorama).toEqual({ offsetY: 16, heightScale: 1.5 });
+  });
+
+  it("applies baked panorama offset at race load", () => {
+    const track = buildTrackFromLevel(CUP_LEVELS[0]!);
+    const g = buildPanoramaSurround(track, "harbor", themeLook("harbor"));
+    const ring = g.getObjectByName("horizonPanorama")!;
+    const homeY = ring.position.y;
+    applyHorizonHeight(g, 16, 1.5);
+    expect(ring.position.y).toBeCloseTo(homeY + 16, 5);
+    expect(ring.scale.y).toBeCloseTo(1.5, 5);
   });
 
   it("drops harbour box props in favour of panorama + sparse Tripo", () => {
@@ -132,13 +159,14 @@ describe("sky dome + panorama surround", () => {
     expect(basin).toBe(false);
   });
 
-  it("renames cups 2–5 to proposal names", () => {
+  it("lists proposal cup names including Brückenkreuz", () => {
     expect(CUP_LEVELS.map((l) => l.displayName)).toEqual([
       "Hafenstart",
       "Parabolbogen",
       "Schikanenring",
       "Omegatal",
       "Kuppenfinale",
+      "Brückenkreuz",
     ]);
   });
 });

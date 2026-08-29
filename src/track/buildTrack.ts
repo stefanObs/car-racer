@@ -30,15 +30,19 @@ function buildDebugPadTrack(level: LevelDefinition): BuiltTrack {
     asphaltHalfWidth: half,
     grassWidth: 0,
     wallKind,
+    elevation: points.map(() => 0),
     unevenMasks: [],
     spawnHeading: (level.spawn.headingDeg * Math.PI) / 180,
     debugPad: true,
   };
 }
 
-/** Build a closed centerline from level segments (x/z plane). */
+/** Build a closed centerline from level segments (x/z plane) or authored polyline. */
 export function buildTrackFromLevel(level: LevelDefinition): BuiltTrack {
   if (level.track.debugPad) return buildDebugPadTrack(level);
+  if (level.track.authoredCenterline?.length) {
+    return buildFromAuthoredCenterline(level);
+  }
 
   const points: Vec2[] = [{ x: 0, z: 0 }];
   let x = 0;
@@ -137,7 +141,55 @@ export function buildTrackFromLevel(level: LevelDefinition): BuiltTrack {
     asphaltHalfWidth: level.track.asphaltWidth / 2,
     grassWidth: level.track.grassWidth,
     wallKind: wallKindAccum,
+    elevation: points.map(() => 0),
     unevenMasks,
+    spawnHeading: (level.spawn.headingDeg * Math.PI) / 180,
+  };
+}
+
+function buildFromAuthoredCenterline(level: LevelDefinition): BuiltTrack {
+  const raw = level.track.authoredCenterline!;
+  const points: Vec2[] = [];
+  const elevation: number[] = [];
+  const wallKind: Array<"tire" | "concrete"> = [];
+  for (let i = 0; i < raw.length; i++) {
+    const p = raw[i]!;
+    const prev = raw[(i - 1 + raw.length) % raw.length]!;
+    const next = raw[(i + 1) % raw.length]!;
+    points.push({ x: p.x, z: p.z });
+    elevation.push(p.y ?? 0);
+    const ax = p.x - prev.x;
+    const az = p.z - prev.z;
+    const bx = next.x - p.x;
+    const bz = next.z - p.z;
+    const la = Math.hypot(ax, az) || 1;
+    const lb = Math.hypot(bx, bz) || 1;
+    const cross = (ax / la) * (bz / lb) - (az / la) * (bx / lb);
+    wallKind.push(Math.abs(cross) > 0.35 ? "tire" : "concrete");
+  }
+  if (level.track.closedLoop && points.length > 1) {
+    const first = raw[0]!;
+    points.push({ x: first.x, z: first.z });
+    elevation.push(first.y ?? 0);
+    wallKind.push(wallKind[0] ?? "concrete");
+  }
+  const cumulativeDistances: number[] = [0];
+  let total = 0;
+  for (let i = 1; i < points.length; i++) {
+    const a = points[i - 1]!;
+    const b = points[i]!;
+    total += Math.hypot(b.x - a.x, b.z - a.z);
+    cumulativeDistances.push(total);
+  }
+  return {
+    centerline: points,
+    cumulativeDistances,
+    totalLength: Math.max(total, 1),
+    asphaltHalfWidth: level.track.asphaltWidth / 2,
+    grassWidth: level.track.grassWidth,
+    wallKind,
+    elevation,
+    unevenMasks: [],
     spawnHeading: (level.spawn.headingDeg * Math.PI) / 180,
   };
 }
@@ -145,7 +197,7 @@ export function buildTrackFromLevel(level: LevelDefinition): BuiltTrack {
 export function sampleCenterline(
   track: BuiltTrack,
   distance: number,
-): { position: Vec2; tangent: Vec2; wall: "tire" | "concrete"; index: number } {
+): { position: Vec2; tangent: Vec2; wall: "tire" | "concrete"; index: number; y: number } {
   const d = ((distance % track.totalLength) + track.totalLength) % track.totalLength;
   const dists = track.cumulativeDistances;
   let i = 1;
@@ -164,7 +216,15 @@ export function sampleCenterline(
   const len = Math.hypot(tx, tz) || 1;
   tx /= len;
   tz /= len;
-  return { position, tangent: { x: tx, z: tz }, wall: track.wallKind[i0] ?? "concrete", index: i0 };
+  const e0 = track.elevation[i0] ?? 0;
+  const e1 = track.elevation[i1] ?? 0;
+  return {
+    position,
+    tangent: { x: tx, z: tz },
+    wall: track.wallKind[i0] ?? "concrete",
+    index: i0,
+    y: e0 + (e1 - e0) * t,
+  };
 }
 
 export function nearestOnTrack(

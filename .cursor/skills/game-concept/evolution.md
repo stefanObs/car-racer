@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-29 — Cup 6 Brückenkreuz (figure-8 + surfaceY)
+
+- Trigger: user — add the bridge 3D racing layout next
+- Decision: Ship `blitz_cup_06_brueckenkreuz` — Gerono ∞ with authored elevation (deck 3.4 m), Tripo `bridge` scenery, harbor-like `overpass` theme. `trackSelfIntersects` ignores height-separated crossings; cars ground to `surfaceY`; ribbon/walls follow elevation. Ad-hoc still flat/no-cross.
+- CONCEPT → v4.1
+
 ### 2026-08-29 — Höhe & Brücken (3D-Racing)
 
 - Trigger: user — design a bridge and 3D racing; Tripo for the bridge

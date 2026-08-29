@@ -24,7 +24,8 @@ import { sampleCenterline } from "../track/buildTrack";
 import { carStateLookKey } from "./carLookKey";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../core/finishCelebrate";
-import type { MeshInspectBoxEdge, MeshInspectComponent, MeshInspectDragMode, MeshInspectTool } from "../core/meshInspect";
+import type { FlyCamera, TrackEditorDoc } from "../core/trackEditor";
+import type { MeshInspectBoxCorner, MeshInspectComponent, MeshInspectDragMode, MeshInspectOrbitMode, MeshInspectTool } from "../core/meshInspect";
 import { fxRearZOf, upgradeCarFx } from "./attachCarFx";
 import { applyCarFx, nitroBoosting } from "./carFx";
 import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
@@ -34,6 +35,7 @@ import { bodyBaseLean, bodyRollZ } from "./carBodyPose";
 import { GaragePresenter, type GarageLook } from "./garagePresenter";
 import { buildLevelObstacles } from "./levelObstacles";
 import {
+  applyHorizonHeight,
   buildPanoramaSurround,
   buildSkyDomeMesh,
   disposePanoramaMaps,
@@ -50,6 +52,7 @@ import {
   lapBillboardFlashVisible,
   syncLapBillboard,
 } from "./lapBillboard";
+import { TrackEditorPresenter, type TrackEditorPick } from "./trackEditorPresenter";
 import { ensureIdleClearsRaceField } from "./idleRaceTeardown";
 
 export class RaceRenderer {
@@ -69,9 +72,11 @@ export class RaceRenderer {
   private celebrateGroup = new Group();
   private celebrateSeed = -1;
   private readonly garage: GaragePresenter;
+  private readonly trackEditor: TrackEditorPresenter;
   private fxTime = 0;
   /** True while track/scenery from the last race are still meant to be shown. */
   private raceFieldActive = false;
+  private levelTheme = "harbor";
   private readonly hemi: HemisphereLight;
   private readonly ambient: AmbientLight;
   private readonly sun: DirectionalLight;
@@ -126,6 +131,17 @@ export class RaceRenderer {
       getPanoramaGroup: () => this.panoramaGroup,
     });
     this.garage.buildIdleShowcase();
+
+    this.trackEditor = new TrackEditorPresenter({
+      scene: this.scene,
+      camera: this.camera,
+      renderer: this.renderer,
+      getScenery: () => this.sceneryGroup,
+      getPanorama: () => this.panoramaGroup,
+      hideCars: (hidden) => {
+        for (const visual of this.carVisuals.values()) visual.root.visible = !hidden;
+      },
+    });
 
     window.addEventListener("resize", () => this.resize(canvas));
     this.resize(canvas);
@@ -289,8 +305,24 @@ export class RaceRenderer {
     this.garage.setMeshInspectBoxPaint(on);
   }
 
+  meshInspectOrbitMode() {
+    return this.garage.meshInspectOrbitMode();
+  }
+
+  setMeshInspectOrbitMode(mode: MeshInspectOrbitMode): void {
+    this.garage.setMeshInspectOrbitMode(mode);
+  }
+
   meshInspectBox() {
     return this.garage.meshInspectPaintedBox();
+  }
+
+  meshInspectBoxes() {
+    return this.garage.meshInspectPaintedBoxes();
+  }
+
+  meshInspectBoxText() {
+    return this.garage.meshInspectBoxText();
   }
 
   commitMeshInspectBox(
@@ -308,14 +340,14 @@ export class RaceRenderer {
   }
 
   resizeMeshInspectBox(
-    edge: MeshInspectBoxEdge,
+    corner: MeshInspectBoxCorner,
     fromClientX: number,
     fromClientY: number,
     toClientX: number,
     toClientY: number,
     canvas: HTMLCanvasElement,
   ): void {
-    this.garage.resizeMeshInspectBox(edge, fromClientX, fromClientY, toClientX, toClientY, canvas);
+    this.garage.resizeMeshInspectBox(corner, fromClientX, fromClientY, toClientX, toClientY, canvas);
   }
 
   clearMeshInspectBox(): boolean {
@@ -330,12 +362,28 @@ export class RaceRenderer {
     return this.garage.resetMeshInspectBox();
   }
 
+  isMeshInspectEngineHidden(): boolean {
+    return this.garage.isMeshInspectEngineHidden();
+  }
+
+  toggleMeshInspectEngineHidden(): boolean {
+    return this.garage.toggleMeshInspectEngineHidden();
+  }
+
   /** Pointer drag — LMB yaw; RMB / 2-finger free tumble. */
-  addGarageOrbitFromDrag(deltaXPx: number, deltaYPx: number, axes?: { yaw: boolean; pitch: boolean }): void {
+  addGarageOrbitFromDrag(
+    deltaXPx: number,
+    deltaYPx: number,
+    axes?: { yaw: boolean; pitch: boolean; roll?: boolean },
+  ): void {
     this.garage.addOrbitFromDrag(deltaXPx, deltaYPx, axes);
   }
 
   renderIdle(): void {
+    if (this.trackEditor.isActive()) {
+      this.trackEditor.render();
+      return;
+    }
     ensureIdleClearsRaceField({
       raceCarCount: this.carVisuals.size,
       raceFieldVisible: this.raceFieldActive,
@@ -401,6 +449,7 @@ export class RaceRenderer {
 
   buildTrack(session: RaceSession): void {
     this.garage.hide();
+    this.levelTheme = session.level.theme;
     this.groundMesh.visible = true;
     this.skyMesh.visible = true;
     if (!session.track.debugPad) this.applyTheme(session.level.theme, trackCentroid(session.track));
@@ -436,8 +485,19 @@ export class RaceRenderer {
       this.sun.position.set(8, 22, 14);
     } else {
       this.trackGroup = buildSmoothTrack(session.track);
-      this.sceneryGroup = buildThemeScenery(session.track, session.level.theme);
+      this.sceneryGroup = buildThemeScenery(
+        session.track,
+        session.level.theme,
+        session.level.sceneryPlacements ?? [],
+      );
       this.panoramaGroup = buildPanoramaSurround(session.track, session.level.theme, look);
+      if (session.level.panorama) {
+        applyHorizonHeight(
+          this.panoramaGroup,
+          session.level.panorama.offsetY,
+          session.level.panorama.heightScale,
+        );
+      }
       this.obstacleGroup = buildLevelObstacles(session.level);
       this.groundMesh.visible = true;
     }
@@ -516,13 +576,21 @@ export class RaceRenderer {
       const stage = stageFromHp(car.hp);
       root.visible = !(car.koTimer > 0 && car.hp <= 0 && Math.sin(car.koTimer * 20) <= 0);
 
-      const bump = surfaceAt(session.track, car.x, car.z, car.stats.grassMitigation, car.stats.suspension).bump;
+      const bump = surfaceAt(
+        session.track,
+        car.x,
+        car.z,
+        car.stats.grassMitigation,
+        car.stats.suspension,
+        car.distanceAlong,
+      ).bump;
+      const airborne = car.y > car.surfaceY + 0.05;
       const hop =
-        car.y > 0.05
+        airborne
           ? 0
           : bump * 0.25 * Math.sin(this.fxTime * 22 + car.progress * 3) +
             (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.05 : 0);
-      const pitch = car.y > 0.05 ? Math.min(0.55, car.vy * 0.045) : 0;
+      const pitch = airborne ? Math.min(0.55, car.vy * 0.045) : 0;
       const moveAng = Math.atan2(car.vz, car.vx);
       let slip = car.heading - moveAng;
       while (slip > Math.PI) slip -= Math.PI * 2;
@@ -534,7 +602,7 @@ export class RaceRenderer {
       root.rotation.z = bodyRollZ({
         drift: car.drift,
         slip,
-        baseLean: bodyBaseLean(stage, car.y > 0.05, bump),
+        baseLean: bodyBaseLean(stage, airborne, bump),
         wobble: Math.sin(this.fxTime * 10),
       });
 
@@ -641,6 +709,45 @@ export class RaceRenderer {
       this.camera.lookAt(player.x, 0.9 + player.y * 0.65, player.z);
     }
     this.renderer.render(this.scene, this.camera);
+  }
+
+  isTrackEditor(): boolean {
+    return this.trackEditor.isActive();
+  }
+
+  enterTrackEditor(doc: TrackEditorDoc, fly: FlyCamera): void {
+    this.trackEditor.enter(doc, fly, this.levelTheme);
+  }
+
+  exitTrackEditor(): void {
+    if (!this.trackEditor.isActive()) return;
+    this.trackEditor.exit();
+  }
+
+  syncTrackEditor(doc: TrackEditorDoc, fly: FlyCamera): void {
+    this.garage.hide();
+    this.trackEditor.syncDoc(doc);
+    this.trackEditor.applyPanorama(
+      doc.panoramaKind,
+      doc.panoramaOffsetY,
+      doc.panoramaHeightScale,
+      this.levelTheme,
+    );
+    this.trackEditor.setHideScenery(doc.hideScenery);
+    this.trackEditor.applyFly(fly);
+    this.trackEditor.render();
+  }
+
+  pickTrackEditor(clientX: number, clientY: number, canvas: HTMLCanvasElement): TrackEditorPick {
+    return this.trackEditor.pick(clientX, clientY, canvas);
+  }
+
+  trackEditorGroundAt(
+    clientX: number,
+    clientY: number,
+    canvas: HTMLCanvasElement,
+  ): { x: number; z: number } | null {
+    return this.trackEditor.groundAt(clientX, clientY, canvas);
   }
 
   clearCars(): void {

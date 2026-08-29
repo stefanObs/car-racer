@@ -1,5 +1,5 @@
 import type { BuiltTrack } from "../track/types";
-import { nearestOnTrack, unevenIntensityAt } from "../track/buildTrack";
+import { nearestOnTrack, sampleCenterline, unevenIntensityAt } from "../track/buildTrack";
 import { CORRIDOR_ALONG_WINDOW_M } from "../track/layoutRules";
 
 export type SurfaceZone = "asphalt" | "grass" | "wall";
@@ -20,6 +20,8 @@ export function surfaceAt(
   lateral: number;
   distanceAlong: number;
   tangent: { x: number; z: number };
+  /** Authored surface height under the car (CONCEPT §4.4.1). */
+  surfaceY: number;
 } {
   const near = nearestOnTrack(
     track,
@@ -28,6 +30,7 @@ export function surfaceAt(
       ? undefined
       : { preferAlong, maxAlongGap: CORRIDOR_ALONG_WINDOW_M },
   );
+  const surfaceY = sampleCenterline(track, near.distanceAlong).y;
   if (track.debugPad) {
     return {
       zone: "asphalt",
@@ -38,6 +41,7 @@ export function surfaceAt(
       lateral: 0,
       distanceAlong: near.distanceAlong,
       tangent: near.tangent,
+      surfaceY: 0,
     };
   }
   const absLat = Math.abs(near.lateral);
@@ -73,5 +77,6 @@ export function surfaceAt(
     lateral: near.lateral,
     distanceAlong: near.distanceAlong,
     tangent: near.tangent,
+    surfaceY,
   };
 }

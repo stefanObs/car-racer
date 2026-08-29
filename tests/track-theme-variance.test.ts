@@ -44,6 +44,7 @@ describe("cup track variance", () => {
       city: ["building", "tower", "scrub"],
       factory: ["warehouse", "tree", "scrub", "spire"],
       canyon: ["cliff", "spire", "scrub"],
+      overpass: ["crane", "container", "warehouse", "tank"],
     };
 
     for (const level of CUP_LEVELS) {

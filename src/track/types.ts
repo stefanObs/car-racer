@@ -11,6 +11,29 @@ export interface TrackSegment {
   intensity?: number;
 }
 
+/** Authored F8 Strecken-Editor prop (track-kit GLB). */
+export type LevelSceneryPlacement = {
+  kind: string;
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+};
+
+/** Durchfahrt gauge baked from F8 — dev clearance check, not rendered in race. */
+export type LevelClearanceGauge = {
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+};
+
+/** Baked horizon cylinder offset from F8 panorama sliders. */
+export type LevelPanorama = {
+  offsetY: number;
+  heightScale: number;
+};
+
 export interface LevelDefinition {
   id: string;
   kind: "cup" | "free" | "training" | "adhoc";
@@ -22,6 +45,12 @@ export interface LevelDefinition {
   laps: number;
   recommendedClass: string;
   gripMultiplier: number;
+  /** F8 patch: live horizon ring Y offset + vertical scale (harbor skyline). */
+  panorama?: LevelPanorama;
+  /** F8 patch: extra Tripo kit props at authored world poses. */
+  sceneryPlacements?: LevelSceneryPlacement[];
+  /** F8 patch: Durchfahrt boxes — validated in tests, not drawn at race time. */
+  clearanceGauges?: LevelClearanceGauge[];
   track: {
     closedLoop: boolean;
     asphaltWidth: number;
@@ -30,6 +59,11 @@ export interface LevelDefinition {
     walls: { rule: string };
     /** Dev-only infinite-feel asphalt pad (no grass/wall). */
     debugPad?: boolean;
+    /**
+     * Hand-authored XZ(+Y) polyline (CONCEPT §4.4.1). When set, replaces segment stitch
+     * for geometry; segments remain for fingerprints / docs.
+     */
+    authoredCenterline?: Array<{ x: number; z: number; y?: number }>;
   };
   obstacles: Array<{
     type: string;
@@ -57,6 +91,8 @@ export interface BuiltTrack {
   grassWidth: number;
   /** Per centerline sample: 'tire' | 'concrete' for outer walls */
   wallKind: Array<"tire" | "concrete">;
+  /** Per centerline sample: surface height (m). Flat tracks omit / all zeros. */
+  elevation: number[];
   unevenMasks: Array<{ startDist: number; endDist: number; intensity: number }>;
   spawnHeading: number;
   /** Dev raster pad — always asphalt, no walls. */
