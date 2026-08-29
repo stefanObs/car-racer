@@ -33,9 +33,9 @@ function blitzCar(partial: Partial<Parameters<typeof createCarState>[0]> = {}) {
 }
 
 describe("lap shield + 5-lap races", () => {
-  it("runs every cup race for 5 laps", () => {
+  it("runs every cup race for 3 laps", () => {
     for (const level of CUP_LEVELS) {
-      expect(level.laps).toBe(5);
+      expect(level.laps).toBe(3);
     }
   });
 

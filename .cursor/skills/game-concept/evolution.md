@@ -14,7 +14,23 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
-### 2026-08-17 — Bunker tires: Tripo segment + Bison remount (not UV-carve)
+### 2026-08-29 — Race length 3 laps; harden cups 2/4/5
+
+- Trigger: user — reduce laps to 3; cups other than 1 and 3 are too easy (need more curves / complex profile)
+- Decision: All modes default **3 Runden**. Keep Hafenstart (1) and Schikanenring (3). Redesign Parabolbogen / Omegatal / Kuppenfinale with tighter multi-apex corners, extra s_curves/chokes, still closed with continuous start/finish heading.
+
+### 2026-08-29 — Distinct class fantasies (roster niches)
+
+- Trigger: user — make the five cars more distinct; confirm offroad/contact splits; keep display names
+- Decision: CONCEPT §5 — one peak fantasy each. Offroad: Käferkraft best Gras+Federung/Schanzen; Bunker strong Gras but mediocre Federung (bad hops); Bison mild Gras only. Contact: Bison shove (Masse A); Käferkraft light + high armor; Bunker tankiest (Masse+Panzerung S). Donnerbüchse owns Accel+Nitro; Blitz owns Tempo+Handling, fragile. Gras-Malus never removed. Retune `cars.ts` base stats + class bonuses to match.
+- CONCEPT §5.1/§5.2 → v3.98
+
+### 2026-08-29 — Race length 3 laps; harden cups 2/4/5
+
+- Trigger: user — reduce laps to 3; cups other than 1 and 3 are too easy (need more curves / complex profile)
+- Decision: All modes default **3 Runden**. Keep Hafenstart (1) and Schikanenring (3). Redesign Parabolbogen / Omegatal / Kuppenfinale with tighter multi-apex corners, extra s_curves/chokes, still closed with continuous start/finish heading.
+
+
 
 - Trigger: user — segment away the tires from bunker; use the Bison method for the bigger wheels
 - RCA: UV-carve destroyed the APC (v3.61). Restocking the welded bake left tires on BodyPaint, so Große Räder still hid stock and mounted procedural overlays.
@@ -311,7 +327,7 @@ Append newest first.
 
 ### 2026-08-13 — v3.52 Five laps + start-line lap shield
 - Trigger: user — make races 5 laps; lap shield when going through start; Tripo mesh
-- Decision: all modes default **5 Runden**; crossing S/F grants ~2s damage immunity + Tripo comic shield FX + „Schild!“
+- Decision: all modes default **3 Runden**; crossing S/F grants ~2s damage immunity + Tripo comic shield FX + „Schild!“
 - CONCEPT §3 / §4.5 / pacing → v3.52
 
 ### 2026-08-13 — v3.51 Drop Bessere Bremsen on Blitz

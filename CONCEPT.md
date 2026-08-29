@@ -36,7 +36,7 @@ Du baust in der Garage dein Auto so, dass die Teile **zusammenpassen**, und fäh
 ```
 Garage / Menü
     → Modus wählen: Cup / Freier Modus / Training / Ad-hoc-Strecke
-        → Rennen (**5 Runden**, ca. 2–5 Min)
+        → Rennen (**3 Runden**, ca. 2–5 Min)
             → Cup/Frei/Ad-hoc: Platzierung + Style-Boni → CHF
             → Training: solo, kein Platz, kein CHF
         → Ergebnis-Screen
@@ -239,7 +239,7 @@ Am **Angreifer**:
 
 **Runden-Schild (Start/Ziel)**
 
-- Jedes Rennen hat **5 Runden** (Cup, Freier Modus, Training, Ad-hoc).
+- Jedes Rennen hat **3 Runden** (Cup, Freier Modus, Training, Ad-hoc).
 - Beim Durchfahren der Start/Ziel-Linie (neue Runde) bekommt das Auto kurz ein **Runden-Schild**: ~2 s **kein Schaden** von Mauer / Hindernis / Kontakt (Schub bleibt).
 - Sichtbar als Style-Popup „Schild!“ (+ SFX); **kein** Mesh am Auto. Die Tripo-**Lap-Shield**-Plakette ist nur der Runden-Flash **über** dem Auto.
 
@@ -299,7 +299,7 @@ Basis: 1. = hoch, ab 4. noch „Trostrunde“, damit Fortschritt nie tot ist
 | Ziel | Richtwert |
 |------|-----------|
 | Erfolgreiche Kurz-Sitzung | 7–15 min |
-| Frühe Cup-Rennen | **5 Runden** (einheitliche Rennlänge) |
+| Frühe Cup-Rennen | **3 Runden** (einheitliche Rennlänge) |
 | Starter-Teil (spürbar) | nach **≤ 2** Intro-Rennen auch mit **Mittelfeld (Platz 4)** finanzierbar |
 | Solides frühes Teil | mit **Platz 1** im ersten Intro-Rennen kaufbar |
 | 2. Auto (Bison) | eher Ende der 7–15-min-Spanne / etwas darüber bei gutem Fahren — kein Sofort-Kauf |
@@ -314,13 +314,15 @@ Statt endloser Einzelautos: **Klassen** mit klarem Fantasy- und Stats-Profil. Pr
 
 ### 5.1 Vorgeschlagene Klassen (Startroster)
 
+**Regel:** Jede Klasse hat **eine** Peak-Fantasie — kein zweites „bestes Auto“ auf derselben Achse. Gras-Malus wird nur **gemildert**, nie entfernt (§4.4).
+
 | Klasse | Fantasy | Stärken | Schwächen |
 |--------|---------|---------|-----------|
-| **Sportwagen** („Blitz“) | Flink, teuer, showy | Top-Beschleunigung, hohe Max-Speed, präzise Lenkung bei 0 Schaden | Leicht, wenig Panzerung, wird bei Kontakt weit weggeschoben, nimmt viel Schaden |
-| **Pick-up / Muscle** („Bison“) | Schwer, cool, standfest | Masse, Panzerung, stabiler bei Kontakt | Langsamere Beschleunigung, träger in engen Kurven |
-| **Buggy** („Käferkraft“) | Verspielt, geländetauglich | Sehr guter Grip, starke Federung (Gras/Unebenheit) | Mittlere Speed, mittlere Masse |
-| **Hot Rod** („Donnerbüchse“) | Laut, Nitro-lastig | Starker Boost, gute Geradeaus-Speed | Schlechter Grip, „schleudert gern“ |
-| **Panzerwagen** (Mid/Late Unlock) („Bunker“) | Fast unzerstörbar | Extrem panzerig, unerschütterlich | Sehr langsam, schlechtes Handling — braucht Teile-Kombo zum Leben |
+| **Sportwagen** („Blitz“) | Asphalt-Messer | Top-Tempo, top Handling, starke Beschleunigung | Leicht, dünne Panzerung, schwache Federung — Rempler und Buckel/Schanzen bestrafen hart |
+| **Pick-up / Muscle** („Bison“) | Straßen-Bulle | Hohe Masse (schiebt andere weg), sonst mittlere Stats; milder Gras-Bonus | Kein Tempo-/Nitro-König; Gras nur etwas milder als Asphalt-Autos; nicht der Panzer-König |
+| **Buggy** („Käferkraft“) | Buckelkönig | Beste Federung + stärkster Gras-Bonus, guter Grip, gute Beschleunigung, hohe Panzerung | Leicht (verliert Schub-Duelle), nur mittlere Tempo |
+| **Hot Rod** („Donnerbüchse“) | Nitro-Rakete | Beste Beschleunigung, starkes Klassen-Nitro, hohe Geradeaus-Tempo | Schlechter Grip/Handling, schwache Federung, kein Gras-Bonus — Kurven und Abseits sind Drama |
+| **Panzerwagen** (Mid/Late Unlock) („Bunker“) | Panzer-Schnecke | Höchste Panzerung + Masse, starker Gras-Bonus (Abkürzen) | Langsamste Beschleunigung/Tempo, schlechtes Handling, nur mittelmäßige Federung — Schanzen/Landungen bleiben schlecht |
 
 **Frühes Unlock-Beispiel:** Sportwagen + Pick-up frei → Buggy → Hot Rod → Panzerwagen.
 
@@ -332,10 +334,12 @@ Spieler kann mehrere Autos besitzen; aktives Auto wählen in der Garage.
 
 ### 5.2 Feinschliff
 
-- **Sportwagen:** schnell rein in Tempo, aber empfindlich — Ideal für saubere Linien und Timing.
-- **Pick-ups:** langsamer auf Tempo, aber halten Druck und Kontakt besser aus.
-- **Buggy:** Liebling auf unebenen / grasnahen Strecken dank Federung.
-- **Gute Kombi-Fantasie:** Sportwagen + große Räder + Federung + Spoiler = schnell *und* ruhig — teuer, lohnt sich.
+- **Blitz:** schnell rein, eng lenken, saubere Asphalt-Linie — fliegt bei Remplern und Buckeln. Cup-Layouts: präzise Asphalt-Kurven, wenig Gras-Zwang.
+- **Bison:** mittlere Speed, schiebt andere weg; Gras nur etwas milder. Cup-Layouts: Überholen + Kontakt-Würze, keine Gras-Abkürzungs-Party.
+- **Käferkraft:** Gras/Sprünge easy, gut beschleunigen, leicht — hält aber Schaden aus („tough egg“). Cup-Layouts: Buckel, Schanzen, grasnahe Risk/Reward.
+- **Donnerbüchse:** Extreme Geradeaus-Power + Nitro; Kurven und Gras sind Drama. Cup-Layouts: lange Geraden, enge Haarnadeln als Gegenkosten.
+- **Bunker:** kriecht an, stirbt kaum, kürzt Gras ab — Schanzen hassen ihn. Cup-Layouts: eng, kontaktfreundlich, Gras-Abkürzungen ohne Hop-Spam.
+- **Gute Kombi-Fantasie:** Blitz + große Räder + Federung + Spoiler = schnell *und* ruhig — teuer, lohnt sich.
 
 ---
 
@@ -605,4 +609,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v3.97 — Bunker Große Räder scales StockWheel_*.*
+*Dokumentstand: Konzept v3.99 — Race length 3 laps; harder cups 2/4/5.*

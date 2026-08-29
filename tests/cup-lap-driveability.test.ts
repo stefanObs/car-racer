@@ -18,7 +18,7 @@ describe("cup lap driveability + road clearance", () => {
   it("every cup is a closed non-crossing loop with a small seam gap", () => {
     for (const level of CUP_LEVELS) {
       expect(level.track.closedLoop, level.id).toBe(true);
-      expect(level.laps, level.id).toBe(5);
+      expect(level.laps, level.id).toBe(3);
       const track = buildTrackFromLevel(level);
       expect(trackSelfIntersects(track), level.id).toBe(false);
       expect(track.totalLength, level.id).toBeGreaterThan(700);

@@ -33,7 +33,7 @@ describe("session economy pacing (7–15 min)", () => {
   });
 
   it("uses five-lap cup races so races share one clear length", () => {
-    expect(CUP_LEVELS[0]!.laps).toBe(5);
-    expect(CUP_LEVELS[1]!.laps).toBe(5);
+    expect(CUP_LEVELS[0]!.laps).toBe(3);
+    expect(CUP_LEVELS[1]!.laps).toBe(3);
   });
 });

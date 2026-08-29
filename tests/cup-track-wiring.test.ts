@@ -20,8 +20,11 @@ describe("cup tracks wired to proposals (clear asphalt)", () => {
   it("uses distinct layout fingerprints (not five similar ovals)", () => {
     const fps = CUP_LEVELS.map(layoutFingerprint);
     expect(new Set(fps).size).toBe(5);
-    // Parabolbogen: huge arc + technical return (not four identical 90° corners)
-    expect(layoutFingerprint(CUP_LEVELS[1]!)).toMatch(/curve_r:2\d{2}/);
+    // Parabolbogen: compound multi-apex hairpins + chokes / s_curves (not a simple oval)
+    const para = layoutFingerprint(CUP_LEVELS[1]!);
+    expect(para).toContain("choke");
+    expect(para).toContain("s_curve");
+    expect(para.split("curve_r").length).toBeGreaterThan(4);
     // Schikanenring: signature S-chicanes
     expect(layoutFingerprint(CUP_LEVELS[2]!)).toContain("s_curve");
     // Omegatal: left+right mix for omega lobe
