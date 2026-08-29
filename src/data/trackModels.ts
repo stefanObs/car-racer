@@ -221,7 +221,7 @@ export const TRACK_PROPS: Record<TrackPropId, TrackPropSpec> = {
     url: "/models/track/bridge.glb",
     yaw: 0,
     scale: 1,
-    tileAlong: 23,
+    tileAlong: 42,
   },
 };
 

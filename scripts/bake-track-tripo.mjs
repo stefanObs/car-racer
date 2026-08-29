@@ -53,8 +53,17 @@ const PROPS = [
   { id: "tire-stack", along: "x", primary: "y", meters: 1.35, maxX: 1.6, maxZ: 1.6, simplify: 0.5 },
   { id: "barrier", along: "x", primary: "y", meters: 1.15, maxX: 2.6, maxZ: 1.1, simplify: 0.48 },
   { id: "ramp", along: "z", primary: "z", meters: 5.2, maxY: 1.05, maxX: 4.5, maxZ: 5.2, simplify: 0.45 },
-  // Elevated overpass (CONCEPT §4.4.1) — driveable deck + underpass clearance
-  { id: "bridge", along: "z", primary: "x", meters: 12, maxY: 5.8, maxZ: 26, simplify: 0.32 },
+  // Overpass: non-uniform axes — full asphalt width + long gentle approaches
+  {
+    id: "bridge",
+    along: "z",
+    primary: "z",
+    meters: 42,
+    targetX: 13.2,
+    targetY: 5.6,
+    targetZ: 42,
+    simplify: 0.3,
+  },
 ];
 
 function bakeNodeTree(node) {
@@ -138,6 +147,9 @@ function longestHorizontalTo(doc, along) {
 }
 
 function centerSitScale(doc, spec) {
+  if (spec.targetX != null && spec.targetY != null && spec.targetZ != null) {
+    return centerSitScaleAxes(doc, spec.targetX, spec.targetY, spec.targetZ);
+  }
   const s0 = sceneSize(doc);
   const dim =
     spec.primary === "x" ? s0.size[0] : spec.primary === "y" ? s0.size[1] : s0.size[2];
@@ -159,6 +171,21 @@ function centerSitScale(doc, spec) {
     v[0] = (v[0] - s0.cx) * scale;
     v[1] = (v[1] - minY) * scale;
     v[2] = (v[2] - s0.cz) * scale;
+  });
+  return sceneSize(doc);
+}
+
+/** Non-uniform sit/scale — used for the overpass so width matches asphalt while length stays long. */
+function centerSitScaleAxes(doc, targetX, targetY, targetZ) {
+  const s0 = sceneSize(doc);
+  const sx = targetX / Math.max(s0.size[0], 1e-6);
+  const sy = targetY / Math.max(s0.size[1], 1e-6);
+  const sz = targetZ / Math.max(s0.size[2], 1e-6);
+  const minY = s0.min[1];
+  forEachPosition(doc, (v) => {
+    v[0] = (v[0] - s0.cx) * sx;
+    v[1] = (v[1] - minY) * sy;
+    v[2] = (v[2] - s0.cz) * sz;
   });
   return sceneSize(doc);
 }

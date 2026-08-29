@@ -29,14 +29,13 @@ describe("bridge Tripo kit (CONCEPT §4.4.1)", () => {
     const height = b.max[1]! - b.min[1]!;
     const length = Math.max(b.max[0]! - b.min[0]!, b.max[2]! - b.min[2]!);
     const width = Math.min(b.max[0]! - b.min[0]!, b.max[2]! - b.min[2]!);
-    // Deck + railings tall enough for underpass (~2.5–3.5 m clear in concept).
-    expect(height).toBeGreaterThan(3.5);
+    // Wide overpass: full asphalt width + long gentle approaches (v2 bake).
+    expect(height).toBeGreaterThan(4.5);
     expect(height).toBeLessThan(6.5);
-    expect(length).toBeGreaterThan(16);
-    expect(length).toBeLessThan(28);
-    // Single-file arcade overpass (height cap keeps deck narrower than full 12 m asphalt).
-    expect(width).toBeGreaterThan(6);
-    expect(width).toBeLessThan(10);
+    expect(length).toBeGreaterThan(36);
+    expect(length).toBeLessThan(48);
+    expect(width).toBeGreaterThan(12);
+    expect(width).toBeLessThan(15);
   });
 
   it("includes bridge in the track preload list", () => {

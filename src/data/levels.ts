@@ -1,6 +1,6 @@
 import type { LevelClearanceGauge, LevelDefinition, LevelPanorama, LevelSceneryPlacement, TrackSegment } from "../track/types";
 import { buildTrackFromLevel, nearestOnTrack, sampleCenterline } from "../track/buildTrack";
-import { figureEightBridgeCenterline } from "../track/bridgeElevation";
+import { bridgeCrossingPose, figureEightBridgeCenterline } from "../track/bridgeElevation";
 import { planMedianBarriers } from "../track/medianBarriers";
 import { pointOnTrack } from "../track/validateTrack";
 
@@ -403,7 +403,7 @@ export const CUP_LEVELS: LevelDefinition[] = [
 
 /** Cup 6 — figure-8 overpass with Tripo bridge (CONCEPT §4.4.1). */
 function makeBridgeCup(): LevelDefinition {
-  const authored = figureEightBridgeCenterline({ a: 115, samples: 240 });
+  const authored = figureEightBridgeCenterline({ a: 115, samples: 280 });
   const draft = makeCup(
     6,
     "blitz_cup_06_brueckenkreuz",
@@ -420,31 +420,17 @@ function makeBridgeCup(): LevelDefinition {
     },
   );
   const track = buildTrackFromLevel(draft);
-  draft.sceneryPlacements = [bridgePlacementAtCrossing(track)];
+  const pose = bridgeCrossingPose(track);
+  draft.sceneryPlacements = [
+    {
+      kind: "bridge",
+      x: pose.x,
+      y: pose.y,
+      z: pose.z,
+      yaw: pose.yaw,
+    },
+  ];
   return draft;
-}
-
-function bridgePlacementAtCrossing(
-  track: ReturnType<typeof buildTrackFromLevel>,
-): LevelSceneryPlacement {
-  let bestAlong = 0;
-  let bestY = -1;
-  for (let d = 0; d < track.totalLength; d += 0.5) {
-    const s = sampleCenterline(track, d);
-    const r = Math.hypot(s.position.x, s.position.z);
-    if (s.y >= bestY && r < 12) {
-      bestY = s.y;
-      bestAlong = d;
-    }
-  }
-  const s = sampleCenterline(track, bestAlong);
-  return {
-    kind: "bridge",
-    x: s.position.x,
-    y: 0,
-    z: s.position.z,
-    yaw: yawFromTangent(s.tangent.x, s.tangent.z),
-  };
 }
 
 export function levelById(id: string): LevelDefinition | undefined {

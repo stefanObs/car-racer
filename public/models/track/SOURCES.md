@@ -25,7 +25,7 @@ All modules are Tripo3D image-to-mesh from Asphalt-Comic concepts in `assets/tri
 | Oil | `track-oil.png` | same |
 | Tire stack | `track-tire-stack.png` | same |
 | Barrier (Betonsperre) | `track-barrier.png` | same |
-| Bridge (Überführung) | `track-bridge.png` | same |
+| Bridge (Überführung) | `track-bridge.png` (v2 wide gentle overpass) | same |
 
 Style lock: `.cursor/skills/asphalt-comic-art/reference.png`.
 Track proposals (layout reference): `assets/tripo-concepts/track-proposals/`.

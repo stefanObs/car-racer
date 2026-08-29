@@ -3,54 +3,96 @@ import type { BuiltTrack } from "./types";
 /** Min deck-to-deck Y gap for a legal plan-view crossing (CONCEPT §4.4.1). */
 export const BRIDGE_CLEARANCE_M = 2.5;
 
-/** Peak deck height for the Tripo bridge overpass (arcade underpass clearance). */
-export const BRIDGE_DECK_Y_M = 3.4;
+/**
+ * Peak driveable deck height (m) — must match the baked Tripo bridge deck after sit.
+ * Underpass clearance stays ≈ deckY − deckThickness.
+ */
+export const BRIDGE_DECK_Y_M = 3.85;
+
+/** Along-track half-length of the flat deck on top of the overpass (m). */
+export const BRIDGE_DECK_HALF_M = 8;
+
+/** Along-track length of each approach ramp (m) — long + smooth, not a Schanze edge. */
+export const BRIDGE_RAMP_M = 42;
 
 /**
  * Racing ∞ (lemniscate of Gerono) in XZ with one elevated crossing pass.
- * Crossing at the origin: first pass rides the deck, return pass stays on the ground.
+ * Elevation is distance-based around the plan-view origin crossing so the climb
+ * matches a long Tripo overpass (not a sharp angular wedge).
  */
 export function figureEightBridgeCenterline(opts?: {
   /** Half-span scale (m). Default yields ~900 m lap. */
   a?: number;
   samples?: number;
   deckY?: number;
-  /** Angular half-width of flat deck around the elevated crossing (rad). */
-  plateauRad?: number;
-  /** Angular ramp length each side of the plateau (rad). */
-  rampRad?: number;
+  deckHalfM?: number;
+  rampM?: number;
 }): Array<{ x: number; z: number; y: number }> {
   const a = opts?.a ?? 115;
-  const samples = opts?.samples ?? 220;
+  const samples = opts?.samples ?? 280;
   const deckY = opts?.deckY ?? BRIDGE_DECK_Y_M;
-  const plateau = opts?.plateauRad ?? 0.12;
-  const ramp = opts?.rampRad ?? 0.38;
-  const pts: Array<{ x: number; z: number; y: number }> = [];
+  const deckHalf = opts?.deckHalfM ?? BRIDGE_DECK_HALF_M;
+  const rampM = opts?.rampM ?? BRIDGE_RAMP_M;
+
+  const xz: Array<{ x: number; z: number }> = [];
   for (let i = 0; i < samples; i++) {
     const t = (i / samples) * Math.PI * 2;
-    // Gerono: x = a cos t, z = a sin t cos t — self-crosses at origin (t = π/2, 3π/2).
-    const x = a * Math.cos(t);
-    const z = a * Math.sin(t) * Math.cos(t);
-    pts.push({ x, z, y: elevNearCrossing(t, Math.PI / 2, deckY, plateau, ramp) });
+    // Gerono: crosses at origin for t = π/2 (elevated) and t = 3π/2 (ground).
+    xz.push({
+      x: a * Math.cos(t),
+      z: a * Math.sin(t) * Math.cos(t),
+    });
   }
-  return pts;
+
+  // Cumulative length along the elevated pass only (first half of loop, through π/2).
+  const elevAlong = cumulativeAlong(xz);
+  const crossIdx = Math.round(samples * 0.25); // t = π/2
+  const crossAlong = elevAlong[crossIdx]!;
+
+  return xz.map((p, i) => {
+    const t = (i / samples) * Math.PI * 2;
+    // Only elevate the first crossing (π/2). Return pass at 3π/2 stays on the ground.
+    const onElevatedPass = t < Math.PI;
+    const y = onElevatedPass
+      ? softDeckElevation(elevAlong[i]! - crossAlong, deckY, deckHalf, rampM)
+      : 0;
+    return { x: p.x, z: p.z, y };
+  });
 }
 
-function elevNearCrossing(
-  t: number,
-  crossT: number,
-  deckY: number,
-  plateau: number,
-  ramp: number,
-): number {
-  let d = Math.abs(t - crossT);
-  d = Math.min(d, Math.PI * 2 - d);
-  if (d <= plateau) return deckY;
-  if (d <= plateau + ramp) {
-    const u = (d - plateau) / ramp;
-    return deckY * (1 - u) * (1 - u); // ease-out onto/off the deck
+function cumulativeAlong(pts: Array<{ x: number; z: number }>): number[] {
+  const out = [0];
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1]!;
+    const b = pts[i]!;
+    total += Math.hypot(b.x - a.x, b.z - a.z);
+    out.push(total);
   }
-  return 0;
+  return out;
+}
+
+/** Smoothstep ease — continuous first derivative at the joints (no driving “edge”). */
+function smoothstep(u: number): number {
+  const t = Math.max(0, Math.min(1, u));
+  return t * t * (3 - 2 * t);
+}
+
+/**
+ * Elevation vs signed distance from deck center along the elevated pass.
+ * Flat deck in the middle; smoothstep ramps on both sides.
+ */
+export function softDeckElevation(
+  signedDistFromCenter: number,
+  deckY: number,
+  deckHalfM: number,
+  rampM: number,
+): number {
+  const d = Math.abs(signedDistFromCenter);
+  if (d <= deckHalfM) return deckY;
+  if (d >= deckHalfM + rampM) return 0;
+  const u = 1 - (d - deckHalfM) / rampM;
+  return deckY * smoothstep(u);
 }
 
 export function elevationAt(track: BuiltTrack, distanceAlong: number): number {
@@ -71,4 +113,49 @@ export function elevationAt(track: BuiltTrack, distanceAlong: number): number {
 /** True when two along-samples are different decks at a bridge crossing. */
 export function isBridgeHeightSeparated(track: BuiltTrack, alongA: number, alongB: number): boolean {
   return Math.abs(elevationAt(track, alongA) - elevationAt(track, alongB)) >= BRIDGE_CLEARANCE_M;
+}
+
+/** World pose for the Tripo bridge: centered on the plan-view crossing (origin). */
+export function bridgeCrossingPose(
+  track: BuiltTrack,
+): { x: number; y: number; z: number; yaw: number } {
+  // Prefer the elevated sample closest to the origin (true over/under).
+  let bestAlong = 0;
+  let bestScore = Infinity;
+  for (let d = 0; d < track.totalLength; d += 0.5) {
+    // sample via elevation array + centerline
+    const i = Math.min(
+      track.centerline.length - 1,
+      Math.max(0, track.cumulativeDistances.findIndex((cd) => cd >= d)),
+    );
+    const p = track.centerline[i]!;
+    const y = track.elevation[i] ?? 0;
+    if (y < BRIDGE_DECK_Y_M * 0.85) continue;
+    const r = Math.hypot(p.x, p.z);
+    const score = r - y * 0.01;
+    if (score < bestScore) {
+      bestScore = score;
+      bestAlong = d;
+    }
+  }
+  // Fallback: origin-facing elevated sample
+  if (!Number.isFinite(bestScore) || bestScore > 80) {
+    bestAlong = track.totalLength * 0.25;
+  }
+  const dists = track.cumulativeDistances;
+  let i = 1;
+  while (i < dists.length && dists[i]! < bestAlong) i++;
+  const i1 = Math.min(i, track.centerline.length - 1);
+  const i0 = Math.max(0, i1 - 1);
+  const a = track.centerline[i0]!;
+  const b = track.centerline[i1]!;
+  const tx = b.x - a.x;
+  const tz = b.z - a.z;
+  const len = Math.hypot(tx, tz) || 1;
+  return {
+    x: 0,
+    y: 0,
+    z: 0,
+    yaw: Math.atan2(tx / len, tz / len),
+  };
 }

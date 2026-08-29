@@ -627,70 +627,46 @@ Root AABB (-3.796, 0, -3.468) → (3.796, 8, 3.468)
 
 ![bridge](./img/track-bridge.png)
 
-Root AABB (-3.619, 0, -11.488) → (3.619, 5.8, 11.488)
+Root AABB (-6.6, 0, -21) → (6.6, 5.6, 21)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
 <rect x="0" y="0" width="760" height="520" fill="#f4efe6"/>
 <rect x="56" y="36" width="686" height="444" fill="#efe8dc" stroke="#1a1a1a" stroke-width="2"/>
 <line x1="56.0" y1="36" x2="56.0" y2="480" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="124.6" y1="36" x2="124.6" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="193.2" y1="36" x2="193.2" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="261.8" y1="36" x2="261.8" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="330.4" y1="36" x2="330.4" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="227.5" y1="36" x2="227.5" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="399.0" y1="36" x2="399.0" y2="480" stroke="#e03131" stroke-width="2"/>
-<line x1="467.6" y1="36" x2="467.6" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="536.2" y1="36" x2="536.2" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="604.8" y1="36" x2="604.8" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="673.4" y1="36" x2="673.4" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="570.5" y1="36" x2="570.5" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="742.0" y1="36" x2="742.0" y2="480" stroke="#c4b8a4" stroke-width="1"/>
 <line x1="56" y1="480.0" x2="742" y2="480.0" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="56" y1="465.2" x2="742" y2="465.2" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="450.4" x2="742" y2="450.4" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="435.6" x2="742" y2="435.6" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="420.8" x2="742" y2="420.8" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="443.0" x2="742" y2="443.0" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="406.0" x2="742" y2="406.0" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="56" y1="391.2" x2="742" y2="391.2" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="376.4" x2="742" y2="376.4" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="361.6" x2="742" y2="361.6" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="346.8" x2="742" y2="346.8" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="369.0" x2="742" y2="369.0" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="332.0" x2="742" y2="332.0" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="56" y1="317.2" x2="742" y2="317.2" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="302.4" x2="742" y2="302.4" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="287.6" x2="742" y2="287.6" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="272.8" x2="742" y2="272.8" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="295.0" x2="742" y2="295.0" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="258.0" x2="742" y2="258.0" stroke="#339af0" stroke-width="2"/>
-<line x1="56" y1="243.2" x2="742" y2="243.2" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="228.4" x2="742" y2="228.4" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="213.6" x2="742" y2="213.6" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="198.8" x2="742" y2="198.8" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="221.0" x2="742" y2="221.0" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="184.0" x2="742" y2="184.0" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="56" y1="169.2" x2="742" y2="169.2" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="154.4" x2="742" y2="154.4" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="139.6" x2="742" y2="139.6" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="124.8" x2="742" y2="124.8" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="147.0" x2="742" y2="147.0" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="110.0" x2="742" y2="110.0" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="56" y1="95.2" x2="742" y2="95.2" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="80.4" x2="742" y2="80.4" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="65.6" x2="742" y2="65.6" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="50.8" x2="742" y2="50.8" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="73.0" x2="742" y2="73.0" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="36.0" x2="742" y2="36.0" stroke="#c4b8a4" stroke-width="1"/>
-<text x="56.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-5</text>
+<text x="56.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-10</text>
 <text x="399.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
-<text x="742.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">5</text>
-<text x="48" y="484.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-15</text>
-<text x="48" y="410.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-10</text>
-<text x="48" y="336.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-5</text>
+<text x="742.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">10</text>
+<text x="48" y="484.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-30</text>
+<text x="48" y="410.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-20</text>
+<text x="48" y="336.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-10</text>
 <text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
-<text x="48" y="188.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">5</text>
-<text x="48" y="114.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">10</text>
-<text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">15</text>
-<rect x="150.7" y="88.0" width="496.6" height="340.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_dbe4be41-6500-4b1b-9095-a56bf0fe3a5a</text>
+<text x="48" y="188.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">10</text>
+<text x="48" y="114.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">20</text>
+<text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">30</text>
+<rect x="172.6" y="102.6" width="452.8" height="310.8" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_58fa6160-aa1b-4bfc-9cf8-f95b912c541a</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">bridge — local XZ</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tripo_node_dbe4be41-6500-4b1b-9095-a56bf0fe3a5a` | `tripo_mesh_dbe4be41-6500-4b1b-9095-a56bf0fe3a5a` | 1 | 6424 | (0, 2.9, 0) | (-3.619, 0, -11.488) → (3.619, 5.8, 11.488) | bridge |
+| `tripo_node_58fa6160-aa1b-4bfc-9cf8-f95b912c541a` | `tripo_mesh_58fa6160-aa1b-4bfc-9cf8-f95b912c541a` | 1 | 4125 | (0, 2.8, 0) | (-6.6, 0, -21) → (6.6, 5.6, 21) | bridge |
 
