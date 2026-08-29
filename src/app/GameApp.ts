@@ -8,7 +8,7 @@ import { type CarId } from "../data/cars";
 import { debugPadLevel } from "../data/debugPad";
 import { CUP_LEVELS, freeLevels, trainingLevels } from "../data/levels";
 import { DevTools } from "../dev/DevTools";
-import { bindKeyboard, sampleActions, touchState } from "../input/actions";
+import { bindKeyboard, keyHeld, sampleActions, touchState } from "../input/actions";
 import { defaultFocusIndex, nextFocusIndex, risingEdge, type UiNavDir } from "../input/uiNav";
 import { showcaseCarId, showcaseKit } from "../meta/carShop";
 import { showcasePaint, showcaseSticker } from "../meta/cosmeticsShop";
@@ -26,7 +26,7 @@ import { generateAdhocLevel, randomSeed, type AdhocLength } from "../track/adhoc
 import type { LevelDefinition } from "../track/types";
 import { renderAdhocHtml } from "../ui/adhocHtml";
 import { renderGarageHtml } from "../ui/garageHtml";
-import { garageOrbitAxesForPointer } from "../render/garageOrbit";
+import { garageInspectOrbitAxes, garageOrbitAxesForPointer } from "../render/garageOrbit";
 import {
   meshInspectDragExceeded,
   meshInspectDragMode,
@@ -34,7 +34,7 @@ import {
   meshInspectPointerAction,
   meshInspectWantParent,
   normalizeMeshInspectScreenRect,
-  type MeshInspectBoxEdge,
+  type MeshInspectBoxCorner,
 } from "../core/meshInspect";
 import { renderMenuHtml } from "../ui/menuHtml";
 import { renderCupPickHtml, renderFreePickHtml, renderTrainingPickHtml } from "../ui/modePickHtml";
@@ -56,6 +56,37 @@ import {
   shouldPreservePanelScroll,
   writePanelScrollTop,
 } from "../ui/panelScroll";
+import {
+  addPlacement,
+  deletePlacement,
+  EDITOR_NUDGE_SPEED,
+  EDITOR_YAW_STEP,
+  flyFlatForward,
+  flyFlatRight,
+  formatTrackEditorPatch,
+  movePlacement,
+  nudgePlacement,
+  restoreTrackEditor,
+  selectPlacement,
+  stepFlyCamera,
+  yawPlacement,
+  type FlyCamera,
+  type TrackEditorDoc,
+} from "../core/trackEditor";
+import { copyTextToClipboard } from "../dev/cheats";
+import {
+  sampleTrackEditorFly,
+  sampleTrackEditorPlanarAxes,
+  sampleTrackEditorVerticalAxis,
+} from "../input/trackEditorFly";
+import { renderTrackEditorHtml, isTrackEditorPaletteKind } from "../ui/trackEditorHtml";
+import { isTrackEditorPanoramaKind } from "../data/trackEditorCatalog";
+import {
+  beginTrackEditor,
+  endTrackEditor,
+  trackEditorLevel,
+  trackEditorTrackOptions,
+} from "./trackEditorFlow";
 import { StylePopupQueue } from "../ui/stylePopups";
 
 export class GameApp {
@@ -84,6 +115,19 @@ export class GameApp {
     left: false,
     right: false,
   };
+  private editorDoc: TrackEditorDoc | null = null;
+  private editorSnap: TrackEditorDoc | null = null;
+  private editorFly: FlyCamera | null = null;
+  private editorCopied = false;
+  private editorLook = { yaw: 0, pitch: 0 };
+  private editorTouchFly = { forward: 0, right: 0 };
+  private editorDrag: {
+    pointerId: number;
+    button: number;
+    startX: number;
+    startY: number;
+    mode: "pending" | "look" | "move";
+  } | null = null;
 
   constructor(canvas: HTMLCanvasElement, uiRoot: HTMLElement) {
     this.uiRoot = uiRoot;
@@ -112,6 +156,7 @@ export class GameApp {
         this.uiRoot.querySelector(".settings-host")?.remove();
         this.finishCelebrate = null;
         this.stylePops.clear();
+        if (this.screen === "trackEditor") this.leaveTrackEditor({ render: false });
         void this.beginRace(debugPadLevel());
       },
       onUiRefresh: () => {
@@ -127,10 +172,10 @@ export class GameApp {
       setEquippedParts: (parts) => {
         this.race?.setPlayerParts(parts);
       },
-      canMeshInspect: () => this.screen !== "race",
+      canMeshInspect: () => this.screen !== "race" && this.screen !== "trackEditor",
       isMeshInspect: () => this.renderer.isMeshInspect(),
       setMeshInspect: (on) => {
-        if (on && this.screen === "race") return;
+        if (on && (this.screen === "race" || this.screen === "trackEditor")) return;
         this.renderer.setMeshInspect(on);
       },
       isMeshInspectEdit: () => this.renderer.isMeshInspectEdit(),
@@ -153,10 +198,23 @@ export class GameApp {
       clearMeshInspectEdge: () => this.renderer.clearMeshInspectEdge(),
       isMeshInspectBoxPaint: () => this.renderer.isMeshInspectBoxPaint(),
       setMeshInspectBoxPaint: (on) => this.renderer.setMeshInspectBoxPaint(on),
+      meshInspectOrbitMode: () => this.renderer.meshInspectOrbitMode(),
+      setMeshInspectOrbitMode: (mode) => this.renderer.setMeshInspectOrbitMode(mode),
       meshInspectBox: () => this.renderer.meshInspectBox(),
+      meshInspectBoxes: () => this.renderer.meshInspectBoxes(),
+      meshInspectBoxText: () => this.renderer.meshInspectBoxText(),
       clearMeshInspectBox: () => this.renderer.clearMeshInspectBox(),
       meshInspectBoxCanReset: () => this.renderer.meshInspectBoxCanReset(),
       resetMeshInspectBox: () => this.renderer.resetMeshInspectBox(),
+      isMeshInspectEngineHidden: () => this.renderer.isMeshInspectEngineHidden(),
+      toggleMeshInspectEngineHidden: () => {
+        this.renderer.toggleMeshInspectEngineHidden();
+      },
+      isTrackEditor: () => this.screen === "trackEditor",
+      toggleTrackEditor: () => {
+        if (this.screen === "trackEditor") this.leaveTrackEditor();
+        else void this.enterTrackEditor();
+      },
     });
     this.renderUi();
   }
@@ -164,7 +222,10 @@ export class GameApp {
   private onContextMenu(e: MouseEvent, canvas: HTMLCanvasElement): void {
     const target = e.target;
     if (target instanceof Node && (target === canvas || canvas.contains(target))) {
-      if (this.renderer.isMeshInspect() || this.screen === "garage") return;
+      if (this.renderer.isMeshInspect() || this.screen === "garage" || this.screen === "trackEditor") {
+        e.preventDefault();
+        return;
+      }
     }
     e.preventDefault();
     this.openSettings();
@@ -252,7 +313,7 @@ export class GameApp {
         startY?: number;
         hitId?: string | null;
         wantParent?: boolean;
-        boxEdge?: MeshInspectBoxEdge | null;
+        boxCorner?: MeshInspectBoxCorner | null;
       }
     >();
 
@@ -295,11 +356,39 @@ export class GameApp {
       }
     };
 
+    const inspectCtrl = (e: { ctrlKey: boolean }): boolean =>
+      e.ctrlKey || keyHeld("ControlLeft") || keyHeld("ControlRight");
+
     canvas.addEventListener("contextmenu", (e) => {
-      if (this.renderer.isMeshInspect() || this.screen === "garage") e.preventDefault();
+      if (this.renderer.isMeshInspect() || this.screen === "garage" || this.screen === "trackEditor") {
+        e.preventDefault();
+      }
     });
 
     canvas.addEventListener("pointerdown", (e) => {
+      if (this.screen === "trackEditor") {
+        e.preventDefault();
+        try {
+          canvas.setPointerCapture(e.pointerId);
+        } catch {
+          /* ignore */
+        }
+        pointers.set(e.pointerId, {
+          x: e.clientX,
+          y: e.clientY,
+          type: e.pointerType,
+          button: e.button,
+        });
+        this.editorDrag = {
+          pointerId: e.pointerId,
+          button: e.button,
+          startX: e.clientX,
+          startY: e.clientY,
+          mode: e.button === 2 ? "look" : "pending",
+        };
+        canvas.classList.toggle("is-orbiting", true);
+        return;
+      }
       if (this.renderer.isMeshInspect()) {
         const handle = this.renderer.pickMeshInspectBoxHandle(e.clientX, e.clientY, canvas);
         const action = meshInspectPointerAction(e.button, {
@@ -309,7 +398,14 @@ export class GameApp {
           hasBox: Boolean(this.renderer.meshInspectBox()),
           hitHandle: Boolean(handle),
           shiftKey: e.shiftKey,
+          ctrlKey: inspectCtrl(e),
+          orbitMode: this.renderer.meshInspectOrbitMode(),
         });
+        if (action === "menu") {
+          e.preventDefault();
+          this.dev.openMeshInspectOrbitMenu(e.clientX, e.clientY);
+          return;
+        }
         if (action === "copy") {
           e.preventDefault();
           this.dev.copyMeshInspectPanel();
@@ -329,7 +425,7 @@ export class GameApp {
           startY: e.clientY,
           hitId: hits[0]?.id ?? null,
           wantParent: meshInspectWantParent({ shift: e.shiftKey }),
-          boxEdge: handle,
+          boxCorner: handle,
         });
         canvas.setPointerCapture(e.pointerId);
         this.renderer.setGarageDragging(true);
@@ -355,6 +451,16 @@ export class GameApp {
     });
 
     canvas.addEventListener("pointermove", (e) => {
+      if (this.screen === "trackEditor") {
+        const prev = pointers.get(e.pointerId);
+        if (!prev) return;
+        const dx = e.clientX - prev.x;
+        const dy = e.clientY - prev.y;
+        prev.x = e.clientX;
+        prev.y = e.clientY;
+        this.onTrackEditorPointerMove(e, canvas, dx, dy, touchLikeCount());
+        return;
+      }
       if (this.renderer.isMeshInspect()) {
         const prev = pointers.get(e.pointerId);
         if (prev) {
@@ -373,13 +479,19 @@ export class GameApp {
               hasEdge: this.renderer.meshInspectHasEdge(),
               boxPaint: this.renderer.isMeshInspectBoxPaint(),
               hasBox: Boolean(this.renderer.meshInspectBox()),
-              hitHandle: Boolean(prev.boxEdge),
+              hitHandle: Boolean(prev.boxCorner),
               shiftKey: e.shiftKey,
+              ctrlKey: inspectCtrl(e),
+              orbitMode: this.renderer.meshInspectOrbitMode(),
             });
             canvas.classList.toggle("is-orbiting", prev.inspect === "orbit");
           }
           if (prev.inspect === "orbit" && (dx !== 0 || dy !== 0)) {
-            this.renderer.addGarageOrbitFromDrag(dx, dy, { yaw: true, pitch: true });
+            this.renderer.addGarageOrbitFromDrag(
+              dx,
+              dy,
+              garageInspectOrbitAxes(this.renderer.meshInspectOrbitMode(), inspectCtrl(e)),
+            );
           } else if (prev.inspect === "move") {
             this.renderer.dragMeshInspect(
               prev.x,
@@ -415,8 +527,8 @@ export class GameApp {
             this.dev.setMeshInspectPaintRect(
               normalizeMeshInspectScreenRect(prev.startX ?? prev.x, prev.startY ?? prev.y, e.clientX, e.clientY),
             );
-          } else if (prev.inspect === "resizeBox" && prev.boxEdge) {
-            this.renderer.resizeMeshInspectBox(prev.boxEdge, prev.x, prev.y, e.clientX, e.clientY, canvas);
+          } else if (prev.inspect === "resizeBox" && prev.boxCorner) {
+            this.renderer.resizeMeshInspectBox(prev.boxCorner, prev.x, prev.y, e.clientX, e.clientY, canvas);
           }
           prev.x = e.clientX;
           prev.y = e.clientY;
@@ -442,6 +554,12 @@ export class GameApp {
     });
 
     canvas.addEventListener("pointerup", (e) => {
+      if (this.screen === "trackEditor") {
+        this.onTrackEditorPointerUp(e, canvas);
+        release(e.pointerId);
+        if (pointers.size === 0) canvas.classList.toggle("is-orbiting", false);
+        return;
+      }
       if (this.renderer.isMeshInspect()) {
         const prev = pointers.get(e.pointerId);
         if (prev?.inspect === "paintBox") {
@@ -489,7 +607,12 @@ export class GameApp {
       document.activeElement instanceof HTMLInputElement ||
       document.activeElement instanceof HTMLTextAreaElement;
     const actions = sampleActions();
-    if (!typing && !this.renderer.isMeshInspect()) this.handleUiNav(actions);
+    if (!typing && !this.renderer.isMeshInspect() && this.screen !== "trackEditor") this.handleUiNav(actions);
+
+    if (this.screen === "trackEditor" && this.editorDoc && this.editorFly) {
+      this.stepTrackEditor(dt);
+      return;
+    }
 
     if (this.screen === "race" && this.race) {
       if (this.settingsOpen) {
@@ -544,12 +667,52 @@ export class GameApp {
   }
 
   private onMenuKeyDown(e: KeyboardEvent): void {
-    if (e.code === "F1" || e.code === "F2" || e.code === "F3" || e.code === "F4" || e.code === "F5" || e.code === "F6" || e.code === "F7") return;
+    if (e.code === "F1" || e.code === "F2" || e.code === "F3" || e.code === "F4" || e.code === "F5" || e.code === "F6" || e.code === "F7" || e.code === "F8") return;
     if (this.renderer.isMeshInspect()) return;
     if (this.settingsOpen) {
       if (e.code === "Escape") {
         e.preventDefault();
         this.closeSettings();
+      }
+      return;
+    }
+    if (this.screen === "trackEditor") {
+      if (e.code === "Escape") {
+        e.preventDefault();
+        this.leaveTrackEditor();
+        return;
+      }
+      const typingText =
+        document.activeElement instanceof HTMLTextAreaElement ||
+        (document.activeElement instanceof HTMLInputElement &&
+          document.activeElement.type === "text");
+      if (typingText) return;
+      if (
+        e.code === "ArrowUp" ||
+        e.code === "ArrowDown" ||
+        e.code === "ArrowLeft" ||
+        e.code === "ArrowRight" ||
+        e.code === "PageUp" ||
+        e.code === "PageDown"
+      ) {
+        e.preventDefault();
+        return;
+      }
+      if (e.code === "KeyR" && this.editorDoc?.selectedId) {
+        e.preventDefault();
+        this.editorDoc = yawPlacement(
+          this.editorDoc,
+          this.editorDoc.selectedId,
+          e.shiftKey ? -EDITOR_YAW_STEP : EDITOR_YAW_STEP,
+        );
+        this.scheduleRenderUi();
+        return;
+      }
+      if ((e.code === "Delete" || e.code === "Backspace") && this.editorDoc?.selectedId) {
+        e.preventDefault();
+        this.editorDoc = deletePlacement(this.editorDoc, this.editorDoc.selectedId);
+        this.scheduleRenderUi();
+        return;
       }
       return;
     }
@@ -662,6 +825,10 @@ export class GameApp {
       if (btn && !btn.disabled) btn.click();
     }
     if (edges.back) {
+      if (this.screen === "trackEditor") {
+        this.leaveTrackEditor();
+        return;
+      }
       if (escapeOpensSettings(this.screen)) this.openSettings();
       else {
         this.screen = "garage";
@@ -675,6 +842,7 @@ export class GameApp {
   }
 
   private async beginRace(level: LevelDefinition): Promise<void> {
+    if (this.screen === "trackEditor") this.leaveTrackEditor({ render: false });
     this.renderer.setMeshInspect(false);
     this.dev.setMeshInspectHits([]);
     cancelAnimationFrame(this.uiRenderFrame);
@@ -764,6 +932,12 @@ export class GameApp {
       this.syncGarageLook();
     } else if (this.screen === "race") {
       body = renderRaceChromeHtml(gameAudio.muted);
+    } else if (this.screen === "trackEditor" && this.editorDoc) {
+      body = renderTrackEditorHtml({
+        tracks: trackEditorTrackOptions(),
+        doc: this.editorDoc,
+        copied: this.editorCopied,
+      });
     } else if (this.screen === "results" && this.lastResult) {
       body = renderResultsHtml(this.lastResult);
     }
@@ -786,6 +960,7 @@ export class GameApp {
     this.uiRoot.innerHTML = `${statsPopup}${previewStamp}<div class="panel ${this.screen}" data-dev-name="panel.${this.screen}">${body}</div>`;
     this.wireUi({ preserveFocus: preserveScroll, focusIndex: savedFocusIndex });
     if (preserveScroll) writePanelScrollTop(this.uiRoot, savedScrollTop);
+    if (this.screen === "trackEditor") this.wireTrackEditorControls();
     this.dev.tagUi(this.uiRoot);
   }
 
@@ -878,6 +1053,33 @@ export class GameApp {
       this.leaveRaceToGarage();
       return;
     }
+    if (act === "editor-close") {
+      this.leaveTrackEditor();
+      return;
+    }
+    if (act === "editor-copy") {
+      this.copyTrackEditorPatch();
+      return;
+    }
+    if (act === "editor-reset") {
+      this.resetTrackEditor();
+      return;
+    }
+    if (act === "editor-kulisse" && this.editorDoc) {
+      this.editorDoc = { ...this.editorDoc, hideScenery: !this.editorDoc.hideScenery };
+      this.renderUi();
+      return;
+    }
+    if (act === "editor-delete" && this.editorDoc?.selectedId) {
+      this.editorDoc = deletePlacement(this.editorDoc, this.editorDoc.selectedId);
+      this.renderUi();
+      return;
+    }
+    if (act === "editor-palette" && isTrackEditorPaletteKind(btn.dataset.kind) && this.editorDoc) {
+      this.editorDoc = { ...this.editorDoc, paletteKind: btn.dataset.kind };
+      this.renderUi();
+      return;
+    }
     if (act === "toggle-easy-mode") {
       this.settings.easyMode = !this.settings.easyMode;
       writeGameSettings(this.settings);
@@ -942,4 +1144,186 @@ export class GameApp {
     if (out.render === false) return;
     this.scheduleRenderUi();
   }
+
+  private async enterTrackEditor(levelId?: string): Promise<void> {
+    this.settingsOpen = false;
+    this.uiRoot.querySelector(".settings-host")?.remove();
+    this.renderer.setMeshInspect(false);
+    this.dev.setMeshInspectHits([]);
+    this.finishCelebrate = null;
+    gameAudio.stopEngine();
+    const level = trackEditorLevel(levelId);
+    const started = await beginTrackEditor(this.renderer, this.save, level, this.stylePops);
+    this.race = started.session;
+    this.editorDoc = started.doc;
+    this.editorSnap = started.snap;
+    this.editorFly = started.fly;
+    this.editorCopied = false;
+    this.editorLook = { yaw: 0, pitch: 0 };
+    this.screen = "trackEditor";
+    this.renderUi();
+    this.dev.refreshOverlay();
+  }
+
+  private leaveTrackEditor(opts?: { render?: boolean }): void {
+    endTrackEditor(this.renderer, this.stylePops);
+    this.race = null;
+    this.editorDoc = null;
+    this.editorSnap = null;
+    this.editorFly = null;
+    this.editorCopied = false;
+    this.editorDrag = null;
+    this.screen = "garage";
+    if (opts?.render !== false) this.renderUi();
+    this.dev.refreshOverlay();
+  }
+
+  private resetTrackEditor(): void {
+    if (!this.editorSnap) return;
+    this.editorDoc = restoreTrackEditor(this.editorSnap);
+    this.editorCopied = false;
+    this.renderUi();
+  }
+
+  private copyTrackEditorPatch(): void {
+    if (!this.editorDoc) return;
+    const text = formatTrackEditorPatch(this.editorDoc);
+    void copyTextToClipboard(text).then((ok) => {
+      if (!ok) return;
+      this.editorCopied = true;
+      this.renderUi();
+    });
+  }
+
+  private stepTrackEditor(dt: number): void {
+    if (!this.editorDoc || !this.editorFly) return;
+    const actions = sampleActions();
+    const back = risingEdge(actions.uiBack, this.lastUi.back);
+    this.lastUi = {
+      confirm: actions.uiConfirm,
+      back: actions.uiBack,
+      up: actions.uiUp,
+      down: actions.uiDown,
+      left: actions.uiLeft,
+      right: actions.uiRight,
+    };
+    if (back) {
+      this.leaveTrackEditor();
+      return;
+    }
+
+    const planar = sampleTrackEditorPlanarAxes();
+    const vertical = sampleTrackEditorVerticalAxis();
+    const selectedId = this.editorDoc.selectedId;
+
+    if (selectedId && (planar.forward || planar.right || vertical)) {
+      const flat = flyFlatForward(this.editorFly.yaw);
+      const right = flyFlatRight(this.editorFly.yaw);
+      const speed = EDITOR_NUDGE_SPEED * Math.max(0, dt);
+      const dx = (flat.x * planar.forward + right.x * planar.right) * speed;
+      const dz = (flat.z * planar.forward + right.z * planar.right) * speed;
+      const dy = vertical * speed;
+      this.editorDoc = nudgePlacement(this.editorDoc, selectedId, dx, dy, dz);
+    } else {
+      const move = sampleTrackEditorFly(dt);
+      this.editorFly = stepFlyCamera(
+        this.editorFly,
+        {
+          forward: clampUnit(move.forward + this.editorTouchFly.forward),
+          right: clampUnit(move.right + this.editorTouchFly.right),
+          up: move.up,
+          lookYaw: move.lookYaw + this.editorLook.yaw,
+          lookPitch: move.lookPitch + this.editorLook.pitch,
+          sprint: move.sprint,
+        },
+        dt,
+      );
+    }
+
+    this.editorLook = { yaw: 0, pitch: 0 };
+    this.editorTouchFly = { forward: 0, right: 0 };
+    this.renderer.syncTrackEditor(this.editorDoc, this.editorFly);
+  }
+
+  private onTrackEditorPointerMove(
+    e: PointerEvent,
+    canvas: HTMLCanvasElement,
+    dx: number,
+    dy: number,
+    touchCount: number,
+  ): void {
+    const drag = this.editorDrag;
+    if (!drag) return;
+    const lookSens = 0.0045;
+    if (touchCount >= 2) {
+      this.editorLook.yaw -= dx * lookSens;
+      this.editorLook.pitch -= dy * lookSens;
+      this.editorTouchFly.forward = clampUnit(-dy * 0.12);
+      this.editorTouchFly.right = clampUnit(dx * 0.12);
+      return;
+    }
+    if (drag.mode === "pending" && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) > 6) {
+      drag.mode = this.editorDoc?.selectedId && drag.button === 0 ? "move" : "look";
+    }
+    if (drag.mode === "look" || drag.button === 2) {
+      this.editorLook.yaw -= dx * lookSens;
+      this.editorLook.pitch -= dy * lookSens;
+      return;
+    }
+    if (drag.mode === "move" && this.editorDoc?.selectedId) {
+      const g = this.renderer.trackEditorGroundAt(e.clientX, e.clientY, canvas);
+      if (g) this.editorDoc = movePlacement(this.editorDoc, this.editorDoc.selectedId, g.x, g.z);
+    }
+  }
+
+  private onTrackEditorPointerUp(e: PointerEvent, canvas: HTMLCanvasElement): void {
+    const drag = this.editorDrag;
+    this.editorDrag = null;
+    if (!drag || !this.editorDoc || drag.pointerId !== e.pointerId) return;
+    if (drag.mode !== "pending") return;
+    const pick = this.renderer.pickTrackEditor(e.clientX, e.clientY, canvas);
+    if (pick.kind === "prop") {
+      this.editorDoc = selectPlacement(this.editorDoc, pick.id);
+      this.scheduleRenderUi();
+      return;
+    }
+    if (pick.kind === "ground") {
+      this.editorDoc = addPlacement(this.editorDoc, this.editorDoc.paletteKind, pick.x, 0, pick.z, 0);
+      this.scheduleRenderUi();
+    }
+  }
+
+  private wireTrackEditorControls(): void {
+    const trackSel = this.uiRoot.querySelector<HTMLSelectElement>("[data-editor-track]");
+    trackSel?.addEventListener("change", () => {
+      void this.enterTrackEditor(trackSel.value);
+    });
+    trackSel?.addEventListener("keydown", (e) => e.stopPropagation());
+    const panoKind = this.uiRoot.querySelector<HTMLSelectElement>("[data-editor-pano-kind]");
+    panoKind?.addEventListener("change", () => {
+      if (!this.editorDoc || !isTrackEditorPanoramaKind(panoKind.value)) return;
+      this.editorDoc = { ...this.editorDoc, panoramaKind: panoKind.value };
+    });
+    panoKind?.addEventListener("keydown", (e) => e.stopPropagation());
+    const panoY = this.uiRoot.querySelector<HTMLInputElement>("[data-editor-pano-y]");
+    const panoYVal = this.uiRoot.querySelector("[data-editor-pano-y-val]");
+    panoY?.addEventListener("input", () => {
+      if (!this.editorDoc) return;
+      const n = Number(panoY.value);
+      this.editorDoc = { ...this.editorDoc, panoramaOffsetY: n };
+      if (panoYVal) panoYVal.textContent = n.toFixed(1);
+    });
+    const panoS = this.uiRoot.querySelector<HTMLInputElement>("[data-editor-pano-s]");
+    const panoSVal = this.uiRoot.querySelector("[data-editor-pano-s-val]");
+    panoS?.addEventListener("input", () => {
+      if (!this.editorDoc) return;
+      const n = Number(panoS.value);
+      this.editorDoc = { ...this.editorDoc, panoramaHeightScale: n };
+      if (panoSVal) panoSVal.textContent = n.toFixed(2);
+    });
+  }
+}
+
+function clampUnit(n: number): number {
+  return Math.max(-1, Math.min(1, n));
 }

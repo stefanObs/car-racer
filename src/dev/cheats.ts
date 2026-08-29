@@ -1,4 +1,4 @@
-/** Dev-only helpers for F1–F7 cheats (not player-facing). */
+/** Dev-only helpers for F1–F8 cheats (not player-facing). */
 
 /** Hides garage/HUD chrome so agents can screenshot the 3D canvas alone. */
 export const PHOTO_MODE_CLASS = "dev-photo-mode";

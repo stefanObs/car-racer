@@ -29,11 +29,16 @@ describe("car models and per-car kits", () => {
 
   it("applies class-innate nitro and grass mitigation in mergeStats", () => {
     const hot = mergeStats(CARS.donnerbuechse.stats, []);
-    expect(hot.nitroBonus).toBeGreaterThan(0.2);
+    expect(hot.nitroBonus).toBeGreaterThan(0.3);
     const buggy = mergeStats(CARS.kaeferkraft.stats, []);
-    expect(buggy.grassMitigation).toBeGreaterThan(0.1);
+    const armor = mergeStats(CARS.bunker.stats, []);
+    const pickup = mergeStats(CARS.bison.stats, []);
+    expect(buggy.grassMitigation).toBeGreaterThanOrEqual(armor.grassMitigation);
+    expect(armor.grassMitigation).toBeGreaterThan(pickup.grassMitigation);
+    expect(pickup.grassMitigation).toBeGreaterThan(0);
     const sport = mergeStats(CARS.blitz.stats, []);
     expect(sport.nitroBonus).toBe(0);
+    expect(sport.grassMitigation).toBe(0);
   });
 
   it("does not share owned parts between cars (RCA: old global inventory)", () => {

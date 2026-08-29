@@ -1,0 +1,114 @@
+- generic [ref=e2]:
+  - generic "Rennstrecke" [ref=e3]
+  - generic:
+    - complementary "Auto-Eigenschaften":
+      - generic:
+        - paragraph: Eigenschaften
+        - heading "Bison" [level=2]
+        - paragraph: Pick-up
+      - generic:
+        - generic:
+          - generic:
+            - generic: Beschleunigung
+            - generic: "36"
+          - meter "Beschleunigung"
+        - generic:
+          - generic:
+            - generic: Tempo
+            - generic: "36"
+          - meter "Tempo"
+        - generic:
+          - generic:
+            - generic: Grip
+            - generic: "36"
+          - meter "Grip"
+        - generic:
+          - generic:
+            - generic: Handling
+            - generic: "36"
+          - meter "Handling"
+        - generic:
+          - generic:
+            - generic: Federung
+            - generic: "36"
+          - meter "Federung"
+        - generic:
+          - generic:
+            - generic: Panzerung
+            - generic: "38"
+          - meter "Panzerung"
+        - generic:
+          - generic:
+            - generic: Gewicht
+            - generic: "57"
+          - meter "Gewicht"
+        - generic:
+          - generic:
+            - generic: Nitro
+            - generic: "1"
+          - meter "Nitro"
+      - paragraph: Keine Kombo — Teile kombinieren!
+    - generic: Vorschau
+    - generic [ref=e132]:
+      - banner [ref=e133]:
+        - generic [ref=e134]:
+          - paragraph [ref=e135]: Crash Circuit
+          - heading "Garage" [level=1] [ref=e136]
+          - paragraph [ref=e137]: Ziehen zum Drehen · rüst Teile · dann ab auf die Piste
+          - button "Einstellungen" [ref=e139] [cursor=pointer]
+        - generic [ref=e140]:
+          - generic [ref=e141]: Kasse
+          - strong [ref=e142]: CHF 0
+          - generic [ref=e143]: v0.3.282
+          - generic [ref=e144]: Mit KI erstellt · menschliche Anleitung
+      - region "Rennen starten" [ref=e145]:
+        - heading "Rennen" [level=2] [ref=e146]
+        - generic [ref=e147]:
+          - button "Cup" [ref=e148] [cursor=pointer]
+          - button "Freier Modus" [ref=e149] [cursor=pointer]
+          - button "Training" [ref=e150] [cursor=pointer]
+          - button "Ad-hoc" [ref=e151] [cursor=pointer]
+      - region "Autovorschau" [ref=e152]:
+        - heading "Vorschau" [level=2] [ref=e153]
+        - paragraph [ref=e154]:
+          - strong [ref=e155]: Vorschau
+          - text: — Bison ist noch nicht deins.
+        - paragraph [ref=e156]:
+          - strong [ref=e157]: Bison
+          - text: · Pick-up
+        - paragraph [ref=e158]: Mittlere Speed, schiebt andere weg — Gras nur etwas milder.
+        - button "Kaufen CHF 900" [disabled] [ref=e159]
+        - paragraph [ref=e160]:
+          - text: Rennen fährst du weiter mit
+          - strong [ref=e161]: Blitz
+          - text: ", bis du kaufst."
+        - generic [ref=e162]:
+          - button "Blitz Sportwagen Wählen" [active] [ref=e163] [cursor=pointer]:
+            - generic [ref=e164]: Blitz
+            - generic [ref=e165]: Sportwagen
+            - generic [ref=e166]: Wählen
+          - button "Bison Pick-up Vorschau · CHF 900" [ref=e167] [cursor=pointer]:
+            - generic [ref=e168]: Bison
+            - generic [ref=e169]: Pick-up
+            - generic [ref=e170]: Vorschau · CHF 900
+          - button "Käferkraft Buggy Anschauen · CHF 1'400" [ref=e171] [cursor=pointer]:
+            - generic [ref=e172]: Käferkraft
+            - generic [ref=e173]: Buggy
+            - generic [ref=e174]: Anschauen · CHF 1'400
+          - button "Donnerbüchse Hot Rod Anschauen · CHF 1'800" [ref=e175] [cursor=pointer]:
+            - generic [ref=e176]: Donnerbüchse
+            - generic [ref=e177]: Hot Rod
+            - generic [ref=e178]: Anschauen · CHF 1'800
+          - button "Bunker Panzerwagen Anschauen · CHF 2'400" [ref=e179] [cursor=pointer]:
+            - generic [ref=e180]: Bunker
+            - generic [ref=e181]: Panzerwagen
+            - generic [ref=e182]: Anschauen · CHF 2'400
+      - region "Tuning gesperrt" [ref=e183]:
+        - heading "Ausrüsten" [level=2] [ref=e184]
+        - paragraph [ref=e185]: Erst kaufen — dann Teile, Lack und Aufkleber für Bison.
+      - paragraph [ref=e186]: Tastatur · Controller · Tablet · Dev F1–F7
+      - generic [ref=e187]:
+        - button "Ton an" [ref=e188] [cursor=pointer]
+        - button "Einstellungen" [ref=e189] [cursor=pointer]
+        - button "Hilfe" [ref=e190] [cursor=pointer]
+  - generic: F1 Namen AUS · F2 CHF · F3 Ziel · F4 Raster · F6 Mesh · F5 Foto · F7 Teile · F8 Editor

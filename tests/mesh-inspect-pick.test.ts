@@ -183,11 +183,11 @@ describe("mesh inspect picking", () => {
     expect(greens).toEqual(["#12b886", "#2f9e44"]);
   });
 
-  it("picks a Kasten edge dot by screen proximity when the ray misses the sphere", () => {
+  it("picks a Kasten corner dot by screen proximity when the ray misses the sphere", () => {
     const handles = new Group();
     const mesh = new Mesh(new SphereGeometry(0.001, 4, 4), new MeshBasicMaterial());
-    mesh.name = "meshInspectBoxHandle-x-minY-minZ";
-    mesh.userData.boxEdge = "x-minY-minZ";
+    mesh.name = "meshInspectBoxHandle-minX-minY-minZ";
+    mesh.userData.boxCorner = "minX-minY-minZ";
     handles.add(mesh);
     handles.updateMatrixWorld(true);
     const camera = new PerspectiveCamera(50, 1, 0.1, 50);
@@ -198,7 +198,7 @@ describe("mesh inspect picking", () => {
     const x = (ndc.x * 0.5 + 0.5) * 200;
     const y = (-ndc.y * 0.5 + 0.5) * 200;
     const near = pickMeshInspectBoxHandle(handles, camera, x + 12, y + 8, fakeCanvas());
-    expect(near?.id).toBe("x-minY-minZ");
+    expect(near?.id).toBe("minX-minY-minZ");
     const far = pickMeshInspectBoxHandle(handles, camera, x + 80, y + 80, fakeCanvas());
     expect(far).toBeNull();
   });

@@ -31,12 +31,15 @@ import type { GarageLook } from "./garageLook";
 import { buildGarageBay, GARAGE_PAD_CENTER, GARAGE_PAD_DECK_FALLBACK_Y, garagePadDeckY } from "./garageBay";
 import {
   applyGarageDragOrbit,
+  applyInspectCarOrbit,
   garageDisplayYaw,
   garageInspectLiftAmount,
   garageOrbitPivotY,
   garagePitchAfterInspectChange,
   GARAGE_PITCH_DEFAULT,
+  GARAGE_ROLL_DEFAULT,
   GARAGE_YAW_DEFAULT,
+  type GarageOrbitAxes,
 } from "./garageOrbit";
 import { mountGarageOrbitPivot } from "./garageOrbitPivot";
 import { carBodyWorldBox, carBodyWorldCenter, garagePadContactSnapDelta, seatGarageGroundBlob } from "./garageSit";
@@ -44,6 +47,7 @@ import {
   MESH_INSPECT_BOX_HANDLE_PREFIX,
   MESH_INSPECT_BOX_HANDLES_NAME,
   MESH_INSPECT_BOX_HELPER_NAME,
+  MESH_INSPECT_LOCKED_BOX_HELPER_NAME,
   MESH_INSPECT_EDGE_HELPER_NAME,
   MESH_INSPECT_MARKER_BLUE,
   MESH_INSPECT_MARKER_NAME,
@@ -85,25 +89,32 @@ import {
 } from "./meshInspectEdges";
 import type {
   MeshInspectBox,
-  MeshInspectBoxEdge,
+  MeshInspectBoxCorner,
   MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectDragMode,
   MeshInspectHit,
+  MeshInspectOrbitMode,
   MeshInspectSelection,
   MeshInspectTool,
 } from "../core/meshInspect";
 import {
   cloneMeshInspectBox,
-  formatMeshInspectBox,
-  MESH_INSPECT_BOX_EDGES,
+  formatMeshInspectBoxes,
+  listedMeshInspectBoxes,
+  MESH_INSPECT_BOX_CORNERS,
   MESH_INSPECT_BOX_HANDLE_RADIUS,
   meshInspectBoxChanged,
-  meshInspectBoxEdgeLocal,
+  meshInspectBoxCornerLocal,
   normalizeMeshInspectScreenRect,
-  resizeMeshInspectBoxByEdge,
+  popActiveMeshInspectBox,
+  pushActiveMeshInspectBox,
+  resizeMeshInspectBoxByCorner,
 } from "../core/meshInspect";
 import { collectMeshInspectPatch, meshInspectPatchText } from "./meshInspectPatch";
+import { DONNER_ENGINE_BAY_FILL_NAME, DONNER_STOCK_ENGINE_BOXES, inDonnerStockEngineHalo, isDonnerStockEngineObject } from "./donnerEngineBox";
+import { hideFacesInMeshSpaceBox, restoreHiddenMeshFaces } from "./hideMeshSpaceBox";
+import { buildDonnerEngineBayFill } from "./carPartBuilders";
 
 export type { GarageLook } from "./garageLook";
 
@@ -129,6 +140,7 @@ export class GaragePresenter {
   private pendingGarageLookKey: string | null = null;
   private garageYaw = GARAGE_YAW_DEFAULT;
   private garagePitch = GARAGE_PITCH_DEFAULT;
+  private garageRoll = GARAGE_ROLL_DEFAULT;
   private garageDragging = false;
   private garagePitchInspect = false;
   private garageSitY = 0;
@@ -148,12 +160,17 @@ export class GaragePresenter {
   private meshInspectEdge: PickedMeshEdge | null = null;
   private meshInspectEdgeHelper: Line | null = null;
   private meshInspectBoxPaint = false;
+  private inspectOrbitMode: MeshInspectOrbitMode = "turn";
   private meshInspectBox: MeshInspectBox | null = null;
   private meshInspectBoxHome: MeshInspectBox | null = null;
+  private meshInspectLockedBoxes: MeshInspectBox[] = [];
   private readonly meshInspectBox3 = new Box3();
   private meshInspectBoxHelper: Box3Helper | null = null;
+  private meshInspectLockedHelpers: Box3Helper[] = [];
+  private readonly meshInspectLockedBox3s: Box3[] = [];
   private meshInspectBoxHandles: Group | null = null;
-  private meshInspectBoxHover: MeshInspectBoxEdge | null = null;
+  private meshInspectBoxHover: MeshInspectBoxCorner | null = null;
+  private meshInspectEngineHidden = false;
   private idlePaint = "#e03131";
   private idleModelId: CarId = "blitz";
   private readonly host: GaragePresenterHost;
@@ -235,8 +252,9 @@ export class GaragePresenter {
     visual.root.userData.blitzSitY = this.garageSitY;
     scene.add(this.group);
     this.meshInspectHidden.length = 0;
+    this.meshInspectEngineHidden = false;
     this.clearMeshInspectSelection();
-    this.clearMeshInspectBox();
+    this.wipeMeshInspectBoxes();
     if (import.meta.env.DEV) {
       const w = window as unknown as {
         __idleCar?: Group;
@@ -307,10 +325,29 @@ export class GaragePresenter {
     this.applyOrbitPose();
   }
 
-  addOrbitFromDrag(deltaXPx: number, deltaYPx: number, axes?: { yaw: boolean; pitch: boolean }): void {
-    const next = applyGarageDragOrbit(this.garageYaw, this.garagePitch, deltaXPx, deltaYPx, axes);
+  addOrbitFromDrag(deltaXPx: number, deltaYPx: number, axes?: GarageOrbitAxes): void {
+    if (this.meshInspect && this.idleOrbit) {
+      applyInspectCarOrbit(
+        this.idleOrbit,
+        this.host.camera,
+        deltaXPx,
+        deltaYPx,
+        axes ?? { yaw: true, pitch: true, roll: false },
+      );
+      return;
+    }
+    const next = applyGarageDragOrbit(
+      this.garageYaw,
+      this.garagePitch,
+      deltaXPx,
+      deltaYPx,
+      axes,
+      undefined,
+      this.garageRoll,
+    );
     this.garageYaw = next.yaw;
     this.garagePitch = next.pitch;
+    this.garageRoll = next.roll;
   }
 
   applyOrbitPose(): void {
@@ -318,10 +355,6 @@ export class GaragePresenter {
     if (!pivot) return;
     if (this.meshInspect) {
       pivot.position.set(this.garageOrbitX, this.garageSitCenterY, this.garageOrbitZ);
-      pivot.rotation.order = "YXZ";
-      pivot.rotation.y = this.garageYaw;
-      pivot.rotation.x = this.garagePitch;
-      pivot.rotation.z = 0;
       return;
     }
     pivot.position.set(
@@ -333,6 +366,24 @@ export class GaragePresenter {
     pivot.rotation.y = garageDisplayYaw(this.garageYaw, this.fxTime, this.garageDragging);
     pivot.rotation.x = this.garagePitchInspect ? this.garagePitch : GARAGE_PITCH_DEFAULT;
     pivot.rotation.z = 0;
+  }
+
+  private snapInspectPivotFromEuler(): void {
+    const pivot = this.idleOrbit;
+    if (!pivot) return;
+    pivot.rotation.order = "YXZ";
+    pivot.rotation.y = this.garageYaw;
+    pivot.rotation.x = this.garagePitch;
+    pivot.rotation.z = this.garageRoll;
+  }
+
+  meshInspectOrbitMode(): MeshInspectOrbitMode {
+    return this.meshInspect ? this.inspectOrbitMode : "turn";
+  }
+
+  setMeshInspectOrbitMode(mode: MeshInspectOrbitMode): void {
+    if (!this.meshInspect) return;
+    this.inspectOrbitMode = mode;
   }
 
   isMeshInspect(): boolean {
@@ -352,12 +403,18 @@ export class GaragePresenter {
       this.meshInspectTool = "move";
       this.meshInspectComponent = "object";
       this.meshInspectBoxPaint = false;
+      this.inspectOrbitMode = "turn";
+      this.garageRoll = GARAGE_ROLL_DEFAULT;
+      this.restoreMeshInspectEngine();
       this.clearMeshInspectSelection();
-      this.clearMeshInspectBox();
+      this.wipeMeshInspectBoxes();
     }
     this.applyMeshInspectView();
     this.applyOrbitPose();
-    if (on) this.frameMeshInspectCamera();
+    if (on) {
+      this.snapInspectPivotFromEuler();
+      this.frameMeshInspectCamera();
+    }
   }
 
   isMeshInspectEdit(): boolean {
@@ -411,9 +468,16 @@ export class GaragePresenter {
     return this.meshInspect ? this.meshInspectBox : null;
   }
 
+  meshInspectPaintedBoxes(): MeshInspectBox[] {
+    if (!this.meshInspect) return [];
+    return listedMeshInspectBoxes(this.meshInspectLockedBoxes, this.meshInspectBox);
+  }
+
   meshInspectBoxText(): string | null {
-    if (!this.meshInspect || !this.meshInspectBox) return null;
-    return formatMeshInspectBox(this.meshInspectBox);
+    if (!this.meshInspect) return null;
+    const boxes = listedMeshInspectBoxes(this.meshInspectLockedBoxes, this.meshInspectBox);
+    if (boxes.length === 0) return null;
+    return formatMeshInspectBoxes(boxes);
   }
 
   commitMeshInspectBox(
@@ -424,29 +488,33 @@ export class GaragePresenter {
     canvas: HTMLCanvasElement,
   ): MeshInspectBox | null {
     if (!this.meshInspect || !this.idleCar) {
-      this.clearMeshInspectBox();
+      this.wipeMeshInspectBoxes();
       return null;
     }
     const rect = normalizeMeshInspectScreenRect(x0, y0, x1, y1);
-    this.meshInspectBox = sampleMeshInspectBox(this.idleCar, this.host.camera, rect, canvas);
-    this.meshInspectBoxHome = this.meshInspectBox ? cloneMeshInspectBox(this.meshInspectBox) : null;
+    const next = sampleMeshInspectBox(this.idleCar, this.host.camera, rect, canvas);
+    if (!next) return this.meshInspectBox;
+    const stacked = pushActiveMeshInspectBox(this.meshInspectLockedBoxes, this.meshInspectBox, next);
+    this.meshInspectLockedBoxes = stacked.locked;
+    this.meshInspectBox = stacked.active;
+    this.meshInspectBoxHome = cloneMeshInspectBox(stacked.active);
     this.syncMeshInspectBoxHelper();
     return this.meshInspectBox;
   }
 
-  pickMeshInspectBoxHandle(clientX: number, clientY: number, canvas: HTMLCanvasElement): MeshInspectBoxEdge | null {
+  pickMeshInspectBoxHandle(clientX: number, clientY: number, canvas: HTMLCanvasElement): MeshInspectBoxCorner | null {
     const handles = this.meshInspectBoxHandles;
     if (!this.meshInspect || !this.meshInspectBox || !handles) {
       this.highlightMeshInspectBoxHandle(null);
       return null;
     }
-    const edge = pickMeshInspectBoxHandle(handles, this.host.camera, clientX, clientY, canvas);
-    this.highlightMeshInspectBoxHandle(edge);
-    return edge;
+    const corner = pickMeshInspectBoxHandle(handles, this.host.camera, clientX, clientY, canvas);
+    this.highlightMeshInspectBoxHandle(corner);
+    return corner;
   }
 
   resizeMeshInspectBox(
-    edge: MeshInspectBoxEdge,
+    corner: MeshInspectBoxCorner,
     fromClientX: number,
     fromClientY: number,
     toClientX: number,
@@ -457,7 +525,7 @@ export class GaragePresenter {
     const car = this.idleCar;
     if (!box || !car) return;
     const space = carMeshSpaceRoot(car);
-    const local = meshInspectBoxEdgeLocal(box, edge);
+    const local = meshInspectBoxCornerLocal(box, corner);
     space.updateMatrixWorld(true);
     space.localToWorld(this._inspectWorld.set(local.x, local.y, local.z));
     this._inspectFromNdc.copy(pointerToNdc(fromClientX, fromClientY, canvas));
@@ -469,21 +537,73 @@ export class GaragePresenter {
       this._inspectWorld,
     );
     worldDeltaToMeshDelta(space, this._inspectWorld, worldDelta, this._inspectMesh);
-    this.meshInspectBox = resizeMeshInspectBoxByEdge(box, edge, this._inspectMesh);
+    this.meshInspectBox = resizeMeshInspectBoxByCorner(box, corner, this._inspectMesh);
     this.syncMeshInspectBoxHelper();
   }
 
   clearMeshInspectBox(): boolean {
-    const had = this.meshInspectBox !== null || this.meshInspectBoxHelper !== null;
+    const had = this.meshInspectBox !== null || this.meshInspectLockedBoxes.length > 0;
+    if (!had) {
+      this.disposeMeshInspectBoxHelper();
+      return false;
+    }
+    const popped = popActiveMeshInspectBox(this.meshInspectLockedBoxes, this.meshInspectBox);
+    this.meshInspectLockedBoxes = popped.locked;
+    this.meshInspectBox = popped.active;
+    this.meshInspectBoxHome = popped.active ? cloneMeshInspectBox(popped.active) : null;
+    this.syncMeshInspectBoxHelper();
+    return true;
+  }
+
+  private wipeMeshInspectBoxes(): void {
+    this.meshInspectLockedBoxes = [];
     this.meshInspectBox = null;
     this.meshInspectBoxHome = null;
     this.disposeMeshInspectBoxHelper();
-    return had;
   }
 
   meshInspectBoxCanReset(): boolean {
     if (!this.meshInspect || !this.meshInspectBox || !this.meshInspectBoxHome) return false;
     return meshInspectBoxChanged(this.meshInspectBox, this.meshInspectBoxHome);
+  }
+
+  isMeshInspectEngineHidden(): boolean {
+    return this.meshInspect && this.meshInspectEngineHidden;
+  }
+
+  toggleMeshInspectEngineHidden(): boolean {
+    if (!this.meshInspect || !this.idleCar) return false;
+    if (this.meshInspectEngineHidden) {
+      this.restoreMeshInspectEngine();
+      return true;
+    }
+    const result = hideFacesInMeshSpaceBox(this.idleCar, DONNER_STOCK_ENGINE_BOXES, (p, mesh) =>
+      isDonnerStockEngineObject(mesh) && inDonnerStockEngineHalo(p),
+    );
+    this.meshInspectEngineHidden = result.meshes > 0 || result.faces > 0;
+    if (this.meshInspectEngineHidden) this.attachDonnerEngineBayFill();
+    return this.meshInspectEngineHidden;
+  }
+
+  private restoreMeshInspectEngine(): void {
+    this.removeDonnerEngineBayFill();
+    if (this.idleCar && this.meshInspectEngineHidden) restoreHiddenMeshFaces(this.idleCar);
+    this.meshInspectEngineHidden = false;
+  }
+
+  private attachDonnerEngineBayFill(): void {
+    if (!this.idleCar || this.idleModelId !== "donnerbuechse") return;
+    this.removeDonnerEngineBayFill();
+    const fill = buildDonnerEngineBayFill(this.idlePaint);
+    carMeshSpaceRoot(this.idleCar).add(fill);
+  }
+
+  private removeDonnerEngineBayFill(): void {
+    if (!this.idleCar) return;
+    const fill = this.idleCar.getObjectByName(DONNER_ENGINE_BAY_FILL_NAME);
+    if (!fill) return;
+    fill.removeFromParent();
+    disposeObject(fill);
   }
 
   resetMeshInspectBox(): boolean {
@@ -847,17 +967,51 @@ export class GaragePresenter {
     }
     if (this.meshInspectBoxHelper.parent !== space) space.add(this.meshInspectBoxHelper);
     this.meshInspectBoxHelper.visible = true;
+    this.syncLockedMeshInspectBoxHelpers(space);
     this.syncMeshInspectBoxHandles(space, box);
+  }
+
+  private syncLockedMeshInspectBoxHelpers(space: Object3D): void {
+    const locked = this.meshInspectLockedBoxes;
+    while (this.meshInspectLockedHelpers.length > locked.length) {
+      const helper = this.meshInspectLockedHelpers.pop()!;
+      helper.removeFromParent();
+      helper.geometry.dispose();
+      const mat = helper.material;
+      if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+      else mat.dispose();
+      this.meshInspectLockedBox3s.pop();
+    }
+    for (let i = 0; i < locked.length; i++) {
+      const box = locked[i]!;
+      let box3 = this.meshInspectLockedBox3s[i];
+      if (!box3) {
+        box3 = new Box3();
+        this.meshInspectLockedBox3s[i] = box3;
+      }
+      box3.min.set(box.min.x, box.min.y, box.min.z);
+      box3.max.set(box.max.x, box.max.y, box.max.z);
+      let helper = this.meshInspectLockedHelpers[i];
+      if (!helper) {
+        helper = new Box3Helper(box3, 0x6b8f4a);
+        helper.name = MESH_INSPECT_LOCKED_BOX_HELPER_NAME;
+        helper.raycast = () => {};
+        helper.frustumCulled = false;
+        this.meshInspectLockedHelpers[i] = helper;
+      }
+      if (helper.parent !== space) space.add(helper);
+      helper.visible = true;
+    }
   }
 
   private syncMeshInspectBoxHandles(space: Object3D, box: MeshInspectBox): void {
     const group = this.ensureMeshInspectBoxHandles();
     if (group.parent !== space) space.add(group);
     group.visible = true;
-    for (const edge of MESH_INSPECT_BOX_EDGES) {
-      const handle = group.getObjectByName(`${MESH_INSPECT_BOX_HANDLE_PREFIX}${edge.id}`);
+    for (const corner of MESH_INSPECT_BOX_CORNERS) {
+      const handle = group.getObjectByName(`${MESH_INSPECT_BOX_HANDLE_PREFIX}${corner.id}`);
       if (!handle) continue;
-      const local = meshInspectBoxEdgeLocal(box, edge);
+      const local = meshInspectBoxCornerLocal(box, corner);
       handle.position.set(local.x, local.y, local.z);
     }
     this.highlightMeshInspectBoxHandle(this.meshInspectBoxHover);
@@ -868,7 +1022,7 @@ export class GaragePresenter {
     const group = new Group();
     group.name = MESH_INSPECT_BOX_HANDLES_NAME;
     const geo = new SphereGeometry(MESH_INSPECT_BOX_HANDLE_RADIUS, 16, 12);
-    for (const edge of MESH_INSPECT_BOX_EDGES) {
+    for (const corner of MESH_INSPECT_BOX_CORNERS) {
       const mesh = new Mesh(
         geo,
         new MeshBasicMaterial({
@@ -878,8 +1032,8 @@ export class GaragePresenter {
           toneMapped: false,
         }),
       );
-      mesh.name = `${MESH_INSPECT_BOX_HANDLE_PREFIX}${edge.id}`;
-      mesh.userData.boxEdge = edge.id;
+      mesh.name = `${MESH_INSPECT_BOX_HANDLE_PREFIX}${corner.id}`;
+      mesh.userData.boxCorner = corner.id;
       mesh.frustumCulled = false;
       mesh.renderOrder = 12;
       group.add(mesh);
@@ -888,14 +1042,14 @@ export class GaragePresenter {
     return group;
   }
 
-  private highlightMeshInspectBoxHandle(edge: MeshInspectBoxEdge | null): void {
-    this.meshInspectBoxHover = edge;
+  private highlightMeshInspectBoxHandle(corner: MeshInspectBoxCorner | null): void {
+    this.meshInspectBoxHover = corner;
     const group = this.meshInspectBoxHandles;
     if (!group) return;
     for (const child of group.children) {
       if (!(child instanceof Mesh)) continue;
       const mat = child.material as MeshBasicMaterial;
-      const on = child.userData.boxEdge === edge?.id;
+      const on = child.userData.boxCorner === corner?.id;
       mat.color.setHex(on ? 0xff6b35 : 0xffe066);
     }
   }
@@ -910,6 +1064,15 @@ export class GaragePresenter {
       else mat.dispose();
       this.meshInspectBoxHelper = null;
     }
+    for (const locked of this.meshInspectLockedHelpers) {
+      locked.removeFromParent();
+      locked.geometry.dispose();
+      const mat = locked.material;
+      if (Array.isArray(mat)) mat.forEach((m) => m.dispose());
+      else mat.dispose();
+    }
+    this.meshInspectLockedHelpers.length = 0;
+    this.meshInspectLockedBox3s.length = 0;
     const handles = this.meshInspectBoxHandles;
     if (!handles) return;
     handles.removeFromParent();

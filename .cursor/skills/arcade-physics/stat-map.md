@@ -48,7 +48,12 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 
 Prefer asserting **relative** class/part diffs over absolute magic numbers:
 
-- Blitz accel ≫ Bunker
+- Blitz accel ≫ Bunker; Donnerbüchse accel ≥ Blitz / Käferkraft
+- Blitz topSpeed ≥ Donnerbüchse > Bison / Käferkraft ≫ Bunker
+- Käferkraft grassMitigation ≥ Bunker > Bison > Blitz / Donnerbüchse (never full remove)
+- Käferkraft suspension ≫ Bunker (Gras strong, hops still mediocre on Bunker)
+- Armor: Bunker ≥ Käferkraft ≫ Blitz; Masse: Bunker ≥ Bison ≫ Käferkraft / Blitz
+- Donnerbüchse nitroBonus unique peak among stock classes
 - `better_brakes` stops shorter mid-brake window
 - Low Grip → higher `car.drift` than high Grip
 - Blitz yawRate > Bunker at same **forward** speed

@@ -3,15 +3,17 @@ import type {
   MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectHit,
+  MeshInspectOrbitMode,
   MeshInspectScreenRect,
   MeshInspectSelection,
   MeshInspectTool,
 } from "../core/meshInspect";
 import {
-  formatMeshInspectBox,
+  formatMeshInspectBoxes,
   meshInspectComponentFromKey,
   meshInspectEscapeStep,
   meshInspectNudgeDelta,
+  meshInspectOrbitModeFromValue,
   meshInspectScaleFactor,
   meshInspectScreenRectStyle,
   meshInspectToolFromKey,
@@ -27,7 +29,7 @@ import {
   isPhotoMode,
   parseChfAmount,
 } from "./cheats";
-import { applyMeshInspectMode, meshInspectClipboardText, renderMeshInspectPanelHtml } from "./meshInspectPanel";
+import { applyMeshInspectMode, meshInspectClipboardText, renderMeshInspectOrbitMenuHtml, renderMeshInspectPanelHtml } from "./meshInspectPanel";
 import { allPartsForCar, renderDevPartsPanelHtml, toggleEquippedPart } from "./partsPanel";
 
 export type DevDialog = "none" | "money" | "finish" | "parts";
@@ -44,6 +46,8 @@ type DevHooks = {
   fieldSize: () => number;
   forceFinish: (place: number) => void;
   startDebugPad: () => void;
+  toggleTrackEditor: () => void;
+  isTrackEditor: () => boolean;
   onUiRefresh: () => void;
   canSwapParts: () => boolean;
   partsCarId: () => CarId | null;
@@ -72,15 +76,21 @@ type DevHooks = {
   clearMeshInspectEdge: () => boolean;
   isMeshInspectBoxPaint: () => boolean;
   setMeshInspectBoxPaint: (on: boolean) => void;
+  meshInspectOrbitMode: () => MeshInspectOrbitMode;
+  setMeshInspectOrbitMode: (mode: MeshInspectOrbitMode) => void;
   meshInspectBox: () => MeshInspectBox | null;
+  meshInspectBoxes: () => MeshInspectBox[];
+  meshInspectBoxText: () => string | null;
   clearMeshInspectBox: () => boolean;
   meshInspectBoxCanReset: () => boolean;
   resetMeshInspectBox: () => boolean;
+  isMeshInspectEngineHidden: () => boolean;
+  toggleMeshInspectEngineHidden: () => void;
 };
 
 /**
  * F1 name overlay, F2 CHF setter, F3 force-finish, F4 raster pad,
- * F4 raster pad, F5 Foto, F6 mesh studio, F7 Teile.
+ * F5 Foto, F6 mesh studio, F7 Teile, F8 Strecken-Editor.
  * Mounts outside the main UI so GameApp re-renders do not wipe dialogs.
  */
 export class DevTools {
@@ -115,6 +125,10 @@ export class DevTools {
     this.render();
   }
 
+  refreshOverlay(): void {
+    this.render();
+  }
+
   setMeshInspectHits(hits: MeshInspectHit[]): void {
     this.inspectHits = hits;
     this.syncInspectPanel();
@@ -127,9 +141,9 @@ export class DevTools {
 
   copyMeshInspectPanel(): void {
     if (!this.hooks.isMeshInspect()) return;
-    const box = this.hooks.meshInspectBox();
-    if (box) {
-      this.copyText(formatMeshInspectBox(box));
+    const boxes = this.hooks.meshInspectBoxes();
+    if (boxes.length > 0) {
+      this.copyText(this.hooks.meshInspectBoxText() ?? formatMeshInspectBoxes(boxes));
       return;
     }
     const text =
@@ -139,9 +153,28 @@ export class DevTools {
   }
 
   copyMeshInspectBox(): void {
-    const box = this.hooks.meshInspectBox();
-    if (!box) return;
-    this.copyText(formatMeshInspectBox(box));
+    const boxes = this.hooks.meshInspectBoxes();
+    if (boxes.length === 0) return;
+    this.copyText(this.hooks.meshInspectBoxText() ?? formatMeshInspectBoxes(boxes));
+  }
+
+  openMeshInspectOrbitMenu(clientX: number, clientY: number): void {
+    if (!this.hooks.isMeshInspect()) return;
+    this.closeMeshInspectOrbitMenu();
+    this.root.insertAdjacentHTML(
+      "beforeend",
+      renderMeshInspectOrbitMenuHtml({
+        x: clientX,
+        y: clientY,
+        mode: this.hooks.meshInspectOrbitMode(),
+        hasBox: this.hooks.meshInspectBoxes().length > 0,
+      }),
+    );
+    this.bindMeshInspectOrbitMenu();
+  }
+
+  closeMeshInspectOrbitMenu(): void {
+    this.root.querySelector(".dev-mesh-inspect-orbit-menu")?.remove();
   }
 
   private copyText(text: string): void {
@@ -208,6 +241,14 @@ export class DevTools {
       this.hooks.startDebugPad();
       return;
     }
+    if (e.code === "F8") {
+      e.preventDefault();
+      this.dialog = "none";
+      this.hooks.setMeshInspect(false);
+      this.hooks.toggleTrackEditor();
+      this.render();
+      return;
+    }
     if (e.code === "F6") {
       e.preventDefault();
       if (!this.hooks.canMeshInspect() && !this.hooks.isMeshInspect()) return;
@@ -221,6 +262,11 @@ export class DevTools {
       return;
     }
     if (this.hooks.isMeshInspect()) {
+      if (e.code === "Escape" && this.root.querySelector(".dev-mesh-inspect-orbit-menu")) {
+        e.preventDefault();
+        this.closeMeshInspectOrbitMenu();
+        return;
+      }
       if (e.code === "KeyB") {
         e.preventDefault();
         this.hooks.setMeshInspectBoxPaint(!this.hooks.isMeshInspectBoxPaint());
@@ -293,7 +339,7 @@ export class DevTools {
           hasSelection: Boolean(this.hooks.meshInspectSelection()),
           edit: this.hooks.isMeshInspectEdit(),
           boxPaint: this.hooks.isMeshInspectBoxPaint(),
-          hasBox: Boolean(this.hooks.meshInspectBox()),
+          hasBox: this.hooks.meshInspectBoxes().length > 0,
         });
         if (step === "clearBox") this.hooks.clearMeshInspectBox();
         else if (step === "leaveBoxPaint") this.hooks.setMeshInspectBoxPaint(false);
@@ -327,6 +373,7 @@ export class DevTools {
     const existing = this.root.querySelector(".dev-mesh-inspect-dock") ?? this.root.querySelector(".dev-mesh-inspect");
     if (!this.hooks.isMeshInspect()) {
       existing?.remove();
+      this.closeMeshInspectOrbitMenu();
       this.paintRect = null;
       this.syncBoxOverlay();
       applyMeshInspectMode(document.documentElement, false);
@@ -345,7 +392,10 @@ export class DevTools {
       dirtyCount: this.hooks.meshInspectDirtyCount(),
       boxPaint: this.hooks.isMeshInspectBoxPaint(),
       box: this.hooks.meshInspectBox(),
+      boxes: this.hooks.meshInspectBoxes(),
       boxCanReset: this.hooks.meshInspectBoxCanReset(),
+      engineHidden: this.hooks.isMeshInspectEngineHidden(),
+      orbitMode: this.hooks.meshInspectOrbitMode(),
     });
     if (existing) existing.outerHTML = html;
     else this.root.insertAdjacentHTML("beforeend", html);
@@ -374,12 +424,19 @@ export class DevTools {
       this.hooks.resetMeshInspectBox();
       this.syncInspectPanel();
     });
+    this.root.querySelector("[data-mesh-inspect-hide-engine]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.hooks.toggleMeshInspectEngineHidden();
+      this.syncInspectPanel();
+    });
     this.root.querySelector("[data-mesh-inspect-box]")?.addEventListener("click", (ev) => {
       ev.preventDefault();
       ev.stopPropagation();
       this.hooks.setMeshInspectBoxPaint(!this.hooks.isMeshInspectBoxPaint());
       this.syncInspectPanel();
     });
+    this.bindOrbitModeButtons(this.root.querySelector(".dev-mesh-inspect-dock") ?? this.root);
     this.root.querySelectorAll<HTMLButtonElement>("[data-mesh-inspect-tool]").forEach((btn) => {
       btn.addEventListener("click", (ev) => {
         ev.preventDefault();
@@ -406,6 +463,48 @@ export class DevTools {
       });
     });
     this.syncBoxOverlay();
+  }
+
+  private bindOrbitModeButtons(scope: ParentNode): void {
+    scope.querySelectorAll<HTMLButtonElement>("[data-mesh-inspect-orbit]").forEach((btn) => {
+      btn.addEventListener("click", (ev) => {
+        ev.preventDefault();
+        ev.stopPropagation();
+        const mode = meshInspectOrbitModeFromValue(btn.dataset.meshInspectOrbit);
+        if (!mode) return;
+        this.hooks.setMeshInspectOrbitMode(mode);
+        this.closeMeshInspectOrbitMenu();
+        this.syncInspectPanel();
+      });
+    });
+  }
+
+  private bindMeshInspectOrbitMenu(): void {
+    const menu = this.root.querySelector(".dev-mesh-inspect-orbit-menu");
+    if (!(menu instanceof HTMLElement)) return;
+    menu.addEventListener("pointerdown", (ev) => ev.stopPropagation());
+    this.bindOrbitModeButtons(menu);
+    menu.querySelector("[data-mesh-inspect-copy-hits]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.copyMeshInspectPanel();
+      this.closeMeshInspectOrbitMenu();
+    });
+    menu.querySelector("[data-mesh-inspect-copy-box]")?.addEventListener("click", (ev) => {
+      ev.preventDefault();
+      ev.stopPropagation();
+      this.copyMeshInspectBox();
+      this.closeMeshInspectOrbitMenu();
+    });
+    window.setTimeout(() => {
+      const close = (ev: Event): void => {
+        const t = ev.target;
+        if (t instanceof Node && menu.contains(t)) return;
+        this.closeMeshInspectOrbitMenu();
+        window.removeEventListener("pointerdown", close, true);
+      };
+      window.addEventListener("pointerdown", close, true);
+    }, 0);
   }
 
   private syncBoxOverlay(): void {
@@ -466,8 +565,9 @@ export class DevTools {
       else this.dialog = "none";
     }
 
+    const editor = this.hooks.isTrackEditor() ? "F8 Editor AN" : "F8 Editor";
     this.root.innerHTML = `
-      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster · ${mesh} · ${photo} · F7 Teile</div>
+      <div class="dev-badge" data-dev-name="dev.badge">${badge} · F2 CHF · F3 Ziel · F4 Raster · ${mesh} · ${photo} · F7 Teile · ${editor}</div>
       ${dialog}
     `;
     this.syncInspectPanel();

@@ -102,8 +102,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="562.2" y="348.5" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RR</text>
 <rect x="222.4" y="145.5" width="353.3" height="166.7" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="399.0" y="228.8" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockEngine</text>
-<circle cx="399.0" cy="152.9" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="406.0" y="146.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
+<circle cx="399.0" cy="258.0" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="406.0" y="252.0" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="399.0" cy="123.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="406.0" y="117.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">spike_bumper</text>
 <circle cx="399.0" cy="354.2" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -195,8 +195,8 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 <text x="259.1" y="313.3" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockWheel_RR</text>
 <rect x="315.3" y="214.6" width="257.6" height="136.2" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
 <text x="444.1" y="282.7" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">StockEngine</text>
-<circle cx="561.4" cy="351.2" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="568.4" y="345.2" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
+<circle cx="399.0" cy="369.0" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="406.0" y="363.0" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">big_engine</text>
 <circle cx="607.1" cy="362.3" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="614.1" y="356.3" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">spike_bumper</text>
 <circle cx="250.4" cy="352.4" r="4.5" fill="#12b886" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -240,7 +240,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 | Part id | German | Shop | GLB | Mount xyz (yaw, scale) |
 | --- | --- | --- | --- | --- |
-| `big_engine` | Großer Motor | yes | `public/models/parts/donnerbuechse-big_engine.glb` | (0, 0.16, 1.42) yaw 0° ×3.15 |
+| `big_engine` | Großer Motor | yes | `public/models/parts/donnerbuechse-big_engine.glb` | (0, 0, 0) yaw 0° ×1 — pose baked into GLB (F5 bay) |
 | `big_wheels` | Große Räder | yes | StockWheel scale | — |
 | `spike_bumper` | Spike-Stoßstange | yes | `public/models/parts/donnerbuechse-spike_bumper.glb` | (0, 0.06, 1.82) yaw 0° ×0.98 |
 | `better_brakes` | Bessere Bremsen | yes | procedural / missing | (0.88, 0.38, 1.52) yaw 0° ×0.95<br>(-0.88, 0.38, 1.52) yaw 180° ×0.95<br>(0.95, 0.5, -1.22) yaw 0° ×1.1<br>(-0.95, 0.5, -1.22) yaw 180° ×1.1 |
@@ -254,7 +254,7 @@ Orange boxes = mesh AABBs. Green dots = Teil **mount anchors** (`CAR_PART_LAYOUT
 
 ![public/models/parts/donnerbuechse-big_engine.glb](./img/part-donnerbuechse-big_engine.png)
 
-Root AABB (-0.302, 0, -0.295) → (0.302, 0.55, 0.295)
+Root AABB (-0.046, 0.157, 0.682) → (0.274, 0.551, 1.006)
 
 <svg xmlns="http://www.w3.org/2000/svg" width="760" height="520" viewBox="0 0 760 520">
 <rect x="0" y="0" width="760" height="520" fill="#f4efe6"/>
@@ -269,29 +269,34 @@ Root AABB (-0.302, 0, -0.295) → (0.302, 0.55, 0.295)
 <line x1="656.3" y1="36" x2="656.3" y2="480" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="742.0" y1="36" x2="742.0" y2="480" stroke="#c4b8a4" stroke-width="1"/>
 <line x1="56" y1="480.0" x2="742" y2="480.0" stroke="#c4b8a4" stroke-width="1"/>
-<line x1="56" y1="424.5" x2="742" y2="424.5" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="443.0" x2="742" y2="443.0" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="406.0" x2="742" y2="406.0" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="369.0" x2="742" y2="369.0" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="313.5" x2="742" y2="313.5" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="258.0" x2="742" y2="258.0" stroke="#339af0" stroke-width="2"/>
-<line x1="56" y1="202.5" x2="742" y2="202.5" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="332.0" x2="742" y2="332.0" stroke="#339af0" stroke-width="2"/>
+<line x1="56" y1="295.0" x2="742" y2="295.0" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="258.0" x2="742" y2="258.0" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="221.0" x2="742" y2="221.0" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="184.0" x2="742" y2="184.0" stroke="#c4b8a4" stroke-width="1"/>
 <line x1="56" y1="147.0" x2="742" y2="147.0" stroke="#ddd4c6" stroke-width="0.6"/>
-<line x1="56" y1="91.5" x2="742" y2="91.5" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="110.0" x2="742" y2="110.0" stroke="#ddd4c6" stroke-width="0.6"/>
+<line x1="56" y1="73.0" x2="742" y2="73.0" stroke="#ddd4c6" stroke-width="0.6"/>
 <line x1="56" y1="36.0" x2="742" y2="36.0" stroke="#c4b8a4" stroke-width="1"/>
 <text x="56.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-1</text>
 <text x="399.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
 <text x="742.0" y="496" text-anchor="middle" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
 <text x="48" y="484.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">-1</text>
-<text x="48" y="262.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
-<text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
-<rect x="295.3" y="192.5" width="207.3" height="131.0" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
-<text x="399.0" y="258.0" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_dbb7af69-4d88-4a22-b73a-385d226bbfa6</text>
+<text x="48" y="336.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">0</text>
+<text x="48" y="188.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">1</text>
+<text x="48" y="40.0" text-anchor="end" font-size="11" font-family="ui-monospace,monospace" fill="#1a1a1a">2</text>
+<rect x="383.1" y="183.2" width="110.0" height="47.8" fill="#f08c0033" stroke="#f08c00" stroke-width="1.6"/>
+<text x="438.1" y="207.1" text-anchor="middle" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tripo_node_66b5fcd6-0776-4d12-ba26-d16229a6d001</text>
 <text x="380" y="22" text-anchor="middle" font-size="14" font-family="ui-sans-serif,sans-serif" font-weight="800" fill="#1a1a1a">public/models/parts/donnerbuechse-big_engine.glb — top XZ</text>
 <text x="380" y="512" text-anchor="middle" font-size="11" font-family="ui-sans-serif,sans-serif" fill="#5c564c">+X → right · +Z → up · origin = red (+X) / blue (+Z) · meters</text>
 </svg>
 
 | Node | Mesh | Prims | Verts | Center xyz | AABB min → max | Materials |
 | --- | --- | --- | --- | --- | --- | --- |
-| `tripo_node_dbb7af69-4d88-4a22-b73a-385d226bbfa6` | `tripo_mesh_dbb7af69-4d88-4a22-b73a-385d226bbfa6` | 1 | 6243 | (0, 0.275, 0) | (-0.302, 0, -0.295) → (0.302, 0.55, 0.295) | Chrome |
+| `tripo_node_66b5fcd6-0776-4d12-ba26-d16229a6d001` | `tripo_mesh_66b5fcd6-0776-4d12-ba26-d16229a6d001` | 1 | 6452 | (0.114, 0.354, 0.844) | (-0.046, 0.157, 0.682) → (0.274, 0.551, 1.006) | Chrome |
 
 ## Part / extra `public/models/parts/donnerbuechse-spike_bumper.glb`
 

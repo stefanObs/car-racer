@@ -11,7 +11,7 @@ import {
 } from "three";
 import type {
   MeshInspectBox,
-  MeshInspectBoxEdge,
+  MeshInspectBoxCorner,
   MeshInspectCatalogEntry,
   MeshInspectHit,
   MeshInspectScreenRect,
@@ -19,7 +19,7 @@ import type {
 import {
   collectMeshInspectBox,
   MESH_INSPECT_BOX_HANDLE_PX,
-  meshInspectBoxEdgeFromKey,
+  meshInspectBoxCornerFromKey,
   meshInspectBoxSamplePoints,
 } from "../core/meshInspect";
 import { isUnderCarFx } from "./garageSit";
@@ -32,6 +32,7 @@ export const MESH_INSPECT_MARKER_NAME = "meshInspectMarker";
 export const MESH_INSPECT_SELECT_HELPER_NAME = "meshInspectSelectBox";
 export const MESH_INSPECT_EDGE_HELPER_NAME = "meshInspectEdgeLine";
 export const MESH_INSPECT_BOX_HELPER_NAME = "meshInspectBoxHelper";
+export const MESH_INSPECT_LOCKED_BOX_HELPER_NAME = "meshInspectLockedBoxHelper";
 export const MESH_INSPECT_BOX_HANDLES_NAME = "meshInspectBoxHandles";
 export const MESH_INSPECT_BOX_HANDLE_PREFIX = "meshInspectBoxHandle-";
 export const MESH_INSPECT_MARKER_RED = 0xff3b3b;
@@ -71,6 +72,7 @@ const SKIP_NAMES = new Set([
   MESH_INSPECT_EDGE_HELPER_NAME,
   MESH_INSPECT_BOX_HELPER_NAME,
   MESH_INSPECT_BOX_HANDLES_NAME,
+  "DonnerEngineBayFill",
 ]);
 
 const MARKER_LIFT = MESH_INSPECT_MARKER_RADIUS;
@@ -292,14 +294,16 @@ function sampleMapRgb(map: Texture, u: number, v: number): { r: number; g: numbe
   return pickFillRgbFromPatch(pix.data, pw, ph, px - sx, py - sy);
 }
 
-export function sampleHitRgb(hit: Intersection): { r: number; g: number; b: number } {
-  const mesh = hit.object as Mesh;
+export function sampleMeshAlbedoRgb(
+  mesh: Mesh,
+  u?: number,
+  v?: number,
+): { r: number; g: number; b: number } | null {
   const mat = Array.isArray(mesh.material) ? mesh.material[0] : mesh.material;
-  if (!mat) return { r: 160, g: 160, b: 160 };
+  if (!mat) return null;
   const map = "map" in mat ? (mat.map as Texture | null) : null;
-  const uv = hit.uv;
-  if (map && uv) {
-    const texel = sampleMapRgb(map, uv.x, uv.y);
+  if (map && u != null && v != null) {
+    const texel = sampleMapRgb(map, u, v);
     if (texel) {
       if ("color" in mat && mat.color) {
         _matColor.copy(mat.color as Color);
@@ -311,12 +315,19 @@ export function sampleHitRgb(hit: Intersection): { r: number; g: number; b: numb
       }
       return texel;
     }
+    return null;
   }
   if ("color" in mat && mat.color) {
     _matColor.copy(mat.color as Color);
     return { r: _matColor.r * 255, g: _matColor.g * 255, b: _matColor.b * 255 };
   }
-  return { r: 160, g: 160, b: 160 };
+  return null;
+}
+
+export function sampleHitRgb(hit: Intersection): { r: number; g: number; b: number } {
+  const mesh = hit.object as Mesh;
+  const uv = hit.uv;
+  return sampleMeshAlbedoRgb(mesh, uv?.x, uv?.y) ?? { r: 160, g: 160, b: 160 };
 }
 
 function skipPickObject(obj: Object3D): boolean {
@@ -331,8 +342,10 @@ export function isMeshInspectSkipped(obj: Object3D): boolean {
     obj.name === MESH_INSPECT_SELECT_HELPER_NAME ||
     obj.name === MESH_INSPECT_EDGE_HELPER_NAME ||
     obj.name === MESH_INSPECT_BOX_HELPER_NAME ||
+    obj.name === MESH_INSPECT_LOCKED_BOX_HELPER_NAME ||
     obj.name === MESH_INSPECT_BOX_HANDLES_NAME ||
-    obj.name.startsWith(MESH_INSPECT_BOX_HANDLE_PREFIX)
+    obj.name.startsWith(MESH_INSPECT_BOX_HANDLE_PREFIX) ||
+    obj.name === "DonnerEngineBayFill"
   ) {
     return true;
   }
@@ -425,9 +438,9 @@ export function sampleMeshInspectBox(
   });
 }
 
-function boxEdgeFromHandleObject(obj: Object3D): MeshInspectBoxEdge | null {
-  return meshInspectBoxEdgeFromKey(
-    String(obj.userData.boxEdge ?? obj.name.slice(MESH_INSPECT_BOX_HANDLE_PREFIX.length)),
+function boxCornerFromHandleObject(obj: Object3D): MeshInspectBoxCorner | null {
+  return meshInspectBoxCornerFromKey(
+    String(obj.userData.boxCorner ?? obj.name.slice(MESH_INSPECT_BOX_HANDLE_PREFIX.length)),
   );
 }
 
@@ -437,19 +450,19 @@ export function pickMeshInspectBoxHandle(
   clientX: number,
   clientY: number,
   canvas: { getBoundingClientRect: () => DOMRect },
-): MeshInspectBoxEdge | null {
+): MeshInspectBoxCorner | null {
   camera.updateMatrixWorld(true);
   handles.updateMatrixWorld(true);
   _raycaster.setFromCamera(pointerToNdc(clientX, clientY, canvas), camera);
   const hit = _raycaster.intersectObject(handles, true)[0];
-  if (hit) return boxEdgeFromHandleObject(hit.object);
+  if (hit) return boxCornerFromHandleObject(hit.object);
 
   const rect = canvas.getBoundingClientRect();
   const maxDistSq = MESH_INSPECT_BOX_HANDLE_PX * MESH_INSPECT_BOX_HANDLE_PX;
-  let best: MeshInspectBoxEdge | null = null;
+  let best: MeshInspectBoxCorner | null = null;
   let bestDistSq = maxDistSq;
   handles.traverse((obj) => {
-    if (!obj.userData.boxEdge) return;
+    if (!obj.userData.boxCorner) return;
     obj.getWorldPosition(_handleWorld);
     _handleWorld.project(camera);
     if (_handleWorld.z < -1 || _handleWorld.z > 1) return;
@@ -457,10 +470,10 @@ export function pickMeshInspectBoxHandle(
     const y = rect.top + (-_handleWorld.y * 0.5 + 0.5) * rect.height;
     const distSq = (x - clientX) ** 2 + (y - clientY) ** 2;
     if (distSq >= bestDistSq) return;
-    const edge = boxEdgeFromHandleObject(obj);
-    if (!edge) return;
+    const corner = boxCornerFromHandleObject(obj);
+    if (!corner) return;
     bestDistSq = distSq;
-    best = edge;
+    best = corner;
   });
   return best;
 }

@@ -1,15 +1,18 @@
 import type {
   MeshInspectBox,
-  MeshInspectBoxEdge,
+  MeshInspectBoxCorner,
   MeshInspectCatalogEntry,
   MeshInspectComponent,
   MeshInspectDragMode,
   MeshInspectHit,
+  MeshInspectOrbitMode,
   MeshInspectSelection,
   MeshInspectTool,
 } from "../core/meshInspect";
-import type { RaceSession } from "../sim/race";
+import type { FlyCamera, TrackEditorDoc } from "../core/trackEditor";
+import type { TrackEditorPick } from "./trackEditorPresenter";
 import type { FinishCelebrate } from "../core/finishCelebrate";
+import type { RaceSession } from "../sim/race";
 import { RaceRenderer } from "./RaceRenderer";
 import type { GarageLook } from "./garageLook";
 
@@ -25,7 +28,7 @@ export type GameRenderer = {
   addGarageOrbitFromDrag: (
     deltaXPx: number,
     deltaYPx: number,
-    axes?: { yaw: boolean; pitch: boolean },
+    axes?: { yaw: boolean; pitch: boolean; roll?: boolean },
   ) => void;
   isMeshInspect: () => boolean;
   setMeshInspect: (on: boolean) => void;
@@ -75,7 +78,11 @@ export type GameRenderer = {
   clearMeshInspectEdge: () => boolean;
   isMeshInspectBoxPaint: () => boolean;
   setMeshInspectBoxPaint: (on: boolean) => void;
+  meshInspectOrbitMode: () => MeshInspectOrbitMode;
+  setMeshInspectOrbitMode: (mode: MeshInspectOrbitMode) => void;
   meshInspectBox: () => MeshInspectBox | null;
+  meshInspectBoxes: () => MeshInspectBox[];
+  meshInspectBoxText: () => string | null;
   commitMeshInspectBox: (
     x0: number,
     y0: number,
@@ -87,9 +94,9 @@ export type GameRenderer = {
     clientX: number,
     clientY: number,
     canvas: HTMLCanvasElement,
-  ) => MeshInspectBoxEdge | null;
+  ) => MeshInspectBoxCorner | null;
   resizeMeshInspectBox: (
-    edge: MeshInspectBoxEdge,
+    corner: MeshInspectBoxCorner,
     fromClientX: number,
     fromClientY: number,
     toClientX: number,
@@ -99,7 +106,19 @@ export type GameRenderer = {
   clearMeshInspectBox: () => boolean;
   meshInspectBoxCanReset: () => boolean;
   resetMeshInspectBox: () => boolean;
+  isMeshInspectEngineHidden: () => boolean;
+  toggleMeshInspectEngineHidden: () => boolean;
   resetMeshInspectSelection: () => boolean;
+  isTrackEditor: () => boolean;
+  enterTrackEditor: (doc: TrackEditorDoc, fly: FlyCamera) => void;
+  exitTrackEditor: () => void;
+  syncTrackEditor: (doc: TrackEditorDoc, fly: FlyCamera) => void;
+  pickTrackEditor: (clientX: number, clientY: number, canvas: HTMLCanvasElement) => TrackEditorPick;
+  trackEditorGroundAt: (
+    clientX: number,
+    clientY: number,
+    canvas: HTMLCanvasElement,
+  ) => { x: number; z: number } | null;
   clearCars: () => void;
 };
 

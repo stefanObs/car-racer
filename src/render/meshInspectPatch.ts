@@ -2,7 +2,7 @@ import { BufferAttribute, Mesh, type Object3D } from "three";
 import type { CarId } from "../data/cars";
 import { CAR_MODELS } from "../data/carModels";
 import {
-  carPartIdFromObjectName,
+  carPartIdFromNodePath,
   formatMeshInspectPatch,
   MESH_INSPECT_PATCH_VERT_CAP,
   meshInspectPoseChanged,
@@ -58,8 +58,7 @@ function patchTarget(
   carRoot: Object3D,
 ): Pick<MeshInspectPatchNode, "file" | "apply" | "partId"> {
   const path = meshInspectNodePath(obj, carRoot);
-  const rootName = path.split(" / ")[0] ?? obj.name;
-  const partId = carPartIdFromObjectName(rootName) ?? carPartIdFromObjectName(obj.name);
+  const partId = carPartIdFromNodePath(path, obj.name);
   const carFile = `public${CAR_MODELS[carId].url}`;
   if (!partId) return { file: carFile, apply: "glb-node" };
   const partFile = `public${partGlbUrl(carId, partId as BlitzPartMeshId)}`;

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Strip Tripo look-sheet body-paint bleed (red/blue) from Donner Großer Motor
- * albedo → comic silver. Re-run after bake-car-parts-tripo for donnerbuechse.
+ * Lift Donner Großer Motor albedo to comic silver: matte grey metal + look-sheet
+ * body-paint bleed. Keeps black belt/outlines. Re-run after bake-car-parts-tripo.
  */
 import { writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -13,15 +13,11 @@ import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const path = join(root, "public/models/parts/donnerbuechse-big_engine.glb");
 
-function isTireOrRim(r, g, b) {
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  return max < 55 || (max - min < 18 && max < 90);
+function isOutlineOrBelt(r, g, b) {
+  return Math.max(r, g, b) < 50;
 }
 
-/** Tripo often bakes look-sheet body paint as chromatic red/orange on the engine. */
 function isBodyBleed(r, g, b) {
-  if (isTireOrRim(r, g, b)) return false;
   const max = Math.max(r, g, b);
   const min = Math.min(r, g, b);
   if (max < 40) return false;
@@ -29,6 +25,20 @@ function isBodyBleed(r, g, b) {
   if (r === max && chroma / max > 0.12 && r > g + 4 && r > b + 4) return true;
   if (b === max && chroma / max > 0.18 && b > r + 4 && b > g + 8) return true;
   return false;
+}
+
+/** Mid-value low-chroma clay / gunmetal that should read as comic chrome. */
+function isMatteGrey(r, g, b) {
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const lum = (r + g + b) / 3;
+  return max - min < 28 && lum >= 50 && lum < 185;
+}
+
+function toSilver(r, g, b) {
+  const lum = (r + g + b) / (3 * 255);
+  const shade = 0.62 + 0.38 * lum;
+  return [Math.round(220 * shade), Math.round(226 * shade), Math.round(232 * shade)];
 }
 
 const io = new NodeIO().registerExtensions(ALL_EXTENSIONS);
@@ -47,12 +57,12 @@ for (let i = 0; i < data.length; i += 4) {
   const r = data[i];
   const g = data[i + 1];
   const b = data[i + 2];
-  if (!isBodyBleed(r, g, b)) continue;
-  const lum = (r + g + b) / (3 * 255);
-  const shade = 0.55 + 0.45 * lum;
-  data[i] = Math.round(220 * shade);
-  data[i + 1] = Math.round(226 * shade);
-  data[i + 2] = Math.round(232 * shade);
+  if (isOutlineOrBelt(r, g, b)) continue;
+  if (!isBodyBleed(r, g, b) && !isMatteGrey(r, g, b)) continue;
+  const [sr, sg, sb] = toSilver(r, g, b);
+  data[i] = sr;
+  data[i + 1] = sg;
+  data[i + 2] = sb;
   changed++;
 }
 

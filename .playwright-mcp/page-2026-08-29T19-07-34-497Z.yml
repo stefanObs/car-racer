@@ -1,0 +1,33 @@
+- generic [ref=e2]:
+  - generic "Rennstrecke" [ref=e3]
+  - generic:
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - strong: Training
+              - generic "Runde 1 von 3":
+                - generic: Runde
+                - generic:
+                  - strong: "1"
+                  - text: /3
+            - generic: "Schaden: Tip-top"
+            - generic:
+              - generic: Nitro
+              - generic: Karosserie
+          - generic:
+            - 'img "Mini-Map: du und die anderen"':
+              - generic: DU
+        - status:
+          - generic: "3"
+      - button "Einstellungen" [ref=e223] [cursor=pointer]
+      - button "Ton an" [ref=e224] [cursor=pointer]
+      - generic "Touch-Steuerung" [ref=e225]:
+        - button "◀" [ref=e226] [cursor=pointer]
+        - button "Bremse / R" [ref=e227] [cursor=pointer]
+        - button "Gas" [ref=e228] [cursor=pointer]
+        - button "▶" [ref=e229] [cursor=pointer]
+        - button "Drift" [ref=e230] [cursor=pointer]
+        - button "Nitro" [ref=e231] [cursor=pointer]
+  - generic: F1 Namen AUS · F2 CHF · F3 Ziel · F4 Raster · F6 Mesh · F5 Foto · F7 Teile · F8 Editor

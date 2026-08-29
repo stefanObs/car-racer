@@ -7,7 +7,7 @@
  *
  * `apply: mount` nodes are printed, not written — update carParts.ts mounts.
  */
-import { readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NodeIO } from "@gltf-transform/core";
@@ -217,16 +217,34 @@ function nodePath(node) {
   return names.reverse().join(" / ");
 }
 
+function leafName(raw) {
+  return String(raw ?? "")
+    .split(" / ")
+    .at(-1)
+    ?.trim() ?? "";
+}
+
 function findNode(doc, entry) {
-  const named = doc.getRoot().listNodes().filter((n) => n.getName() === entry.name || nodePath(n).endsWith(entry.path));
-  const byPath = named.filter((n) => !entry.path || nodePath(n) === entry.path || nodePath(n).endsWith(entry.path));
+  const want = leafName(entry.name) || leafName(entry.path);
+  const named = doc.getRoot().listNodes().filter((n) => {
+    const name = n.getName();
+    const path = nodePath(n);
+    return (
+      name === entry.name ||
+      name === want ||
+      path === entry.path ||
+      path.endsWith(entry.path) ||
+      path.endsWith(want)
+    );
+  });
+  const byPath = named.filter((n) => !entry.path || nodePath(n) === entry.path || nodePath(n).endsWith(entry.path) || nodePath(n).endsWith(want));
   const pool = byPath.length ? byPath : named;
   if (typeof entry.sameNameIndex === "number" && pool[entry.sameNameIndex]) return pool[entry.sameNameIndex];
   return pool[0] ?? null;
 }
 
-function applyNodePose(node, to) {
-  const parent = parentWorldMatrix(node);
+function applyNodePose(node, to, extraParentWorld = identity()) {
+  const parent = mul(extraParentWorld, parentWorldMatrix(node));
   const inv = invert(parent);
   if (!inv) throw new Error(`Cannot invert parent of ${node.getName()}`);
   const localPos = xform(inv, to.x, to.y, to.z);
@@ -235,6 +253,23 @@ function applyNodePose(node, to) {
   node.setTranslation(localPos);
   node.setRotation(quatMul(quatConj(parentQ), worldQ));
   node.setScale([to.sx, to.sy, to.sz]);
+}
+
+function partIdFromPath(path, name, explicit) {
+  if (explicit) return explicit;
+  for (const seg of `${path} / ${name}`.split(" / ")) {
+    const m = /^carPart-([a-z0-9_]+?)(?:-\d+)?$/.exec(seg.trim());
+    if (m) return m[1];
+  }
+  return undefined;
+}
+
+function poseWorldMatrix(to) {
+  return compose([to.x, to.y, to.z], quatYXZ(to.pitch, to.yaw, to.roll), [to.sx, to.sy, to.sz]);
+}
+
+function partsGlbRel(car, partId) {
+  return `public/models/parts/${car}-${partId}.glb`;
 }
 
 function quatMul(a, b) {
@@ -297,38 +332,62 @@ function applyVerts(node, verts) {
 const arg = process.argv[2];
 const text = !arg || arg === "-" ? readFileSync(0, "utf8") : readFileSync(resolve(arg), "utf8");
 const patch = parsePatch(text);
-const byFile = new Map();
+const mountsByPart = new Map();
+const glbNodes = [];
 for (const node of patch.nodes) {
   if (node.apply === "mount") {
+    const partId = partIdFromPath(node.path, node.name, node.partId);
+    if (partId) mountsByPart.set(partId, node);
     console.log(
-      `MOUNT ${patch.car} part=${node.partId ?? "?"} origin -> ${node.to.x.toFixed(3)}, ${node.to.y.toFixed(3)}, ${node.to.z.toFixed(3)} (edit src/render/carParts.ts)`,
+      `MOUNT ${patch.car} part=${partId ?? "?"} origin -> ${node.to.x.toFixed(3)}, ${node.to.y.toFixed(3)}, ${node.to.z.toFixed(3)} (edit src/render/carParts.ts)`,
     );
     continue;
   }
-  if (!node.file.endsWith(".glb")) {
-    console.log(`SKIP ${node.name} file=${node.file}`);
-    continue;
-  }
-  const list = byFile.get(node.file) ?? [];
-  list.push(node);
-  byFile.set(node.file, list);
+  glbNodes.push(node);
 }
 
-for (const [rel, nodes] of byFile) {
+const docs = new Map();
+async function loadDoc(rel) {
+  if (docs.has(rel)) return docs.get(rel);
   const abs = join(rootDir, rel);
-  const doc = await io.read(abs);
-  for (const entry of nodes) {
-    const node = findNode(doc, entry);
-    if (!node) {
-      console.log(`MISSING ${entry.name} in ${rel}`);
-      continue;
-    }
-    applyNodePose(node, entry.to);
-    applyVerts(node, entry.verts);
-    console.log(`OK ${entry.name} in ${rel}`);
+  if (!existsSync(abs)) return null;
+  const rec = { doc: await io.read(abs), abs, dirty: false };
+  docs.set(rel, rec);
+  return rec;
+}
+
+for (const entry of glbNodes) {
+  const partId = partIdFromPath(entry.path, entry.name, entry.partId);
+  const candidates = [];
+  if (entry.file.endsWith(".glb")) candidates.push(entry.file);
+  if (partId) {
+    const partsRel = partsGlbRel(patch.car, partId);
+    if (!candidates.includes(partsRel)) candidates.push(partsRel);
   }
-  const bytes = await io.writeBinary(doc);
-  writeFileSync(abs, bytes);
+  let applied = false;
+  for (const rel of candidates) {
+    const rec = await loadDoc(rel);
+    if (!rec) continue;
+    const node = findNode(rec.doc, entry);
+    if (!node) continue;
+    const mount = partId ? mountsByPart.get(partId) : undefined;
+    const usedMount = Boolean(rel.includes("/parts/") && mount);
+    const extra = usedMount ? poseWorldMatrix(mount.to) : identity();
+    applyNodePose(node, entry.to, extra);
+    applyVerts(node, entry.verts);
+    rec.dirty = true;
+    applied = true;
+    console.log(`OK ${entry.name} in ${rel}${usedMount ? " (mount parent)" : ""}`);
+    break;
+  }
+  if (!applied) {
+    console.log(`MISSING ${entry.name} file=${entry.file}`);
+  }
+}
+
+for (const rec of docs.values()) {
+  if (!rec.dirty) continue;
+  writeFileSync(rec.abs, await io.writeBinary(rec.doc));
 }
 
 console.log(`car ${patch.car}: ${patch.nodes.length} node(s). Then: npm run docs:cheatsheets`);

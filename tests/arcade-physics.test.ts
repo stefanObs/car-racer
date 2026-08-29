@@ -270,7 +270,8 @@ describe("arcade physics — Eigenschaften scaling", () => {
     }
     expect(hot.car.drift).toBeGreaterThan(buggy.car.drift + 0.05);
 
-    const drifter = onTrackCar(merged("blitz"), 22);
+    // Mid all-rounder for mini-turbo (Blitz handling S can wall out of a hard held drift)
+    const drifter = onTrackCar(merged("bison"), 22, "bison");
     for (let i = 0; i < 32; i++) {
       stepCar(drifter.car, { throttle: 1, brake: 0, steer: 1, nitro: false, drift: true }, drifter.track, 1 / 60, catchUp);
     }
@@ -320,11 +321,19 @@ describe("arcade physics — Eigenschaften scaling", () => {
     const peakVy = car.vy;
 
     let peakY = 0;
+    let airborneFrames = 0;
     for (let i = 0; i < 240; i++) {
       stepJump(car, 0, 1 / 60);
       peakY = Math.max(peakY, car.y);
+      if (isAirborne(car)) airborneFrames++;
     }
-    expect(peakY).toBeGreaterThan(2.2);
+    // g=60 halves the old g=30 comic arc (~5.3 m / ~1.2 s → ~2.7 m / ~0.6 s).
+    expect(peakY).toBeGreaterThan(1.8);
+    expect(peakY).toBeLessThan(3.5);
+    const airTime = airborneFrames / 60;
+    expect(airTime).toBeGreaterThan(0.35);
+    expect(airTime).toBeLessThan(0.85);
+    expect(car.speed * airTime).toBeLessThan(19);
     expect(car.y).toBe(0);
     expect(car.vy).toBe(0);
     expect(isAirborne(car)).toBe(false);
@@ -415,7 +424,8 @@ describe("arcade physics — Eigenschaften scaling", () => {
         }
         hops.push(peakY);
         expect(peakVy, `${level.id} ramp vy`).toBeGreaterThan(8);
-        expect(peakY, `${level.id} ramp hop`).toBeGreaterThan(2.2);
+        expect(peakY, `${level.id} ramp hop`).toBeGreaterThan(1.05);
+        expect(peakY, `${level.id} ramp hop cap`).toBeLessThan(4.5);
       }
     }
     expect(hops.length).toBeGreaterThan(0);

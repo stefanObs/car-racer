@@ -1,0 +1,44 @@
+- generic [ref=e2]:
+  - generic "Rennstrecke" [ref=e3]
+  - generic [ref=e132]:
+    - heading "Training" [level=2] [ref=e133]
+    - paragraph [ref=e134]: Alle Strecken, allein — ohne Platzierung.
+    - generic [ref=e135]:
+      - button "Streckenplan Hafenstart 1. Hafenstart Einführung — Hafen-Oval (~840 m) mit leichten Bögen, Gras meiden." [active] [ref=e136] [cursor=pointer]:
+        - img "Streckenplan Hafenstart" [ref=e137]:
+          - generic [ref=e144]: Hafenstart
+        - generic [ref=e145]:
+          - strong [ref=e146]: 1. Hafenstart
+          - generic [ref=e147]: Einführung — Hafen-Oval (~840 m) mit leichten Bögen, Gras meiden.
+      - 'button "Streckenplan Parabolbogen 2. Parabolbogen Tempo (~1,2 km): lange Gerade, riesiger Parabolbogen, enge Rückkehr — Strand-XL." [ref=e148] [cursor=pointer]':
+        - img "Streckenplan Parabolbogen" [ref=e149]:
+          - generic [ref=e157]: Parabolbogen
+        - generic [ref=e158]:
+          - strong [ref=e159]: 2. Parabolbogen
+          - generic [ref=e160]: "Tempo (~1,2 km): lange Gerade, riesiger Parabolbogen, enge Rückkehr — Strand-XL."
+      - 'button "Streckenplan Schikanenring 3. Schikanenring Technischer Ring (~1,1 km): Doppel-Schikanen — sichere Linie oder Hot Line (Öl)." [ref=e161] [cursor=pointer]':
+        - img "Streckenplan Schikanenring" [ref=e162]:
+          - generic [ref=e173]: Schikanenring
+        - generic [ref=e174]:
+          - strong [ref=e175]: 3. Schikanenring
+          - generic [ref=e176]: "Technischer Ring (~1,1 km): Doppel-Schikanen — sichere Linie oder Hot Line (Öl)."
+      - 'button "Streckenplan Omegatal 4. Omegatal Berg-Omega (~1,4 km): Omega-Doppelkurve, Wasserfall, Schanze auf der Mittelgerade." [ref=e177] [cursor=pointer]':
+        - img "Streckenplan Omegatal" [ref=e178]:
+          - generic [ref=e189]: Omegatal
+        - generic [ref=e190]:
+          - strong [ref=e191]: 4. Omegatal
+          - generic [ref=e192]: "Berg-Omega (~1,4 km): Omega-Doppelkurve, Wasserfall, Schanze auf der Mittelgerade."
+      - 'button "Streckenplan Kuppenfinale 5. Kuppenfinale Cup-Boss (~1,2 km): viele Kuppen, Schikanen, Engstellen und Schanzen." [ref=e193] [cursor=pointer]':
+        - img "Streckenplan Kuppenfinale" [ref=e194]:
+          - generic [ref=e206]: Kuppenfinale
+        - generic [ref=e207]:
+          - strong [ref=e208]: 5. Kuppenfinale
+          - generic [ref=e209]: "Cup-Boss (~1,2 km): viele Kuppen, Schikanen, Engstellen und Schanzen."
+      - 'button "Streckenplan Brückenkreuz 6. Brückenkreuz 3D-Überführung (~0,9 km): ∞-Layout — oben über die Brücke, unten durch die Unterführung." [ref=e210] [cursor=pointer]':
+        - img "Streckenplan Brückenkreuz" [ref=e211]:
+          - generic [ref=e218]: Brückenkreuz
+        - generic [ref=e219]:
+          - strong [ref=e220]: 6. Brückenkreuz
+          - generic [ref=e221]: "3D-Überführung (~0,9 km): ∞-Layout — oben über die Brücke, unten durch die Unterführung."
+    - button "Garage" [ref=e222] [cursor=pointer]
+  - generic: F1 Namen AUS · F2 CHF · F3 Ziel · F4 Raster · F6 Mesh · F5 Foto · F7 Teile · F8 Editor

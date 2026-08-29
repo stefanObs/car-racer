@@ -2,19 +2,27 @@
 import { describe, expect, it, beforeEach } from "vitest";
 import { applyEasyModeThrottle, loadGameSettings, writeGameSettings } from "../src/meta/gameSettings";
 
-describe("game settings easy mode", () => {
+describe("game settings easy mode + low damage", () => {
   beforeEach(() => {
     localStorage.clear();
   });
-  it("defaults easy mode off", () => {
+  it("defaults easy mode and low damage off", () => {
     expect(loadGameSettings().easyMode).toBe(false);
+    expect(loadGameSettings().lowDamageMode).toBe(false);
   });
 
   it("persists easy mode round-trip", () => {
-    writeGameSettings({ easyMode: true });
+    writeGameSettings({ easyMode: true, lowDamageMode: false });
     expect(loadGameSettings().easyMode).toBe(true);
-    writeGameSettings({ easyMode: false });
+    writeGameSettings({ easyMode: false, lowDamageMode: false });
     expect(loadGameSettings().easyMode).toBe(false);
+  });
+
+  it("persists low damage round-trip", () => {
+    writeGameSettings({ easyMode: false, lowDamageMode: true });
+    expect(loadGameSettings().lowDamageMode).toBe(true);
+    writeGameSettings({ easyMode: false, lowDamageMode: false });
+    expect(loadGameSettings().lowDamageMode).toBe(false);
   });
 
   it("forces full throttle when easy and not braking", () => {

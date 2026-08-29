@@ -174,9 +174,13 @@ describe("Equipped-part visuals (all cars)", () => {
     expect((bar.material as MeshBasicMaterial).color.getHex()).toBe(0xe03131);
     expect((tip.material as MeshBasicMaterial).color.getHex()).toBe(0xffffff);
     expect(CAR_PART_LAYOUTS.blitz.spike_bumper.tint).toBeUndefined();
-    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeGreaterThan(1.75);
-    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.z).toBeLessThan(2.05);
-    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]!.scale).toBeGreaterThan(0.9);
+    expect(BLITZ_PART_PLACEMENT.spike_bumper[0]).toMatchObject({
+      x: -0.01,
+      y: 0.108,
+      z: 1.755,
+      yaw: 0,
+      scale: 0.98,
+    });
   });
 
   it("keeps yellow/dark hazard stripes when recoloring spike-bar albedo", () => {
@@ -507,6 +511,16 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(existsSync("scripts/fix-kaeferkraft-lightweight.mjs")).toBe(true);
   });
 
+  it("bakes Käferkraft Heckspoiler mount from F5", () => {
+    const wing = CAR_PART_LAYOUTS.kaeferkraft.rear_spoiler.anchors[0]!;
+    expect(wing.x).toBeCloseTo(1.546, 3);
+    expect(wing.y).toBeCloseTo(1.032, 3);
+    expect(wing.z).toBeCloseTo(-0.003, 3);
+    expect(wing.yaw).toBeCloseTo(-Math.PI / 2);
+    expect(wing.scale).toBeCloseTo(1.08);
+    expect(CAR_PART_LAYOUTS.kaeferkraft.rear_spoiler.preferGlb).toBe(true);
+  });
+
   it("tints Käferkraft Verstärkter Rahmen like the dark stock cage", () => {
     expect(CAR_PART_LAYOUTS.kaeferkraft.reinforced_frame.tint).toBe(ComicPalette.outline);
   });
@@ -682,16 +696,26 @@ describe("Equipped-part visuals (all cars)", () => {
     const L = CAR_PART_LAYOUTS.bunker;
     const eng = L.big_engine.anchors[0]!;
     expect(eng.snap).toBe(false);
-    expect(eng.y).toBeLessThan(1.18);
-    expect(eng.y).toBeGreaterThan(1.05);
+    expect(eng.x).toBeCloseTo(0.012, 3);
+    expect(eng.y).toBeCloseTo(1.265, 3);
+    expect(eng.z).toBeCloseTo(1.129, 3);
     // Mid-hood deck (look sheet panel 1) — not nose lip (~1.3+) or roof.
     expect(eng.z).toBeGreaterThan(1.05);
     expect(eng.z).toBeLessThan(1.25);
+    expect(eng.y).toBeLessThan(1.4);
     // Compact rebaked scoop (~0.62m span) near unity — not the old 1.25× full-hood block.
     expect(eng.scale).toBeGreaterThan(0.9);
     expect(eng.scale).toBeLessThan(1.2);
     expect(eng.scaleY ?? eng.scale).toBeGreaterThan(1.4);
     expect(eng.yaw).toBeCloseTo(0);
+
+    const spike = L.spike_bumper.anchors[0]!;
+    expect(spike.snap).toBe(false);
+    expect(spike.x).toBeCloseTo(-0.004, 3);
+    expect(spike.y).toBeCloseTo(0.44, 3);
+    expect(spike.z).toBeCloseTo(1.951, 3);
+    expect(spike.yaw).toBeCloseTo(0);
+    expect(spike.scale).toBeCloseTo(1.25);
 
     const frame = L.reinforced_frame.anchors[0]!;
     expect(frame.snap).toBe(false);
@@ -712,6 +736,14 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(light.anchors[0]!.y).toBeGreaterThan(0.4);
     expect(light.anchors[0]!.y).toBeLessThan(0.7);
     expect(existsSync("public/models/parts/bunker-lightweight_body.glb")).toBe(true);
+
+    const nitro = L.nitro_kit.anchors[0]!;
+    expect(nitro.snap).toBe(false);
+    expect(nitro.x).toBeCloseTo(-0.903, 3);
+    expect(nitro.y).toBeCloseTo(1.149, 3);
+    expect(nitro.z).toBeCloseTo(-1.159, 3);
+    expect(nitro.yaw).toBeCloseTo(-Math.PI / 2);
+    expect(nitro.scale).toBeCloseTo(1.15);
 
     const wing = L.rear_spoiler.anchors[0]!;
     expect(wing.snap).toBe(false);
@@ -763,11 +795,11 @@ describe("Equipped-part visuals (all cars)", () => {
     expect(existsSync("public/models/parts/donnerbuechse-lightweight_body.glb")).toBe(true);
 
     const eng = L.big_engine.anchors[0]!;
-    // Fill open bay (grille → cabin): forward of mid-bay, large enough to close the gap.
-    expect(eng.z).toBeGreaterThan(1.25);
-    expect(eng.z).toBeLessThan(1.55);
-    expect(eng.y).toBeLessThan(0.25);
-    expect(eng.scale).toBeGreaterThan(2.9);
+    // F5 bake put bay origin + shrink in the GLB; identity mount avoids double-apply.
+    expect(eng.x).toBeCloseTo(0, 3);
+    expect(eng.y).toBeCloseTo(0, 3);
+    expect(eng.z).toBeCloseTo(0, 3);
+    expect(eng.scale).toBe(1);
     expect(eng.yaw).toBeCloseTo(0);
   });
 

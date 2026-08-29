@@ -18,6 +18,7 @@ import {
   SRGBColorSpace,
   SphereGeometry,
   TextureLoader,
+  type Object3D,
   type Texture,
 } from "three";
 import type { BuiltTrack } from "../track/types";
@@ -287,6 +288,10 @@ function panoramaKind(theme: string): PanoramaKind {
   return "harbor";
 }
 
+export function themeToPanoramaKind(theme: string): PanoramaKind {
+  return panoramaKind(theme);
+}
+
 function paintHarborHorizon(ctx: CanvasRenderingContext2D, look: ThemeLook): void {
   const sky = hexCss(look.sky);
   const skyLow = hexCss(look.skyLow);
@@ -398,7 +403,10 @@ function paintHarborHorizon(ctx: CanvasRenderingContext2D, look: ThemeLook): voi
 
 /** Wide comic silhouette strip for a surrounding cylinder. */
 export function makeHorizonPanoramaTexture(theme: string, look: ThemeLook): Texture {
-  const kind = panoramaKind(theme);
+  return makeHorizonPanoramaTextureForKind(panoramaKind(theme), look);
+}
+
+export function makeHorizonPanoramaTextureForKind(kind: PanoramaKind, look: ThemeLook): Texture {
   if (kind === "harbor") {
     const strip = shippedPlate("harbor", "skyline");
     if (strip) return strip;
@@ -609,7 +617,10 @@ function paintHarborInfield(ctx: CanvasRenderingContext2D, look: ThemeLook): voi
 
 /** Infield disc texture — distant feel inside the loop (basin / hills / stands). */
 export function makeInfieldPanoramaTexture(theme: string, look: ThemeLook): Texture {
-  const kind = panoramaKind(theme);
+  return makeInfieldPanoramaTextureForKind(panoramaKind(theme), look);
+}
+
+export function makeInfieldPanoramaTextureForKind(kind: PanoramaKind, look: ThemeLook): Texture {
   const shipped = shippedPlate(kind, "infield");
   if (shipped) return shipped;
 
@@ -770,6 +781,8 @@ export function buildPanoramaSurround(track: BuiltTrack, theme: string, look: Th
   );
   ring.position.set(c.x, centerY, c.z);
   ring.name = "horizonPanorama";
+  ring.userData.homeY = centerY;
+  ring.userData.homeScaleY = 1;
   ring.renderOrder = 1;
   root.add(ring);
 
@@ -793,6 +806,46 @@ export function buildPanoramaSurround(track: BuiltTrack, theme: string, look: Th
   }
 
   return root;
+}
+
+/** F8 editor: raise/lower and stretch the horizon cylinder from its authored pose. */
+export function applyHorizonHeight(root: Object3D, offsetY: number, heightScale: number): void {
+  const ring = root.getObjectByName("horizonPanorama");
+  if (!ring) return;
+  if (typeof ring.userData.homeY !== "number") ring.userData.homeY = ring.position.y;
+  if (typeof ring.userData.homeScaleY !== "number") ring.userData.homeScaleY = ring.scale.y;
+  ring.position.y = ring.userData.homeY + offsetY;
+  ring.scale.y = ring.userData.homeScaleY * Math.max(0.15, heightScale);
+}
+
+function disposePanoramaMap(map: Texture | null | undefined): void {
+  if (!map || shippedPanorama.has(plateKeyFromTexture(map))) return;
+  map.dispose();
+}
+
+function plateKeyFromTexture(tex: Texture): string {
+  for (const [key, shared] of shippedPanorama.entries()) {
+    if (shared === tex) return key;
+  }
+  return "";
+}
+
+/** F8 editor: swap horizon + infield dome textures without rebuilding the track. */
+export function applyPanoramaKind(root: Object3D, kind: PanoramaKind, look: ThemeLook): void {
+  const ring = root.getObjectByName("horizonPanorama") as Mesh | undefined;
+  if (ring?.material instanceof MeshBasicMaterial) {
+    const next = makeHorizonPanoramaTextureForKind(kind, look);
+    disposePanoramaMap(ring.material.map);
+    ring.material.map = next;
+    ring.material.needsUpdate = true;
+  }
+  const disc = root.getObjectByName("infieldPanorama") as Mesh | undefined;
+  if (disc?.material instanceof MeshBasicMaterial) {
+    const next = makeInfieldPanoramaTextureForKind(kind, look);
+    disposePanoramaMap(disc.material.map);
+    disc.material.map = next;
+    disc.material.needsUpdate = true;
+  }
 }
 
 export function disposePanoramaMaps(root: Group): void {

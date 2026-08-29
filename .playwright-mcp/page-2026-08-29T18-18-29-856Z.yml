@@ -1,0 +1,175 @@
+- generic [ref=e2]:
+  - generic "Rennstrecke" [ref=e3]
+  - generic:
+    - complementary "Auto-Eigenschaften":
+      - generic:
+        - paragraph: Eigenschaften
+        - heading "Blitz" [level=2]
+        - paragraph: Sportwagen
+      - generic:
+        - generic:
+          - generic:
+            - generic: Beschleunigung
+            - generic: "46"
+          - meter "Beschleunigung"
+        - generic:
+          - generic:
+            - generic: Tempo
+            - generic: "55"
+          - meter "Tempo"
+        - generic:
+          - generic:
+            - generic: Grip
+            - generic: "36"
+          - meter "Grip"
+        - generic:
+          - generic:
+            - generic: Handling
+            - generic: "55"
+          - meter "Handling"
+        - generic:
+          - generic:
+            - generic: Federung
+            - generic: "14"
+          - meter "Federung"
+        - generic:
+          - generic:
+            - generic: Panzerung
+            - generic: "17"
+          - meter "Panzerung"
+        - generic:
+          - generic:
+            - generic: Gewicht
+            - generic: "20"
+          - meter "Gewicht"
+        - generic:
+          - generic:
+            - generic: Nitro
+            - generic: "1"
+          - meter "Nitro"
+      - paragraph: Keine Kombo — Teile kombinieren!
+    - generic [ref=e7]:
+      - banner [ref=e8]:
+        - generic [ref=e9]:
+          - paragraph [ref=e10]: Crash Circuit
+          - heading "Garage" [level=1] [ref=e11]
+          - paragraph [ref=e12]: Ziehen zum Drehen · rüst Teile · dann ab auf die Piste
+          - button "Einstellungen" [ref=e14] [cursor=pointer]
+        - generic [ref=e15]:
+          - generic [ref=e16]: Kasse
+          - strong [ref=e17]: CHF 0
+          - generic [ref=e18]: v0.3.282
+          - generic [ref=e19]: Mit KI erstellt · menschliche Anleitung
+      - region "Rennen starten" [ref=e20]:
+        - heading "Rennen" [level=2] [ref=e21]
+        - generic [ref=e22]:
+          - button "Cup" [active] [ref=e23] [cursor=pointer]
+          - button "Freier Modus" [ref=e24] [cursor=pointer]
+          - button "Training" [ref=e25] [cursor=pointer]
+          - button "Ad-hoc" [ref=e26] [cursor=pointer]
+      - region "Aktives Auto" [ref=e27]:
+        - heading "Dein Auto" [level=2] [ref=e28]
+        - paragraph [ref=e29]:
+          - strong [ref=e30]: Blitz
+          - text: · Sportwagen
+        - paragraph [ref=e31]: Teile, Lack und Aufkleber gehören nur zu diesem Auto.
+        - generic [ref=e32]:
+          - button "Blitz Sportwagen Aktiv" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]: Blitz
+            - generic [ref=e35]: Sportwagen
+            - generic [ref=e36]: Aktiv
+          - button "Bison Pick-up Anschauen · CHF 900" [ref=e37] [cursor=pointer]:
+            - generic [ref=e38]: Bison
+            - generic [ref=e39]: Pick-up
+            - generic [ref=e40]: Anschauen · CHF 900
+          - button "Käferkraft Buggy Anschauen · CHF 1'400" [ref=e41] [cursor=pointer]:
+            - generic [ref=e42]: Käferkraft
+            - generic [ref=e43]: Buggy
+            - generic [ref=e44]: Anschauen · CHF 1'400
+          - button "Donnerbüchse Hot Rod Anschauen · CHF 1'800" [ref=e45] [cursor=pointer]:
+            - generic [ref=e46]: Donnerbüchse
+            - generic [ref=e47]: Hot Rod
+            - generic [ref=e48]: Anschauen · CHF 1'800
+          - button "Bunker Panzerwagen Anschauen · CHF 2'400" [ref=e49] [cursor=pointer]:
+            - generic [ref=e50]: Bunker
+            - generic [ref=e51]: Panzerwagen
+            - generic [ref=e52]: Anschauen · CHF 2'400
+      - region "Ausrüstung" [ref=e53]:
+        - heading "Ausrüsten (Blitz)" [level=2] [ref=e54]
+        - paragraph [ref=e55]: Bestand — nur Blitz
+        - paragraph [ref=e57]: Noch keine Teile — unten im Laden kaufen.
+        - heading "Laden" [level=3] [ref=e58]
+        - paragraph [ref=e59]: Tippen = Vorschau am Auto · dann Kaufen
+        - generic [ref=e60]:
+          - generic [ref=e61]:
+            - button "Neu Großer Motor Anschauen · CHF 360" [ref=e62] [cursor=pointer]:
+              - generic [ref=e63]: Neu
+              - generic [ref=e64]: Großer Motor
+              - generic [ref=e65]: Anschauen · CHF 360
+            - generic [ref=e66]: + Mehr Beschleunigung und etwas Topspeed.− Schleudert leichter, Nitro verbraucht schneller.
+          - generic [ref=e67]:
+            - button "Neu Große Räder Anschauen · CHF 300" [ref=e68] [cursor=pointer]:
+              - generic [ref=e69]: Neu
+              - generic [ref=e70]: Große Räder
+              - generic [ref=e71]: Anschauen · CHF 300
+            - generic [ref=e72]: + Weniger Schleudern, stabilere Landungen.− Etwas weniger Höchstgeschwindigkeit.
+          - generic [ref=e73]:
+            - button "Neu Spike-Stoßstange Anschauen · CHF 220" [ref=e74] [cursor=pointer]:
+              - generic [ref=e75]: Neu
+              - generic [ref=e76]: Spike-Stoßstange
+              - generic [ref=e77]: Anschauen · CHF 220
+            - generic [ref=e78]: + Mehr Schub bei Kontakt.− Handling hakelig, Mauer-Treffer tun mehr weh.
+          - generic [ref=e79]:
+            - button "Neu Verstärkter Rahmen Anschauen · CHF 320" [ref=e80] [cursor=pointer]:
+              - generic [ref=e81]: Neu
+              - generic [ref=e82]: Verstärkter Rahmen
+              - generic [ref=e83]: Anschauen · CHF 320
+            - generic [ref=e84]: + Weniger Schaden, härterer Stand.− Trägere Lenkung, etwas weniger Topspeed.
+          - generic [ref=e85]:
+            - button "Neu Leichtbau-Karosserie Anschauen · CHF 280" [ref=e86] [cursor=pointer]:
+              - generic [ref=e87]: Neu
+              - generic [ref=e88]: Leichtbau-Karosserie
+              - generic [ref=e89]: Anschauen · CHF 280
+            - generic [ref=e90]: + Bessere Beschleunigung und Lenkung.− Viel mehr Schaden, leicht wegdrückbar.
+          - generic [ref=e91]:
+            - button "Neu Nitro-Kit Anschauen · CHF 340" [ref=e92] [cursor=pointer]:
+              - generic [ref=e93]: Neu
+              - generic [ref=e94]: Nitro-Kit
+              - generic [ref=e95]: Anschauen · CHF 340
+            - generic [ref=e96]: + Stärkerer und längerer Boost.− Bei Schaden riskanter Spin.
+          - generic [ref=e97]:
+            - button "Neu Gelände-Federung Anschauen · CHF 300" [ref=e98] [cursor=pointer]:
+              - generic [ref=e99]: Neu
+              - generic [ref=e100]: Gelände-Federung
+              - generic [ref=e101]: Anschauen · CHF 300
+            - generic [ref=e102]: + Dämpft Buckel stark, mildert Gras-Malus.− Etwas schwammiger auf reinem Asphalt.
+          - generic [ref=e103]:
+            - button "Neu Heckspoiler Anschauen · CHF 200" [ref=e104] [cursor=pointer]:
+              - generic [ref=e105]: Neu
+              - generic [ref=e106]: Heckspoiler
+              - generic [ref=e107]: Anschauen · CHF 200
+            - generic [ref=e108]: + Mehr Grip bei hoher Speed.− Weniger absichtliches Schleudern.
+      - region "Lack und Schmücken" [ref=e109]:
+        - heading "Schmücken" [level=2] [ref=e110]
+        - paragraph [ref=e111]: Tippen = Vorschau · Kaufen speichert den Look für Blitz
+        - generic [ref=e112]:
+          - 'button "Lack #e03131" [ref=e113] [cursor=pointer]': ✓
+          - 'button "Lack #339af0 Vorschau" [ref=e114] [cursor=pointer]': ·
+          - 'button "Lack #f08c00 Vorschau" [ref=e115] [cursor=pointer]': ·
+          - 'button "Lack #12b886 Vorschau" [ref=e116] [cursor=pointer]': ·
+          - 'button "Lack #2f9e44 Vorschau" [ref=e117] [cursor=pointer]': ·
+          - 'button "Lack #868e96 Vorschau" [ref=e118] [cursor=pointer]': ·
+          - 'button "Lack #ffffff Vorschau" [ref=e119] [cursor=pointer]': ·
+          - 'button "Lack #52545e Vorschau" [ref=e120] [cursor=pointer]': ·
+        - heading "Aufkleber" [level=3] [ref=e121]
+        - generic [ref=e122]:
+          - button "Kein" [ref=e123] [cursor=pointer]
+          - button "Flammen · CHF 100" [ref=e124] [cursor=pointer]
+          - button "Blitz · CHF 100" [ref=e125] [cursor=pointer]
+          - button "Stern · CHF 100" [ref=e126] [cursor=pointer]
+      - paragraph [ref=e127]: Tastatur · Controller · Tablet · Dev F1–F7
+      - generic [ref=e128]:
+        - button "Ton an" [ref=e129] [cursor=pointer]
+        - button "Einstellungen" [ref=e130] [cursor=pointer]
+        - button "Hilfe" [ref=e131] [cursor=pointer]
+  - generic: F1 Namen AUS · F2 CHF · F3 Ziel · F4 Raster · F6 Mesh · F5 Foto · F7 Teile · F8 Editor

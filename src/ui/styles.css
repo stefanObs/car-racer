@@ -2035,6 +2035,12 @@ html.dev-mesh-inspect-mode .dev-badge {
   cursor: default;
 }
 
+.dev-mesh-inspect-edit.is-on {
+  color: #191919;
+  background: #ffe066;
+  border-color: #ffe066;
+}
+
 .dev-mesh-inspect-edit + .dev-mesh-inspect-edit {
   margin-top: 6px;
 }
@@ -2059,6 +2065,38 @@ html.dev-mesh-inspect-mode .dev-badge {
 }
 
 .dev-mesh-inspect-tools button.is-on {
+  color: #191919;
+  background: #ffe066;
+  border-color: #ffe066;
+}
+
+.dev-mesh-inspect-orbit-menu {
+  pointer-events: auto;
+  position: fixed;
+  z-index: 40;
+  min-width: 160px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(12, 18, 32, 0.96);
+  border: 2px solid #ffe066;
+}
+
+.dev-mesh-inspect-orbit-menu button {
+  margin: 0;
+  padding: 6px 10px;
+  font: inherit;
+  font-size: 0.78rem;
+  color: #f8f9fa;
+  background: transparent;
+  border: 1px solid #868e96;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dev-mesh-inspect-orbit-menu button:hover,
+.dev-mesh-inspect-orbit-menu button.is-on {
   color: #191919;
   background: #ffe066;
   border-color: #ffe066;
@@ -2275,3 +2313,60 @@ html.dev-show-names .dev-dialog--parts {
     display: none;
   }
 }
+
+.panel.trackEditor {
+  max-width: min(300px, calc(100% - 24px));
+  font-size: 0.92rem;
+}
+
+.panel.trackEditor h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+}
+
+.track-editor-label {
+  display: grid;
+  gap: 4px;
+  margin: 10px 0;
+}
+
+.track-editor-label select,
+.track-editor-label input[type="range"] {
+  width: 100%;
+  min-height: 36px;
+}
+
+.track-editor-palette {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  max-height: 28vh;
+  overflow: auto;
+  margin: 8px 0;
+}
+
+.track-editor-chip {
+  min-height: 36px;
+  padding: 4px 8px;
+  border: 2px solid var(--outline);
+  border-radius: 4px;
+  background: #2a2e36;
+  color: var(--ui-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.track-editor-chip.is-on {
+  background: #ffe066;
+  color: #1b1b1f;
+  font-weight: 700;
+}
+
+html[data-screen="trackEditor"] #game-canvas {
+  cursor: grab;
+}
+
+html[data-screen="trackEditor"] #game-canvas.is-orbiting {
+  cursor: grabbing;
+}
+

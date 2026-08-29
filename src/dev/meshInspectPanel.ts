@@ -1,5 +1,5 @@
 import {
-  formatMeshInspectBox,
+  formatMeshInspectBoxes,
   formatMeshInspectClipboard,
   formatMeshInspectLine,
   formatMeshInspectLines,
@@ -7,6 +7,7 @@ import {
   type MeshInspectCatalogEntry,
   type MeshInspectComponent,
   type MeshInspectHit,
+  type MeshInspectOrbitMode,
   type MeshInspectSelection,
   type MeshInspectTool,
 } from "../core/meshInspect";
@@ -23,7 +24,10 @@ export type MeshInspectPanelOpts = {
   dirtyCount?: number;
   boxPaint?: boolean;
   box?: MeshInspectBox | null;
+  boxes?: readonly MeshInspectBox[] | null;
   boxCanReset?: boolean;
+  engineHidden?: boolean;
+  orbitMode?: MeshInspectOrbitMode;
 };
 
 export function applyMeshInspectMode(target: Element, on: boolean): void {
@@ -36,13 +40,22 @@ export function isMeshInspectMode(target: Element): boolean {
 
 export function meshInspectHint(opts: MeshInspectPanelOpts): string {
   if (opts.copied) return "Kopiert";
+  const seite = opts.orbitMode === "roll";
   if (opts.boxPaint && opts.box) {
     return opts.boxCanReset
-      ? "Kantenpunkte ziehen · LMB dreht Auto · Zurück / Pos1 · Kasten kopieren"
-      : "Kantenpunkte ziehen · LMB dreht Auto · Shift neu · Kasten kopieren";
+      ? `Eckpunkte · LMB ${seite ? "Seite" : "dreht"} · RMB Menü · Shift neuer Kasten · Zurück / Pos1 · Kasten kopieren`
+      : `Eckpunkte · LMB ${seite ? "Seite" : "dreht"} · RMB Menü · Shift neuer Kasten · Kasten kopieren`;
   }
-  if (opts.boxPaint) return "Ziehen malt Kasten · danach LMB drehen · B aus · F6 zu";
-  if (!opts.edit) return "LMB drehen · B Kasten · RMB/C kopieren · Liste wählt Teil · E Platzieren · F6 zu";
+  if (opts.boxPaint) {
+    return seite
+      ? "LMB Seite am Auto · RMB Menü · Shift malt Kasten · B aus · F6 zu"
+      : "Ziehen malt Kasten · LMB dreht Auto · RMB Menü · Shift weiterer Kasten · B aus · F6 zu";
+  }
+  if (!opts.edit) {
+    return seite
+      ? "LMB Seite am Auto · RMB Menü · B Kasten · C kopieren · Liste wählt Teil · F6 zu"
+      : "LMB dreht Auto · RMB Menü (Seite) · B Kasten · C kopieren · Liste wählt Teil · F6 zu";
+  }
   if ((opts.dirtyCount ?? 0) > 0) {
     return "Änderung kopieren / C / RMB → Patch an den Agenten · Pos1 zurück";
   }
@@ -94,7 +107,10 @@ export function renderMeshInspectPanelHtml(
   const dirtyCount = opts.dirtyCount ?? 0;
   const boxPaint = Boolean(opts.boxPaint);
   const box = opts.box ?? null;
+  const boxes = opts.boxes && opts.boxes.length > 0 ? opts.boxes : box ? [box] : [];
   const boxCanReset = Boolean(opts.boxCanReset);
+  const engineHidden = Boolean(opts.engineHidden);
+  const orbitMode = opts.orbitMode ?? "turn";
   const status = meshInspectHint({
     copied: opts.copied,
     edit,
@@ -105,13 +121,15 @@ export function renderMeshInspectPanelHtml(
     boxPaint,
     box,
     boxCanReset,
+    orbitMode,
   });
   const selectedBlock = selection
     ? `<p class="dev-mesh-inspect-selected" data-dev-name="dev.mesh-inspect.selected">${escapePre(formatMeshInspectLine(selection))}</p>`
     : "";
-  const boxBlock = box
-    ? `<pre class="dev-mesh-inspect-box" data-dev-name="dev.mesh-inspect.box">${escapePre(formatMeshInspectBox(box))}</pre>`
-    : "";
+  const boxBlock =
+    boxes.length > 0
+      ? `<pre class="dev-mesh-inspect-box" data-dev-name="dev.mesh-inspect.box">${escapePre(formatMeshInspectBoxes(boxes))}</pre>`
+      : "";
   const placeTools = edit
     ? `<button type="button" data-mesh-inspect-tool="move" class="${tool === "move" && !boxPaint ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.tool.move">Versetzen</button>
   <button type="button" data-mesh-inspect-tool="rotate" class="${tool === "rotate" && !boxPaint ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.tool.rotate">Drehen</button>
@@ -121,6 +139,8 @@ export function renderMeshInspectPanelHtml(
   <button type="button" data-mesh-inspect-comp="edge" class="${component === "edge" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.comp.edge">Kante</button>`
     : "";
   const tools = `<div class="dev-mesh-inspect-tools">
+  <button type="button" data-mesh-inspect-orbit="turn" class="${orbitMode === "turn" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.orbit.turn">Drehen</button>
+  <button type="button" data-mesh-inspect-orbit="roll" class="${orbitMode === "roll" ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.orbit.roll">Seite</button>
   <button type="button" data-mesh-inspect-box class="${boxPaint ? "is-on" : ""}" data-dev-name="dev.mesh-inspect.tool.box">Kasten</button>
   ${placeTools}
 </div>`;
@@ -139,8 +159,28 @@ export function renderMeshInspectPanelHtml(
   ${box ? `<button type="button" class="dev-mesh-inspect-edit" data-mesh-inspect-copy-box data-dev-name="dev.mesh-inspect.copy-box">Kasten kopieren</button>` : ""}
   ${box ? `<button type="button" class="dev-mesh-inspect-edit" data-mesh-inspect-reset-box ${boxCanReset ? "" : "disabled "}data-dev-name="dev.mesh-inspect.reset-box">Zurück</button>` : ""}
   ${dirtyCount > 0 ? `<button type="button" class="dev-mesh-inspect-edit" data-mesh-inspect-copy data-dev-name="dev.mesh-inspect.copy">Änderung kopieren (${dirtyCount})</button>` : ""}
+  <button type="button" class="dev-mesh-inspect-edit ${engineHidden ? "is-on" : ""}" data-mesh-inspect-hide-engine data-dev-name="dev.mesh-inspect.hide-engine">${engineHidden ? "Motor AN" : "Motor aus"}</button>
   <button type="button" class="dev-mesh-inspect-edit" data-mesh-inspect-edit data-dev-name="dev.mesh-inspect.edit">${edit ? "Platzieren AN" : "Platzieren AUS"}</button>
 </aside>
+</div>`;
+}
+
+export function renderMeshInspectOrbitMenuHtml(opts: {
+  x: number;
+  y: number;
+  mode: MeshInspectOrbitMode;
+  hasBox?: boolean;
+}): string {
+  const turnOn = opts.mode === "turn" ? "is-on" : "";
+  const rollOn = opts.mode === "roll" ? "is-on" : "";
+  const boxBtn = opts.hasBox
+    ? `<button type="button" data-mesh-inspect-copy-box data-dev-name="dev.mesh-inspect.menu.copy-box">Kasten kopieren</button>`
+    : "";
+  return `<div class="dev-mesh-inspect-orbit-menu" data-dev-name="dev.mesh-inspect.menu" style="left:${opts.x}px;top:${opts.y}px" role="menu">
+  <button type="button" class="${turnOn}" data-mesh-inspect-orbit="turn" data-dev-name="dev.mesh-inspect.menu.turn">Drehen</button>
+  <button type="button" class="${rollOn}" data-mesh-inspect-orbit="roll" data-dev-name="dev.mesh-inspect.menu.roll">Seite</button>
+  <button type="button" data-mesh-inspect-copy-hits data-dev-name="dev.mesh-inspect.menu.copy">Kopieren</button>
+  ${boxBtn}
 </div>`;
 }
 

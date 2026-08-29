@@ -12,6 +12,7 @@ export function renderSettingsPanelHtml(
   opts: SettingsPanelOpts = {},
 ): string {
   const easyOn = settings.easyMode;
+  const lowDamageOn = settings.lowDamageMode;
   const tonOn = !muted;
   const inRace = Boolean(opts.inRace);
   const leaveRace = inRace
@@ -42,6 +43,17 @@ export function renderSettingsPanelHtml(
             <span class="settings-toggle__hint">Immer Vollgas — Bremse hebt das auf; halten nach Stopp = Rückwärts.</span>
           </span>
           <span class="settings-toggle__state">${easyOn ? "AN" : "AUS"}</span>
+        </button>
+      </div>
+      <div class="settings-row">
+        <button type="button" data-nav data-act="toggle-low-damage" class="settings-toggle${
+          lowDamageOn ? " is-on" : ""
+        }" aria-pressed="${lowDamageOn ? "true" : "false"}" data-dev-name="settings.low-damage">
+          <span class="settings-toggle__label">
+            <strong>Wenig Schaden</strong>
+            <span class="settings-toggle__hint">Mauer- und Hindernistreffer wie früher — kein Tempo-Crash-K.O.</span>
+          </span>
+          <span class="settings-toggle__state">${lowDamageOn ? "AN" : "AUS"}</span>
         </button>
       </div>
       <div class="settings-row">

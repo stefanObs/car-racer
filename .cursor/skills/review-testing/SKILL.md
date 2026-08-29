@@ -30,11 +30,13 @@ Full checklists: [checklists.md](checklists.md).
 
 1. From repo root, start the app (prefer `./start.sh` / `start.bat` / `.\start.ps1`, or `npm run dev`).
 2. Wait until the dev URL is ready (default **http://127.0.0.1:5173/**).
-3. Open that URL in the **browser automation tools** (cursor-ide-browser): navigate → lock → snapshot/screenshot → interact.
+3. Open that URL in **browser automation**:
+   - Prefer Cursor **browser / cursor-ide-browser** tools when available (navigate → lock → snapshot/screenshot → interact).
+   - Otherwise use the project **Playwright MCP** (`.cursor/mcp.json` → server `playwright`): navigate, snapshot, click, screenshot against `http://127.0.0.1:5173/`.
 4. Confirm the **Garage-Hub** is visible (not a blank/dark screen, not a boot-error unless that is the bug under test).
 5. Exercise the flow under test with clicks/keys in the browser; take screenshots for visual/graphics checks.
 6. Note render mode if shown (`2D-Fallback` vs WebGL).
-7. Unlock the browser when finished; leave the server running only if still needed.
+7. Unlock / close the browser session when finished; leave the server running only if still needed.
 
 ### Anti-hang (agents)
 
@@ -131,7 +133,8 @@ Run unit/smoke tests (`npm test`) **and** browser checks. Never claim “regress
 
 Against Asphalt-Comic (`reference.png` / style bible), judged from **browser screenshots**:
 
-- **F6 Mesh-Studio** shows only the garage car on a green void (`html.dev-mesh-inspect-mode`). Hover lists named meshes + mesh-space meters; LMB orbits the car center; RMB / **C** copies. **B** / **Kasten** paints a screen rectangle, then 12 edge dots resize the AABB while LMB turns the car; **Kasten kopieren** copies mesh-space min/max; **Zurück** / Home restores the painted size. After place-mode edits, copy is a `CRASH CIRCUIT F5 PATCH v1` block to bake forever (`npm run mesh:apply-f5-patch`). The right **Komponenten** list selects inner/occluded nodes the pick ray cannot hit. **E** / **Platzieren** turns on place mode: click a submesh, **Kante**/**K** picks one edge to drag, **Drehen**/**R** turns the whole mesh, **1:1**/**S** scales with locked ratio, **Strecken**/**X** stretches axes independently, **G** moves; no selection keeps LMB orbit. Escape / F6 exits.
+- **F6 Mesh-Studio** shows only the garage car on a green void (`html.dev-mesh-inspect-mode`). Hover lists named meshes + mesh-space meters; LMB orbits the car; **Seite** (panel or RMB menu) rolls it in the view; **C** copies. **B** / **Kasten** paints a screen rectangle, then 8 corner dots resize the AABB; **Kasten kopieren** copies mesh-space min/max; **Zurück** / Home restores the painted size. After place-mode edits, copy is a `CRASH CIRCUIT F5 PATCH v1` block to bake forever (`npm run mesh:apply-f5-patch`). The right **Komponenten** list selects inner/occluded nodes the pick ray cannot hit. **E** / **Platzieren** turns on place mode: click a submesh, **Kante**/**K** picks one edge to drag, **Drehen**/**R** turns the whole mesh, **1:1**/**S** scales with locked ratio, **Strecken**/**X** stretches axes independently, **G** moves; no selection keeps LMB orbit. Escape / F6 exits.
+- **F8 Strecken-Editor** loads a cup track (default Hafenstart), hides cars, free-fly (WASD + mouse look). Palette places every track-kit GLB plus a yellow **Durchfahrt** box (~80% of the narrowest car). Panorama Y/scale sliders live-update the horizon cylinder. **Kopieren** yields `CRASH CIRCUIT F8 TRACK PATCH v1`; **Zurücksetzen** restores the enter snapshot. Esc / F8 returns to Garage. Not a player race mode.
 - **F5 Foto** hides garage/HUD chrome (`html.dev-photo-mode`) so the canvas is unobstructed. Toggle with F5, Escape, or `window.__ccSetPhotoMode(true)` in Playwright. Restore with F5 / Escape / `false`.
 - Cel-shade, thick outlines, flat bold colors — not photoreal / neon-purple / diorama / low-poly
 - Cars match **category** of real vehicles (sport vs pickup etc.) while staying comic + mesh-simple (see `assets/art-style/car-category-targets.png`)

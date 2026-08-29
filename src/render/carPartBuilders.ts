@@ -13,6 +13,7 @@ import {
 } from "three";
 import { comicToon } from "./comicMaterials";
 import { ComicPalette } from "./palette";
+import { DONNER_ENGINE_BAY_FILL, DONNER_ENGINE_BAY_FILL_NAME } from "./donnerEngineBox";
 
 const CARBON = 0x2a2d33;
 const CHROME = 0xc5ccd4;
@@ -578,6 +579,18 @@ export function buildUpgradeWheel(style: UpgradeWheelStyle): Group {
   hub.name = "UpgradeHub";
   hub.rotation.z = Math.PI / 2;
   g.add(hub);
+  return g;
+}
+
+/** Body-colored plug for the Donnerbüchse bay after the stock engine is hidden. */
+export function buildDonnerEngineBayFill(paint: string | number): Group {
+  const g = new Group();
+  g.name = DONNER_ENGINE_BAY_FILL_NAME;
+  const pose = DONNER_ENGINE_BAY_FILL;
+  const plug = new Mesh(new BoxGeometry(pose.sx, pose.sy, pose.sz), comicToon(paint));
+  plug.name = "BayFillPlug";
+  plug.position.set(pose.x, pose.y, pose.z);
+  g.add(plug);
   return g;
 }
 

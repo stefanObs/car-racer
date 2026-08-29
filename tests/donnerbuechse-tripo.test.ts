@@ -5,14 +5,15 @@ import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
 import { getBounds } from "@gltf-transform/functions";
 import { CAR_MODELS } from "../src/data/carModels";
+import { DONNER_STOCK_ENGINE_BOX, DONNER_STOCK_ENGINE_BOXES, inDonnerStockEngine } from "../src/render/donnerEngineBox";
 import {
   DONNER_BODY_PAINT_BLUE,
   isDonnerBodyPaintBlue,
-  isDonnerCowlLip,
   isDonnerNoseAfterGap,
   isDonnerNosePaintBand,
   noseFaceNeedsGaragePaintRetarget,
 } from "../scripts/bake-donnerbuechse-segmented-engine.mjs";
+import { meshInspectBoxContains } from "../src/core/meshInspect";
 import { isBlueBodyPixel } from "../src/render/paintAuthoredWhite";
 import sharp from "sharp";
 
@@ -38,12 +39,6 @@ function countTriCentroids(mesh: { listPrimitives: () => Array<{
     }
   }
   return n;
-}
-
-/** Aft lower zoomie tails — welded to BodyPaint in the Tripo engine prim split. */
-function isDonnerHeaderTail(p: number[]): boolean {
-  const ax = Math.abs(p[0]!);
-  return ax >= 0.58 && ax <= 1.08 && p[1]! >= 0.16 && p[1]! <= 0.72 && p[2]! >= -0.1 && p[2]! <= 0.38;
 }
 
 async function albedoOf(mat: { getBaseColorTexture: () => { getImage: () => Uint8Array | null } | null } | null) {
@@ -95,17 +90,12 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     const text = readFileSync(path).toString("latin1");
     expect(text).toContain("BodyPaint");
     expect(text).toContain("StockWheel_FL");
-    expect(text).toContain("StockEngine");
+    expect(text).not.toContain("StockEngine");
     expect(text).not.toContain("Chrome");
 
     const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(path);
     const engNode = doc.getRoot().listNodes().find((n) => n.getName() === "StockEngine");
-    expect(engNode).toBeTruthy();
-    expect(engNode!.getTranslation()).toEqual([0, 0, 0]);
-    const engMesh = engNode!.getMesh();
-    expect(engMesh?.getName()).toBe("StockEngine");
-    expect(engMesh?.listPrimitives().every((p) => p.getMaterial()?.getName() === "StockEngine")).toBe(true);
-    expect(engMesh?.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture())).toBe(true);
+    expect(engNode).toBeFalsy();
     const wheelNames = doc
       .getRoot()
       .listNodes()
@@ -124,10 +114,6 @@ describe("Donnerbüchse Tripo arcade bake", () => {
           mesh.listPrimitives().every((p) => p.getMaterial()?.getBaseColorTexture()),
           name,
         ).toBe(true);
-        continue;
-      }
-      if (name === "StockEngine") {
-        expect(mesh.listPrimitives().every((p) => p.getMaterial()?.getName() === "StockEngine"), name).toBe(true);
         continue;
       }
       for (const prim of mesh.listPrimitives()) {
@@ -181,26 +167,37 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     expect(grille).toBeGreaterThan(400);
   });
 
-  it("does not weld grille body onto StockEngine or leave header tails on BodyPaint", async () => {
+  it("welds the exposed engine on BodyPaint inside the F6 Motor-aus Kasten", async () => {
     const doc = await new NodeIO()
       .registerExtensions(ALL_EXTENSIONS)
       .read(resolve("public/models/cars/donnerbuechse.glb"));
+    expect(doc.getRoot().listMeshes().find((m) => m.getName() === "StockEngine")).toBeFalsy();
     const body = doc.getRoot().listMeshes().find((m) => m.getName() === "BodyPaint");
-    const engine = doc.getRoot().listMeshes().find((m) => m.getName() === "StockEngine");
     expect(body).toBeTruthy();
-    expect(engine).toBeTruthy();
-
-    const noseBodyOnEngine = countTriCentroids(
-      engine!,
-      (p) => p[2]! > 1.46 && p[1]! < 1.02 && Math.abs(p[0]!) > 0.28,
+    const inBox = countTriCentroids(body!, (p) =>
+      meshInspectBoxContains(DONNER_STOCK_ENGINE_BOX, { x: p[0]!, y: p[1]!, z: p[2]! }),
     );
-    const headerTailsOnEngine = countTriCentroids(engine!, isDonnerHeaderTail);
-    expect(noseBodyOnEngine, "grille/nose body stuck on StockEngine").toBeLessThan(8);
-    expect(headerTailsOnEngine).toBeGreaterThan(80);
-    expect(await countBodyPaintBlueFaces(engine!), "body-paint blue welded onto StockEngine").toBeLessThan(12);
+    expect(inBox).toBeGreaterThan(80);
+    expect(DONNER_STOCK_ENGINE_BOX.min).toEqual({ x: -0.755, y: 0.472, z: 0.427 });
+    expect(DONNER_STOCK_ENGINE_BOX.max).toEqual({ x: 0.568, y: 1.437, z: 1.262 });
   });
 
-  it("keeps body-paint blue (the (−0.593, 1.097, 0.284) sample) off StockEngine", async () => {
+  it("puts leftover zoomie/header faces in the extra Motor-aus Kastens", async () => {
+    const doc = await new NodeIO()
+      .registerExtensions(ALL_EXTENSIONS)
+      .read(resolve("public/models/cars/donnerbuechse.glb"));
+    let leftover = 0;
+    for (const mesh of doc.getRoot().listMeshes()) {
+      leftover += countTriCentroids(mesh, (p) => {
+        const q = { x: p[0]!, y: p[1]!, z: p[2]! };
+        return inDonnerStockEngine(q) && !meshInspectBoxContains(DONNER_STOCK_ENGINE_BOX, q);
+      });
+    }
+    expect(leftover).toBeGreaterThan(20);
+    expect(DONNER_STOCK_ENGINE_BOXES).toHaveLength(16);
+  });
+
+  it("keeps body-paint blue (the (−0.593, 1.097, 0.284) sample) on BodyPaint", async () => {
     expect(DONNER_BODY_PAINT_BLUE).toEqual([40, 111, 217]);
     expect(isDonnerBodyPaintBlue(DONNER_BODY_PAINT_BLUE)).toBe(true);
     expect(isDonnerBodyPaintBlue([180, 180, 185])).toBe(false);
@@ -209,106 +206,45 @@ describe("Donnerbüchse Tripo arcade bake", () => {
       .registerExtensions(ALL_EXTENSIONS)
       .read(resolve("public/models/cars/donnerbuechse.glb"));
     const body = doc.getRoot().listMeshes().find((m) => m.getName() === "BodyPaint");
-    const engine = doc.getRoot().listMeshes().find((m) => m.getName() === "StockEngine");
     expect(body).toBeTruthy();
-    expect(engine).toBeTruthy();
 
     const target = [-0.593, 1.097, 0.284];
-    let best: { name: string; d: number; rgb: [number, number, number] } | null = null;
-    for (const mesh of [body!, engine!]) {
-      for (const prim of mesh.listPrimitives()) {
-        const pos = prim.getAttribute("POSITION");
-        const uv = prim.getAttribute("TEXCOORD_0");
-        const idx = prim.getIndices();
-        if (!pos || !uv || !idx) continue;
-        const tex = await albedoOf(prim.getMaterial());
-        for (let t = 0; t < idx.getCount() / 3; t++) {
-          const a = pos.getElement(idx.getScalar(t * 3), []);
-          const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
-          const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
-          const p = [(a[0]! + b[0]! + c[0]!) / 3, (a[1]! + b[1]! + c[1]!) / 3, (a[2]! + b[2]! + c[2]!) / 3];
-          const d = Math.hypot(p[0]! - target[0]!, p[1]! - target[1]!, p[2]! - target[2]!);
-          if (best && d >= best.d) continue;
-          const ua = uv.getElement(idx.getScalar(t * 3), []);
-          const ub = uv.getElement(idx.getScalar(t * 3 + 1), []);
-          const uc = uv.getElement(idx.getScalar(t * 3 + 2), []);
-          best = {
-            name: mesh.getName() ?? "",
-            d,
-            rgb: sampleRgb(tex, (ua[0]! + ub[0]! + uc[0]!) / 3, (ua[1]! + ub[1]! + uc[1]!) / 3),
-          };
-        }
+    let best: { d: number; rgb: [number, number, number] } | null = null;
+    for (const prim of body!.listPrimitives()) {
+      const pos = prim.getAttribute("POSITION");
+      const uv = prim.getAttribute("TEXCOORD_0");
+      const idx = prim.getIndices();
+      if (!pos || !uv || !idx) continue;
+      const tex = await albedoOf(prim.getMaterial());
+      for (let t = 0; t < idx.getCount() / 3; t++) {
+        const a = pos.getElement(idx.getScalar(t * 3), []);
+        const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
+        const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
+        const p = [(a[0]! + b[0]! + c[0]!) / 3, (a[1]! + b[1]! + c[1]!) / 3, (a[2]! + b[2]! + c[2]!) / 3];
+        const d = Math.hypot(p[0]! - target[0]!, p[1]! - target[1]!, p[2]! - target[2]!);
+        if (best && d >= best.d) continue;
+        const ua = uv.getElement(idx.getScalar(t * 3), []);
+        const ub = uv.getElement(idx.getScalar(t * 3 + 1), []);
+        const uc = uv.getElement(idx.getScalar(t * 3 + 2), []);
+        best = {
+          d,
+          rgb: sampleRgb(tex, (ua[0]! + ub[0]! + uc[0]!) / 3, (ua[1]! + ub[1]! + uc[1]!) / 3),
+        };
       }
     }
     expect(best).toBeTruthy();
     expect(best!.d).toBeLessThan(0.08);
     expect(isDonnerBodyPaintBlue(best!.rgb), `sample rgb ${best!.rgb.join(",")}`).toBe(true);
-    expect(best!.name, "body-paint blue vertex must sit on BodyPaint").toBe("BodyPaint");
-
-    const blueOnEngine = await countBodyPaintBlueFaces(engine!);
-    expect(blueOnEngine, "body-paint blue welded onto StockEngine").toBeLessThan(12);
-    const blueOnBody = await countBodyPaintBlueFaces(body!);
-    expect(blueOnBody).toBeGreaterThan(400);
-
-    const right = [0.593, 1.097, 0.284];
-    let bestR: { name: string; d: number } | null = null;
-    let cowlL = 0;
-    let cowlR = 0;
-    let twoThirdsHighL = 0;
-    let twoThirdsHighR = 0;
-    for (const mesh of [body!, engine!]) {
-      for (const prim of mesh.listPrimitives()) {
-        const pos = prim.getAttribute("POSITION");
-        const uv = prim.getAttribute("TEXCOORD_0");
-        const idx = prim.getIndices();
-        if (!pos || !idx) continue;
-        const tex = uv ? await albedoOf(prim.getMaterial()) : null;
-        for (let t = 0; t < idx.getCount() / 3; t++) {
-          const a = pos.getElement(idx.getScalar(t * 3), []);
-          const b = pos.getElement(idx.getScalar(t * 3 + 1), []);
-          const c = pos.getElement(idx.getScalar(t * 3 + 2), []);
-          const p = [(a[0]! + b[0]! + c[0]!) / 3, (a[1]! + b[1]! + c[1]!) / 3, (a[2]! + b[2]! + c[2]!) / 3];
-          const dR = Math.hypot(p[0]! - right[0]!, p[1]! - right[1]!, p[2]! - right[2]!);
-          if (!bestR || dR < bestR.d) bestR = { name: mesh.getName() ?? "", d: dR };
-          if (mesh.getName() !== "StockEngine") continue;
-          if (isDonnerCowlLip(p)) {
-            if (p[0]! < 0) cowlL++;
-            else cowlR++;
-          }
-          if (!uv || !tex || p[1]! < 0.75) continue;
-          let nBlue = 0;
-          for (let k = 0; k < 3; k++) {
-            const u = uv.getElement(idx.getScalar(t * 3 + k), []);
-            if (isDonnerBodyPaintBlue(sampleRgb(tex, u[0]!, u[1]!))) nBlue++;
-          }
-          if (nBlue >= 2) {
-            if (p[0]! < 0) twoThirdsHighL++;
-            else twoThirdsHighR++;
-          }
-        }
-      }
-    }
-    expect(bestR).toBeTruthy();
-    expect(bestR!.d).toBeLessThan(0.08);
-    expect(bestR!.name, "+X cowl must match −X on BodyPaint").toBe("BodyPaint");
-    expect(cowlL, "leftover −X cowl lip on StockEngine").toBeLessThan(2);
-    expect(cowlR, "leftover +X cowl lip on StockEngine").toBeLessThan(2);
-    expect(twoThirdsHighL, "2/3-blue −X wall still on engine").toBeLessThan(6);
-    expect(twoThirdsHighR, "2/3-blue +X wall still on engine").toBeLessThan(6);
+    expect(await countBodyPaintBlueFaces(body!)).toBeGreaterThan(400);
   });
 
-  it("keeps the nose after the engine gap on BodyPaint (paint target, not StockEngine)", async () => {
+  it("keeps the nose after the engine gap on BodyPaint", async () => {
     const doc = await new NodeIO()
       .registerExtensions(ALL_EXTENSIONS)
       .read(resolve("public/models/cars/donnerbuechse.glb"));
     const body = doc.getRoot().listMeshes().find((m) => m.getName() === "BodyPaint");
-    const engine = doc.getRoot().listMeshes().find((m) => m.getName() === "StockEngine");
     expect(body).toBeTruthy();
-    expect(engine).toBeTruthy();
-    const noseOnEngine = countTriCentroids(engine!, isDonnerNoseAfterGap);
-    const noseOnBody = countTriCentroids(body!, isDonnerNoseAfterGap);
-    expect(noseOnEngine, "nose after engine gap stuck on StockEngine").toBeLessThan(3);
-    expect(noseOnBody).toBeGreaterThan(20);
+    expect(countTriCentroids(body!, isDonnerNoseAfterGap)).toBeGreaterThan(20);
 
     let unpainted = 0;
     let sampleRgbAtGap: [number, number, number] | null = null;
@@ -381,20 +317,66 @@ describe("Donnerbüchse Tripo arcade bake", () => {
     let red = 0;
     let blue = 0;
     let lit = 0;
+    let grey = 0;
+    let silver = 0;
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i]!;
       const g = data[i + 1]!;
       const b = data[i + 2]!;
-      if (r + g + b < 40) continue;
-      lit++;
+      const lum = (r + g + b) / 3;
       const max = Math.max(r, g, b);
       const min = Math.min(r, g, b);
+      if (r + g + b < 40) continue;
+      lit++;
       const chroma = max - min;
+      if (chroma < 28 && lum >= 80 && lum < 150) grey++;
+      if (chroma < 28 && lum >= 150) silver++;
       if (r === max && chroma / max > 0.22 && r > g + 8 && r > b + 8) red++;
       if (b === max && chroma / max > 0.32 && b > r + 8 && b > g + 16) blue++;
     }
     expect(lit).toBeGreaterThan(10_000);
     expect(red / lit).toBeLessThan(0.02);
     expect(blue / lit).toBeLessThan(0.01);
+    expect(grey / lit).toBeLessThan(0.05);
+    expect(silver / lit).toBeGreaterThan(0.7);
+  });
+
+  it("Großer Motor has matching exhaust banks on both ±X sides", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/parts/donnerbuechse-big_engine.glb"),
+    );
+    const mesh = doc.getRoot().listMeshes()[0];
+    expect(mesh).toBeTruthy();
+    let left = 0;
+    let right = 0;
+    for (const prim of mesh!.listPrimitives()) {
+      const pos = prim.getAttribute("POSITION");
+      if (!pos) continue;
+      const v = [0, 0, 0];
+      for (let i = 0; i < pos.getCount(); i++) {
+        pos.getElement(i, v);
+        if (v[0]! < -0.12) left++;
+        else if (v[0]! > 0.12) right++;
+      }
+    }
+    expect(left).toBeGreaterThan(800);
+    expect(right).toBeGreaterThan(800);
+    expect(Math.abs(left - right) / Math.max(left, right)).toBeLessThan(0.25);
+  });
+
+  it("bakes Großer Motor F5 pose into the part GLB (bay origin + shrink)", async () => {
+    const doc = await new NodeIO().registerExtensions(ALL_EXTENSIONS).read(
+      resolve("public/models/parts/donnerbuechse-big_engine.glb"),
+    );
+    const node = doc.getRoot().listNodes().find((n) => n.getName().startsWith("tripo_node_"));
+    expect(node).toBeTruthy();
+    const t = node!.getTranslation();
+    const s = node!.getScale();
+    expect(t[0]).toBeCloseTo(0.114, 3);
+    expect(t[1]).toBeCloseTo(0.157, 3);
+    expect(t[2]).toBeCloseTo(0.844, 3);
+    expect(s[0]).toBeCloseTo(0.514, 3);
+    expect(s[1]).toBeCloseTo(0.717, 3);
+    expect(s[2]).toBeCloseTo(0.514, 3);
   });
 });

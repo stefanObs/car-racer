@@ -6,6 +6,7 @@
  * Usage:
  *   node scripts/bake-car-parts-tripo.mjs
  *   node scripts/bake-car-parts-tripo.mjs --car=bison
+ *   node scripts/bake-car-parts-tripo.mjs --car=donnerbuechse --id=big_engine
  */
 import { existsSync, mkdirSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
@@ -27,6 +28,7 @@ import { recolorKaeferkraftSpikeAlbedo } from "./recolor-kaeferkraft-spike-bumpe
 const rootDir = join(dirname(fileURLToPath(import.meta.url)), "..");
 const outDir = join(rootDir, "public/models/parts");
 const carFilter = process.argv.find((a) => a.startsWith("--car="))?.slice(6);
+const idFilter = process.argv.find((a) => a.startsWith("--id="))?.slice(5);
 
 /** Shared comic material names (match Blitz bake). */
 const MAT = {
@@ -337,6 +339,11 @@ async function bakeJob(carId, job) {
   });
 }
 
+if (idFilter && !Object.values(CAR_JOBS).some((jobs) => jobs.some((j) => j.id === idFilter))) {
+  console.error(`unknown part id ${idFilter}`);
+  process.exit(1);
+}
+
 const cars = carFilter ? [carFilter] : Object.keys(CAR_JOBS);
 const missing = [];
 for (const carId of cars) {
@@ -346,6 +353,7 @@ for (const carId of cars) {
     continue;
   }
   for (const job of jobs) {
+    if (idFilter && job.id !== idFilter) continue;
     try {
       await bakeJob(carId, job);
     } catch (err) {

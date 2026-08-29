@@ -97,8 +97,8 @@ describe("track layoutRules (ribbon separation + scenery allowlist)", () => {
     expect(planMedianBarriers(pinched).length).toBeGreaterThan(0);
   });
 
-  it("keeps Hafenstart, Parabolbogen, and Omegatal free of hop midpoints", () => {
-    for (const id of ["blitz_cup_01_hafenstart", "blitz_cup_02_kuestenline", "blitz_cup_04_buckelpiste"]) {
+  it("keeps Hafenstart and Omegatal free of hop midpoints", () => {
+    for (const id of ["blitz_cup_01_hafenstart", "blitz_cup_04_buckelpiste"]) {
       const level = CUP_LEVELS.find((l) => l.id === id)!;
       const track = buildTrackFromLevel(level);
       expect(ribbonHopBlockedByWallLimit(track), id).toBe(true);

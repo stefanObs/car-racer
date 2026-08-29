@@ -442,9 +442,9 @@ function layoutDonner(): CarVisualLayout {
     springs: [],
     wheelHints: [],
     big_engine: {
-      // Look sheet: pack against grille; intakes above beltline (silver Tripo GLB).
-      // Mesh mass sits aft in the bbox — high +Z closes the grille gap.
-      anchors: [{ x: 0, y: 0.16, z: 1.42, yaw: 0, scale: 3.15, snap: false }],
+      // Pose lives in donnerbuechse-big_engine.glb (F5: bay origin + shrink).
+      // Identity mount so mesh-space `to` is the runtime pose.
+      anchors: [{ x: 0, y: 0, z: 0, yaw: 0, scale: 1, snap: false }],
       build: () => buildHoodScoop("blower"),
       preferGlb: true,
     },

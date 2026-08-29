@@ -1,10 +1,13 @@
+import { Object3D, PerspectiveCamera, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import {
+  applyInspectCarOrbit,
   applyGarageDragOrbit,
   applyGarageDragPitch,
   applyGarageDragYaw,
   garageDisplayYaw,
   garageInspectLiftAmount,
+  garageInspectOrbitAxes,
   garageOrbitAxesForPointer,
   garageOrbitPivotY,
   garagePitchAfterInspectChange,
@@ -21,15 +24,15 @@ describe("garage orbit yaw + pitch", () => {
   });
 
   it("maps LMB to yaw-only and RMB to free tumble", () => {
-    expect(garageOrbitAxesForPointer(0, "mouse")).toEqual({ yaw: true, pitch: false });
-    expect(garageOrbitAxesForPointer(2, "mouse")).toEqual({ yaw: true, pitch: true });
-    expect(garageOrbitAxesForPointer(1, "mouse")).toEqual({ yaw: false, pitch: false });
+    expect(garageOrbitAxesForPointer(0, "mouse")).toEqual({ yaw: true, pitch: false, roll: false });
+    expect(garageOrbitAxesForPointer(2, "mouse")).toEqual({ yaw: true, pitch: true, roll: false });
+    expect(garageOrbitAxesForPointer(1, "mouse")).toEqual({ yaw: false, pitch: false, roll: false });
   });
 
   it("uses 1-finger yaw and 2-finger free tumble on touch/pen", () => {
-    expect(garageOrbitAxesForPointer(0, "touch", 1)).toEqual({ yaw: true, pitch: false });
-    expect(garageOrbitAxesForPointer(0, "touch", 2)).toEqual({ yaw: true, pitch: true });
-    expect(garageOrbitAxesForPointer(0, "pen", 2)).toEqual({ yaw: true, pitch: true });
+    expect(garageOrbitAxesForPointer(0, "touch", 1)).toEqual({ yaw: true, pitch: false, roll: false });
+    expect(garageOrbitAxesForPointer(0, "touch", 2)).toEqual({ yaw: true, pitch: true, roll: false });
+    expect(garageOrbitAxesForPointer(0, "pen", 2)).toEqual({ yaw: true, pitch: true, roll: false });
   });
 
   it("lifts the inspect pivot to mid-screen target Y (not half-extent height)", () => {
@@ -83,6 +86,28 @@ describe("garage orbit yaw + pitch", () => {
     const next = applyGarageDragOrbit(0.4, 0.1, 50, -30);
     expect(next.yaw).toBeCloseTo(applyGarageDragYaw(0.4, 50), 5);
     expect(next.pitch).toBeCloseTo(applyGarageDragPitch(0.1, -30), 5);
+    expect(next.roll).toBe(0);
+  });
+
+  it("F6 Seite mode rolls the car in the camera view, not local Euler Z", () => {
+    expect(garageInspectOrbitAxes("turn")).toEqual({ yaw: true, pitch: true, roll: false });
+    expect(garageInspectOrbitAxes("roll")).toEqual({ yaw: false, pitch: true, roll: true });
+    expect(garageInspectOrbitAxes("turn", true)).toEqual({ yaw: false, pitch: true, roll: true });
+    const cam = new PerspectiveCamera(50, 1, 0.1, 50);
+    cam.position.set(0, 0, 8);
+    cam.lookAt(0, 0, 0);
+    cam.updateMatrixWorld(true);
+    const pivot = new Object3D();
+    const car = new Object3D();
+    car.position.set(1, 0, 0);
+    pivot.add(car);
+    pivot.updateMatrixWorld(true);
+    applyInspectCarOrbit(pivot, cam, 100, 0, { yaw: false, pitch: false, roll: true }, 0.01);
+    pivot.updateMatrixWorld(true);
+    const world = new Vector3();
+    car.getWorldPosition(world);
+    expect(world.y).not.toBeCloseTo(0, 2);
+    expect(world.x).toBeLessThan(1);
   });
 
   it("respects yaw-only axis mask", () => {

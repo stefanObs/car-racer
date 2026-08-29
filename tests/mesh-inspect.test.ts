@@ -6,18 +6,24 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   carPartIdFromObjectName,
+  carPartIdFromNodePath,
   formatMeshInspectBox,
+  formatMeshInspectBoxes,
   formatMeshInspectClipboard,
   formatMeshInspectLine,
   formatMeshInspectLines,
   formatMeshInspectPatch,
   cloneMeshInspectBox,
   collectMeshInspectBox,
-  MESH_INSPECT_BOX_EDGES,
+  listedMeshInspectBoxes,
+  popActiveMeshInspectBox,
+  pushActiveMeshInspectBox,
+  MESH_INSPECT_BOX_CORNERS,
   MESH_INSPECT_PATCH_HEADER,
-  meshInspectBoxChanged,
-  meshInspectBoxEdgeFromKey,
-  meshInspectBoxEdgeLocal,
+    meshInspectBoxChanged,
+    meshInspectBoxContains,
+    meshInspectBoxCornerFromKey,
+  meshInspectBoxCornerLocal,
   meshInspectBoxFromPoints,
   meshInspectBoxSamplePoints,
   meshInspectDragExceeded,
@@ -25,6 +31,7 @@ import {
   meshInspectEscapeStep,
   meshInspectGestureAfterDrag,
   meshInspectNudgeDelta,
+  meshInspectOrbitModeFromValue,
   meshInspectPointerAction,
   meshInspectPoseChanged,
   meshInspectScaleFactor,
@@ -34,7 +41,7 @@ import {
   normalizeMeshInspectScreenRect,
   parseMeshInspectPatch,
   resizeMeshInspectBox,
-  resizeMeshInspectBoxByEdge,
+  resizeMeshInspectBoxByCorner,
   type MeshInspectHit,
 } from "../src/core/meshInspect";
 import {
@@ -42,6 +49,7 @@ import {
   isMeshInspectMode,
   meshInspectClipboardText,
   meshInspectHint,
+  renderMeshInspectOrbitMenuHtml,
   renderMeshInspectPanelHtml,
 } from "../src/dev/meshInspectPanel";
 
@@ -81,6 +89,8 @@ describe("F6 mesh inspect panel", () => {
   it("round-trips an F5 bake patch the agent can apply", () => {
     expect(carPartIdFromObjectName("carPart-reinforced_frame")).toBe("reinforced_frame");
     expect(carPartIdFromObjectName("carPart-reinforced_frame-1")).toBe("reinforced_frame");
+    expect(carPartIdFromNodePath("carParts / carPart-rear_spoiler / tripo_node_abc")).toBe("rear_spoiler");
+    expect(carPartIdFromNodePath("StockEngine")).toBeNull();
     const from = { x: 0, y: 0.5, z: 0.4, yaw: 0, pitch: 0, roll: 0, sx: 1, sy: 1, sz: 1 };
     const to = { ...from, y: 0.6, yaw: 15, sx: 1.2, sy: 1.2, sz: 1.2 };
     expect(meshInspectPoseChanged(from, to)).toBe(true);
@@ -109,16 +119,24 @@ describe("F6 mesh inspect panel", () => {
 
   it("maps LMB to orbit and RMB to copy unless place mode is on", () => {
     expect(meshInspectPointerAction(0)).toBe("orbit");
-    expect(meshInspectPointerAction(2)).toBe("copy");
+    expect(meshInspectPointerAction(2)).toBe("menu");
     expect(meshInspectPointerAction(1)).toBe("orbit");
     expect(meshInspectPointerAction(0, { edit: true })).toBe("selectOrMove");
     expect(meshInspectPointerAction(0, { edit: true, altKey: true })).toBe("orbit");
-    expect(meshInspectPointerAction(2, { edit: true })).toBe("copy");
+    expect(meshInspectPointerAction(2, { edit: true })).toBe("menu");
     expect(meshInspectPointerAction(0, { boxPaint: true })).toBe("paintBox");
     expect(meshInspectPointerAction(0, { boxPaint: true, edit: true, altKey: true })).toBe("orbit");
     expect(meshInspectPointerAction(0, { boxPaint: true, hasBox: true })).toBe("orbit");
     expect(meshInspectPointerAction(0, { boxPaint: true, hasBox: true, hitHandle: true })).toBe("resizeBox");
     expect(meshInspectPointerAction(0, { boxPaint: true, hasBox: true, shiftKey: true })).toBe("paintBox");
+    expect(meshInspectPointerAction(0, { boxPaint: true, ctrlKey: true })).toBe("orbit");
+    expect(meshInspectPointerAction(0, { boxPaint: true, orbitMode: "roll" })).toBe("orbit");
+    expect(meshInspectPointerAction(0, { boxPaint: true, hasBox: true, hitHandle: true, orbitMode: "roll" })).toBe(
+      "resizeBox",
+    );
+    expect(meshInspectPointerAction(2, { ctrlKey: true })).toBe("menu");
+    expect(meshInspectOrbitModeFromValue("roll")).toBe("roll");
+    expect(meshInspectOrbitModeFromValue("yaw")).toBeNull();
   });
 
   it("builds a mesh-space AABB from painted sample hits", () => {
@@ -144,7 +162,27 @@ describe("F6 mesh inspect panel", () => {
     expect(formatMeshInspectBox(box!)).toContain("Mesh-Raum Kasten (m)");
     expect(formatMeshInspectBox(box!)).toContain("min: 1.000, 0.200, 0.400");
     expect(formatMeshInspectBox(box!)).toContain("Teile: BodyPaint, StockWheel_FL");
+    expect(meshInspectBoxContains(box!, { x: 1.5, y: 0.2, z: 0.6 })).toBe(true);
+    expect(meshInspectBoxContains(box!, { x: 0, y: 0.2, z: 0.6 })).toBe(false);
     expect(meshInspectClipboardText([], null, null, formatMeshInspectBox(box!))).toContain("min: 1.000");
+    const first = { min: { x: 0, y: 0, z: 0 }, max: { x: 1, y: 1, z: 1 }, names: ["BodyPaint"] };
+    const second = { min: { x: 2, y: 0, z: 0 }, max: { x: 3, y: 1, z: 1 }, names: ["StockEngine"] };
+    const stacked = pushActiveMeshInspectBox([], first, second);
+    expect(stacked.locked).toHaveLength(1);
+    expect(stacked.locked[0]?.min.x).toBe(0);
+    expect(stacked.active.min.x).toBe(2);
+    expect(listedMeshInspectBoxes(stacked.locked, stacked.active)).toHaveLength(2);
+    const text = formatMeshInspectBoxes(listedMeshInspectBoxes(stacked.locked, stacked.active));
+    expect(text).toContain("#1\nMesh-Raum Kasten");
+    expect(text).toContain("#2 (edit)");
+    const popped = popActiveMeshInspectBox(stacked.locked, stacked.active);
+    expect(popped.locked).toHaveLength(0);
+    expect(popped.active?.min.x).toBe(0);
+    expect(popActiveMeshInspectBox([], first).active).toBeNull();
+    expect(popActiveMeshInspectBox([first], null).active).toBeNull();
+    const orphan = popActiveMeshInspectBox([first, second], null);
+    expect(orphan.locked).toHaveLength(0);
+    expect(orphan.active?.min.x).toBe(0);
     expect(
       meshInspectGestureAfterDrag({
         edit: true,
@@ -176,18 +214,24 @@ describe("F6 mesh inspect panel", () => {
         { x: 2, y: 0, z: 0 },
       ).min.x,
     ).toBeCloseTo(0.99);
-    expect(MESH_INSPECT_BOX_EDGES).toHaveLength(12);
-    expect(new Set(MESH_INSPECT_BOX_EDGES.map((e) => e.id)).size).toBe(12);
-    const edgeBox = { min: { x: 0, y: 0, z: 0 }, max: { x: 2, y: 4, z: 6 }, names: [] };
-    const topFront = meshInspectBoxEdgeFromKey("x-maxY-maxZ");
+    expect(MESH_INSPECT_BOX_CORNERS).toHaveLength(8);
+    expect(new Set(MESH_INSPECT_BOX_CORNERS.map((c) => c.id)).size).toBe(8);
+    const cornerBox = { min: { x: 0, y: 0, z: 0 }, max: { x: 2, y: 4, z: 6 }, names: [] };
+    const topFront = meshInspectBoxCornerFromKey("maxX-maxY-maxZ");
     expect(topFront).toBeTruthy();
-    const mid = meshInspectBoxEdgeLocal(edgeBox, topFront!);
-    expect(mid).toEqual({ x: 1, y: 4, z: 6 });
-    const pulled = resizeMeshInspectBoxByEdge(edgeBox, topFront!, { x: 9, y: 0.5, z: 0.25 });
+    const corner = meshInspectBoxCornerLocal(cornerBox, topFront!);
+    expect(corner).toEqual({ x: 2, y: 4, z: 6 });
+    const pulled = resizeMeshInspectBoxByCorner(cornerBox, topFront!, { x: 0.25, y: 0.5, z: 0.25 });
+    expect(pulled.max.x).toBeCloseTo(2.25);
     expect(pulled.max.y).toBeCloseTo(4.5);
     expect(pulled.max.z).toBeCloseTo(6.25);
     expect(pulled.min.x).toBe(0);
-    expect(pulled.max.x).toBe(2);
+    expect(pulled.min.y).toBe(0);
+    expect(pulled.min.z).toBe(0);
+    const bottomBack = meshInspectBoxCornerFromKey("minX-minY-minZ");
+    const shoved = resizeMeshInspectBoxByCorner(cornerBox, bottomBack!, { x: 0.4, y: 0.3, z: 0.2 });
+    expect(shoved.min).toEqual({ x: 0.4, y: 0.3, z: 0.2 });
+    expect(shoved.max).toEqual({ x: 2, y: 4, z: 6 });
     expect(
       meshInspectGestureAfterDrag({
         edit: true,
@@ -206,9 +250,41 @@ describe("F6 mesh inspect panel", () => {
         hitEmpty: true,
         boxPaint: true,
         hasBox: true,
+        shiftKey: true,
+      }),
+    ).toBe("paintBox");
+    expect(
+      meshInspectGestureAfterDrag({
+        edit: false,
+        hasSelection: false,
+        hitIsSelection: false,
+        hitEmpty: true,
+        boxPaint: true,
+        ctrlKey: true,
+      }),
+    ).toBe("orbit");
+    expect(
+      meshInspectGestureAfterDrag({
+        edit: false,
+        hasSelection: false,
+        hitIsSelection: false,
+        hitEmpty: true,
+        boxPaint: true,
+        hasBox: true,
         hitHandle: true,
+        ctrlKey: true,
       }),
     ).toBe("resizeBox");
+    expect(
+      meshInspectGestureAfterDrag({
+        edit: false,
+        hasSelection: false,
+        hitIsSelection: false,
+        hitEmpty: true,
+        boxPaint: true,
+        orbitMode: "roll",
+      }),
+    ).toBe("orbit");
   });
 
   it("treats a short click as select and a drag on the selection as move", () => {
@@ -298,8 +374,9 @@ describe("F6 mesh inspect panel", () => {
     expect(html).toContain("Mesh-Raum (m)");
     expect(html).toContain("BodyPaint  0.000, 1.000, 0.000");
     expect(html).toContain("carPart-rear_spoiler  0.000, 0.710, -1.620");
-    expect(html).toContain("RMB/C kopieren");
+    expect(html).toContain("RMB Menü");
     expect(html).toContain("B Kasten");
+    expect(html).toContain('data-mesh-inspect-orbit="roll"');
     expect(html).toContain("Kasten");
     expect(html).toContain("Platzieren AUS");
     expect(html).toContain("Komponenten");
@@ -328,6 +405,7 @@ describe("F6 mesh inspect panel", () => {
     expect(html).toMatch(/class="is-on" data-mesh-inspect-select="u1"/);
     expect(meshInspectHint({ edit: false })).toContain("Liste wählt Teil");
     expect(meshInspectHint({ boxPaint: true })).toContain("Ziehen malt Kasten");
+    expect(meshInspectHint({ boxPaint: true })).toContain("RMB Menü");
     expect(
       meshInspectHint({
         boxPaint: true,
@@ -339,7 +417,19 @@ describe("F6 mesh inspect panel", () => {
         boxPaint: true,
         box: { min: { x: 0, y: 0, z: 0 }, max: { x: 1, y: 1, z: 1 }, names: ["BodyPaint"] },
       }),
-    ).toContain("Kantenpunkte ziehen");
+    ).toContain("Eckpunkte");
+    expect(
+      meshInspectHint({
+        boxPaint: true,
+        box: { min: { x: 0, y: 0, z: 0 }, max: { x: 1, y: 1, z: 1 }, names: ["BodyPaint"] },
+      }),
+    ).toContain("Shift neuer Kasten");
+    expect(
+      meshInspectHint({
+        boxPaint: true,
+        box: { min: { x: 0, y: 0, z: 0 }, max: { x: 1, y: 1, z: 1 }, names: ["BodyPaint"] },
+      }),
+    ).toContain("RMB Menü");
     expect(
       meshInspectHint({
         boxPaint: true,
@@ -347,7 +437,8 @@ describe("F6 mesh inspect panel", () => {
         box: { min: { x: 0, y: 0, z: 0 }, max: { x: 1, y: 1, z: 1 }, names: ["BodyPaint"] },
       }),
     ).toContain("Zurück");
-    expect(meshInspectHint({ edit: true, dirtyCount: 2 })).toContain("Patch an den Agenten");
+    expect(meshInspectHint({ orbitMode: "roll" })).toContain("LMB Seite am Auto");
+    expect(renderMeshInspectOrbitMenuHtml({ x: 10, y: 20, mode: "roll" })).toContain("Seite");
     expect(meshInspectHint({ edit: true, selection: { name: "Waist", id: "u1", x: 0, y: 0, z: 0 }, tool: "scaleUniform" })).toContain("Ziehen 1:1");
     expect(meshInspectHint({ edit: true, selection: { name: "Waist", id: "u1", x: 0, y: 0, z: 0 }, tool: "scaleFree" })).toContain("Ziehen strecken");
     const copyHtml = renderMeshInspectPanelHtml([], { edit: true, dirtyCount: 1 });
@@ -357,6 +448,16 @@ describe("F6 mesh inspect panel", () => {
       box: { min: { x: -0.4, y: 0.2, z: 0.8 }, max: { x: 0.4, y: 0.9, z: 1.2 }, names: ["BodyPaint"] },
     });
     expect(boxHtml).toContain("Mesh-Raum Kasten (m)");
+    const multiHtml = renderMeshInspectPanelHtml([], {
+      boxPaint: true,
+      boxes: [
+        { min: { x: 0, y: 0, z: 0 }, max: { x: 1, y: 1, z: 1 }, names: ["BodyPaint"] },
+        { min: { x: 2, y: 0, z: 0 }, max: { x: 3, y: 1, z: 1 }, names: ["StockEngine"] },
+      ],
+      box: { min: { x: 2, y: 0, z: 0 }, max: { x: 3, y: 1, z: 1 }, names: ["StockEngine"] },
+    });
+    expect(multiHtml).toContain("#1");
+    expect(multiHtml).toContain("#2 (edit)");
     expect(boxHtml).toContain("Kasten kopieren");
     expect(boxHtml).toContain("Zurück");
     expect(boxHtml).toMatch(/data-mesh-inspect-reset-box disabled/);
@@ -370,6 +471,11 @@ describe("F6 mesh inspect panel", () => {
     expect(boxHtml).toContain('data-mesh-inspect-copy-box');
     expect(boxHtml).toContain('data-mesh-inspect-box');
     expect(boxHtml).toMatch(/data-mesh-inspect-box class="is-on"/);
+    expect(boxHtml).toContain("Motor aus");
+    expect(boxHtml).toContain("data-mesh-inspect-hide-engine");
+    const hiddenHtml = renderMeshInspectPanelHtml([], { engineHidden: true });
+    expect(hiddenHtml).toContain("Motor AN");
+    expect(hiddenHtml).toMatch(/data-mesh-inspect-hide-engine/);
   });
 
   it("toggles the studio chrome class", () => {
@@ -388,6 +494,7 @@ describe("F6 mesh inspect panel", () => {
     expect(css).toContain(".dev-mesh-inspect-tools");
     expect(css).toContain(".dev-mesh-inspect-catalog");
     expect(css).toContain(".dev-mesh-inspect-box-overlay");
+    expect(css).toContain(".dev-mesh-inspect-edit.is-on");
   });
 
   it("does not snap garage pitch when releasing the mouse in F6 studio", () => {

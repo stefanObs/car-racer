@@ -30,7 +30,7 @@ Detailed stat→force table: [stat-map.md](stat-map.md). Decision log: [evolutio
 7. **Mass decides shove** — light cars get pushed / rebound more; heavy hold the line; car–car also uses closing speed, hit direction, and Bug/Flanke/Heck zone (CONCEPT §4.5)
 8. **Schanzen = real airtime** — `y`/`vy`; landing needs Grip + Federung
 9. **Grass penalty never removed** — Federung / grassMitigation only mitigate (`zones.ts`)
-10. **Walls bounce + cooldown damage** — no per-frame grind spam (`IMPACT_DAMAGE_COOLDOWN`); hits still KO quickly
+10. **Walls bounce + cooldown damage** — no per-frame grind spam (`IMPACT_DAMAGE_COOLDOWN`); hits still KO quickly (Low Damage setting restores pre–Fast-KO hit amounts)
 11. **Ramming is spice** — contact impulse + light damage; no ram-primary scoring
 12. **Nitro punches** — rising-edge kick + strong continuous shove + clear speed headroom (forward); start only at ~35% tank; slow refill; no crumb spray
 13. **Delivery** — version → commit `master` → push

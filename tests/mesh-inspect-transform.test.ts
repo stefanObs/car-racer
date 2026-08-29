@@ -129,4 +129,27 @@ describe("mesh inspect transform", () => {
     expect(node?.from.y).toBeCloseTo(0.5, 3);
     expect(node?.to.y).toBeCloseTo(0.6, 3);
   });
+
+  it("points a nested Teil mesh at the part GLB, not the car GLB", () => {
+    const bake = new Group();
+    bake.name = "BakeRoot";
+    const parts = new Group();
+    parts.name = "carParts";
+    const wrap = new Group();
+    wrap.name = "carPart-rear_spoiler";
+    const wing = new Mesh(new BoxGeometry(0.4, 0.1, 0.2), new MeshBasicMaterial());
+    wing.name = "tripo_node_855903af-1907-4062-aad1-a16a98bb50b4";
+    wrap.add(wing);
+    parts.add(wrap);
+    bake.add(parts);
+    const root = new Group();
+    root.add(bake);
+    root.updateMatrixWorld(true);
+    applyMeshSpaceDelta(wing, bake, -0.04, 0.01, 0);
+    const patch = collectMeshInspectPatch(root, "kaeferkraft");
+    const node = patch.nodes.find((n) => n.name.includes("tripo_node_855903af"));
+    expect(node?.apply).toBe("glb-node");
+    expect(node?.partId).toBe("rear_spoiler");
+    expect(node?.file).toBe("public/models/parts/kaeferkraft-rear_spoiler.glb");
+  });
 });

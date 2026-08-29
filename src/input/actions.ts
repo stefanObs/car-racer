@@ -74,6 +74,10 @@ function readGamepad(): Partial<Actions> {
   };
 }
 
+export function keyHeld(code: string): boolean {
+  return keys.has(code);
+}
+
 export function sampleActions(): Actions {
   const gp = readGamepad();
   let throttle = keys.has("KeyW") || keys.has("ArrowUp") ? 1 : 0;

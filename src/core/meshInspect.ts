@@ -24,35 +24,34 @@ export type MeshInspectSelection = {
   sz?: number;
 };
 
-export type MeshInspectPointerKind = "orbit" | "copy" | "selectOrMove" | "paintBox" | "resizeBox" | "ignore";
+export type MeshInspectPointerKind = "orbit" | "copy" | "menu" | "selectOrMove" | "paintBox" | "resizeBox" | "ignore";
 
 export type MeshInspectBoxFace = "minX" | "maxX" | "minY" | "maxY" | "minZ" | "maxZ";
 
-/** One AABB edge: along an axis, sitting on two faces. */
-export type MeshInspectBoxEdge = {
+/** One AABB corner: the three faces that meet there. */
+export type MeshInspectBoxCorner = {
   id: string;
-  along: "x" | "y" | "z";
-  faces: readonly [MeshInspectBoxFace, MeshInspectBoxFace];
+  faces: readonly [MeshInspectBoxFace, MeshInspectBoxFace, MeshInspectBoxFace];
 };
 
-function boxEdge(along: "x" | "y" | "z", a: MeshInspectBoxFace, b: MeshInspectBoxFace): MeshInspectBoxEdge {
-  return { id: `${along}-${a}-${b}`, along, faces: [a, b] };
+function boxCorner(
+  x: "minX" | "maxX",
+  y: "minY" | "maxY",
+  z: "minZ" | "maxZ",
+): MeshInspectBoxCorner {
+  return { id: `${x}-${y}-${z}`, faces: [x, y, z] };
 }
 
-/** 12 wireframe edges — dots live here so they stay visible outside the car. */
-export const MESH_INSPECT_BOX_EDGES: readonly MeshInspectBoxEdge[] = [
-  boxEdge("x", "minY", "minZ"),
-  boxEdge("x", "minY", "maxZ"),
-  boxEdge("x", "maxY", "minZ"),
-  boxEdge("x", "maxY", "maxZ"),
-  boxEdge("y", "minX", "minZ"),
-  boxEdge("y", "minX", "maxZ"),
-  boxEdge("y", "maxX", "minZ"),
-  boxEdge("y", "maxX", "maxZ"),
-  boxEdge("z", "minX", "minY"),
-  boxEdge("z", "minX", "maxY"),
-  boxEdge("z", "maxX", "minY"),
-  boxEdge("z", "maxX", "maxY"),
+/** 8 corners — dots live here so they stay visible outside the car. */
+export const MESH_INSPECT_BOX_CORNERS: readonly MeshInspectBoxCorner[] = [
+  boxCorner("minX", "minY", "minZ"),
+  boxCorner("minX", "minY", "maxZ"),
+  boxCorner("minX", "maxY", "minZ"),
+  boxCorner("minX", "maxY", "maxZ"),
+  boxCorner("maxX", "minY", "minZ"),
+  boxCorner("maxX", "minY", "maxZ"),
+  boxCorner("maxX", "maxY", "minZ"),
+  boxCorner("maxX", "maxY", "maxZ"),
 ];
 
 export const MESH_INSPECT_BOX_MIN_SIZE = 0.01;
@@ -62,6 +61,14 @@ export type MeshInspectDragMode = "free" | "keepY" | "onlyY";
 export type MeshInspectTool = "move" | "rotate" | "scaleUniform" | "scaleFree";
 
 export type MeshInspectComponent = "object" | "edge";
+
+/** F6 LMB on the car: turntable, or screen-roll onto a side. */
+export type MeshInspectOrbitMode = "turn" | "roll";
+
+export function meshInspectOrbitModeFromValue(raw: string | undefined | null): MeshInspectOrbitMode | null {
+  if (raw === "turn" || raw === "roll") return raw;
+  return null;
+}
 
 export type MeshInspectVec3 = { x: number; y: number; z: number };
 
@@ -103,7 +110,7 @@ export const MESH_INSPECT_SCALE_FINE = 1.01;
 export const MESH_INSPECT_SCALE_COARSE = 1.15;
 export const MESH_INSPECT_BOX_SAMPLE = 16;
 export const MESH_INSPECT_BOX_HANDLE_RADIUS = 0.07;
-/** Screen-space grab radius around each edge dot (px). */
+/** Screen-space grab radius around each corner dot (px). */
 export const MESH_INSPECT_BOX_HANDLE_PX = 22;
 
 export function formatMeshInspectCoord(n: number, digits = MESH_INSPECT_DECIMALS): string {
@@ -186,6 +193,41 @@ export function formatMeshInspectBox(box: MeshInspectBox, digits = MESH_INSPECT_
   ];
   if (box.names.length > 0) lines.push(`Teile: ${box.names.join(", ")}`);
   return lines.join("\n");
+}
+
+export function listedMeshInspectBoxes(
+  locked: readonly MeshInspectBox[],
+  active: MeshInspectBox | null,
+): MeshInspectBox[] {
+  return active ? [...locked, active] : [...locked];
+}
+
+/** Several Kastens for copy/panel. Last is the editable one. */
+export function formatMeshInspectBoxes(boxes: readonly MeshInspectBox[]): string {
+  if (boxes.length === 0) return "";
+  if (boxes.length === 1) return formatMeshInspectBox(boxes[0]!);
+  return boxes
+    .map((box, i) => {
+      const tag = i === boxes.length - 1 ? `#${i + 1} (edit)` : `#${i + 1}`;
+      return `${tag}\n${formatMeshInspectBox(box)}`;
+    })
+    .join("\n\n");
+}
+
+/** Inclusive AABB test in mesh-space meters. */
+export function meshInspectBoxContains(
+  box: Pick<MeshInspectBox, "min" | "max">,
+  p: MeshInspectVec3,
+  eps = 0,
+): boolean {
+  return (
+    p.x + eps >= box.min.x &&
+    p.x - eps <= box.max.x &&
+    p.y + eps >= box.min.y &&
+    p.y - eps <= box.max.y &&
+    p.z + eps >= box.min.z &&
+    p.z - eps <= box.max.z
+  );
 }
 
 export function normalizeMeshInspectScreenRect(
@@ -277,10 +319,9 @@ export function collectMeshInspectBox(
   return meshInspectBoxFromPoints(points, names);
 }
 
-export function meshInspectBoxEdgeLocal(box: MeshInspectBox, edge: MeshInspectBoxEdge): MeshInspectVec3 {
-  const c = meshInspectBoxCenter(box);
-  const p = { x: c.x, y: c.y, z: c.z };
-  for (const face of edge.faces) {
+export function meshInspectBoxCornerLocal(box: MeshInspectBox, corner: MeshInspectBoxCorner): MeshInspectVec3 {
+  const p = { x: 0, y: 0, z: 0 };
+  for (const face of corner.faces) {
     const axis = meshInspectBoxResizeAxis(face);
     p[axis] = face.startsWith("min") ? box.min[axis] : box.max[axis];
   }
@@ -293,9 +334,9 @@ export function meshInspectBoxResizeAxis(face: MeshInspectBoxFace): "x" | "y" | 
   return "z";
 }
 
-export function meshInspectBoxEdgeFromKey(raw: string | undefined | null): MeshInspectBoxEdge | null {
+export function meshInspectBoxCornerFromKey(raw: string | undefined | null): MeshInspectBoxCorner | null {
   if (!raw) return null;
-  return MESH_INSPECT_BOX_EDGES.find((edge) => edge.id === raw) ?? null;
+  return MESH_INSPECT_BOX_CORNERS.find((corner) => corner.id === raw) ?? null;
 }
 
 /** Move one AABB face in mesh space; keeps a minimum size. */
@@ -317,15 +358,15 @@ export function resizeMeshInspectBox(
   return { min, max, names: box.names };
 }
 
-/** Drag an edge midpoint: move the two faces that meet there. */
-export function resizeMeshInspectBoxByEdge(
+/** Drag a corner: move the three faces that meet there. */
+export function resizeMeshInspectBoxByCorner(
   box: MeshInspectBox,
-  edge: MeshInspectBoxEdge,
+  corner: MeshInspectBoxCorner,
   meshDelta: MeshInspectVec3,
   minSize = MESH_INSPECT_BOX_MIN_SIZE,
 ): MeshInspectBox {
   let next = box;
-  for (const face of edge.faces) {
+  for (const face of corner.faces) {
     next = resizeMeshInspectBox(next, face, meshDelta, minSize);
   }
   return next;
@@ -336,6 +377,31 @@ export function cloneMeshInspectBox(box: MeshInspectBox): MeshInspectBox {
     min: { x: box.min.x, y: box.min.y, z: box.min.z },
     max: { x: box.max.x, y: box.max.y, z: box.max.z },
     names: [...box.names],
+  };
+}
+
+/** Lock the current Kasten and make `next` the only editable one. */
+export function pushActiveMeshInspectBox(
+  locked: readonly MeshInspectBox[],
+  active: MeshInspectBox | null,
+  next: MeshInspectBox,
+): { locked: MeshInspectBox[]; active: MeshInspectBox } {
+  const nextLocked = active ? [...locked, cloneMeshInspectBox(active)] : [...locked];
+  return { locked: nextLocked, active: cloneMeshInspectBox(next) };
+}
+
+/** Drop the last Kasten; the previous locked one becomes editable. */
+export function popActiveMeshInspectBox(
+  locked: readonly MeshInspectBox[],
+  active: MeshInspectBox | null,
+): { locked: MeshInspectBox[]; active: MeshInspectBox | null } {
+  const stack = listedMeshInspectBoxes(locked, active);
+  if (stack.length <= 1) return { locked: [], active: null };
+  const remaining = stack.slice(0, -1);
+  const prev = remaining[remaining.length - 1]!;
+  return {
+    locked: remaining.slice(0, -1).map(cloneMeshInspectBox),
+    active: cloneMeshInspectBox(prev),
   };
 }
 
@@ -404,6 +470,15 @@ export function carPartIdFromObjectName(name: string): string | null {
   const leaf = name.split(" / ").at(-1)?.trim() ?? name;
   const m = /^carPart-([a-z0-9_]+?)(?:-\d+)?$/.exec(leaf);
   return m?.[1] ?? null;
+}
+
+/** `carParts / carPart-rear_spoiler / tripo_node_…` → `rear_spoiler`. */
+export function carPartIdFromNodePath(path: string, name = ""): string | null {
+  for (const seg of `${path} / ${name}`.split(" / ")) {
+    const id = carPartIdFromObjectName(seg.trim());
+    if (id) return id;
+  }
+  return null;
 }
 
 function formatSnapVec(a: MeshInspectPoseSnap): string {
@@ -549,13 +624,16 @@ export function meshInspectPointerAction(
     hasBox?: boolean;
     hitHandle?: boolean;
     shiftKey?: boolean;
+    ctrlKey?: boolean;
+    orbitMode?: MeshInspectOrbitMode;
   },
 ): MeshInspectPointerKind {
-  if (button === 2) return "copy";
+  if (button === 2) return "menu";
   if (button === 1) return "orbit";
   if (button !== 0) return "ignore";
-  if (opts?.altKey) return "orbit";
   if (opts?.hitHandle) return "resizeBox";
+  if (opts?.boxPaint && opts.shiftKey) return "paintBox";
+  if (opts?.orbitMode === "roll" || opts?.altKey || opts?.ctrlKey) return "orbit";
   if (opts?.boxPaint && (!opts.hasBox || opts.shiftKey)) return "paintBox";
   if (opts?.boxPaint && opts.hasBox) return "orbit";
   if (opts?.edit) return "selectOrMove";
@@ -675,8 +753,13 @@ export function meshInspectGestureAfterDrag(opts: {
   hasBox?: boolean;
   hitHandle?: boolean;
   shiftKey?: boolean;
+  ctrlKey?: boolean;
+  altKey?: boolean;
+  orbitMode?: MeshInspectOrbitMode;
 }): "move" | "rotate" | "moveEdge" | "scaleUniform" | "scaleFree" | "paintBox" | "resizeBox" | "orbit" {
   if (opts.hitHandle) return "resizeBox";
+  if (opts.boxPaint && opts.shiftKey) return "paintBox";
+  if (opts.orbitMode === "roll" || opts.ctrlKey || opts.altKey) return "orbit";
   if (opts.boxPaint && (!opts.hasBox || opts.shiftKey)) return "paintBox";
   if (opts.boxPaint && opts.hasBox) return "orbit";
   if (!(opts.edit && opts.hasSelection && opts.hitIsSelection)) return "orbit";
