@@ -32,7 +32,7 @@ Keep this table matched to `src/sim/vehicle.ts` + `mergeStats`. Update in the **
 | Asphalt | Full stats |
 | Gras | Speed + grip down; Federung mitigates only |
 | Öl | `passableObstacleMods` gripMul crash |
-| Uneben / rumble | bump wobble; Federung damps |
+| Uneben / rumble | rising-edge `bumpHopVy` thump (`y`/`vy`); wobble + speed cut; Federung damps |
 | Schanze (`ramp`) | `rampLaunch` ≥ `RAMP_LAUNCH_GATE` → `stepJump` airtime (fringe does not punch) |
 | Airborne | Weak steer/throttle/brake; tiny grip pull; no drift; skip wall/obstacle solid until land |
 

@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-29 — Rüttelstreifen feelable hop (CONCEPT §4.6)
+
+- Trigger: user — successive street bumps must each thump (real impact, not render wiggle)
+- Decision: Rüttelstreifen (`uneven`) produce a short rising-edge `y`/`vy` hop at speed; Federung damps; not a Schanze arc. Omegatal ships a 4-bump series. Arcade physics: `bumpHopVy`.
+- CONCEPT → v4.2
+
 ### 2026-08-29 — Cup 6 Brückenkreuz (figure-8 + surfaceY)
 
 - Trigger: user — add the bridge 3D racing layout next

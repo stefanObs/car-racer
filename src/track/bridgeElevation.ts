@@ -4,10 +4,14 @@ import type { BuiltTrack } from "./types";
 export const BRIDGE_CLEARANCE_M = 2.5;
 
 /**
- * Peak driveable deck height (m) — must match the baked Tripo bridge deck after sit.
- * Underpass clearance stays ≈ deckY − deckThickness.
+ * Peak driveable deck height (m).
+ * Must sit **above** the Tripo bridge volume (road ≈3.5–4.15, rails/arch ≈5.0)
+ * so the whole car rides the comic asphalt strip instead of clipping through mesh.
  */
-export const BRIDGE_DECK_Y_M = 3.87;
+export const BRIDGE_DECK_Y_M = 5.45;
+
+/** Tripo road-surface median after bake (structure stays below the drive ribbon). */
+export const BRIDGE_MESH_ROAD_Y_M = 3.87;
 
 /** Along-track half-length of the flat deck on top of the overpass (m). */
 export const BRIDGE_DECK_HALF_M = 8;
@@ -19,7 +23,7 @@ export const BRIDGE_DECK_HALF_M = 8;
  * (avoids bogus median barriers at the crossing). Cars rise onto the mesh;
  * the procedural ribbon stays flat so they read as on the Tripo deck.
  */
-export const BRIDGE_RAMP_M = 36;
+export const BRIDGE_RAMP_M = 42;
 
 /**
  * Racing ∞ (lemniscate of Gerono) in XZ with one elevated crossing pass.

@@ -269,7 +269,7 @@ Hindernisse ergänzen Tempo-Fahren; sie sind lesbar und build-relevant:
 | Typ | Wirkung | Lesbarkeit | Federung |
 |-----|---------|------------|----------|
 | **Unebene Piste** (Segment) | Wagen „hüpft“ / wackelt, Tempo stockt | Wellen / Buckel auf der Bahn | **Gute Federung dämpft stark** |
-| **Rüttelstreifen** (`uneven` Prop) | Passierbar, flach, klar gestreift; Tempo stockt | Gelb/schwarz Zebra | Federung dämpft |
+| **Rüttelstreifen** (`uneven` Prop) | Passierbar, flach, klar gestreift; bei Tempo **kurzer Hop/Thump** (echte `y`/`vy`, kein Schanzen-Bogen); Tempo stockt; mehrere hintereinander = mehrere Stöße | Gelb/schwarz Zebra | Federung dämpft stark |
 | **Ölspur** | Passierbar, flach; Grip weg | Dunkle Pfütze + Schimmer | Kaum Hilfe |
 | **Reifenstapel** | Bounce + spürbarer Schaden — **nicht** passierbar | Orange/schwarz, hoch | Leicht |
 | **Betonsperren** | Harter Bounce + starker Schaden — **nicht** passierbar | Grau + gelber Streifen, hoch | Kaum |
@@ -624,4 +624,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v4.1 — Cup 6 Brückenkreuz (∞ + Tripo-Brücke, surfaceY).*
+*Dokumentstand: Konzept v4.2 — Rüttelstreifen-Hop (echte y/vy, Serie).*

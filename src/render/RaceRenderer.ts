@@ -600,7 +600,10 @@ export class RaceRenderer {
       while (slip > Math.PI) slip -= Math.PI * 2;
       while (slip < -Math.PI) slip += Math.PI * 2;
       // Nose follows control heading; mild bank only — steered wheels carry the turn read
-      root.position.set(car.x, car.y + (car.healFx > 0.2 ? 0.05 : 0) + hop, car.z);
+      // On elevated decks, sit slightly above the comic asphalt slab so tires rest on top
+      // (slab top is ~0.16 m above surfaceY) and the whole body clears Tripo rails below.
+      const deckSit = !airborne && car.surfaceY > 1 ? 0.14 : 0;
+      root.position.set(car.x, car.y + deckSit + (car.healFx > 0.2 ? 0.05 : 0) + hop, car.z);
       root.rotation.y = Math.PI / 2 - car.heading;
       root.rotation.x = pitch;
       root.rotation.z = bodyRollZ({

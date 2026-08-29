@@ -6,11 +6,12 @@ import { buildSmoothTrack } from "../src/render/trackMesh";
 
 describe("track ribbon bounds", () => {
   it(
-    "keeps grass/asphalt ribbons flat (no Frenet-twist walls)",
+    "keeps grass/asphalt ribbons free of Frenet-twist walls",
     () => {
       // RCA: ExtrudeGeometry + closed CatmullRom flipped frames → ~19 m tall green/gray walls.
       for (const level of CUP_LEVELS) {
         const track = buildTrackFromLevel(level);
+        const peakElev = Math.max(0, ...(track.elevation ?? [0]));
         const root = buildSmoothTrack(track);
         root.updateMatrixWorld(true);
         for (const name of ["trackGrass", "trackAsphalt"] as const) {
@@ -19,7 +20,9 @@ describe("track ribbon bounds", () => {
           const b = new Box3().setFromObject(mesh!);
           const s = new Vector3();
           b.getSize(s);
-          expect(s.y, `${level.id} ${name} height`).toBeLessThan(1.5);
+          // Flat cups stay thin; bridge cups may rise with surfaceY (deck above Tripo).
+          const maxH = peakElev > 1 ? peakElev + 1.2 : 1.5;
+          expect(s.y, `${level.id} ${name} height`).toBeLessThan(maxH);
           expect(Math.max(s.x, s.z), `${level.id} ${name} span`).toBeGreaterThan(20);
         }
       }

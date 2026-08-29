@@ -133,8 +133,14 @@ Black polyline = centerline. Orange = ribbon hazards (on asphalt). Red = verge s
 <text x="251.6" y="483.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tire_stack@90</text>
 <circle cx="541.5" cy="283.5" r="4.5" fill="#e03131" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="548.5" y="277.5" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">tire_stack@400</text>
-<circle cx="382.0" cy="384.8" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
-<text x="389.0" y="378.8" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@220</text>
+<circle cx="332.2" cy="479.1" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="339.2" y="473.1" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@155</text>
+<circle cx="349.2" cy="467.9" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="356.2" y="461.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@169</text>
+<circle cx="361.9" cy="448.6" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="368.9" y="442.6" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@183</text>
+<circle cx="369.8" cy="424.6" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
+<text x="376.8" y="418.6" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@197</text>
 <circle cx="528.4" cy="247.9" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
 <text x="535.4" y="241.9" font-size="10" font-family="ui-sans-serif,sans-serif" font-weight="700" fill="#1a1a1a">uneven@380</text>
 <circle cx="568.2" cy="299.0" r="4.5" fill="#f08c00" stroke="#1a1a1a" stroke-width="1.2"/>
@@ -178,7 +184,10 @@ Black polyline = centerline. Orange = ribbon hazards (on asphalt). Red = verge s
 | --- | --- | --- | --- | --- |
 | verge | `tire_stack` | 90 | 1 | `public/models/track/tire-stack.glb` |
 | verge | `tire_stack` | 400 | -1 | `public/models/track/tire-stack.glb` |
-| ribbon | `uneven` | 220 | 0 | `public/models/track/rumble.glb` |
+| ribbon | `uneven` | 155 | 0 | `public/models/track/rumble.glb` |
+| ribbon | `uneven` | 169 | 0 | `public/models/track/rumble.glb` |
+| ribbon | `uneven` | 183 | 0 | `public/models/track/rumble.glb` |
+| ribbon | `uneven` | 197 | 0 | `public/models/track/rumble.glb` |
 | ribbon | `uneven` | 380 | 0 | `public/models/track/rumble.glb` |
 | ribbon | `ramp` | 420 | 0 | `public/models/track/ramp.glb` |
 | ribbon | `uneven` | 460 | 0 | `public/models/track/rumble.glb` |

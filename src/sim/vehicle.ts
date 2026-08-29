@@ -96,6 +96,8 @@ export interface CarState {
   miniTurboGrace: number;
   /** Rising-edge latch for nitro kick. */
   nitroHeld: boolean;
+  /** Previous-frame bump intensity — rising edge fires hop thump (CONCEPT §4.6). */
+  bumpSense: number;
   hp: number;
   nitro: number;
   koTimer: number;
@@ -145,6 +147,10 @@ const AIR_STEER_SCALE = 0.35;
 const AIRBORNE_EPS = 0.04;
 /** Need to be well onto the wedge before punching — fringe launches steal the hop. */
 export const RAMP_LAUNCH_GATE = 0.6;
+/** Rising-edge bump intensity that fires a street-hop thump (not full Schanze). */
+export const BUMP_HOP_GATE = 0.35;
+/** Min speed (m/s) before Rüttelstreifen / Unebenheit produce a vertical hop. */
+export const BUMP_HOP_MIN_SPEED = 9;
 const DRIFT_MIN_SPEED = 11;
 const OVERSTEER_MIN_SPEED = 17;
 const MINI_TURBO_TIME = 0.45;
@@ -232,6 +238,7 @@ export function createCarState(
     driftTime: 0,
     miniTurboGrace: 0,
     nitroHeld: false,
+    bumpSense: 0,
     hp: 1,
     nitro: 1,
     koTimer: 0,
@@ -260,8 +267,27 @@ export function createCarState(
   if (partial.driftTime === undefined) car.driftTime = 0;
   if (partial.miniTurboGrace === undefined) car.miniTurboGrace = 0;
   if (partial.nitroHeld === undefined) car.nitroHeld = false;
+  if (partial.bumpSense === undefined) car.bumpSense = 0;
   if (partial.lapShield === undefined) car.lapShield = 0;
   return car;
+}
+
+/**
+ * Short arcade hop when entering a bump zone at speed (CONCEPT §4.6).
+ * Rising edge only — successive Rüttelstreifen each thump once; Federung damps hard.
+ */
+export function bumpHopVy(opts: {
+  bump: number;
+  prevBump: number;
+  speed: number;
+  suspension: number;
+}): number {
+  if (opts.speed < BUMP_HOP_MIN_SPEED) return 0;
+  if (opts.bump < BUMP_HOP_GATE) return 0;
+  if (opts.prevBump >= BUMP_HOP_GATE) return 0;
+  const intensity = Math.min(1, opts.bump);
+  const suspEase = Math.min(0.62, Math.max(0, (opts.suspension - 0.5) * 0.55));
+  return (5.8 + opts.speed * 0.22) * intensity * (1 - suspEase);
 }
 
 export function isAirborne(car: CarState): boolean {
@@ -750,6 +776,24 @@ export function stepCar(
     car.vx *= bumpCut;
     car.vz *= bumpCut;
     syncSpeedFromVelocity(car);
+  }
+
+  // Rüttelstreifen / Unebenheit: rising-edge vertical thump (feelable hop, not Schanze)
+  if (!airborne) {
+    const hop = bumpHopVy({
+      bump: surface.bump,
+      prevBump: car.bumpSense,
+      speed: car.speed,
+      suspension: car.stats.suspension,
+    });
+    if (hop > 0) {
+      car.vy = Math.max(car.vy, hop);
+      car.y = Math.max(car.y, car.surfaceY + AIRBORNE_EPS + 0.02);
+    }
+    car.bumpSense = surface.bump;
+  } else {
+    // Re-arm in air so the next strip (or landing on a later crest) can thump again.
+    car.bumpSense = 0;
   }
 
   // Schanze launch / airtime / landing (CONCEPT §4.6) — relative to local surfaceY

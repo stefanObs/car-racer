@@ -18,9 +18,8 @@ import { instanceConcreteFenceBatch, instanceTrackPropBatch, planWallPlacements 
  * ExtrudeGeometry along closed CatmullRom curves flips frames → ~20 m tall
  * “green/gray walls” through the chase camera (Hafenstart RCA).
  *
- * When `elevate` is false, rings stay at yBottom/yTop even if the centerline has
- * authored height — used for bridge cups so the Tripo overpass is the only deck
- * mesh (elevated procedural asphalt was z-fighting through the bridge).
+ * When `elevate` is true (default), rings follow authored centerline height so
+ * bridge decks carry a comic asphalt strip above the Tripo mesh.
  */
 export function flatRibbonGeometry(
   track: BuiltTrack,
@@ -75,10 +74,8 @@ export function flatRibbonGeometry(
 export function buildSmoothTrack(track: BuiltTrack): Group {
   const root = new Group();
   const steps = Math.max(120, track.centerline.length * 4);
-  // Bridge cups: keep procedural ribbon on the ground. Cars follow surfaceY onto the
-  // Tripo overpass — elevating asphalt through the GLB made cars clip “through” the bridge.
-  const hasBridgeDeck = track.elevation.some((y) => y > 1);
-  const ribbonOpts = { elevate: !hasBridgeDeck };
+  // Follow authored surfaceY (bridge decks sit above the Tripo slab — see BRIDGE_DECK_Y_M).
+  const ribbonOpts = { elevate: true };
 
   const grassHalf = track.asphaltHalfWidth + track.grassWidth;
   const grass = withOutline(
@@ -106,10 +103,9 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
     const d1 = ((i + 0.55) / curbSamples) * track.totalLength;
     const a = sampleCenterline(track, d0);
     const b = sampleCenterline(track, d1);
-    // No ground curbs under the overpass climb — Tripo bridge carries the deck edges.
-    if (hasBridgeDeck && (a.y > 0.25 || b.y > 0.25)) continue;
     const mx = (a.position.x + b.position.x) / 2;
     const mz = (a.position.z + b.position.z) / 2;
+    const my = (a.y + b.y) * 0.5;
     const len = Math.hypot(b.position.x - a.position.x, b.position.z - a.position.z) || 0.5;
     const angle = Math.atan2(b.position.z - a.position.z, b.position.x - a.position.x);
     const color = i % 2 === 0 ? ComicPalette.curbLight : ComicPalette.curbDark;
@@ -118,7 +114,7 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
       const off = track.asphaltHalfWidth + 0.12;
       curb.position.set(
         mx + Math.sin(angle) * off * side,
-        0.14,
+        0.14 + my,
         mz - Math.cos(angle) * off * side,
       );
       curb.rotation.y = -angle;
@@ -130,7 +126,7 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
     // Center dashes
     if (i % 2 === 0) {
       const dash = new Mesh(new RoundedBoxGeometry(Math.min(len * 0.7, 2.4), 0.05, 0.22, 1, 0.02), comicToon(ComicPalette.asphaltLine));
-      dash.position.set(mx, 0.17, mz);
+      dash.position.set(mx, 0.17 + my, mz);
       dash.rotation.y = -angle;
       root.add(dash);
     }

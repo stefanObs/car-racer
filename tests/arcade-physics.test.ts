@@ -5,6 +5,8 @@ import { CUP_LEVELS } from "../src/data/levels";
 import {
   BASE_TOP,
   brakeForceFor,
+  bumpHopVy,
+  BUMP_HOP_GATE,
   createCarState,
   gripPullRate,
   isAirborne,
@@ -429,5 +431,129 @@ describe("arcade physics — Eigenschaften scaling", () => {
       }
     }
     expect(hops.length).toBeGreaterThan(0);
+  });
+});
+
+describe("successive street bumps (CONCEPT §4.6)", () => {
+  it("bumpHopVy fires on rising edge and scales with speed / Federung", () => {
+    const blitz = bumpHopVy({ bump: 0.7, prevBump: 0, speed: 22, suspension: 0.6 });
+    expect(blitz).toBeGreaterThan(6);
+    // Already on the strip — no re-fire
+    expect(bumpHopVy({ bump: 0.7, prevBump: BUMP_HOP_GATE, speed: 22, suspension: 0.6 })).toBe(0);
+    // Slow crawl — no hop
+    expect(bumpHopVy({ bump: 0.7, prevBump: 0, speed: 5, suspension: 0.6 })).toBe(0);
+    // Fringe below gate — no hop
+    expect(bumpHopVy({ bump: BUMP_HOP_GATE - 0.05, prevBump: 0, speed: 22, suspension: 0.6 })).toBe(0);
+    const soft = bumpHopVy({ bump: 0.7, prevBump: 0, speed: 22, suspension: 1.45 });
+    expect(soft).toBeLessThan(blitz * 0.72);
+    expect(soft).toBeGreaterThan(2);
+  });
+
+  it("Omegatal authors 3+ successive Rüttelstreifen in a tight series", () => {
+    const level = CUP_LEVELS.find((l) => l.id === "blitz_cup_04_buckelpiste")!;
+    expect(level).toBeTruthy();
+    const track = buildTrackFromLevel(level);
+    const uneven = level.obstacles
+      .filter((o) => o.type === "uneven")
+      .map((o) => nearestOnTrack(track, { x: o.position[0], z: o.position[1] }).distanceAlong)
+      .sort((a, b) => a - b);
+    expect(uneven.length).toBeGreaterThanOrEqual(4);
+
+    let bestRun = 1;
+    let run = 1;
+    for (let i = 1; i < uneven.length; i++) {
+      const gap = uneven[i]! - uneven[i - 1]!;
+      if (gap > 0 && gap <= 18) {
+        run += 1;
+        bestRun = Math.max(bestRun, run);
+      } else {
+        run = 1;
+      }
+    }
+    expect(bestRun).toBeGreaterThanOrEqual(3);
+  });
+
+  it("driving over a Rüttelstreifen at speed produces a clear y/vy spike", () => {
+    const level = CUP_LEVELS.find((l) => l.id === "blitz_cup_04_buckelpiste")!;
+    const track = buildTrackFromLevel(level);
+    const strip = level.obstacles.find((o) => o.type === "uneven")!;
+    const near = nearestOnTrack(track, { x: strip.position[0], z: strip.position[1] });
+    const approachAlong = (near.distanceAlong - 14 + track.totalLength) % track.totalLength;
+    const approach = sampleCenterline(track, approachAlong);
+    const heading = Math.atan2(approach.tangent.z, approach.tangent.x);
+    const car = createCarState({
+      id: "player",
+      x: approach.position.x,
+      z: approach.position.z,
+      heading,
+      isPlayer: true,
+      paint: "#e03131",
+      sticker: "none",
+      stats: merged("blitz"),
+      speed: 24,
+      distanceAlong: approachAlong,
+    });
+    car.vx = Math.cos(heading) * 24;
+    car.vz = Math.sin(heading) * 24;
+
+    let peakY = 0;
+    let peakVy = 0;
+    for (let i = 0; i < 120; i++) {
+      stepCar(car, { throttle: 1, brake: 0, steer: 0, nitro: false }, track, 1 / 60, catchUp, level.obstacles);
+      peakY = Math.max(peakY, car.y - car.surfaceY);
+      peakVy = Math.max(peakVy, car.vy);
+    }
+    expect(peakVy).toBeGreaterThan(3.5);
+    expect(peakY).toBeGreaterThan(0.18);
+    expect(peakY).toBeLessThan(1.6); // thump, not Schanze
+  });
+
+  it("successive Omegatal bumps each produce a distinct vy spike", () => {
+    const level = CUP_LEVELS.find((l) => l.id === "blitz_cup_04_buckelpiste")!;
+    const track = buildTrackFromLevel(level);
+    const series = level.obstacles
+      .filter((o) => o.type === "uneven")
+      .map((o) => ({
+        o,
+        along: nearestOnTrack(track, { x: o.position[0], z: o.position[1] }).distanceAlong,
+      }))
+      .sort((a, b) => a.along - b.along)
+      .filter((e, i, arr) => i === 0 || e.along - arr[i - 1]!.along <= 18)
+      .slice(0, 4);
+    expect(series.length).toBeGreaterThanOrEqual(3);
+
+    const startAlong = (series[0]!.along - 16 + track.totalLength) % track.totalLength;
+    const start = sampleCenterline(track, startAlong);
+    const heading = Math.atan2(start.tangent.z, start.tangent.x);
+    const car = createCarState({
+      id: "player",
+      x: start.position.x,
+      z: start.position.z,
+      heading,
+      isPlayer: true,
+      paint: "#e03131",
+      sticker: "none",
+      stats: merged("blitz"),
+      speed: 24,
+      distanceAlong: startAlong,
+    });
+    car.vx = Math.cos(heading) * 24;
+    car.vz = Math.sin(heading) * 24;
+
+    const spikes: number[] = [];
+    let armed = true;
+    for (let i = 0; i < 220; i++) {
+      const near = nearestOnTrack(track, { x: car.x, z: car.z });
+      // Mild centerline hold — same as a player staying on the racing line.
+      const steer = Math.max(-1, Math.min(1, -near.lateral * 0.45));
+      const prevVy = car.vy;
+      stepCar(car, { throttle: 1, brake: 0, steer, nitro: false }, track, 1 / 60, catchUp, level.obstacles);
+      if (armed && car.vy > prevVy + 2.5 && car.vy > 3.2) {
+        spikes.push(car.vy);
+        armed = false;
+      }
+      if (!isAirborne(car) && car.vy < 0.4) armed = true;
+    }
+    expect(spikes.length).toBeGreaterThanOrEqual(3);
   });
 });

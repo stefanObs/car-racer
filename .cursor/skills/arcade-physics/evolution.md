@@ -7,6 +7,13 @@ Implementation notes and feel decisions log **here** (newest first).
 
 ## Decision log
 
+### 2026-08-29 — Feelable successive Rüttelstreifen hops
+
+- Trigger: user — several bumps in a row; each must feel like an impact (not a tiny visual wiggle)
+- RCA: `uneven` only fed `surface.bump` → heading wobble + speed cut + render sin hop; never set `y`/`vy`
+- Decision: rising-edge `bumpHopVy` (gate + min speed; Federung damps hard; weaker than Schanze). Omegatal authors 4 successive `uneven` ~12 m apart. CONCEPT §4.6 Rüttelstreifen wording → short hop/thump.
+- Tests: `tests/arcade-physics.test.ts` bump hop + successive Omegatal spikes
+
 ### 2026-08-29 — Bridge / surface height (CONCEPT §4.4.1)
 
 - Trigger: user — bridge + 3D racing; Tripo kit `bridge`; then ship Brückenkreuz layout

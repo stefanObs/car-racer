@@ -354,7 +354,7 @@ export const CUP_LEVELS: LevelDefinition[] = [
     4,
     "blitz_cup_04_buckelpiste",
     "Omegatal",
-    "Berg-Omega (~1,4 km): Omega-Doppelkurve, Wasserfall, Schanze auf der Mittelgerade.",
+    "Berg-Omega (~1,4 km): Omega-Doppelkurve, Buckel-Serie, Wasserfall, Schanze auf der Mittelgerade.",
     "canyon",
     {
       grass: 3.5,
@@ -366,7 +366,11 @@ export const CUP_LEVELS: LevelDefinition[] = [
         { type: "tire_stack", along: 400, side: -1 },
       ],
       ribbonHazards: [
-        { type: "uneven", along: 220, intensity: 0.55, radius: 5 },
+        // Successive Rüttelstreifen (~14 m apart, wide) — each fires a rising-edge hop.
+        { type: "uneven", along: 155, intensity: 0.85, radius: 5.5 },
+        { type: "uneven", along: 169, intensity: 0.9, radius: 5.5 },
+        { type: "uneven", along: 183, intensity: 0.95, radius: 5.5 },
+        { type: "uneven", along: 197, intensity: 0.88, radius: 5.5 },
         { type: "uneven", along: 380, intensity: 0.8, radius: 6 },
         { type: "ramp", along: 420, intensity: 0.95, radius: 5 },
         { type: "uneven", along: 460, intensity: 0.65, radius: 5 },
