@@ -1,3 +1,4 @@
+import { Box3, Vector3 } from "three";
 import { describe, expect, it } from "vitest";
 import { NodeIO } from "@gltf-transform/core";
 import { ALL_EXTENSIONS } from "@gltf-transform/extensions";
@@ -5,14 +6,22 @@ import { getBounds } from "@gltf-transform/functions";
 import { resolve } from "node:path";
 import { CUP_LEVELS } from "../src/data/levels";
 import { buildTrackFromLevel, sampleCenterline } from "../src/track/buildTrack";
-import { BRIDGE_DECK_Y_M } from "../src/track/bridgeElevation";
+import {
+  BRIDGE_DECK_HALF_M,
+  BRIDGE_DECK_Y_M,
+  BRIDGE_RAMP_M,
+  elevationAt,
+  surfacePitchAt,
+} from "../src/track/bridgeElevation";
 import { TRACK_PROPS } from "../src/data/trackModels";
+import { buildSmoothTrack } from "../src/render/trackMesh";
 
 /**
  * RCA locks for Brückenkreuz bridge feel:
  * - Mesh deck at least as wide as asphalt
  * - Prop centered on the plan-view crossing (origin)
- * - Elevation climb is long/smooth (not a sharp edge)
+ * - Elevation climb is smooth (smoothstep), ramps match Tripo length
+ * - Procedural ribbon stays on the ground (Tripo deck is the overpass visual)
  */
 describe("bridge overpass alignment (RCA)", () => {
   const level = CUP_LEVELS.find((l) => l.id === "blitz_cup_06_brueckenkreuz")!;
@@ -39,7 +48,25 @@ describe("bridge overpass alignment (RCA)", () => {
     expect(Math.hypot(place!.x, place!.z)).toBeLessThan(2.5);
   });
 
-  it("uses a long smooth climb onto the deck (no sharp edge)", () => {
+  it("keeps procedural asphalt/grass on the ground so cars sit on the Tripo deck", () => {
+    // RCA: elevating flatRibbonGeometry through the bridge made cars look like they
+    // drive through the mesh (z-fight / dual decks). Physics still uses surfaceY.
+    const track = buildTrackFromLevel(level);
+    expect(Math.max(...track.elevation)).toBeGreaterThan(1);
+    const root = buildSmoothTrack(track);
+    root.updateMatrixWorld(true);
+    for (const name of ["trackGrass", "trackAsphalt"] as const) {
+      const mesh = root.getObjectByName(name);
+      expect(mesh, name).toBeTruthy();
+      const b = new Box3().setFromObject(mesh!);
+      const s = new Vector3();
+      b.getSize(s);
+      expect(s.y, `${name} must stay flat (not climb with surfaceY)`).toBeLessThan(1.5);
+      expect(b.max.y, `${name} top`).toBeLessThan(1);
+    }
+  });
+
+  it("uses a smoothstep climb onto the deck (no sharp kink)", () => {
     const track = buildTrackFromLevel(level);
     let peakD = 0;
     let peakY = 0;
@@ -52,12 +79,12 @@ describe("bridge overpass alignment (RCA)", () => {
     }
     expect(peakY).toBeGreaterThanOrEqual(BRIDGE_DECK_Y_M - 0.15);
 
-    // Sample mid-ramp: slope dy/ds should stay gentle (< ~12% average over 8 m).
-    const mid = peakD - 20;
+    // Mid-ramp slope stays driveable (smoothstep over BRIDGE_RAMP_M).
+    const mid = peakD - (BRIDGE_DECK_HALF_M + BRIDGE_RAMP_M * 0.5);
     const a = sampleCenterline(track, mid);
     const b = sampleCenterline(track, mid + 8);
     const slope = Math.abs(b.y - a.y) / 8;
-    expect(slope).toBeLessThan(0.15);
+    expect(slope).toBeLessThan(0.18);
 
     // Near the top of the climb, curvature of y should ease (smoothstep), not a kink.
     const y0 = sampleCenterline(track, peakD - 30).y;
@@ -65,7 +92,24 @@ describe("bridge overpass alignment (RCA)", () => {
     const y2 = sampleCenterline(track, peakD).y;
     expect(y1).toBeGreaterThan(y0);
     expect(y2).toBeGreaterThan(y1);
-    // Second half of climb gains less than first half (ease-out).
+    // Second half of climb gains less than first half (ease-out into flat deck).
     expect(y2 - y1).toBeLessThanOrEqual(y1 - y0 + 0.05);
+  });
+
+  it("pitches grounded cars to follow the ramp so wheels sit on the deck", () => {
+    const track = buildTrackFromLevel(level);
+    let climbAlong = 0;
+    for (let d = 0; d < track.totalLength; d += 0.5) {
+      const y = elevationAt(track, d);
+      if (y > 1.0 && y < BRIDGE_DECK_Y_M - 0.4) {
+        climbAlong = d;
+        break;
+      }
+    }
+    expect(climbAlong).toBeGreaterThan(0);
+    const pitch = surfacePitchAt(track, climbAlong);
+    expect(Math.abs(pitch)).toBeGreaterThan(0.08);
+    expect(Math.abs(pitch)).toBeLessThan(0.55);
+    expect(surfacePitchAt(track, 0)).toBeCloseTo(0, 2);
   });
 });

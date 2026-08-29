@@ -7,13 +7,19 @@ export const BRIDGE_CLEARANCE_M = 2.5;
  * Peak driveable deck height (m) — must match the baked Tripo bridge deck after sit.
  * Underpass clearance stays ≈ deckY − deckThickness.
  */
-export const BRIDGE_DECK_Y_M = 3.85;
+export const BRIDGE_DECK_Y_M = 3.87;
 
 /** Along-track half-length of the flat deck on top of the overpass (m). */
 export const BRIDGE_DECK_HALF_M = 8;
 
-/** Along-track length of each approach ramp (m) — long + smooth, not a Schanze edge. */
-export const BRIDGE_RAMP_M = 42;
+/**
+ * Along-track length of each approach ramp (m).
+ * Longer than the Tripo mesh ramps so the climb stays soft and the over/under
+ * decks are height-separated before the ribbons get close in plan view
+ * (avoids bogus median barriers at the crossing). Cars rise onto the mesh;
+ * the procedural ribbon stays flat so they read as on the Tripo deck.
+ */
+export const BRIDGE_RAMP_M = 36;
 
 /**
  * Racing ∞ (lemniscate of Gerono) in XZ with one elevated crossing pass.
@@ -108,6 +114,18 @@ export function elevationAt(track: BuiltTrack, distanceAlong: number): number {
   const d1 = dists[i1]!;
   const t = d1 > d0 ? (d - d0) / (d1 - d0) : 0;
   return elev[i0]! + (elev[i1]! - elev[i0]!) * t;
+}
+
+/**
+ * Nose pitch (rad) so grounded cars follow the bridge ramp / deck slope.
+ * Positive = nose up when climbing (matches RaceRenderer airborne pitch sign).
+ */
+export function surfacePitchAt(track: BuiltTrack, distanceAlong: number, lookM = 2.5): number {
+  if (!track.elevation?.length) return 0;
+  const half = Math.max(0.5, lookM);
+  const y0 = elevationAt(track, distanceAlong - half);
+  const y1 = elevationAt(track, distanceAlong + half);
+  return Math.atan2(y1 - y0, half * 2);
 }
 
 /** True when two along-samples are different decks at a bridge crossing. */

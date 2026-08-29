@@ -21,6 +21,7 @@ import type { RaceSession } from "../sim/race";
 import { forwardSpeedAlongHeading, type CarState } from "../sim/vehicle";
 import { surfaceAt } from "../sim/zones";
 import { sampleCenterline } from "../track/buildTrack";
+import { surfacePitchAt } from "../track/bridgeElevation";
 import { carStateLookKey } from "./carLookKey";
 import type { FinishCelebrate } from "../core/finishCelebrate";
 import { finishCelebrateProgress, isPodiumPlace } from "../core/finishCelebrate";
@@ -590,7 +591,10 @@ export class RaceRenderer {
           ? 0
           : bump * 0.25 * Math.sin(this.fxTime * 22 + car.progress * 3) +
             (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.05 : 0);
-      const pitch = airborne ? Math.min(0.55, car.vy * 0.045) : 0;
+      const airPitch = airborne ? Math.min(0.55, car.vy * 0.045) : 0;
+      // Follow authored elevation (bridge ramps) so wheels sit on the Tripo deck, not through it.
+      const groundPitch = airborne ? 0 : surfacePitchAt(session.track, car.distanceAlong);
+      const pitch = airPitch + groundPitch;
       const moveAng = Math.atan2(car.vz, car.vx);
       let slip = car.heading - moveAng;
       while (slip > Math.PI) slip -= Math.PI * 2;
