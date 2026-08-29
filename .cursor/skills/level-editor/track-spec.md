@@ -106,7 +106,7 @@ Minimal required keys: `id`, `kind`, `displayName`, `theme`, `track` (with cross
 }
 ```
 
-Generator must: close loop, assign walls by segment type, place start/finish, build AI line on asphalt center, optionally sprinkle `uneven` by `unevenRatio`.
+Generator must: close loop **with continuous heading at the start/finish** (seam kink ≲ 25° — no U-turn at ZIEL), assign walls by segment type, place start/finish on the racing line, build AI line on asphalt center, optionally sprinkle `uneven` by `unevenRatio`.
 
 ## Cup file layout
 

@@ -98,6 +98,7 @@ Task Progress:
 - [ ] **Racing corridor clear** — solid obstacles at verge, not blocking the obvious middle path
 - [ ] Passable props are low + high-contrast (rumble/oil); tall props collide and look blocking
 - [ ] Start/finish + ≥1 checkpoint sector; AI polyline stays on asphalt
+- [ ] **Start/finish seam** — approach and departure heading align (no U-turn / spur outside the loop)
 - [ ] Respawn points near track, not inside walls
 - [ ] Intro cups are not obstacle gauntlets
 - [ ] Uneven sections leave a clean racing line (not forced pure chaos)
@@ -113,5 +114,7 @@ Task Progress:
 - Ad-hoc is runtime; store seeds under `levels/adhoc/seeds.json` if persisted
 
 When implementing editor UI or generator code, keep this skill’s rules as the source of truth for legality — not ad-hoc exceptions in code comments.
+
+**In-game overlay:** **F8 Strecken-Editor** places kit props on a live cup mesh and copies an F8 patch; it does not replace this skill’s legality (asphalt → grass → wall, no self-cross). Bake overlay placements into scenery/JSON in a later step when an agent applies the patch.
 
 **Cheat sheets:** cup layout, theme kit, or obstacle changes must refresh `.cursor/cheatsheets/track-*.md` via `npm run docs:cheatsheets` in the same step.

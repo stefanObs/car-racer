@@ -49,6 +49,34 @@ export function trackSelfIntersects(track: BuiltTrack): boolean {
   return centerlineSelfIntersects(track.centerline);
 }
 
+/**
+ * Heading change across the start/finish seam (degrees).
+ * Large values mean the closing stitch forces a U-turn at the ZIEL line.
+ */
+export function loopSeamKinkDegrees(track: BuiltTrack, probeM = 3): number {
+  const len = track.totalLength;
+  if (len < probeM * 2) return 0;
+  const before = sampleTangent(track, len - probeM);
+  const after = sampleTangent(track, probeM);
+  const dot = Math.max(-1, Math.min(1, before.x * after.x + before.z * after.z));
+  return (Math.acos(dot) * 180) / Math.PI;
+}
+
+function sampleTangent(track: BuiltTrack, distance: number): Vec2 {
+  const d = ((distance % track.totalLength) + track.totalLength) % track.totalLength;
+  const dists = track.cumulativeDistances;
+  let i = 1;
+  while (i < dists.length && dists[i]! < d) i++;
+  const i1 = Math.min(i, track.centerline.length - 1);
+  const i0 = Math.max(0, i1 - 1);
+  const a = track.centerline[i0]!;
+  const b = track.centerline[i1]!;
+  const tx = b.x - a.x;
+  const tz = b.z - a.z;
+  const n = Math.hypot(tx, tz) || 1;
+  return { x: tx / n, z: tz / n };
+}
+
 /** World position on the racing ribbon (lateral 0 = center, + = left of travel). */
 export function pointOnTrack(
   track: BuiltTrack,

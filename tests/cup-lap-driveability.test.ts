@@ -12,7 +12,7 @@ import { TRACK_PROPS } from "../src/data/trackModels";
 import { planWallPlacements } from "../src/render/trackKit";
 import { RaceSession } from "../src/sim/race";
 import { buildTrackFromLevel, nearestOnTrack, sampleCenterline } from "../src/track/buildTrack";
-import { trackSelfIntersects } from "../src/track/validateTrack";
+import { loopSeamKinkDegrees, trackSelfIntersects } from "../src/track/validateTrack";
 
 describe("cup lap driveability + road clearance", () => {
   it("every cup is a closed non-crossing loop with a small seam gap", () => {
@@ -21,7 +21,7 @@ describe("cup lap driveability + road clearance", () => {
       expect(level.laps, level.id).toBe(5);
       const track = buildTrackFromLevel(level);
       expect(trackSelfIntersects(track), level.id).toBe(false);
-      expect(track.totalLength, level.id).toBeGreaterThan(180);
+      expect(track.totalLength, level.id).toBeGreaterThan(700);
       const a = track.centerline[0]!;
       const b = track.centerline[track.centerline.length - 1]!;
       const gap = Math.hypot(a.x - b.x, a.z - b.z);
@@ -29,7 +29,15 @@ describe("cup lap driveability + road clearance", () => {
     }
   });
 
-  it("driving one full circuit advances progress by ~track length and awards exactly one lap", () => {
+  it("keeps start/finish on the racing line (no U-turn kink at the seam)", () => {
+    for (const level of CUP_LEVELS) {
+      const track = buildTrackFromLevel(level);
+      const kink = loopSeamKinkDegrees(track);
+      expect(kink, `${level.id} seam kink ${kink.toFixed(1)}°`).toBeLessThan(25);
+    }
+  });
+
+  it("driving one full circuit advances progress by ~track length and awards exactly one lap", { timeout: 20_000 }, () => {
     for (const level of CUP_LEVELS) {
       const race = new RaceSession({
         level,
@@ -45,17 +53,17 @@ describe("cup lap driveability + road clearance", () => {
       const len = race.track.totalLength;
 
       let steps = 0;
-      const maxSteps = Math.ceil((len / 8) * 60) + 900;
+      const maxSteps = Math.ceil((len / 7) * 60) + 3000;
       while (player.lap <= startLap && steps < maxSteps) {
         const along = ((player.progress % len) + len) % len;
-        const look = sampleCenterline(race.track, along + 14);
+        const look = sampleCenterline(race.track, along + 16);
         const toX = look.position.x - player.x;
         const toZ = look.position.z - player.z;
         const want = Math.atan2(toZ, toX);
         let err = want - player.heading;
         while (err > Math.PI) err -= Math.PI * 2;
         while (err < -Math.PI) err += Math.PI * 2;
-        const steer = Math.max(-1, Math.min(1, err * 1.8));
+        const steer = Math.max(-1, Math.min(1, err * 1.7));
         race.step(1 / 60, { throttle: 1, brake: 0, steer, nitro: false, drift: false });
         steps += 1;
       }
