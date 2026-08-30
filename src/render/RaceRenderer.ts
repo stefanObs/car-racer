@@ -33,6 +33,7 @@ import { buildComicCar, type ComicCarParts } from "./comicCarMesh";
 import { comicToon, disposeObject } from "./comicMaterials";
 import { spinCarWheels } from "./carWheels";
 import { bodyBaseLean, bodyRollZ } from "./carBodyPose";
+import { chaseCameraPose } from "./chaseCamera";
 import { GaragePresenter, type GarageLook } from "./garagePresenter";
 import { buildLevelObstacles } from "./levelObstacles";
 import {
@@ -708,12 +709,9 @@ export class RaceRenderer {
       this.camera.lookAt(finish.position.x, podium ? 4.2 : 3.6, finish.position.z);
     } else {
       if (this.celebrateSeed !== -1) this.clearCelebrate();
-      const back = 7.2;
-      const height = 3.35 + Math.min(2.2, player.y * 0.55);
-      const camX = player.x - Math.cos(player.heading) * back;
-      const camZ = player.z - Math.sin(player.heading) * back;
-      this.camera.position.set(camX, height, camZ);
-      this.camera.lookAt(player.x, 0.9 + player.y * 0.65, player.z);
+      const pose = chaseCameraPose(player);
+      this.camera.position.set(pose.camX, pose.camY, pose.camZ);
+      this.camera.lookAt(pose.lookX, pose.lookY, pose.lookZ);
     }
     this.renderer.render(this.scene, this.camera);
   }
