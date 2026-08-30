@@ -14,6 +14,12 @@ Bump **N** when invariants, core loop, economy, modes, or art lock change. Typos
 
 Append newest first.
 
+### 2026-08-30 — Bridge = elevated asphalt + underpass (CONCEPT §4.4.1)
+
+- Trigger: user — Tripo bridge sat below the track; want a design you can drive under
+- Decision: Elevated comic asphalt **is** the bridge deck; ground pass is the underpass; concrete piers support. Tripo `bridge` optional ornament only. Deck ~3.4 m. Design sheet: `bridge-underpass-design.png`.
+- CONCEPT dokumentstand → v4.3
+
 ### 2026-08-29 — Rüttelstreifen feelable hop (CONCEPT §4.6)
 
 - Trigger: user — successive street bumps must each thump (real impact, not render wiggle)

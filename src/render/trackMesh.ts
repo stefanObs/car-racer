@@ -6,6 +6,7 @@ import {
 } from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
 import { sampleCenterline } from "../track/buildTrack";
+import { planBridgePiers } from "../track/bridgeElevation";
 import type { BuiltTrack } from "../track/types";
 import { comicToon, withOutline } from "./comicMaterials";
 import { ComicPalette } from "./palette";
@@ -19,7 +20,7 @@ import { instanceConcreteFenceBatch, instanceTrackPropBatch, planWallPlacements 
  * “green/gray walls” through the chase camera (Hafenstart RCA).
  *
  * When `elevate` is true (default), rings follow authored centerline height so
- * bridge decks carry a comic asphalt strip above the Tripo mesh.
+ * the elevated asphalt **is** the bridge deck (drive on top / underpass below).
  */
 export function flatRibbonGeometry(
   track: BuiltTrack,
@@ -74,12 +75,12 @@ export function flatRibbonGeometry(
 export function buildSmoothTrack(track: BuiltTrack): Group {
   const root = new Group();
   const steps = Math.max(120, track.centerline.length * 4);
-  // Follow authored surfaceY (bridge decks sit above the Tripo slab — see BRIDGE_DECK_Y_M).
-  const ribbonOpts = { elevate: true };
-
-  const grassHalf = track.asphaltHalfWidth + track.grassWidth;
+  const hasBridgeDeck = track.elevation.some((y) => y > 1);
+  // Asphalt climbs with the overpass; grass stays on the ground so the underpass stays open.
   const grass = withOutline(
-    flatRibbonGeometry(track, grassHalf, -0.02, 0.08, steps, ribbonOpts),
+    flatRibbonGeometry(track, track.asphaltHalfWidth + track.grassWidth, -0.02, 0.08, steps, {
+      elevate: !hasBridgeDeck,
+    }),
     comicToon(ComicPalette.grass),
     0.04,
   );
@@ -88,13 +89,15 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
   root.add(grass);
 
   const asphalt = withOutline(
-    flatRibbonGeometry(track, track.asphaltHalfWidth, 0.02, 0.16, steps, ribbonOpts),
+    flatRibbonGeometry(track, track.asphaltHalfWidth, 0.02, 0.16, steps, { elevate: true }),
     comicToon(ComicPalette.asphalt),
     0.035,
   );
   asphalt.name = "trackAsphalt";
   asphalt.receiveShadow = true;
   root.add(asphalt);
+
+  if (hasBridgeDeck) root.add(buildBridgePierGroup(track));
 
   // Red/white curb strips (inner & outer edge flashes via segmented boxes along curve)
   const curbSamples = Math.max(40, Math.floor(track.totalLength / 3));
@@ -154,6 +157,32 @@ export function buildSmoothTrack(track: BuiltTrack): Group {
   root.add(buildFinishLine(track));
 
   return root;
+}
+
+/** Comic concrete piers holding up the elevated deck — leave the center clear to drive under. */
+export function buildBridgePierGroup(track: BuiltTrack): Group {
+  const g = new Group();
+  g.name = "bridgePiers";
+  for (const pier of planBridgePiers(track)) {
+    const col = withOutline(
+      new RoundedBoxGeometry(1.35, pier.height, 1.35, 2, 0.1),
+      comicToon(ComicPalette.concrete),
+      0.05,
+    );
+    col.position.set(pier.x, pier.height * 0.5, pier.z);
+    col.rotation.y = pier.yaw;
+    col.castShadow = true;
+    col.receiveShadow = true;
+    g.add(col);
+    const hazard = new Mesh(
+      new RoundedBoxGeometry(1.45, 0.35, 0.12, 1, 0.02),
+      comicToon(0xffe066),
+    );
+    hazard.position.set(pier.x, Math.min(1.1, pier.height * 0.35), pier.z);
+    hazard.rotation.y = pier.yaw;
+    g.add(hazard);
+  }
+  return g;
 }
 
 function makeTireStack(x: number, z: number, rotY: number): Group {

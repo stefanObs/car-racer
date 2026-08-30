@@ -4,13 +4,13 @@ import type { BuiltTrack } from "./types";
 export const BRIDGE_CLEARANCE_M = 2.5;
 
 /**
- * Peak driveable deck height (m).
- * Must sit **above** the Tripo bridge volume (road ≈3.5–4.15, rails/arch ≈5.0)
- * so the whole car rides the comic asphalt strip instead of clipping through mesh.
+ * Peak driveable deck height (m) — underside of the elevated asphalt ribbon.
+ * Ground corridor passes under with ~deckY clear headroom (CONCEPT §4.4.1).
+ * The elevated ribbon **is** the bridge; Tripo `bridge` is optional ornament only.
  */
-export const BRIDGE_DECK_Y_M = 5.45;
+export const BRIDGE_DECK_Y_M = 3.4;
 
-/** Tripo road-surface median after bake (structure stays below the drive ribbon). */
+/** Legacy Tripo road median (kit still ships); drive plane no longer matches this. */
 export const BRIDGE_MESH_ROAD_Y_M = 3.87;
 
 /** Along-track half-length of the flat deck on top of the overpass (m). */
@@ -18,10 +18,9 @@ export const BRIDGE_DECK_HALF_M = 8;
 
 /**
  * Along-track length of each approach ramp (m).
- * Longer than the Tripo mesh ramps so the climb stays soft and the over/under
+ * Longer than a sharp wedge so the climb stays soft and the over/under
  * decks are height-separated before the ribbons get close in plan view
- * (avoids bogus median barriers at the crossing). Cars rise onto the mesh;
- * the procedural ribbon stays flat so they read as on the Tripo deck.
+ * (avoids bogus median barriers at the crossing).
  */
 export const BRIDGE_RAMP_M = 42;
 
@@ -180,4 +179,57 @@ export function bridgeCrossingPose(
     z: 0,
     yaw: Math.atan2(tx / len, tz / len),
   };
+}
+
+export type BridgePierPose = {
+  x: number;
+  y: number;
+  z: number;
+  yaw: number;
+  /** Pier column height (m) from ground to deck underside. */
+  height: number;
+};
+
+/**
+ * Concrete pier poses under the elevated pass so the overpass reads as a bridge
+ * you can drive under (CONCEPT §4.4.1). Skip low ramp samples.
+ */
+export function planBridgePiers(
+  track: BuiltTrack,
+  opts?: { stepM?: number; minDeckY?: number },
+): BridgePierPose[] {
+  const step = opts?.stepM ?? 9;
+  const minY = opts?.minDeckY ?? Math.max(BRIDGE_CLEARANCE_M + 0.15, BRIDGE_DECK_Y_M * 0.7);
+  const out: BridgePierPose[] = [];
+  const half = track.asphaltHalfWidth + 1.1;
+  for (let d = 0; d < track.totalLength; d += step) {
+    const y = elevationAt(track, d);
+    if (y < minY) continue;
+    const dists = track.cumulativeDistances;
+    let i = 1;
+    while (i < dists.length && dists[i]! < d) i++;
+    const i1 = Math.min(i, track.centerline.length - 1);
+    const i0 = Math.max(0, i1 - 1);
+    const a = track.centerline[i0]!;
+    const b = track.centerline[i1]!;
+    const tx = b.x - a.x;
+    const tz = b.z - a.z;
+    const len = Math.hypot(tx, tz) || 1;
+    const nx = -tz / len;
+    const nz = tx / len;
+    const px = a.x + (b.x - a.x) * 0.5;
+    const pz = a.z + (b.z - a.z) * 0.5;
+    const yaw = Math.atan2(tx / len, tz / len);
+    const height = Math.max(BRIDGE_CLEARANCE_M, y - 0.08);
+    for (const side of [-1, 1] as const) {
+      out.push({
+        x: px + nx * half * side,
+        y: 0,
+        z: pz + nz * half * side,
+        yaw,
+        height,
+      });
+    }
+  }
+  return out;
 }

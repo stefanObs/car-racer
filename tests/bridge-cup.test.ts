@@ -11,13 +11,14 @@ import { mergeStats } from "../src/data/parts";
 describe("Brückenkreuz bridge cup (CONCEPT §4.4.1)", () => {
   const level = CUP_LEVELS.find((l) => l.id === "blitz_cup_06_brueckenkreuz")!;
 
-  it("ships cup 6 with overpass theme, bridge scenery, and elevated deck", () => {
+  it("ships cup 6 with overpass theme, elevated deck, and open underpass", () => {
     expect(level).toBeTruthy();
     expect(level.displayName).toBe("Brückenkreuz");
     expect(level.theme).toBe("overpass");
     expect(level.laps).toBe(3);
     expect(level.track.authoredCenterline?.length).toBeGreaterThan(100);
-    expect(level.sceneryPlacements?.some((p) => p.kind === "bridge")).toBe(true);
+    // Elevated asphalt is the bridge — no floating Tripo prop required.
+    expect(level.sceneryPlacements?.some((p) => p.kind === "bridge") ?? false).toBe(false);
 
     const track = buildTrackFromLevel(level);
     expect(track.totalLength).toBeGreaterThan(700);

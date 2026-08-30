@@ -1,6 +1,6 @@
 import type { LevelClearanceGauge, LevelDefinition, LevelPanorama, LevelSceneryPlacement, TrackSegment } from "../track/types";
 import { buildTrackFromLevel, nearestOnTrack, sampleCenterline } from "../track/buildTrack";
-import { bridgeCrossingPose, figureEightBridgeCenterline } from "../track/bridgeElevation";
+import { figureEightBridgeCenterline } from "../track/bridgeElevation";
 import { planMedianBarriers } from "../track/medianBarriers";
 import { pointOnTrack } from "../track/validateTrack";
 
@@ -405,14 +405,14 @@ export const CUP_LEVELS: LevelDefinition[] = [
   makeBridgeCup(),
 ];
 
-/** Cup 6 — figure-8 overpass with Tripo bridge (CONCEPT §4.4.1). */
+/** Cup 6 — figure-8 overpass: elevated asphalt IS the bridge (CONCEPT §4.4.1). */
 function makeBridgeCup(): LevelDefinition {
   const authored = figureEightBridgeCenterline({ a: 115, samples: 280 });
-  const draft = makeCup(
+  return makeCup(
     6,
     "blitz_cup_06_brueckenkreuz",
     "Brückenkreuz",
-    "3D-Überführung (~0,9 km): ∞-Layout — oben über die Brücke, unten durch die Unterführung.",
+    "3D-Überführung (~0,9 km): ∞-Layout — oben über das Deck, unten durch die Unterführung.",
     "overpass",
     {
       grass: 3,
@@ -423,18 +423,6 @@ function makeBridgeCup(): LevelDefinition {
       panorama: { offsetY: 14, heightScale: 1.45 },
     },
   );
-  const track = buildTrackFromLevel(draft);
-  const pose = bridgeCrossingPose(track);
-  draft.sceneryPlacements = [
-    {
-      kind: "bridge",
-      x: pose.x,
-      y: pose.y,
-      z: pose.z,
-      yaw: pose.yaw,
-    },
-  ];
-  return draft;
 }
 
 export function levelById(id: string): LevelDefinition | undefined {

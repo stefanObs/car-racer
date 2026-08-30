@@ -593,7 +593,7 @@ export class RaceRenderer {
           : bump * 0.25 * Math.sin(this.fxTime * 22 + car.progress * 3) +
             (stage >= 2 ? Math.sin(this.fxTime * 18 + car.progress) * 0.05 : 0);
       const airPitch = airborne ? Math.min(0.55, car.vy * 0.045) : 0;
-      // Follow authored elevation (bridge ramps) so wheels sit on the Tripo deck, not through it.
+      // Follow authored elevation (bridge ramps) so wheels sit on the elevated deck.
       const groundPitch = airborne ? 0 : surfacePitchAt(session.track, car.distanceAlong);
       const pitch = airPitch + groundPitch;
       const moveAng = Math.atan2(car.vz, car.vx);

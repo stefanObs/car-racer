@@ -150,10 +150,10 @@ Strecken sind **nicht** immer flach. Arcade-3D heißt: die Fahrbahn hat eine **O
 | Element | Regel (testbar) |
 |---------|-----------------|
 | **Höhe (Y)** | Centerline darf authored Elevation haben (Rampen, Kuppen, Brückendeck). Geerdete Autos folgen `surfaceY`; Luftzeit = über der lokalen Oberfläche. |
-| **Brücke** | Erhöhtes **befahrbares Asphalt-Deck** mit Auffahrten, seitlichen Geländern und **Durchfahrt darunter**. Unter dem Deck muss klar Platz für ein Auto sein (arcade: ca. **2,5–3,5 m** lichte Höhe). |
+| **Brücke** | Das **erhöhte Asphaltband** ist die Brücke (Auffahrten + Deck). Darunter bleibt der flache Korridor als **Unterführung** frei (lichte Höhe ca. **2,5–3,5 m**). Beton-Pfeiler tragen das Deck; optional Tripo-`bridge`-Ornament. |
 | **Über/Unter** | Draufsicht-Kreuzung nur wenn die Decks **verschiedene Höhenbänder** haben (oben fahren / unten durchfahren). Falsche Ebene: **Sektionsmauer** / Pfeiler blocken. |
 | **Querschnitt** | Auch auf dem Deck: Asphalt → Gras (falls Rand) → Geländer/Mauer. Unten: normaler Asphalt→Gras→Mauer-Korridor unter der Brücke. |
-| **Lesbarkeit** | Gelbe Hazard-Markierungen an Auffahrten/Pfeilern; Deck und Unterführung auf einen Blick unterscheidbar (Asphalt-Comic, Tripo-Kit `bridge`). |
+| **Lesbarkeit** | Gelbe Hazard-Markierungen an Auffahrten/Pfeilern; Deck und Unterführung auf einen Blick unterscheidbar (Asphalt-Comic). Design: `assets/tripo-concepts/track-proposals/bridge-underpass-design.png`. |
 | **Scope** | Flache Cups bleiben gültig. **Brückenkreuz** (Cup 6) ist das erste handautorierte Brücken-Layout. Ad-hoc: **kein** Self-Cross / keine Brücke bis Generator-Support. |
 | **Fantasie** | Brücken dienen **schnellem Überholen / Layout-Tricks**, nicht Demolition — Kontakt bleibt Würze. |
 
@@ -471,7 +471,7 @@ Pro Fahrzeugklasse eine **eigene Cup-Serie** mit ~10 Rennen:
 - **Schikanenring** — Stadt mit Risk/Reward-Schikane (sichere Linie vs. Hot Line); Gebäude/Kontrollturm-Props; Skyline-Panorama  
 - **Omegatal** — Canyon: Omega-Doppelkurve, blinde Kuppe, Wasserfall-Abfahrt (`uneven`/`ramp`); Felsen/Spitzen/Gestrüpp (Tripo)  
 - **Kuppenfinale** — Cup-Boss mit vielen Kuppen/Schanzen; Waldhügel + vereinzelte Hallen (Tripo-Bäume), nicht Havenstadt-Kräne auf der Bahn  
-- **Brückenkreuz** — 3D-∞ mit Tripo-Brücke: oben über das Deck, unten durch die Unterführung (§4.4.1)  
+- **Brückenkreuz** — 3D-∞: erhöhtes Asphalt-Deck + Unterführung darunter (§4.4.1)  
 - Weitere Skins: Schrottplatz-Ring, Bergpass, Strandpiste  
 
 Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse = Sky-Dome + große Panorama-Meshes (keine voll modellierten Fern-Props). Nah-Props = Tripo-Kit **außerhalb** Asphalt/Gras (freie Mittellinie).
@@ -624,4 +624,4 @@ Jedes Theme: Asphalt/Gras/Mauer-Regel + 1–2 Signatur-Hindernisse. Fernkulisse 
 
 ---
 
-*Dokumentstand: Konzept v4.2 — Rüttelstreifen-Hop (echte y/vy, Serie).*
+*Dokumentstand: Konzept v4.3 — Brücke = erhöhtes Asphaltband + Unterführung (Pfeiler).*
